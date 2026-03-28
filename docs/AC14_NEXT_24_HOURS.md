@@ -16,29 +16,14 @@ The first honest slice is already in place:
 5. manual recomposition proof
 6. packet-local test materialization
 7. packet-to-codegen-context projection
+8. deterministic generated-component flow
+9. executable proof surface
+10. `llm_client`-backed generator with prompt YAML and structured output
+11. persisted comparison artifacts for one shipped example
 
-The previous lane exposed the proof surface as an executable workflow. The
-current lane is to add the first true `llm_client`-backed generator that
-consumes `CodegenContext` and can be selected through the operator surface.
-
-## Progress Update
-
-Completed:
-
-1. deterministic generated-component flow
-2. executable proof surface
-3. evidence bundle packaging
-4. CLI and Make surfaces for proof execution
-5. `llm_client`-backed generator with prompt YAML and structured output
-6. live LLM smoke and live CLI generation on the shipped example
-7. persisted comparison artifacts across generator modes
-8. comparison CLI and Make surfaces
-
-Next:
-
-1. broaden proof coverage beyond the shipped example
-2. richer semantic comparison between deterministic, LLM, and reference outputs
-3. decide whether to promote the LLM generator from optional to default for any lane
+The current gap is not "more generation." It is that proof is still too tied to
+one shipped example. This lane broadens proof coverage and removes the remaining
+example-specific execution assumptions.
 
 ## Execution Rule
 
@@ -46,70 +31,88 @@ Do not stop because of uncertainty that can be documented.
 
 If something is underspecified:
 
-1. record it here
+1. record it in this file and `docs/TODO.md`
 2. choose the smallest thesis-preserving option
-3. continue
+3. continue immediately
 
 Only stop if the next step would clearly contradict the frozen AC14 spec.
 
 ## Phases
 
-### Phase 1: Generator Comparison Contract
+### Phase 1: Control Surface Reset
 
 Deliverables:
 
-- comparison artifact schema
-- deterministic vs LLM comparison policy
-- persisted summary format
+- updated `CLAUDE.md`
+- updated `docs/TODO.md`
+- updated this plan with explicit phase criteria
 
 Acceptance criteria:
 
-- comparison output is explicit about which generator passed which checks
-- artifact is machine-readable and stable
+- the active lane is described honestly
+- each phase has explicit success criteria
+- the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Comparison Implementation
+### Phase 2: Generic Recomposition Proof
 
 Deliverables:
 
-- comparison runner across generator modes
-- persisted comparison artifact
-- fail-loud handling for partially successful runs
+- blueprint-driven recomposition scenario selection
+- removal of hard-coded example-specific fixture/component assumptions
+- fail-loud handling for non-runnable scenarios
 
 Acceptance criteria:
 
-- deterministic and LLM runs can both be summarized in one artifact
-- artifact records pass/fail by generator and check type
+- recomposition proof logic works from blueprint structure and fixtures
+- generated proof execution is no longer tied to `support_ticket_digest` internals
+- negative or incomplete scenarios are either rejected loudly or skipped under explicit rules
 
-### Phase 3: Operator Surface Integration
+### Phase 3: Multi-Example Coverage
 
 Deliverables:
 
-- CLI support for comparison report generation
-- Make support for comparison execution
+- example discovery or registry
+- at least one additional shipped blueprint bundle
+- proof execution across more than one blueprint
 
 Acceptance criteria:
 
-- operator can generate a comparison artifact without importing Python modules manually
-- deterministic path remains the default stable path
+- AC14 can enumerate the shipped blueprint suite
+- the full local proof lane passes on each shipped blueprint
 
-### Phase 4: Verification
+### Phase 4: Suite Artifacts And Operator Surface
 
 Deliverables:
 
-- deterministic unit tests for comparison artifacts
-- optional live comparison smoke when available
-- clean `pytest`, `mypy`, and `ruff` lanes
+- suite-level proof runner
+- suite-level comparison runner
+- CLI and Make targets for suite execution
+- persisted machine-readable suite artifacts
 
 Acceptance criteria:
 
-- local verification passes
-- uncertainties are documented without blocking progress
+- operator can prove the shipped suite without importing Python modules manually
+- operator can compare generator modes across the suite from the CLI/Make surface
+- suite artifacts record per-example and aggregate results
+
+### Phase 5: Verification And Lock
+
+Deliverables:
+
+- deterministic unit tests for generic proof and suite execution
+- updated TODO/plan state
+- clean local verification
+
+Acceptance criteria:
+
+- `pytest -q` passes
+- `python -m mypy ac14 tests` passes
+- `python -m ruff check ac14 tests` passes
+- docs match the implemented state
 
 ## Known Uncertainties
 
-1. generated code is allowed to be proof-slice-specific for the shipped example
-2. the first generator does not need LLM integration yet if packet-to-code flow
-   is honest and explicit
-3. evidence bundle schema may expand once more than one example exists
-4. live LLM execution may not be stable enough to be a required default gate
-5. full live comparison may be more expensive than the minimal smoke lane
+1. blueprint scenarios do not currently declare an explicit recomposition-proof mode
+2. the second shipped example should broaden coverage without forcing a new semantic-responsibility family in the same lane
+3. live suite-wide LLM comparison may remain optional if cost or latency is too high
+4. richer semantic comparison can remain a later lane after suite execution is honest

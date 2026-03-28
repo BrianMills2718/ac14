@@ -5,42 +5,45 @@ Last updated: 2026-03-28
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: LLM generator planning surface
-  - [x] strengthen `CLAUDE.md` for the LLM-generator lane
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with new phases
-  - [x] preserve deterministic generator as explicit control
+- [ ] Phase 1: freeze the suite-proof plan
+  - [ ] strengthen `CLAUDE.md` for the proof-expansion lane
+  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with explicit phases and success criteria
+  - [ ] keep this TODO as the running source of truth while the lane executes
+  - Success criteria: docs describe the active lane honestly and phases can be executed without stopping for interpretation
 
-- [x] Phase 2: structured LLM-backed generator
-  - [x] add prompt YAML for component generation
-  - [x] add structured response model
-  - [x] implement `llm_client`-backed generator from `CodegenContext`
-  - [x] fail loud on malformed or unsupported output
+- [ ] Phase 2: remove example-specific proof assumptions
+  - [ ] replace hard-coded recomposition fixture/component assumptions with blueprint-driven scenario execution
+  - [ ] define what makes a scenario runnable for full recomposition proof
+  - [ ] preserve fail-loud behavior for negative or underspecified scenarios
+  - Success criteria: generated proof execution no longer depends on `support_ticket_digest`-specific component ids or fixture ids
 
-- [x] Phase 3: operator surface integration
-  - [x] add generator selection to CLI
-  - [x] add generator selection to Make targets
-  - [x] keep deterministic generator as the default unless explicitly overridden
+- [ ] Phase 3: ship broader blueprint coverage
+  - [ ] add example discovery or registry for shipped blueprints
+  - [ ] add at least one additional shipped blueprint bundle
+  - [ ] ensure the second bundle exercises the existing semantic responsibilities without relying on copied proof artifacts
+  - Success criteria: AC14 can enumerate more than one shipped blueprint and execute the full local proof lane on each
 
-- [x] Phase 4: verification
-  - [x] deterministic unit tests for the LLM generator path using controlled mocks
-  - [x] optional live smoke path if environment and keys support it
-  - [x] full `pytest -q`
-  - [x] full `mypy`
-  - [x] full `ruff`
+- [ ] Phase 4: add suite-level evidence and comparison
+  - [ ] add suite proof runner across shipped examples
+  - [ ] add aggregate suite comparison across generator modes
+  - [ ] persist machine-readable suite artifacts
+  - Success criteria: one CLI/Make surface can produce a suite-level proof artifact and comparison artifact
 
-- [x] Phase 5: generator comparison evidence
-  - [x] compare deterministic and LLM-backed generated packages
-  - [x] persist comparison artifacts to disk
-  - [x] expose comparison through CLI and Make
-  - [x] verify comparison artifact contents in tests
+- [ ] Phase 5: verify and lock the lane
+  - [ ] add deterministic unit tests for suite discovery, suite proof, and suite comparison
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect the actual final state
+  - Success criteria: all local verification passes and the control docs match the implemented state
 
 ## Logged Uncertainties
 
-- generated code is still proof-slice-specific and deterministic
-- CLI output format should stay simple unless a stronger operator workflow is required
-- evidence bundle schema can evolve later if more than one example is added
-- live LLM availability may vary by environment; this is not a blocker for the local contract lane
-- live comparison across all components may cost more than the local smoke path
+- the generated component logic is still semantic-responsibility-specific rather than general synthesis
+- blueprint scenarios do not currently carry an explicit "full recomposition" flag, so suite execution must infer runnable scenarios conservatively
+- negative scenarios may remain packet-only if they do not provide enough information for a whole-graph run
+- the second shipped example should widen proof coverage without forcing a new semantic-responsibility family in the same lane
+- live LLM suite comparison may be too expensive for the default gate and may remain optional
 
 ## Latest Verified Results
 
@@ -52,6 +55,6 @@ Last updated: 2026-03-28
 
 ## Longer-Term Next Steps
 
-- [ ] compare deterministic vs LLM-backed generator outputs more deeply
-- [ ] widen proof surface beyond the shipped example
-- [ ] add richer evidence comparison between reference and generated implementations
+- [ ] compare deterministic, LLM, and reference outputs with richer semantic checks
+- [ ] decide whether any suite lane should promote the LLM generator from optional to default
+- [ ] widen semantic-responsibility coverage beyond the current ticket-digest slice

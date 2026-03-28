@@ -40,17 +40,19 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 - keep the active TODO ledger current and use it as the running control surface
 - when one phase passes, immediately advance the TODO state and start the next
 - the default assumption is CONTINUE, not WAIT
+- define explicit phase acceptance criteria before starting the phase
+- if a phase uncovers a new uncertainty, record it in the plan/TODO and keep moving
+- if one path is blocked, switch to the next thesis-preserving subphase instead of waiting
+- do not leave the repo in a half-landed state at the end of a work block; verify and commit
 
 The default failure mode here is waiting too early. Avoid that.
 
-## LLM Generator Rule
+## Active Proof Expansion Rule
 
-The next major lane is the first true LLM-backed generator.
+The active lane after the first LLM-backed generator is proof expansion.
 
-- use `llm_client`, not ad hoc provider code
-- use prompt YAML plus `render_prompt`, not f-string prompts
-- use structured output where the contract can be expressed honestly
-- if live execution is unavailable or flaky, keep the unit lane strong, log the
-  uncertainty, and continue building the local contract
-- do not remove the deterministic generator until the LLM-backed generator is
-  proven on the shipped example
+- remove hard-coded proof assumptions before adding more examples
+- prefer blueprint-driven scenario execution over example-specific wiring
+- prove the system on a suite of shipped blueprints, not one blueprint
+- keep deterministic generation as the control lane until a broader suite says otherwise
+- keep the TODO ledger and active 24-hour plan synchronized with the real lane
