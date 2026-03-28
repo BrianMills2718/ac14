@@ -37,5 +37,8 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 - log the uncertainty, make the smallest thesis-preserving choice, and continue
 - keep pushing until the active implementation lane is exhausted
 - commit every verified increment so rollback stays cheap
+- keep the active TODO ledger current and use it as the running control surface
+- when one phase passes, immediately advance the TODO state and start the next
+- the default assumption is CONTINUE, not WAIT
 
 The default failure mode here is waiting too early. Avoid that.

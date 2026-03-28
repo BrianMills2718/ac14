@@ -1,6 +1,6 @@
 # AC14 Next 24 Hours
 
-Status: Active
+Status: Completed
 Last updated: 2026-03-28
 
 ## Purpose
@@ -17,8 +17,9 @@ The first honest slice is already in place:
 6. packet-local test materialization
 7. packet-to-codegen-context projection
 
-The next lane is to close the gap between packet contexts and actual generated
-components.
+The previous lane closed the gap between packet contexts and actual generated
+components. The current lane is to expose that proof surface as an executable,
+operator-facing workflow with evidence artifacts.
 
 ## Progress Update
 
@@ -31,8 +32,9 @@ Completed:
 
 Next:
 
-1. widen evidence packaging beyond the shipped example
-2. decide how the first true LLM-backed generator should consume codegen contexts
+1. first LLM-backed generator using the existing codegen contexts
+2. broaden proof coverage beyond the shipped example
+3. richer evidence comparison between reference and generated implementations
 
 ## Execution Rule
 
@@ -48,60 +50,61 @@ Only stop if the next step would clearly contradict the frozen AC14 spec.
 
 ## Phases
 
-### Phase 1: Generated Component Emission
+### Phase 1: Evidence Bundle Packaging
 
 Deliverables:
 
-- packet-to-generated-module compiler
-- standalone emitted Python modules for the shipped example
-- deterministic support for the current proof slice
+- one bundle writer that packages blueprint path, generated package manifest,
+  packet-test report, recomposition result, and fresh-run summary
+- persisted artifacts under an output directory
 
 Acceptance criteria:
 
-- modules are emitted from codegen contexts, not hand-authored files
-- emitted code imports cleanly
-- generation fails loud for unsupported semantic responsibilities
+- bundle contents are sufficient to inspect a proof run without rerunning it
+- bundle writing is covered by tests
 
-### Phase 2: Generated Packet Test Execution
+### Phase 2: CLI Surface
 
 Deliverables:
 
-- loader for emitted components
-- packet-local test runner against emitted code
+- `python -m ac14 verify-blueprint`
+- `python -m ac14 generate-components`
+- `python -m ac14 prove-example`
+- `python -m ac14 fresh-runs`
 
 Acceptance criteria:
 
-- generated components pass packet-local tests on the shipped example
-- failures point back to component id and fixture id
+- commands succeed against the shipped example
+- commands write their expected artifacts
+- command failures are explicit and actionable
 
-### Phase 3: Generated Recomposition Proof
+### Phase 3: Make-Driven Proof Lane
 
 Deliverables:
 
-- full generated-component recomposition on the shipped example
-- comparison against expected digest outputs
+- make targets that wrap the proof commands
+- one smoke-tested local workflow for operators
 
 Acceptance criteria:
 
-- happy path passes
-- missing optional customer context path passes
+- `make help` exposes the proof targets
+- the shipped example can be proven without importing Python modules manually
 
-### Phase 4: Repeated Fresh-Run Evidence
+### Phase 4: Verification And Evidence
 
 Deliverables:
 
-- repeated fresh generation runs
-- summary artifact for pass/fail counts
+- clean test, mypy, and ruff lanes
+- TODO and plan artifacts updated to reflect actual progress
 
 Acceptance criteria:
 
-- multiple clean runs from scratch pass consistently
-- summary artifact is written to disk
+- verification passes after the new executable surface is added
+- TODO states show which phases are complete
 
 ## Known Uncertainties
 
 1. generated code is allowed to be proof-slice-specific for the shipped example
 2. the first generator does not need LLM integration yet if packet-to-code flow
    is honest and explicit
-3. repeated-run evidence can be deterministic in this slice; stochastic
-   generation comes later
+3. evidence bundle schema may expand once more than one example exists
