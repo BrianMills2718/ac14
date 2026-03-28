@@ -27,3 +27,15 @@ Do not broaden scope before that works.
   thesis-preserving option.
 - Commit every verified increment.
 - Do not add fallbacks to hide design mistakes.
+
+## Active Overnight Mode
+
+When AC14 has an active next-24-hours plan, execute it aggressively:
+
+- do not stop at a passing test and ask what to do next
+- do not treat documented uncertainties as blockers
+- log the uncertainty, make the smallest thesis-preserving choice, and continue
+- keep pushing until the active implementation lane is exhausted
+- commit every verified increment so rollback stays cheap
+
+The default failure mode here is waiting too early. Avoid that.
