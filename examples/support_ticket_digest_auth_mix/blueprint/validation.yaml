@@ -1,0 +1,27 @@
+global_invariants:
+  - invariant_id: digest_entry_ticket_id_consistency
+    description: DigestEntry.ticket_id must equal the joined upstream ticket_id.
+  - invariant_id: digest_store_unique_ticket_ids
+    description: DigestStore must contain at most one entry per ticket_id.
+
+scenarios:
+  - scenario_id: auth_known_customer
+    description: Auth issue with a known customer still produces a digest entry and customer context.
+    fixture_ids:
+      - auth_known_customer_ticket_parser
+      - auth_known_customer_issue_classifier
+      - auth_known_customer_priority_scorer
+      - auth_known_customer_customer_context_loader
+      - auth_known_customer_digest_assembler
+  - scenario_id: general_anonymous
+    description: General question with no customer context still joins cleanly.
+    fixture_ids:
+      - general_anonymous_ticket_parser
+      - general_anonymous_issue_classifier
+      - general_anonymous_priority_scorer
+      - general_anonymous_customer_context_loader
+      - general_anonymous_digest_assembler
+  - scenario_id: schema_mismatch_rejected
+    description: Digest assembler must reject incompatible required inputs.
+    fixture_ids:
+      - schema_mismatch_rejected_digest_assembler

@@ -9,10 +9,12 @@ from typing import cast
 
 from ac14.comparison import build_generator_comparison_report
 from ac14.evidence_bundle import build_evidence_bundle
+from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
+from ac14.suite import build_suite_comparison_report, build_suite_proof_report
 from ac14.validation import validate_blueprint
 
 
@@ -64,6 +66,39 @@ def main() -> int:
     compare_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     compare_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    list_examples_parser = subparsers.add_parser(
+        "list-examples",
+        help="List shipped blueprint examples.",
+    )
+    list_examples_parser.add_argument("--examples-root", type=Path, default=None)
+
+    prove_suite_parser = subparsers.add_parser(
+        "prove-suite",
+        help="Build persisted proof bundles across shipped examples.",
+    )
+    prove_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    prove_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    prove_suite_parser.add_argument("--fresh-run-trials", type=int, default=2)
+    prove_suite_parser.add_argument("--generator", choices=["deterministic", "llm"], default="deterministic")
+    prove_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    prove_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
+    compare_suite_parser = subparsers.add_parser(
+        "compare-suite",
+        help="Build persisted comparison artifacts across shipped examples.",
+    )
+    compare_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    compare_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    compare_suite_parser.add_argument(
+        "--generators",
+        nargs="+",
+        choices=["deterministic", "llm"],
+        default=["deterministic", "llm"],
+    )
+    compare_suite_parser.add_argument("--fresh-run-trials", type=int, default=2)
+    compare_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    compare_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -97,6 +132,26 @@ def main() -> int:
         return _compare_generators(
             args.blueprint_dir,
             args.output_dir,
+            [cast(GeneratorKind, generator) for generator in args.generators],
+            args.fresh_run_trials,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "list-examples":
+        return _list_examples(args.examples_root)
+    if args.command == "prove-suite":
+        return _prove_suite(
+            args.output_dir,
+            args.examples_root,
+            args.fresh_run_trials,
+            cast(GeneratorKind, args.generator),
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "compare-suite":
+        return _compare_suite(
+            args.output_dir,
+            args.examples_root,
             [cast(GeneratorKind, generator) for generator in args.generators],
             args.fresh_run_trials,
             args.model,
@@ -194,6 +249,63 @@ def _compare_generators(
     report = build_generator_comparison_report(
         blueprint_dir=blueprint_dir,
         output_dir=output_dir,
+        generator_kinds=generators,
+        fresh_run_trials=fresh_run_trials,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _list_examples(examples_root: Path | None) -> int:
+    """Print shipped blueprint examples."""
+
+    examples = discover_shipped_blueprints(examples_root)
+    print(
+        json.dumps(
+            [example.model_dump(mode="json") for example in examples],
+            indent=2,
+        ),
+    )
+    return 0
+
+
+def _prove_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    fresh_run_trials: int,
+    generator: GeneratorKind,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build a persisted suite proof report."""
+
+    report = build_suite_proof_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        fresh_run_trials=fresh_run_trials,
+        generator_kind=generator,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _compare_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    generators: list[GeneratorKind],
+    fresh_run_trials: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build a persisted suite comparison report."""
+
+    report = build_suite_comparison_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
         generator_kinds=generators,
         fresh_run_trials=fresh_run_trials,
         llm_model=model,

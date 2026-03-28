@@ -33,12 +33,15 @@ Completed:
 2. blueprint-driven recomposition scenario inference
 3. removal of hard-coded `support_ticket_digest` recomposition assumptions
 4. targeted proof/lint/type checks for the generic recomposition path
+5. shipped blueprint discovery and second bundled example
+6. suite-level proof and comparison artifacts
+7. CLI and Make support for suite workflows
+8. targeted suite verification across discovery, CLI, Make, and aggregate artifacts
 
 Next:
 
-1. example discovery or registry
-2. second shipped blueprint bundle
-3. suite-level proof and comparison artifacts
+1. full repo verification
+2. final control-doc lock and handoff state
 
 ## Execution Rule
 

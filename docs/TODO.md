@@ -17,16 +17,16 @@ Last updated: 2026-03-28
   - [x] preserve fail-loud behavior for negative or underspecified scenarios
   - Success criteria: generated proof execution no longer depends on `support_ticket_digest`-specific component ids or fixture ids
 
-- [ ] Phase 3: ship broader blueprint coverage
-  - [ ] add example discovery or registry for shipped blueprints
-  - [ ] add at least one additional shipped blueprint bundle
-  - [ ] ensure the second bundle exercises the existing semantic responsibilities without relying on copied proof artifacts
+- [x] Phase 3: ship broader blueprint coverage
+  - [x] add example discovery or registry for shipped blueprints
+  - [x] add at least one additional shipped blueprint bundle
+  - [x] ensure the second bundle exercises the existing semantic responsibilities without relying on copied proof artifacts
   - Success criteria: AC14 can enumerate more than one shipped blueprint and execute the full local proof lane on each
 
-- [ ] Phase 4: add suite-level evidence and comparison
-  - [ ] add suite proof runner across shipped examples
-  - [ ] add aggregate suite comparison across generator modes
-  - [ ] persist machine-readable suite artifacts
+- [x] Phase 4: add suite-level evidence and comparison
+  - [x] add suite proof runner across shipped examples
+  - [x] add aggregate suite comparison across generator modes
+  - [x] persist machine-readable suite artifacts
   - Success criteria: one CLI/Make surface can produce a suite-level proof artifact and comparison artifact
 
 - [ ] Phase 5: verify and lock the lane
@@ -53,6 +53,7 @@ Last updated: 2026-03-28
 - live unit smoke for `tests/test_live_llm_codegen.py` passed
 - live CLI generation with `python -m ac14 generate-components ... --generator llm` passed
 - targeted recomposition-proof tests passed after removing example-specific proof assumptions
+- targeted suite discovery, suite proof, suite comparison, CLI, and Make tests passed
 
 ## Longer-Term Next Steps
 

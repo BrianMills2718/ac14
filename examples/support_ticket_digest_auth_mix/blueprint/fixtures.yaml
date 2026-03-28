@@ -1,0 +1,240 @@
+fixtures:
+  - fixture_id: auth_known_customer_ticket_parser
+    scenario_id: auth_known_customer
+    component_id: ticket_parser
+    description: Parser normalizes an auth ticket for a known customer.
+    inputs:
+      raw_ticket:
+        ticket_id: T-200
+        submitted_at: 2026-03-28T02:00:00Z
+        customer_id: C-42
+        subject: Login loop after password reset
+        body: Login loop after password reset
+        tags: [auth]
+    expected_outputs:
+      parsed_ticket:
+        ticket_id: T-200
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+
+  - fixture_id: auth_known_customer_issue_classifier
+    scenario_id: auth_known_customer
+    component_id: issue_classifier
+    description: Classifier recognizes an auth issue.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-200
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+    expected_outputs:
+      issue_label:
+        ticket_id: T-200
+        label: auth
+        reason: login language maps to auth
+
+  - fixture_id: auth_known_customer_priority_scorer
+    scenario_id: auth_known_customer
+    component_id: priority_scorer
+    description: Priority scorer marks the auth issue as low.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-200
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+    expected_outputs:
+      priority_score:
+        ticket_id: T-200
+        priority_band: low
+        score: 20
+        reason: issue appears non-urgent
+
+  - fixture_id: auth_known_customer_customer_context_loader
+    scenario_id: auth_known_customer
+    component_id: customer_context_loader
+    description: Customer context is available for the known account.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-200
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+    expected_outputs:
+      customer_context:
+        ticket_id: T-200
+        customer_tier: growth
+        open_ticket_count: 1
+        account_health: healthy
+
+  - fixture_id: auth_known_customer_digest_assembler
+    scenario_id: auth_known_customer
+    component_id: digest_assembler
+    description: Join auth ticket inputs into one digest entry and store snapshot.
+    inputs:
+      on_ticket:
+        ticket_id: T-200
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+      on_label:
+        ticket_id: T-200
+        label: auth
+        reason: login language maps to auth
+      on_priority:
+        ticket_id: T-200
+        priority_band: low
+        score: 20
+        reason: issue appears non-urgent
+      on_customer_context:
+        ticket_id: T-200
+        customer_tier: growth
+        open_ticket_count: 1
+        account_health: healthy
+    expected_outputs:
+      digest_entry:
+        ticket_id: T-200
+        summary: Login loop after password reset
+        label: auth
+        priority_band: low
+        customer_tier: growth
+        action_hint: queue for standard triage
+      digest_store:
+        generated_at: "2026-03-28T02:00:00Z"
+        entries:
+          - ticket_id: T-200
+            summary: Login loop after password reset
+            label: auth
+            priority_band: low
+            customer_tier: growth
+            action_hint: queue for standard triage
+
+  - fixture_id: general_anonymous_ticket_parser
+    scenario_id: general_anonymous
+    component_id: ticket_parser
+    description: Parser normalizes a general anonymous ticket.
+    inputs:
+      raw_ticket:
+        ticket_id: T-201
+        submitted_at: 2026-03-28T02:05:00Z
+        customer_id:
+        subject: Need help understanding export options
+        body: Need help understanding export options
+        tags: [question]
+    expected_outputs:
+      parsed_ticket:
+        ticket_id: T-201
+        customer_id:
+        issue_summary: Need help understanding export options
+        normalized_text: need help understanding export options
+        features: [question]
+
+  - fixture_id: general_anonymous_issue_classifier
+    scenario_id: general_anonymous
+    component_id: issue_classifier
+    description: Classifier falls back to the general label.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-201
+        customer_id:
+        issue_summary: Need help understanding export options
+        normalized_text: need help understanding export options
+        features: [question]
+    expected_outputs:
+      issue_label:
+        ticket_id: T-201
+        label: general
+        reason: no stronger category matched
+
+  - fixture_id: general_anonymous_priority_scorer
+    scenario_id: general_anonymous
+    component_id: priority_scorer
+    description: Priority scorer marks the general question as low.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-201
+        customer_id:
+        issue_summary: Need help understanding export options
+        normalized_text: need help understanding export options
+        features: [question]
+    expected_outputs:
+      priority_score:
+        ticket_id: T-201
+        priority_band: low
+        score: 20
+        reason: issue appears non-urgent
+
+  - fixture_id: general_anonymous_customer_context_loader
+    scenario_id: general_anonymous
+    component_id: customer_context_loader
+    description: Customer context is omitted for anonymous tickets.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-201
+        customer_id:
+        issue_summary: Need help understanding export options
+        normalized_text: need help understanding export options
+        features: [question]
+    expected_outputs: {}
+
+  - fixture_id: general_anonymous_digest_assembler
+    scenario_id: general_anonymous
+    component_id: digest_assembler
+    description: Join still succeeds without optional customer context.
+    inputs:
+      on_ticket:
+        ticket_id: T-201
+        customer_id:
+        issue_summary: Need help understanding export options
+        normalized_text: need help understanding export options
+        features: [question]
+      on_label:
+        ticket_id: T-201
+        label: general
+        reason: no stronger category matched
+      on_priority:
+        ticket_id: T-201
+        priority_band: low
+        score: 20
+        reason: issue appears non-urgent
+    expected_outputs:
+      digest_entry:
+        ticket_id: T-201
+        summary: Need help understanding export options
+        label: general
+        priority_band: low
+        action_hint: queue for standard triage
+      digest_store:
+        generated_at: "2026-03-28T02:05:00Z"
+        entries:
+          - ticket_id: T-201
+            summary: Need help understanding export options
+            label: general
+            priority_band: low
+            action_hint: queue for standard triage
+
+  - fixture_id: schema_mismatch_rejected_digest_assembler
+    scenario_id: schema_mismatch_rejected
+    component_id: digest_assembler
+    description: Schema mismatch on a required input should fail validation before execution.
+    inputs:
+      on_ticket:
+        ticket_id: T-202
+        customer_id: C-42
+        issue_summary: Login loop after password reset
+        normalized_text: login loop after password reset
+        features: [auth]
+      on_label:
+        ticket_id: T-202
+        label: auth
+        reason: login language maps to auth
+      on_priority:
+        ticket_id: T-202
+        score: wrong-shape
+    expected_outputs: {}

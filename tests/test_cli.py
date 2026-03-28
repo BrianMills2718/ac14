@@ -10,6 +10,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_DIR = REPO_ROOT / "examples" / "support_ticket_digest" / "blueprint"
+EXAMPLES_ROOT = REPO_ROOT / "examples"
 
 
 def test_cli_verify_blueprint() -> None:
@@ -126,3 +127,79 @@ def test_cli_compare_generators_deterministic_only(tmp_path: Path) -> None:
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert len(payload["runs"]) == 1
+
+
+def test_cli_list_examples() -> None:
+    """List-examples command should return the shipped suite."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "list-examples",
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert len(payload) >= 2
+
+
+def test_cli_prove_suite(tmp_path: Path) -> None:
+    """Suite proof command should build an aggregate proof artifact."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "prove-suite",
+            "--output-dir",
+            str(tmp_path / "suite_proof"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--fresh-run-trials",
+            "1",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["example_count"] >= 2
+
+
+def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
+    """Suite comparison command should build an aggregate comparison artifact."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "compare-suite",
+            "--output-dir",
+            str(tmp_path / "suite_compare"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--fresh-run-trials",
+            "1",
+            "--generators",
+            "deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["example_count"] >= 2

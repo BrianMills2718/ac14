@@ -1,0 +1,17 @@
+metadata:
+  blueprint_id: support_ticket_digest_auth_mix_v1
+  name: Support Ticket Digest Auth Mix
+  version: 0.1.0
+  purpose: Broaden the AC14 proof suite with auth and general ticket flows.
+  source_kind: notebook_fixture
+  created_from: AC14 proof-expansion lane
+
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

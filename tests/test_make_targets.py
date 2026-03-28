@@ -8,6 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_DIR = REPO_ROOT / "examples" / "support_ticket_digest" / "blueprint"
+EXAMPLES_ROOT = REPO_ROOT / "examples"
 
 
 def test_make_help_lists_proof_targets() -> None:
@@ -25,6 +26,8 @@ def test_make_help_lists_proof_targets() -> None:
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
+    assert "prove-suite" in result.stdout
+    assert "compare-suite" in result.stdout
 
 
 def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
@@ -46,3 +49,46 @@ def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "manifest.json").exists()
+
+
+def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:
+    """Make suite proof target should build aggregate suite artifacts."""
+
+    output_dir = tmp_path / "suite_proof"
+    result = subprocess.run(
+        [
+            "make",
+            "prove-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "TRIALS=1",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "suite_proof_report.json").exists()
+
+
+def test_make_compare_suite_deterministic_only(tmp_path: Path) -> None:
+    """Make suite comparison target should build aggregate comparison artifacts."""
+
+    output_dir = tmp_path / "suite_compare"
+    result = subprocess.run(
+        [
+            "make",
+            "compare-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "TRIALS=1",
+            "GENERATORS=deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "suite_comparison_report.json").exists()

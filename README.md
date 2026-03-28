@@ -17,17 +17,23 @@ tool/runtime integration in the first pass.
 AC14 now supports:
 
 - loading and validating the six-file blueprint bundle
+- discovering a shipped suite of blueprint examples
 - compiling bounded component packets
 - emitting standalone generated Python components from packet/codegen contexts
 - running packet-local tests and recomposition proof on generated code
 - writing persisted evidence bundles and repeated fresh-run summaries
+- comparing deterministic and LLM-backed generators
+- building suite-level proof and comparison artifacts across shipped examples
 
 ## Quickstart
 
 ```bash
 make test
 make verify-blueprint
+make list-examples
 make generate-components OUTPUT=.ac14_out/generated
 make prove-example OUTPUT=.ac14_out/proof TRIALS=3
 make fresh-runs OUTPUT=.ac14_out/fresh TRIALS=3
+make prove-suite OUTPUT=.ac14_out/suite TRIALS=1
+make compare-suite OUTPUT=.ac14_out/suite_compare TRIALS=1 GENERATORS=deterministic
 ```

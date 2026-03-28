@@ -1,0 +1,126 @@
+components:
+  - component_id: ticket_parser
+    kind: transform
+    purpose: Normalize raw support tickets for downstream processing.
+    semantic_responsibility: parse_ticket
+    input_ports:
+      - name: raw_ticket
+        schema_id: RawTicket
+        description: Raw ticket submission.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: parsed_ticket
+        schema_id: ParsedTicket
+        description: Normalized ticket output.
+    local_invariants:
+      - parsed_ticket.ticket_id must equal raw_ticket.ticket_id
+    failure_semantics:
+      - fail loud if required raw ticket fields are absent
+    implementation_constraints:
+      - do not call external services
+
+  - component_id: issue_classifier
+    kind: transform
+    purpose: Assign an issue category to a parsed ticket.
+    semantic_responsibility: classify_issue
+    input_ports:
+      - name: parsed_ticket
+        schema_id: ParsedTicket
+        description: Parsed ticket for classification.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: issue_label
+        schema_id: IssueLabel
+        description: Classified issue label.
+    local_invariants:
+      - issue_label.ticket_id must equal parsed_ticket.ticket_id
+    failure_semantics:
+      - fail loud on missing parsed_ticket fields used for classification
+    implementation_constraints:
+      - keep the classifier deterministic in the first proof slice
+
+  - component_id: priority_scorer
+    kind: transform
+    purpose: Score ticket urgency from parsed ticket content.
+    semantic_responsibility: score_priority
+    input_ports:
+      - name: parsed_ticket
+        schema_id: ParsedTicket
+        description: Parsed ticket for priority scoring.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: priority_score
+        schema_id: PriorityScore
+        description: Priority output.
+    local_invariants:
+      - priority_score.ticket_id must equal parsed_ticket.ticket_id
+    failure_semantics:
+      - fail loud on missing parsed_ticket fields used for scoring
+    implementation_constraints:
+      - keep the scorer deterministic in the first proof slice
+
+  - component_id: customer_context_loader
+    kind: transform
+    purpose: Derive optional customer context from a parsed ticket.
+    semantic_responsibility: load_customer_context
+    input_ports:
+      - name: parsed_ticket
+        schema_id: ParsedTicket
+        description: Parsed ticket used to locate customer context.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: customer_context
+        schema_id: CustomerContext
+        description: Optional customer context.
+    local_invariants:
+      - customer_context.ticket_id must equal parsed_ticket.ticket_id when emitted
+    failure_semantics:
+      - omission is allowed when parsed_ticket.customer_id is absent
+    implementation_constraints:
+      - omit output rather than synthesizing placeholder context
+
+  - component_id: digest_assembler
+    kind: join
+    purpose: Join parsed ticket, label, priority, and optional customer context into a digest entry and store snapshot.
+    semantic_responsibility: assemble_digest_entry_and_update_store
+    input_ports:
+      - name: on_ticket
+        schema_id: ParsedTicket
+        description: Parsed ticket input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_label
+        schema_id: IssueLabel
+        description: Classified issue input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_priority
+        schema_id: PriorityScore
+        description: Priority input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_customer_context
+        schema_id: CustomerContext
+        description: Optional customer context input.
+        required: false
+        arrival_policy: optional_latest
+    output_ports:
+      - name: digest_entry
+        schema_id: DigestEntry
+        description: Joined digest entry.
+      - name: digest_store
+        schema_id: DigestStore
+        description: Updated digest store snapshot.
+    local_invariants:
+      - all required inputs must share the same ticket_id
+      - digest_entry.ticket_id must equal the joined ticket_id
+    failure_semantics:
+      - fail loud on required port schema mismatch
+      - omit customer tier when optional customer context is absent
+    implementation_constraints:
+      - correlate required inputs on ticket_id
+      - update the digest store deterministically
