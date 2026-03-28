@@ -42,3 +42,15 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 - the default assumption is CONTINUE, not WAIT
 
 The default failure mode here is waiting too early. Avoid that.
+
+## LLM Generator Rule
+
+The next major lane is the first true LLM-backed generator.
+
+- use `llm_client`, not ad hoc provider code
+- use prompt YAML plus `render_prompt`, not f-string prompts
+- use structured output where the contract can be expressed honestly
+- if live execution is unavailable or flaky, keep the unit lane strong, log the
+  uncertainty, and continue building the local contract
+- do not remove the deterministic generator until the LLM-backed generator is
+  proven on the shipped example

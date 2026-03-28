@@ -1,6 +1,6 @@
 # AC14 Next 24 Hours
 
-Status: Completed
+Status: Active
 Last updated: 2026-03-28
 
 ## Purpose
@@ -17,24 +17,28 @@ The first honest slice is already in place:
 6. packet-local test materialization
 7. packet-to-codegen-context projection
 
-The previous lane closed the gap between packet contexts and actual generated
-components. The current lane is to expose that proof surface as an executable,
-operator-facing workflow with evidence artifacts.
+The previous lane exposed the proof surface as an executable workflow. The
+current lane is to add the first true `llm_client`-backed generator that
+consumes `CodegenContext` and can be selected through the operator surface.
 
 ## Progress Update
 
 Completed:
 
-1. Phase 1: Generated Component Emission
-2. Phase 2: Generated Packet Test Execution
-3. Phase 3: Generated Recomposition Proof
-4. Phase 4: Repeated Fresh-Run Evidence
+1. deterministic generated-component flow
+2. executable proof surface
+3. evidence bundle packaging
+4. CLI and Make surfaces for proof execution
+5. `llm_client`-backed generator with prompt YAML and structured output
+6. live LLM smoke and live CLI generation on the shipped example
+7. persisted comparison artifacts across generator modes
+8. comparison CLI and Make surfaces
 
 Next:
 
-1. first LLM-backed generator using the existing codegen contexts
-2. broaden proof coverage beyond the shipped example
-3. richer evidence comparison between reference and generated implementations
+1. broaden proof coverage beyond the shipped example
+2. richer semantic comparison between deterministic, LLM, and reference outputs
+3. decide whether to promote the LLM generator from optional to default for any lane
 
 ## Execution Rule
 
@@ -50,57 +54,56 @@ Only stop if the next step would clearly contradict the frozen AC14 spec.
 
 ## Phases
 
-### Phase 1: Evidence Bundle Packaging
+### Phase 1: Generator Comparison Contract
 
 Deliverables:
 
-- one bundle writer that packages blueprint path, generated package manifest,
-  packet-test report, recomposition result, and fresh-run summary
-- persisted artifacts under an output directory
+- comparison artifact schema
+- deterministic vs LLM comparison policy
+- persisted summary format
 
 Acceptance criteria:
 
-- bundle contents are sufficient to inspect a proof run without rerunning it
-- bundle writing is covered by tests
+- comparison output is explicit about which generator passed which checks
+- artifact is machine-readable and stable
 
-### Phase 2: CLI Surface
+### Phase 2: Comparison Implementation
 
 Deliverables:
 
-- `python -m ac14 verify-blueprint`
-- `python -m ac14 generate-components`
-- `python -m ac14 prove-example`
-- `python -m ac14 fresh-runs`
+- comparison runner across generator modes
+- persisted comparison artifact
+- fail-loud handling for partially successful runs
 
 Acceptance criteria:
 
-- commands succeed against the shipped example
-- commands write their expected artifacts
-- command failures are explicit and actionable
+- deterministic and LLM runs can both be summarized in one artifact
+- artifact records pass/fail by generator and check type
 
-### Phase 3: Make-Driven Proof Lane
+### Phase 3: Operator Surface Integration
 
 Deliverables:
 
-- make targets that wrap the proof commands
-- one smoke-tested local workflow for operators
+- CLI support for comparison report generation
+- Make support for comparison execution
 
 Acceptance criteria:
 
-- `make help` exposes the proof targets
-- the shipped example can be proven without importing Python modules manually
+- operator can generate a comparison artifact without importing Python modules manually
+- deterministic path remains the default stable path
 
-### Phase 4: Verification And Evidence
+### Phase 4: Verification
 
 Deliverables:
 
-- clean test, mypy, and ruff lanes
-- TODO and plan artifacts updated to reflect actual progress
+- deterministic unit tests for comparison artifacts
+- optional live comparison smoke when available
+- clean `pytest`, `mypy`, and `ruff` lanes
 
 Acceptance criteria:
 
-- verification passes after the new executable surface is added
-- TODO states show which phases are complete
+- local verification passes
+- uncertainties are documented without blocking progress
 
 ## Known Uncertainties
 
@@ -108,3 +111,5 @@ Acceptance criteria:
 2. the first generator does not need LLM integration yet if packet-to-code flow
    is honest and explicit
 3. evidence bundle schema may expand once more than one example exists
+4. live LLM execution may not be stable enough to be a required default gate
+5. full live comparison may be more expensive than the minimal smoke lane

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from ac14.generated_codegen import emit_generated_package
+from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import (
     run_fresh_generation_trials,
     run_generated_packet_tests,
@@ -39,6 +39,10 @@ def build_evidence_bundle(
     blueprint_dir: Path | str,
     output_dir: Path | str,
     fresh_run_trials: int = 3,
+    *,
+    generator_kind: GeneratorKind = "deterministic",
+    llm_model: str = "gemini/gemini-2.5-flash-lite",
+    llm_max_budget: float = 0.50,
 ) -> EvidenceBundleManifest:
     """Build and persist a complete proof bundle for the shipped example."""
 
@@ -50,7 +54,14 @@ def build_evidence_bundle(
     packet_bundle = compile_packets(blueprint)
 
     generated_dir = destination / "generated"
-    generated_package = emit_generated_package(packet_bundle, generated_dir)
+    generated_package = emit_generated_package(
+        packet_bundle,
+        generated_dir,
+        generator_kind=generator_kind,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+        trace_id_prefix="ac14/evidence_bundle",
+    )
     packet_test_report = run_generated_packet_tests(packet_bundle, generated_package)
     recomposition_report = RecompositionReport(
         passed=run_generated_recomposition_proof(blueprint_path, generated_package),
@@ -59,6 +70,9 @@ def build_evidence_bundle(
         blueprint_dir=blueprint_path,
         trial_count=fresh_run_trials,
         output_dir=destination / "fresh_runs",
+        generator_kind=generator_kind,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
     )
 
     _write_json(destination / "packet_bundle_summary.json", _packet_bundle_summary(packet_bundle))

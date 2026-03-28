@@ -99,3 +99,30 @@ def test_cli_fresh_runs(tmp_path: Path) -> None:
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert payload["trial_count"] == 2
+
+
+def test_cli_compare_generators_deterministic_only(tmp_path: Path) -> None:
+    """Comparison command should write a persisted report."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "compare-generators",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "comparison"),
+            "--fresh-run-trials",
+            "2",
+            "--generators",
+            "deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert len(payload["runs"]) == 1

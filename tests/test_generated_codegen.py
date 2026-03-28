@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import Mock
+
+from pytest import MonkeyPatch
 
 from ac14.generated_codegen import emit_generated_package, load_generated_component_builders
 from ac14.loader import load_blueprint_dir
@@ -37,3 +40,45 @@ def test_load_generated_component_builders_imports_generated_modules(tmp_path: P
     )
 
     assert outputs == blueprint.fixtures["happy_path_ticket_parser"].expected_outputs
+
+
+def test_emit_generated_package_llm_path_uses_llm_generator(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    """LLM generator mode should delegate module source generation through the LLM path."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    packet_bundle = compile_packets(blueprint)
+
+    fake_llm_generator = Mock(
+        return_value=type(
+            "Resp",
+            (),
+            {
+                "module_code": (
+                    "class GeneratedComponent:\n"
+                    "    def execute(self, inputs):\n"
+                    "        return {}\n\n"
+                    "def build_component():\n"
+                    "    return GeneratedComponent()\n"
+                ),
+            },
+        )(),
+    )
+    monkeypatch.setattr(
+        "ac14.generated_codegen.generate_component_module_with_llm",
+        fake_llm_generator,
+    )
+
+    generated_package = emit_generated_package(
+        packet_bundle,
+        tmp_path / "generated",
+        generator_kind="llm",
+        llm_model="test-model",
+        llm_max_budget=0.1,
+        trace_id_prefix="test/llm",
+    )
+
+    assert generated_package.generator_kind == "llm"
+    assert fake_llm_generator.call_count == len(packet_bundle.packets)

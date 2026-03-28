@@ -5,27 +5,39 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 from collections.abc import Callable
+from typing import Literal
 from pathlib import Path
 from types import ModuleType
 
 from pydantic import BaseModel, Field
 
 from ac14.codegen_context import CodegenContext, build_codegen_context
+from ac14.llm_codegen import DEFAULT_LLM_MAX_BUDGET, DEFAULT_LLM_MODEL, generate_component_module_with_llm
 from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.runtime import RuntimeComponent
 
+GeneratorKind = Literal["deterministic", "llm"]
 
 class GeneratedPackage(BaseModel):
     """Record of files emitted for a generated component package."""
 
     output_dir: str = Field(description="Directory containing emitted modules.")
+    generator_kind: GeneratorKind = Field(description="Generator used for emitted modules.")
     module_paths: dict[str, str] = Field(
         description="Module paths keyed by component identifier.",
     )
 
 
-def emit_generated_package(packet_bundle: PacketBundle, output_dir: Path | str) -> GeneratedPackage:
+def emit_generated_package(
+    packet_bundle: PacketBundle,
+    output_dir: Path | str,
+    *,
+    generator_kind: GeneratorKind = "deterministic",
+    llm_model: str = DEFAULT_LLM_MODEL,
+    llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+    trace_id_prefix: str = "ac14/generated_codegen",
+) -> GeneratedPackage:
     """Emit standalone Python modules for all components in a packet bundle."""
 
     destination = Path(output_dir)
@@ -36,12 +48,22 @@ def emit_generated_package(packet_bundle: PacketBundle, output_dir: Path | str) 
     module_paths: dict[str, str] = {}
     for component_id, packet in packet_bundle.packets.items():
         context = build_codegen_context(packet, packet_cases[component_id])
-        module_source = _render_module_source(context)
+        module_source = _render_module_source(
+            context,
+            generator_kind=generator_kind,
+            llm_model=llm_model,
+            llm_max_budget=llm_max_budget,
+            trace_id=f"{trace_id_prefix}/{component_id}",
+        )
         module_path = destination / f"{component_id}.py"
         module_path.write_text(module_source)
         module_paths[component_id] = str(module_path)
 
-    return GeneratedPackage(output_dir=str(destination), module_paths=module_paths)
+    return GeneratedPackage(
+        output_dir=str(destination),
+        generator_kind=generator_kind,
+        module_paths=module_paths,
+    )
 
 
 def load_generated_component_builders(
@@ -71,9 +93,24 @@ def _load_module(component_id: str, module_path: Path) -> ModuleType:
     return module
 
 
-def _render_module_source(context: CodegenContext) -> str:
+def _render_module_source(
+    context: CodegenContext,
+    *,
+    generator_kind: GeneratorKind,
+    llm_model: str,
+    llm_max_budget: float,
+    trace_id: str,
+) -> str:
     """Render a standalone module for one supported semantic responsibility."""
 
+    if generator_kind == "llm":
+        response = generate_component_module_with_llm(
+            context,
+            model=llm_model,
+            trace_id=trace_id,
+            max_budget=llm_max_budget,
+        )
+        return response.module_code
     if context.semantic_responsibility == "parse_ticket":
         return _render_parse_ticket_module()
     if context.semantic_responsibility == "classify_issue":

@@ -8,7 +8,12 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from ac14.generated_codegen import GeneratedPackage, emit_generated_package, load_generated_component_builders
+from ac14.generated_codegen import (
+    GeneratedPackage,
+    GeneratorKind,
+    emit_generated_package,
+    load_generated_component_builders,
+)
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint, PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
@@ -121,6 +126,10 @@ def run_fresh_generation_trials(
     blueprint_dir: Path | str,
     trial_count: int,
     output_dir: Path | str,
+    *,
+    generator_kind: GeneratorKind = "deterministic",
+    llm_model: str = "gemini/gemini-2.5-flash-lite",
+    llm_max_budget: float = 0.50,
 ) -> FreshRunSummary:
     """Run repeated fresh generation trials and write a summary artifact."""
 
@@ -132,7 +141,14 @@ def run_fresh_generation_trials(
     trials: list[FreshRunTrial] = []
     for trial_id in range(1, trial_count + 1):
         package_dir = destination / f"trial_{trial_id}"
-        generated_package = emit_generated_package(packet_bundle, package_dir)
+        generated_package = emit_generated_package(
+            packet_bundle,
+            package_dir,
+            generator_kind=generator_kind,
+            llm_model=llm_model,
+            llm_max_budget=llm_max_budget,
+            trace_id_prefix=f"ac14/fresh_run_trial_{trial_id}",
+        )
         packet_report = run_generated_packet_tests(packet_bundle, generated_package)
         recomposition_passed = run_generated_recomposition_proof(blueprint_dir, generated_package)
         trials.append(

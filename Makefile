@@ -7,8 +7,11 @@ PYTHON := python3
 INPUT ?= examples/support_ticket_digest/blueprint
 OUTPUT ?= .ac14_out
 TRIALS ?= 3
+GENERATOR ?= deterministic
+MODEL ?= gemini/gemini-2.5-flash-lite
+MAX_BUDGET ?= 0.50
 
-.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs
+.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -31,11 +34,14 @@ status: ## Show git status
 verify-blueprint: ## Validate a blueprint bundle (INPUT=examples/.../blueprint)
 	$(PYTHON) -m ac14 verify-blueprint "$(INPUT)"
 
-generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated)
-	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)"
+generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated GENERATOR=deterministic|llm)
+	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
-prove-example: ## Build a persisted proof bundle (INPUT=... OUTPUT=.ac14_out/proof TRIALS=3)
-	$(PYTHON) -m ac14 prove-example "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)"
+prove-example: ## Build a persisted proof bundle (INPUT=... OUTPUT=.ac14_out/proof TRIALS=3 GENERATOR=deterministic|llm)
+	$(PYTHON) -m ac14 prove-example "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
-fresh-runs: ## Run repeated fresh generation trials (INPUT=... OUTPUT=.ac14_out/fresh TRIALS=3)
-	$(PYTHON) -m ac14 fresh-runs "$(INPUT)" --output-dir "$(OUTPUT)" --trials "$(TRIALS)"
+fresh-runs: ## Run repeated fresh generation trials (INPUT=... OUTPUT=.ac14_out/fresh TRIALS=3 GENERATOR=deterministic|llm)
+	$(PYTHON) -m ac14 fresh-runs "$(INPUT)" --output-dir "$(OUTPUT)" --trials "$(TRIALS)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+compare-generators: ## Compare generator modes (INPUT=... OUTPUT=.ac14_out/compare)
+	$(PYTHON) -m ac14 compare-generators "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)" --generators deterministic llm --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

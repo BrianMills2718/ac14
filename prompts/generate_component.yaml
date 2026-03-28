@@ -1,0 +1,78 @@
+name: ac14_generate_component
+version: "1.0"
+description: Generate one standalone Python component module from an AC14 codegen context.
+messages:
+  - role: system
+    content: |
+      You are generating one AC14 component module from a bounded local context.
+
+      Your job is to write a complete standalone Python module that:
+      - defines a `GeneratedComponent` class
+      - defines `GeneratedComponent.execute(self, inputs)`
+      - defines a `build_component()` function returning `GeneratedComponent()`
+      - uses only the provided local context
+      - fails loud rather than hiding mistakes
+
+      Do not add markdown fences. Return only structured fields.
+
+  - role: user
+    content: |
+      Generate a standalone Python module for this component.
+
+      Component:
+      - component_id: {{ context.component_id }}
+      - purpose: {{ context.purpose }}
+      - semantic_responsibility: {{ context.semantic_responsibility }}
+
+      Input ports:
+      {% for port_name, schema_id in context.input_ports.items() %}
+      - {{ port_name }}: {{ schema_id }}
+      {% endfor %}
+
+      Output ports:
+      {% for port_name, schema_id in context.output_ports.items() %}
+      - {{ port_name }}: {{ schema_id }}
+      {% endfor %}
+
+      Local invariants:
+      {% for invariant in context.local_invariants %}
+      - {{ invariant }}
+      {% endfor %}
+
+      Failure semantics:
+      {% for item in context.failure_semantics %}
+      - {{ item }}
+      {% endfor %}
+
+      Implementation constraints:
+      {% for item in context.implementation_constraints %}
+      - {{ item }}
+      {% endfor %}
+
+      Upstream components:
+      {% for component_id, summary in context.upstream_components.items() %}
+      - {{ component_id }}: {{ summary.semantic_responsibility }} — {{ summary.purpose }}
+      {% endfor %}
+
+      Downstream components:
+      {% for component_id, summary in context.downstream_components.items() %}
+      - {{ component_id }}: {{ summary.semantic_responsibility }} — {{ summary.purpose }}
+      {% endfor %}
+
+      Owned state stores:
+      {% for store_id, store in context.owned_state_stores.items() %}
+      - {{ store_id }}: {{ store.description }} ({{ store.update_semantics }})
+      {% endfor %}
+
+      Packet test cases:
+      {% for case in context.packet_test_cases %}
+      - fixture_id: {{ case.fixture_id }}
+        scenario_id: {{ case.scenario_id }}
+        description: {{ case.description }}
+        inputs: {{ case.inputs }}
+        expected_outputs: {{ case.expected_outputs }}
+      {% endfor %}
+
+      Required output:
+      - `module_code` must be a complete Python module
+      - `implementation_notes` should be short, concrete, and mention any proof-slice assumptions

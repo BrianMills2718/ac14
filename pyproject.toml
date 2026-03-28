@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Decomposition-first coding agent prototype"
 requires-python = ">=3.11"
 dependencies = [
+    "llm_client",
     "pydantic>=2.0",
     "pyyaml>=6.0",
 ]
@@ -24,6 +25,9 @@ include = ["ac14*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "live: requires live LLM API calls",
+]
 
 [tool.mypy]
 strict = true
