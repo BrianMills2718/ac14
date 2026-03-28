@@ -1,0 +1,161 @@
+schemas:
+  - schema_id: RawTicket
+    kind: object
+    description: Raw support ticket submitted by a user.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: submitted_at
+        type: string
+        required: true
+        description: Submission timestamp.
+      - name: customer_id
+        type: string
+        required: false
+        description: Customer identifier if known.
+        optional_reason: Some tickets are anonymous or unattached to an account.
+        absence_meaning: The system should treat the ticket as having no customer record.
+      - name: subject
+        type: string
+        required: true
+        description: Short ticket subject line.
+      - name: body
+        type: string
+        required: true
+        description: Full ticket body text.
+      - name: tags
+        type: list[string]
+        required: true
+        description: User- or system-provided ticket tags.
+
+  - schema_id: ParsedTicket
+    kind: object
+    description: Normalized ticket representation used by downstream components.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: customer_id
+        type: string
+        required: false
+        description: Customer identifier if known.
+        optional_reason: Raw tickets may not include an attached customer.
+        absence_meaning: Downstream components should skip customer lookups.
+      - name: issue_summary
+        type: string
+        required: true
+        description: Normalized issue summary.
+      - name: normalized_text
+        type: string
+        required: true
+        description: Cleaned body text used by downstream heuristics.
+      - name: features
+        type: list[string]
+        required: true
+        description: Extracted feature tokens from the ticket.
+
+  - schema_id: IssueLabel
+    kind: object
+    description: Classified issue category.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: label
+        type: string
+        required: true
+        description: Issue category label.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the label.
+
+  - schema_id: PriorityScore
+    kind: object
+    description: Priority assessment for one ticket.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: priority_band
+        type: string
+        required: true
+        description: Bucketed priority label.
+      - name: score
+        type: integer
+        required: true
+        description: Numeric priority score.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the score.
+
+  - schema_id: CustomerContext
+    kind: object
+    description: Optional customer context associated with a ticket.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: customer_tier
+        type: string
+        required: true
+        description: Account tier label.
+      - name: open_ticket_count
+        type: integer
+        required: true
+        description: Number of still-open tickets for the customer.
+      - name: account_health
+        type: string
+        required: true
+        description: Qualitative account health label.
+
+  - schema_id: DigestEntry
+    kind: object
+    description: Joined digest record for one processed ticket.
+    fields:
+      - name: ticket_id
+        type: string
+        required: true
+        description: Stable ticket identifier.
+      - name: summary
+        type: string
+        required: true
+        description: Summary used in the digest.
+      - name: label
+        type: string
+        required: true
+        description: Classified issue label.
+      - name: priority_band
+        type: string
+        required: true
+        description: Priority bucket.
+      - name: customer_tier
+        type: string
+        required: false
+        description: Customer tier when customer context exists.
+        optional_reason: Customer context is optional in v1.
+        absence_meaning: No customer context was available for this ticket.
+      - name: action_hint
+        type: string
+        required: true
+        description: Operator-facing action hint.
+
+  - schema_id: DigestStore
+    kind: object
+    description: Rolling store of digest entries.
+    fields:
+      - name: generated_at
+        type: string
+        required: true
+        description: Timestamp of the current store snapshot.
+      - name: entries
+        type: list[DigestEntry]
+        required: true
+        description: Ordered digest entries.

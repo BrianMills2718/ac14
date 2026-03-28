@@ -1,0 +1,17 @@
+metadata:
+  blueprint_id: support_ticket_digest_v1
+  name: Support Ticket Digest
+  version: 0.1.0
+  purpose: Prove non-linear decomposition and recomposition on a small workflow.
+  source_kind: notebook_fixture
+  created_from: AC14 planning notebook
+
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

@@ -1,0 +1,185 @@
+fixtures:
+  - fixture_id: happy_path_ticket_parser
+    scenario_id: happy_path
+    component_id: ticket_parser
+    description: Parser normalizes a raw billing ticket.
+    inputs:
+      raw_ticket:
+        ticket_id: T-100
+        submitted_at: 2026-03-28T01:00:00Z
+        customer_id: C-7
+        subject: Billing failed on renewal
+        body: Renewal payment failed and the account became inactive.
+        tags: [billing, renewal]
+    expected_outputs:
+      parsed_ticket:
+        ticket_id: T-100
+        customer_id: C-7
+        issue_summary: Billing failed on renewal
+        normalized_text: renewal payment failed and the account became inactive
+        features: [billing, renewal]
+
+  - fixture_id: happy_path_issue_classifier
+    scenario_id: happy_path
+    component_id: issue_classifier
+    description: Classifier recognizes a billing issue.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-100
+        customer_id: C-7
+        issue_summary: Billing failed on renewal
+        normalized_text: renewal payment failed and the account became inactive
+        features: [billing, renewal]
+    expected_outputs:
+      issue_label:
+        ticket_id: T-100
+        label: billing
+        reason: keywords indicate a billing problem
+
+  - fixture_id: happy_path_priority_scorer
+    scenario_id: happy_path
+    component_id: priority_scorer
+    description: Priority scorer flags a revenue-affecting issue as high.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-100
+        customer_id: C-7
+        issue_summary: Billing failed on renewal
+        normalized_text: renewal payment failed and the account became inactive
+        features: [billing, renewal]
+    expected_outputs:
+      priority_score:
+        ticket_id: T-100
+        priority_band: high
+        score: 91
+        reason: renewal failure affects revenue
+
+  - fixture_id: happy_path_customer_context_loader
+    scenario_id: happy_path
+    component_id: customer_context_loader
+    description: Customer context is available for a known account.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-100
+        customer_id: C-7
+        issue_summary: Billing failed on renewal
+        normalized_text: renewal payment failed and the account became inactive
+        features: [billing, renewal]
+    expected_outputs:
+      customer_context:
+        ticket_id: T-100
+        customer_tier: enterprise
+        open_ticket_count: 2
+        account_health: watch
+
+  - fixture_id: happy_path_digest_assembler
+    scenario_id: happy_path
+    component_id: digest_assembler
+    description: Join required inputs and optional customer context into one digest entry.
+    inputs:
+      on_ticket:
+        ticket_id: T-100
+        customer_id: C-7
+        issue_summary: Billing failed on renewal
+        normalized_text: renewal payment failed and the account became inactive
+        features: [billing, renewal]
+      on_label:
+        ticket_id: T-100
+        label: billing
+        reason: keywords indicate a billing problem
+      on_priority:
+        ticket_id: T-100
+        priority_band: high
+        score: 91
+        reason: renewal failure affects revenue
+      on_customer_context:
+        ticket_id: T-100
+        customer_tier: enterprise
+        open_ticket_count: 2
+        account_health: watch
+    expected_outputs:
+      digest_entry:
+        ticket_id: T-100
+        summary: Billing failed on renewal
+        label: billing
+        priority_band: high
+        customer_tier: enterprise
+        action_hint: escalate to billing operations
+      digest_store:
+        generated_at: 2026-03-28T01:00:00Z
+        entries:
+          - ticket_id: T-100
+            summary: Billing failed on renewal
+            label: billing
+            priority_band: high
+            customer_tier: enterprise
+            action_hint: escalate to billing operations
+
+  - fixture_id: missing_customer_context_customer_context_loader
+    scenario_id: missing_customer_context
+    component_id: customer_context_loader
+    description: Loader omits output when no customer_id is present.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-101
+        customer_id:
+        issue_summary: Cannot update profile
+        normalized_text: cannot update profile
+        features: [profile]
+    expected_outputs: {}
+
+  - fixture_id: missing_customer_context_digest_assembler
+    scenario_id: missing_customer_context
+    component_id: digest_assembler
+    description: Join still succeeds when optional customer context is omitted.
+    inputs:
+      on_ticket:
+        ticket_id: T-101
+        customer_id:
+        issue_summary: Cannot update profile
+        normalized_text: cannot update profile
+        features: [profile]
+      on_label:
+        ticket_id: T-101
+        label: account
+        reason: profile update maps to account domain
+      on_priority:
+        ticket_id: T-101
+        priority_band: medium
+        score: 55
+        reason: functional issue but no outage
+    expected_outputs:
+      digest_entry:
+        ticket_id: T-101
+        summary: Cannot update profile
+        label: account
+        priority_band: medium
+        action_hint: route to account support
+      digest_store:
+        generated_at: 2026-03-28T01:05:00Z
+        entries:
+          - ticket_id: T-101
+            summary: Cannot update profile
+            label: account
+            priority_band: medium
+            action_hint: route to account support
+
+  - fixture_id: schema_mismatch_rejected_digest_assembler
+    scenario_id: schema_mismatch_rejected
+    component_id: digest_assembler
+    description: Schema mismatch on a required input should fail validation before execution.
+    inputs:
+      on_ticket:
+        ticket_id: T-102
+        customer_id: C-9
+        issue_summary: Login loop
+        normalized_text: login loop
+        features: [login]
+      on_label:
+        ticket_id: T-102
+        label: auth
+        reason: login maps to auth
+      on_priority:
+        ticket_id: T-102
+        score: wrong-shape
+    expected_outputs: {}

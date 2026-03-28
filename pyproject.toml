@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ac14"
+version = "0.1.0"
+description = "Decomposition-first coding agent prototype"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.0",
+    "pytest>=7.0",
+    "ruff>=0.3.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["ac14*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+line-length = 100

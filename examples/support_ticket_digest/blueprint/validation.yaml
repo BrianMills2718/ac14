@@ -1,0 +1,24 @@
+global_invariants:
+  - invariant_id: digest_entry_ticket_id_consistency
+    description: DigestEntry.ticket_id must equal the joined upstream ticket_id.
+  - invariant_id: digest_store_unique_ticket_ids
+    description: DigestStore must contain at most one entry per ticket_id.
+
+scenarios:
+  - scenario_id: happy_path
+    description: All required inputs exist and customer context is available.
+    fixture_ids:
+      - happy_path_ticket_parser
+      - happy_path_issue_classifier
+      - happy_path_priority_scorer
+      - happy_path_customer_context_loader
+      - happy_path_digest_assembler
+  - scenario_id: missing_customer_context
+    description: Customer context is omitted but required inputs still join.
+    fixture_ids:
+      - missing_customer_context_customer_context_loader
+      - missing_customer_context_digest_assembler
+  - scenario_id: schema_mismatch_rejected
+    description: Digest assembler must reject incompatible required inputs.
+    fixture_ids:
+      - schema_mismatch_rejected_digest_assembler

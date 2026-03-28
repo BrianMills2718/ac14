@@ -1,0 +1,36 @@
+bindings:
+  - from_component: ticket_parser
+    from_port: parsed_ticket
+    to_component: issue_classifier
+    to_port: parsed_ticket
+  - from_component: ticket_parser
+    from_port: parsed_ticket
+    to_component: priority_scorer
+    to_port: parsed_ticket
+  - from_component: ticket_parser
+    from_port: parsed_ticket
+    to_component: customer_context_loader
+    to_port: parsed_ticket
+  - from_component: ticket_parser
+    from_port: parsed_ticket
+    to_component: digest_assembler
+    to_port: on_ticket
+  - from_component: issue_classifier
+    from_port: issue_label
+    to_component: digest_assembler
+    to_port: on_label
+  - from_component: priority_scorer
+    from_port: priority_score
+    to_component: digest_assembler
+    to_port: on_priority
+  - from_component: customer_context_loader
+    from_port: customer_context
+    to_component: digest_assembler
+    to_port: on_customer_context
+
+state_stores:
+  - store_id: digest_store
+    owner_component: digest_assembler
+    schema_id: DigestStore
+    description: Rolling digest snapshot keyed by processed ticket_id.
+    update_semantics: replace existing entry on repeated ticket_id, otherwise append
