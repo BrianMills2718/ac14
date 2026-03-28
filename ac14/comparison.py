@@ -19,6 +19,12 @@ class GeneratorRunSummary(BaseModel):
     bundle_dir: str = Field(description="Directory containing the persisted evidence bundle.")
     packet_tests_passed: bool = Field(description="Whether packet-local tests passed.")
     recomposition_passed: bool = Field(description="Whether generated recomposition passed.")
+    recomposition_runnable_scenarios: int = Field(
+        description="Number of runnable recomposition scenarios in the proof run.",
+    )
+    recomposition_skipped_scenarios: int = Field(
+        description="Number of skipped recomposition scenarios in the proof run.",
+    )
     fresh_run_passed_trials: int = Field(description="Number of passing fresh-run trials.")
     fresh_run_failed_trials: int = Field(description="Number of failing fresh-run trials.")
     module_hashes: dict[str, str] = Field(description="SHA256 hashes keyed by component id.")
@@ -69,6 +75,8 @@ def build_generator_comparison_report(
                 bundle_dir=str(bundle_dir),
                 packet_tests_passed=packet_test_report["passed"],
                 recomposition_passed=recomposition_report["passed"],
+                recomposition_runnable_scenarios=recomposition_report["runnable_scenario_count"],
+                recomposition_skipped_scenarios=len(recomposition_report["skipped_scenarios"]),
                 fresh_run_passed_trials=fresh_run_summary["passed_trials"],
                 fresh_run_failed_trials=fresh_run_summary["failed_trials"],
                 module_hashes=_module_hashes(generated_package_manifest["module_paths"]),

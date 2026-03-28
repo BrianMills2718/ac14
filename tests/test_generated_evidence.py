@@ -36,7 +36,11 @@ def test_generated_components_pass_recomposition_proof(tmp_path: Path) -> None:
     packet_bundle = compile_packets(blueprint)
     generated_package = emit_generated_package(packet_bundle, tmp_path / "generated")
 
-    assert run_generated_recomposition_proof(EXAMPLE_DIR, generated_package)
+    report = run_generated_recomposition_proof(EXAMPLE_DIR, generated_package)
+    assert report.passed is True
+    assert report.runnable_scenario_count == 2
+    assert len(report.skipped_scenarios) == 1
+    assert report.skipped_scenarios[0].scenario_id == "schema_mismatch_rejected"
 
 
 def test_run_fresh_generation_trials_writes_summary_artifact(tmp_path: Path) -> None:

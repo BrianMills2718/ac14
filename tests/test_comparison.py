@@ -27,5 +27,7 @@ def test_build_generator_comparison_report_for_deterministic_mode(tmp_path: Path
     assert run.generator_kind == "deterministic"
     assert run.packet_tests_passed is True
     assert run.recomposition_passed is True
+    assert run.recomposition_runnable_scenarios == 2
+    assert run.recomposition_skipped_scenarios == 1
     assert run.fresh_run_passed_trials == 2
     assert "ticket_parser" in run.module_hashes

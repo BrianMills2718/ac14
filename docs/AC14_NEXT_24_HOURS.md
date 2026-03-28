@@ -25,6 +25,21 @@ The current gap is not "more generation." It is that proof is still too tied to
 one shipped example. This lane broadens proof coverage and removes the remaining
 example-specific execution assumptions.
 
+## Progress Update
+
+Completed:
+
+1. control-surface reset for the suite-proof lane
+2. blueprint-driven recomposition scenario inference
+3. removal of hard-coded `support_ticket_digest` recomposition assumptions
+4. targeted proof/lint/type checks for the generic recomposition path
+
+Next:
+
+1. example discovery or registry
+2. second shipped blueprint bundle
+3. suite-level proof and comparison artifacts
+
 ## Execution Rule
 
 Do not stop because of uncertainty that can be documented.

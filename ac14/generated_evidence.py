@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -15,10 +14,10 @@ from ac14.generated_codegen import (
     load_generated_component_builders,
 )
 from ac14.loader import load_blueprint_dir
-from ac14.models import FrozenBlueprint, PacketBundle
+from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
-from ac14.runtime import RuntimeComponent, run_blueprint_once
+from ac14.recomposition import RecompositionReport, run_recomposition_proof
 
 
 class PacketCaseResult(BaseModel):
@@ -102,24 +101,12 @@ def run_generated_packet_tests(
 def run_generated_recomposition_proof(
     blueprint_dir: Path | str,
     generated_package: GeneratedPackage,
-) -> bool:
-    """Run the two shipped recomposition scenarios against generated components."""
+) -> RecompositionReport:
+    """Run blueprint-driven recomposition scenarios against generated components."""
 
     blueprint = load_blueprint_dir(blueprint_dir)
     builders = load_generated_component_builders(generated_package)
-    happy_path_ok = _run_recomposition_case(
-        blueprint,
-        builders,
-        raw_ticket_fixture_id="happy_path_ticket_parser",
-        expected_fixture_id="happy_path_digest_assembler",
-    )
-    missing_context_ok = _run_recomposition_case(
-        blueprint,
-        builders,
-        raw_ticket_fixture_id="missing_customer_context_ticket_parser",
-        expected_fixture_id="missing_customer_context_digest_assembler",
-    )
-    return happy_path_ok and missing_context_ok
+    return run_recomposition_proof(blueprint, builders)
 
 
 def run_fresh_generation_trials(
@@ -150,13 +137,13 @@ def run_fresh_generation_trials(
             trace_id_prefix=f"ac14/fresh_run_trial_{trial_id}",
         )
         packet_report = run_generated_packet_tests(packet_bundle, generated_package)
-        recomposition_passed = run_generated_recomposition_proof(blueprint_dir, generated_package)
+        recomposition_report = run_generated_recomposition_proof(blueprint_dir, generated_package)
         trials.append(
             FreshRunTrial(
                 trial_id=trial_id,
                 package_dir=str(package_dir),
                 packet_tests_passed=packet_report.passed,
-                recomposition_passed=recomposition_passed,
+                recomposition_passed=recomposition_report.passed,
             ),
         )
 
@@ -174,25 +161,6 @@ def run_fresh_generation_trials(
         json.dumps(summary.model_dump(mode="json"), indent=2),
     )
     return summary
-
-
-def _run_recomposition_case(
-    blueprint: FrozenBlueprint,
-    builders: dict[str, Callable[[], RuntimeComponent]],
-    raw_ticket_fixture_id: str,
-    expected_fixture_id: str,
-) -> bool:
-    """Run one recomposition scenario from a raw-ticket fixture."""
-
-    implementations = {component_id: builder() for component_id, builder in builders.items()}
-    raw_ticket = blueprint.fixtures[raw_ticket_fixture_id].inputs["raw_ticket"]
-    expected_outputs = blueprint.fixtures[expected_fixture_id].expected_outputs
-    outputs = run_blueprint_once(
-        blueprint,
-        implementations,
-        initial_inputs={"ticket_parser": {"raw_ticket": raw_ticket}},
-    )
-    return outputs["digest_assembler"] == expected_outputs
 
 
 def _expects_failure(scenario_id: str) -> bool:

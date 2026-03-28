@@ -5,16 +5,16 @@ Last updated: 2026-03-28
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze the suite-proof plan
-  - [ ] strengthen `CLAUDE.md` for the proof-expansion lane
-  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with explicit phases and success criteria
-  - [ ] keep this TODO as the running source of truth while the lane executes
+- [x] Phase 1: freeze the suite-proof plan
+  - [x] strengthen `CLAUDE.md` for the proof-expansion lane
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with explicit phases and success criteria
+  - [x] keep this TODO as the running source of truth while the lane executes
   - Success criteria: docs describe the active lane honestly and phases can be executed without stopping for interpretation
 
-- [ ] Phase 2: remove example-specific proof assumptions
-  - [ ] replace hard-coded recomposition fixture/component assumptions with blueprint-driven scenario execution
-  - [ ] define what makes a scenario runnable for full recomposition proof
-  - [ ] preserve fail-loud behavior for negative or underspecified scenarios
+- [x] Phase 2: remove example-specific proof assumptions
+  - [x] replace hard-coded recomposition fixture/component assumptions with blueprint-driven scenario execution
+  - [x] define what makes a scenario runnable for full recomposition proof
+  - [x] preserve fail-loud behavior for negative or underspecified scenarios
   - Success criteria: generated proof execution no longer depends on `support_ticket_digest`-specific component ids or fixture ids
 
 - [ ] Phase 3: ship broader blueprint coverage
@@ -52,6 +52,7 @@ Last updated: 2026-03-28
 - `python -m ruff check ac14 tests` passed
 - live unit smoke for `tests/test_live_llm_codegen.py` passed
 - live CLI generation with `python -m ac14 generate-components ... --generator llm` passed
+- targeted recomposition-proof tests passed after removing example-specific proof assumptions
 
 ## Longer-Term Next Steps
 

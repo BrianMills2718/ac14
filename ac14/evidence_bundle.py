@@ -29,12 +29,6 @@ class EvidenceBundleManifest(BaseModel):
     fresh_run_summary_path: str = Field(description="JSON file path for fresh-run summary.")
 
 
-class RecompositionReport(BaseModel):
-    """Stored result for generated recomposition proof."""
-
-    passed: bool = Field(description="Whether all shipped recomposition scenarios passed.")
-
-
 def build_evidence_bundle(
     blueprint_dir: Path | str,
     output_dir: Path | str,
@@ -63,9 +57,7 @@ def build_evidence_bundle(
         trace_id_prefix="ac14/evidence_bundle",
     )
     packet_test_report = run_generated_packet_tests(packet_bundle, generated_package)
-    recomposition_report = RecompositionReport(
-        passed=run_generated_recomposition_proof(blueprint_path, generated_package),
-    )
+    recomposition_report = run_generated_recomposition_proof(blueprint_path, generated_package)
     fresh_run_summary = run_fresh_generation_trials(
         blueprint_dir=blueprint_path,
         trial_count=fresh_run_trials,
