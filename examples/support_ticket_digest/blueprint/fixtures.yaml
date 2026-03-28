@@ -106,7 +106,7 @@ fixtures:
         customer_tier: enterprise
         action_hint: escalate to billing operations
       digest_store:
-        generated_at: 2026-03-28T01:00:00Z
+        generated_at: "2026-03-28T01:00:00Z"
         entries:
           - ticket_id: T-100
             summary: Billing failed on renewal
@@ -128,6 +128,61 @@ fixtures:
         features: [profile]
     expected_outputs: {}
 
+  - fixture_id: missing_customer_context_ticket_parser
+    scenario_id: missing_customer_context
+    component_id: ticket_parser
+    description: Parser normalizes a profile update ticket with no customer_id.
+    inputs:
+      raw_ticket:
+        ticket_id: T-101
+        submitted_at: 2026-03-28T01:05:00Z
+        customer_id:
+        subject: Cannot update profile
+        body: Profile update fails every time I save changes.
+        tags: [profile]
+    expected_outputs:
+      parsed_ticket:
+        ticket_id: T-101
+        customer_id:
+        issue_summary: Cannot update profile
+        normalized_text: profile update fails every time i save changes
+        features: [profile]
+
+  - fixture_id: missing_customer_context_issue_classifier
+    scenario_id: missing_customer_context
+    component_id: issue_classifier
+    description: Classifier recognizes an account-management issue.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-101
+        customer_id:
+        issue_summary: Cannot update profile
+        normalized_text: profile update fails every time i save changes
+        features: [profile]
+    expected_outputs:
+      issue_label:
+        ticket_id: T-101
+        label: account
+        reason: profile update maps to account domain
+
+  - fixture_id: missing_customer_context_priority_scorer
+    scenario_id: missing_customer_context
+    component_id: priority_scorer
+    description: Priority scorer marks the profile issue as medium.
+    inputs:
+      parsed_ticket:
+        ticket_id: T-101
+        customer_id:
+        issue_summary: Cannot update profile
+        normalized_text: profile update fails every time i save changes
+        features: [profile]
+    expected_outputs:
+      priority_score:
+        ticket_id: T-101
+        priority_band: medium
+        score: 55
+        reason: functional issue but no outage
+
   - fixture_id: missing_customer_context_digest_assembler
     scenario_id: missing_customer_context
     component_id: digest_assembler
@@ -137,7 +192,7 @@ fixtures:
         ticket_id: T-101
         customer_id:
         issue_summary: Cannot update profile
-        normalized_text: cannot update profile
+        normalized_text: profile update fails every time i save changes
         features: [profile]
       on_label:
         ticket_id: T-101
@@ -156,7 +211,7 @@ fixtures:
         priority_band: medium
         action_hint: route to account support
       digest_store:
-        generated_at: 2026-03-28T01:05:00Z
+        generated_at: "2026-03-28T01:05:00Z"
         entries:
           - ticket_id: T-101
             summary: Cannot update profile

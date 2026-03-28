@@ -16,6 +16,9 @@ scenarios:
   - scenario_id: missing_customer_context
     description: Customer context is omitted but required inputs still join.
     fixture_ids:
+      - missing_customer_context_ticket_parser
+      - missing_customer_context_issue_classifier
+      - missing_customer_context_priority_scorer
       - missing_customer_context_customer_context_loader
       - missing_customer_context_digest_assembler
   - scenario_id: schema_mismatch_rejected
