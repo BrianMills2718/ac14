@@ -1,6 +1,6 @@
 # AC14 Next 24 Hours
 
-Status: Active
+Status: Completed
 Last updated: 2026-03-28
 
 ## Purpose
@@ -40,8 +40,9 @@ Completed:
 
 Next:
 
-1. full repo verification
-2. final control-doc lock and handoff state
+1. richer semantic comparison between reference, deterministic, and LLM-backed outputs
+2. decision on whether any suite lane should promote LLM generation from optional to default
+3. broader semantic-responsibility coverage beyond the current ticket-digest family
 
 ## Execution Rule
 

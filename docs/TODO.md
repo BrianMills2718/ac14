@@ -29,12 +29,12 @@ Last updated: 2026-03-28
   - [x] persist machine-readable suite artifacts
   - Success criteria: one CLI/Make surface can produce a suite-level proof artifact and comparison artifact
 
-- [ ] Phase 5: verify and lock the lane
-  - [ ] add deterministic unit tests for suite discovery, suite proof, and suite comparison
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect the actual final state
+- [x] Phase 5: verify and lock the lane
+  - [x] add deterministic unit tests for suite discovery, suite proof, and suite comparison
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect the actual final state
   - Success criteria: all local verification passes and the control docs match the implemented state
 
 ## Logged Uncertainties
@@ -54,6 +54,9 @@ Last updated: 2026-03-28
 - live CLI generation with `python -m ac14 generate-components ... --generator llm` passed
 - targeted recomposition-proof tests passed after removing example-specific proof assumptions
 - targeted suite discovery, suite proof, suite comparison, CLI, and Make tests passed
+- `pytest -q` passed with `43 passed`
+- `python -m mypy ac14 tests` passed on 35 source files
+- `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps
 
