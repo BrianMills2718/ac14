@@ -34,4 +34,9 @@ instead of relying on human memory or chat history. AC14 now records compact
 sample data, inferred field paths, sparse/mixed-type concerns, and dependency
 installation status before blueprint freeze.
 
+### 2026-03-30 — codex — best-practice
+Discovery artifacts are not enough by themselves. AC14 now uses them as inputs
+to a separate draft blueprint planning artifact so decomposition proposals stay
+explicit, reviewable, and distinct from frozen proof artifacts.
+
 ---

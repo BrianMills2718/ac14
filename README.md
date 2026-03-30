@@ -19,6 +19,7 @@ AC14 now supports:
 - loading and validating the six-file blueprint bundle
 - inspecting local inputs before blueprint freeze and persisting discovery artifacts with inferred field summaries and open concerns
 - recording environment and dependency inventory before generation begins
+- turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples
 - compiling bounded component packets
@@ -38,6 +39,7 @@ make test
 make verify-blueprint
 make discover-input INPUT=path/to/input.json OUTPUT=.ac14_out/discovery PACKAGES="pydantic"
 make inspect-environment OUTPUT=.ac14_out/environment PACKAGES="pydantic"
+make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="bounded decomposition preserve semantics"
 make list-examples
 make generate-components OUTPUT=.ac14_out/generated
 make prove-example OUTPUT=.ac14_out/proof TRIALS=3

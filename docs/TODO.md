@@ -5,29 +5,29 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze the discovery-to-draft-planning lane
-  - [ ] update `CLAUDE.md` to make draft blueprint planning the active proof-expansion rule
-  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with planning phases and success criteria
-  - [ ] keep this TODO as the running control surface during implementation
+- [x] Phase 1: freeze the discovery-to-draft-planning lane
+  - [x] update `CLAUDE.md` to make draft blueprint planning the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with planning phases and success criteria
+  - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add the draft blueprint planning artifact
-  - [ ] define a persisted planning artifact that consumes discovery output and requirements
-  - [ ] keep the draft artifact distinct from frozen blueprint proof artifacts
-  - [ ] persist proposed schemas, components, bindings, scenarios, and packetization notes
+- [x] Phase 2: add the draft blueprint planning artifact
+  - [x] define a persisted planning artifact that consumes discovery output and requirements
+  - [x] keep the draft artifact distinct from frozen blueprint proof artifacts
+  - [x] persist proposed schemas, components, bindings, scenarios, and packetization notes
   - Success criteria: AC14 can turn a discovery artifact into a reviewable draft blueprint planning artifact
 
-- [ ] Phase 3: expose discovery-to-plan operator surface
-  - [ ] add a CLI entrypoint for draft blueprint planning
-  - [ ] add a Make target for the same surface
-  - [ ] add deterministic tests that validate the planning artifact contract without live LLM calls
+- [x] Phase 3: expose discovery-to-plan operator surface
+  - [x] add a CLI entrypoint for draft blueprint planning
+  - [x] add a Make target for the same surface
+  - [x] add deterministic tests that validate the planning artifact contract without live LLM calls
   - Success criteria: the draft planning surface is invokable and testable locally
 
-- [ ] Phase 4: verify and lock the lane
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect actual final state
+- [x] Phase 4: verify and lock the lane
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -41,6 +41,14 @@ Last updated: 2026-03-30
 
 ## Latest Verified Results
 
+- discovery-to-plan lane verification passed:
+  - `pytest -q` passed with `69 passed`
+  - `python -m mypy ac14 tests` passed on 46 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted planning verification passed:
+  - `pytest -q tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - discovery lane verification passed:
   - `pytest -q` passed with `66 passed`
   - `python -m mypy ac14 tests` passed on 44 source files
@@ -75,6 +83,6 @@ Last updated: 2026-03-30
 ## Longer-Term Next Steps
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
-- [ ] connect discovery artifacts back into blueprint freeze and packet planning
+- [ ] connect draft planning artifacts into actual blueprint authoring and freeze transitions
 - [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions
