@@ -1,7 +1,7 @@
 # AC14 Next 24 Hours
 
-Status: Completed
-Last updated: 2026-03-29
+Status: Active
+Last updated: 2026-03-30
 
 ## Purpose
 
@@ -21,28 +21,25 @@ The first honest slice is already in place:
 10. `llm_client`-backed generator with prompt YAML and structured output
 11. persisted comparison artifacts for one shipped example
 
-The suite-proof lane is complete. The next gap is that comparison is still too
-shallow: it mostly records pass/fail and module hashes, and the repo still has
-no explicit evidence-backed answer for whether the LLM generator should become
-the default anywhere.
+The semantic-comparison lane is complete. The next gap is that scenario meaning,
+coverage requirements, and final semantic acceptance are still too implicit.
+The repo can compare outputs, but it still infers too much about which
+scenarios are runnable, which are negative, and what counts as final acceptance.
 
 ## Progress Update
 
 Completed:
 
-1. suite-proof lane closed cleanly
-2. shipped suite now has more than one blueprint
-3. CLI and Make can prove and compare the shipped suite
-4. reference runtime generalized across the shipped suite
-5. blueprint-level and suite-level semantic comparison artifacts
-6. explicit default-generator recommendation surface
-7. targeted verification for reference, semantic, recommendation, CLI, and Make paths
+1. semantic-comparison lane closed cleanly
+2. blueprint-level and suite-level semantic comparison artifacts
+3. explicit default-generator recommendation surface
+4. full repo verification after that lane
 
 Next:
 
-1. widen semantic-responsibility coverage beyond the current ticket-digest family
-2. evaluate LLM semantic comparison on the shipped suite when cost and latency are acceptable
-3. revisit promotion criteria only after broader family coverage exists
+1. explicit scenario kinds and evaluator definitions
+2. stronger fixture and acceptance coverage rules
+3. requirements-aware semantic acceptance artifacts
 
 ## Execution Rule
 
@@ -72,50 +69,50 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Generalized Reference Lane
+### Phase 2: Explicit Scenario Semantics
 
 Deliverables:
 
-- blueprint-derived reference runtime configuration
-- reference execution support across the shipped suite
-- fail-loud handling for unsupported blueprint shapes
+- blueprint-level scenario kinds
+- evaluator definitions
+- shipped examples updated to the explicit scenario model
 
 Acceptance criteria:
 
-- reference execution works on every shipped example in the current semantic family
-- no reference path remains tied to one example's fixture ids or static maps
+- scenario meaning is explicit in the blueprint
+- negative and full-system scenarios are not distinguished by naming conventions
 
-### Phase 3: Semantic Comparison Artifacts
+### Phase 3: Coverage Validation
 
 Deliverables:
 
-- per-blueprint semantic comparison report
-- suite-level semantic comparison report
-- machine-readable artifacts capturing agreement with expected outputs and reference outputs
+- fixture coverage checks for every component
+- explicit full-system scenario requirements
+- realistic-input acceptance requirement
 
 Acceptance criteria:
 
-- deterministic comparison can run across the shipped suite locally
-- semantic mismatches are explicit and attributable by scenario and mode
+- missing coverage fails loud during validation
+- shipped examples satisfy the stronger coverage contract
 
-### Phase 4: Default-Generator Decision
+### Phase 4: Requirements-Aware Semantic Acceptance
 
 Deliverables:
 
-- promotion criteria for the LLM generator
-- persisted default-generator recommendation artifact
-- CLI and Make entrypoints for the decision surface
+- persisted acceptance artifact for semantic-acceptance scenarios
+- `llm_client`-backed review prompt and structured result
+- CLI and Make entrypoints for final acceptance
 
 Acceptance criteria:
 
-- the repo can answer the default-generator question from local artifacts
-- the decision remains deterministic unless stronger evidence justifies change
+- AC14 can run a semantic-acceptance scenario and persist an LLM review artifact
+- the review is tied to requirements and actual outputs, not just generic judgment
 
 ### Phase 5: Verification And Lock
 
 Deliverables:
 
-- deterministic unit tests for generic proof and suite execution
+- deterministic tests for scenario semantics, coverage, and acceptance artifacts
 - updated TODO/plan state
 - clean local verification
 
@@ -128,7 +125,7 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. blueprint scenarios still do not declare an explicit recomposition-proof mode
+1. realistic-input acceptance is still bounded by the current synthetic shipped examples
 2. the shipped suite is still only one semantic family
-3. live suite-wide LLM semantic comparison may remain optional if cost or latency is too high
-4. recommendation logic should stay conservative until broader evidence exists
+3. live LLM acceptance may remain optional if cost or latency is too high
+4. the pre-freeze discovery layer still does not exist in the implementation

@@ -65,11 +65,23 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after suite proof expansion is semantic comparison and default
-generator decision.
+The active lane after semantic comparison is explicit scenario semantics and
+requirements-aware acceptance.
 
-- compare reference, deterministic, and optional LLM outputs semantically
-- prefer blueprint-driven comparison over module-hash-only summaries
-- make the default-generator decision explicit and evidence-backed
-- keep deterministic generation as the control lane until broader suite evidence says otherwise
+- stop inferring what scenarios mean when the blueprint can say it explicitly
+- require stronger fixture and scenario coverage before trusting a proof
+- combine robust programmatic checks with robust LLM semantic checks
+- make final acceptance requirements-aware and artifact-backed
+- keep deterministic controls where they are strongest, without treating them as the whole validation philosophy
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
+
+## Continuation Rule
+
+This repo should continue through the active 24-hour lane without pausing for
+permission.
+
+- define the phases before implementation
+- update TODO state as each phase lands
+- log uncertainties and continue unless they contradict the frozen proof slice
+- commit every verified checkpoint
+- do not leave partial work uncommitted at the end of a work block

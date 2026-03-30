@@ -1,49 +1,49 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-03-29
+Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the semantic-comparison lane
-  - [x] strengthen `CLAUDE.md` for semantic comparison and explicit default decisions
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with new phases and success criteria
-  - [x] keep this TODO as the running control surface during implementation
+- [ ] Phase 1: freeze the scenario-and-acceptance lane
+  - [ ] strengthen `CLAUDE.md` for explicit scenario semantics and final acceptance
+  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with new phases and success criteria
+  - [ ] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: generalize the reference lane
-  - [x] derive reference runtime configuration from blueprint fixtures rather than one hard-coded example
-  - [x] make the reference runtime reusable across the shipped suite
-  - [x] preserve fail-loud behavior when a blueprint does not support the current reference component family
-  - Success criteria: reference execution works on every shipped example in the current semantic family
+- [ ] Phase 2: make scenario semantics explicit
+  - [ ] add explicit scenario kinds and evaluator definitions to the blueprint model
+  - [ ] stop using naming heuristics where scenario metadata can be explicit
+  - [ ] update shipped examples to use the explicit scenario contract
+  - Success criteria: full-recomposition, negative, and semantic-acceptance scenarios are distinguished by blueprint data rather than inference
 
-- [x] Phase 3: add semantic comparison artifacts
-  - [x] build blueprint-level semantic comparison across reference and generator modes
-  - [x] build suite-level semantic comparison aggregates
-  - [x] persist machine-readable semantic comparison artifacts
-  - Success criteria: AC14 can report semantic agreement with expected outputs and with the reference lane
+- [ ] Phase 3: strengthen coverage validation
+  - [ ] require every component to have fixture coverage
+  - [ ] require every blueprint to have explicit end-to-end scenarios
+  - [ ] require at least one realistic-input acceptance path
+  - Success criteria: weak fixture/scenario coverage fails loud during validation
 
-- [x] Phase 4: make the default-generator decision explicit
-  - [x] define promotion criteria for the LLM generator
-  - [x] build a persisted default-generator recommendation artifact
-  - [x] expose the recommendation through CLI and Make
-  - Success criteria: the repo can answer "what should be the default generator today?" from local evidence
+- [ ] Phase 4: add requirements-aware semantic acceptance
+  - [ ] implement a persisted acceptance artifact for semantic-acceptance scenarios
+  - [ ] use `llm_client` with prompts-as-data and structured output for final review
+  - [ ] expose acceptance through CLI and Make
+  - Success criteria: AC14 can run realistic inputs through the system and produce an LLM-backed acceptance artifact against scenario requirements
 
-- [x] Phase 5: verify and lock the lane
-  - [x] add deterministic tests for reference generalization, semantic comparison, and recommendation artifacts
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect actual final state
+- [ ] Phase 5: verify and lock the lane
+  - [ ] add deterministic tests for scenario semantics, coverage validation, and acceptance artifacts
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
 
 - the generated component logic is still semantic-responsibility-specific rather than general synthesis
-- blueprint scenarios do not currently carry an explicit "full recomposition" flag, so suite execution must infer runnable scenarios conservatively
-- negative scenarios may remain packet-only if they do not provide enough information for a whole-graph run
+- blueprint scenarios do not currently carry explicit kinds or evaluator policies
+- realistic-input acceptance will still be synthetic-but-plausible until the pre-freeze discovery layer exists
 - the shipped suite is still one semantic-responsibility family even though it now has multiple blueprints
-- live LLM semantic comparison may be too expensive for the default gate and may remain optional
+- live LLM acceptance may be too expensive for the default gate and may remain optional outside targeted runs
 
 ## Latest Verified Results
 
@@ -65,4 +65,4 @@ Last updated: 2026-03-29
 ## Longer-Term Next Steps
 
 - [ ] widen semantic-responsibility coverage beyond the current ticket-digest slice
-- [ ] evaluate LLM semantic comparison on the shipped suite when cost/latency is acceptable
+- [ ] add the pre-freeze discovery layer for data inspection, schema discovery, and dependency/doc/repo context
