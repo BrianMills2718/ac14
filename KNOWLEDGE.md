@@ -28,4 +28,10 @@ checks to prove structure/execution constraints and `llm_client` structured
 review to judge requirement satisfaction, business-logic reasonableness, and
 final acceptance on actual system outputs.
 
+### 2026-03-30 — codex — best-practice
+Pre-freeze discovery should persist what it learned from real local inputs
+instead of relying on human memory or chat history. AC14 now records compact
+sample data, inferred field paths, sparse/mixed-type concerns, and dependency
+installation status before blueprint freeze.
+
 ---

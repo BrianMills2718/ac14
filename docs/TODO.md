@@ -5,30 +5,30 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze the pre-freeze discovery lane
-  - [ ] update `CLAUDE.md` to make discovery the active proof-expansion rule
-  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with discovery phases and success criteria
-  - [ ] keep this TODO as the running control surface during implementation
+- [x] Phase 1: freeze the pre-freeze discovery lane
+  - [x] update `CLAUDE.md` to make discovery the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with discovery phases and success criteria
+  - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add discovery artifacts
-  - [ ] define a persisted discovery artifact for local inputs, inferred schemas, and open concerns
-  - [ ] distinguish discovery outputs from frozen blueprints so draft work does not masquerade as proof
-  - [ ] capture realistic samples and inferred field structure from local files
+- [x] Phase 2: add discovery artifacts
+  - [x] define a persisted discovery artifact for local inputs, inferred schemas, and open concerns
+  - [x] distinguish discovery outputs from frozen blueprints so draft work does not masquerade as proof
+  - [x] capture realistic samples and inferred field structure from local files
   - Success criteria: AC14 can inspect local inputs and persist a discovery artifact before blueprint freeze
 
-- [ ] Phase 3: plan dependencies and environment needs
-  - [ ] inventory the current environment relevant to a discovery run
-  - [ ] represent dependency needs and installation status as explicit artifact data
-  - [ ] expose discovery and environment planning through CLI and Make
+- [x] Phase 3: plan dependencies and environment needs
+  - [x] inventory the current environment relevant to a discovery run
+  - [x] represent dependency needs and installation status as explicit artifact data
+  - [x] expose discovery and environment planning through CLI and Make
   - Success criteria: AC14 can persist what libraries/context it already has and what still needs to be installed or researched
 
-- [ ] Phase 4: verify and lock the discovery slice
-  - [ ] add deterministic tests for discovery parsing, schema inference summaries, and dependency planning
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect actual final state
+- [x] Phase 4: verify and lock the discovery slice
+  - [x] add deterministic tests for discovery parsing, schema inference summaries, and dependency planning
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -41,6 +41,14 @@ Last updated: 2026-03-30
 
 ## Latest Verified Results
 
+- discovery lane verification passed:
+  - `pytest -q` passed with `66 passed`
+  - `python -m mypy ac14 tests` passed on 44 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted discovery verification passed:
+  - `pytest -q tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - full lane verification passed:
   - `pytest -q` passed with `57 passed`
   - `python -m mypy ac14 tests` passed on 42 source files
@@ -67,5 +75,6 @@ Last updated: 2026-03-30
 ## Longer-Term Next Steps
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
-- [ ] add the pre-freeze discovery layer for data inspection, schema discovery, and dependency/doc/repo context
+- [ ] connect discovery artifacts back into blueprint freeze and packet planning
+- [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions
