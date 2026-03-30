@@ -2,13 +2,85 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
+
+from ac14.blueprint_planning import (
+    DraftBlueprintPlanArtifact,
+    PlannedComponent,
+    PlannedPort,
+    PlannedScenario,
+    PlannedSchema,
+    PlannedSchemaField,
+    PlanningQuestion,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_DIR = REPO_ROOT / "examples" / "support_ticket_digest" / "blueprint"
 EXAMPLES_ROOT = REPO_ROOT / "examples"
+
+
+def _write_plan_artifact(path: Path) -> Path:
+    """Persist a deterministic planning artifact for Make-based authoring tests."""
+
+    artifact = DraftBlueprintPlanArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["normalize discovered ticket input", "keep packets bounded"],
+        discovery_open_concerns=[],
+        planning_summary="Use a single source component as the first draft bundle.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="RawTicket",
+                kind="record",
+                description="Normalized raw ticket input.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="ticket_id",
+                        field_type="str",
+                        description="Stable ticket identifier.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="ticket_ingest",
+                semantic_responsibility="ingest_ticket",
+                purpose="Normalize the discovered input into RawTicket.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="raw_ticket",
+                        schema_name="RawTicket",
+                        description="Normalized ticket payload.",
+                    ),
+                ],
+                packet_focus=["normalize incoming fields", "preserve ticket identity"],
+                dependency_notes=["no external libraries required"],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="happy_path",
+                kind="semantic_acceptance",
+                description="Review one realistic ticket end to end.",
+                requirement_focus=["normalize ticket input", "preserve meaning"],
+            ),
+        ],
+        packetization_notes=["Keep the first packet focused on source normalization only."],
+        dependency_decisions=["Stay within the current environment for the first draft."],
+        open_questions=[
+            PlanningQuestion(
+                question="Should tags be preserved as a field in RawTicket?",
+                why_it_matters="It changes schema shape before freeze.",
+            ),
+        ],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
 
 
 def test_make_help_lists_proof_targets() -> None:
@@ -26,6 +98,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "discover-input" in result.stdout
     assert "inspect-environment" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
+    assert "materialize-draft-bundle" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
@@ -100,6 +173,27 @@ def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "environment_inventory.json").exists()
+
+
+def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
+    """Make authoring target should persist the draft bundle and readiness report."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    output_dir = tmp_path / "draft_bundle"
+    result = subprocess.run(
+        [
+            "make",
+            "materialize-draft-bundle",
+            f"PLAN={plan_path}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "freeze_readiness_report.json").exists()
 
 
 def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:

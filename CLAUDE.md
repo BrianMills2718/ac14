@@ -65,13 +65,13 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after pre-freeze discovery is discovery-to-draft blueprint planning.
+The active lane after draft planning is draft blueprint authoring plus freeze readiness.
 
-- keep discovery and frozen proof artifacts separate
-- turn persisted discovery findings into an explicit draft blueprint planning artifact
-- use an LLM where semantic decomposition is needed, but keep the output artifact-backed and reviewable
-- record packet-planning implications before pretending the blueprint is frozen
-- keep broader doc/repo retrieval needs logged explicitly without blocking the smaller thesis-preserving lane
+- keep draft bundles and frozen proof artifacts separate
+- materialize a real six-file draft bundle from the planning artifact
+- make freeze blockers explicit instead of leaving them as implied TODOs
+- use the existing validation surface where possible, then add authoring-specific readiness findings on top
+- keep broader proof-breadth and retrieval work logged explicitly without blocking the smaller thesis-preserving lane
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

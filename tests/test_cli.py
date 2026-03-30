@@ -7,10 +7,81 @@ import subprocess
 import sys
 from pathlib import Path
 
+from ac14.blueprint_planning import (
+    DraftBlueprintPlanArtifact,
+    PlannedComponent,
+    PlannedPort,
+    PlannedScenario,
+    PlannedSchema,
+    PlannedSchemaField,
+    PlanningQuestion,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_DIR = REPO_ROOT / "examples" / "support_ticket_digest" / "blueprint"
 EXAMPLES_ROOT = REPO_ROOT / "examples"
+
+
+def _write_plan_artifact(path: Path) -> Path:
+    """Persist a minimal deterministic planning artifact for CLI authoring tests."""
+
+    artifact = DraftBlueprintPlanArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["normalize discovered ticket input", "keep packets bounded"],
+        discovery_open_concerns=[],
+        planning_summary="Use a single source component as the first draft bundle.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="RawTicket",
+                kind="record",
+                description="Normalized raw ticket input.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="ticket_id",
+                        field_type="str",
+                        description="Stable ticket identifier.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="ticket_ingest",
+                semantic_responsibility="ingest_ticket",
+                purpose="Normalize the discovered input into RawTicket.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="raw_ticket",
+                        schema_name="RawTicket",
+                        description="Normalized ticket payload.",
+                    ),
+                ],
+                packet_focus=["normalize incoming fields", "preserve ticket identity"],
+                dependency_notes=["no external libraries required"],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="happy_path",
+                kind="semantic_acceptance",
+                description="Review one realistic ticket end to end.",
+                requirement_focus=["normalize ticket input", "preserve meaning"],
+            ),
+        ],
+        packetization_notes=["Keep the first packet focused on source normalization only."],
+        dependency_decisions=["Stay within the current environment for the first draft."],
+        open_questions=[
+            PlanningQuestion(
+                question="Should tags be preserved as a field in RawTicket?",
+                why_it_matters="It changes schema shape before freeze.",
+            ),
+        ],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
 
 
 def test_cli_verify_blueprint() -> None:
@@ -108,6 +179,30 @@ def test_cli_inspect_environment(tmp_path: Path) -> None:
     dependency_names = {status["package_name"] for status in payload["dependency_statuses"]}
     assert "pydantic" in dependency_names
     assert (tmp_path / "environment" / "environment_inventory.json").exists()
+
+
+def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
+    """Draft bundle materialization command should write a readiness-backed bundle."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "materialize-draft-bundle",
+            str(plan_path),
+            "--output-dir",
+            str(tmp_path / "draft_bundle"),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert Path(payload["freeze_readiness_report_path"]).exists()
 
 
 def test_cli_prove_example(tmp_path: Path) -> None:
@@ -228,6 +323,20 @@ def test_cli_draft_blueprint_plan_help() -> None:
     )
     assert result.returncode == 0
     assert "--requirements" in result.stdout
+
+
+def test_cli_materialize_draft_bundle_help() -> None:
+    """Materialize-draft-bundle help should expose the authoring command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "materialize-draft-bundle", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--output-dir" in result.stdout
 
 
 def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:

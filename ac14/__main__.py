@@ -19,6 +19,7 @@ from ac14.blueprint_planning import (
 )
 from ac14.comparison import build_generator_comparison_report
 from ac14.discovery import build_discovery_artifact, persist_environment_inventory
+from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
@@ -79,6 +80,13 @@ def main() -> int:
         type=float,
         default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     )
+
+    author_draft_parser = subparsers.add_parser(
+        "materialize-draft-bundle",
+        help="Materialize a six-file draft bundle and freeze-readiness report from a planning artifact.",
+    )
+    author_draft_parser.add_argument("plan_artifact_path", type=Path)
+    author_draft_parser.add_argument("--output-dir", type=Path, required=True)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -243,6 +251,11 @@ def main() -> int:
             cast(list[str], args.requirements),
             args.model,
             args.max_budget,
+        )
+    if args.command == "materialize-draft-bundle":
+        return _materialize_draft_bundle(
+            args.plan_artifact_path,
+            args.output_dir,
         )
     if args.command == "prove-example":
         return _prove_example(
@@ -420,6 +433,20 @@ def _draft_blueprint_plan(
         max_budget=max_budget,
     )
     print(json.dumps(plan.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _materialize_draft_bundle(
+    plan_artifact_path: Path,
+    output_dir: Path,
+) -> int:
+    """Build and print a persisted draft bundle plus readiness report."""
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_artifact_path,
+        output_dir=output_dir,
+    )
+    print(json.dumps(manifest.model_dump(mode="json"), indent=2))
     return 0
 
 

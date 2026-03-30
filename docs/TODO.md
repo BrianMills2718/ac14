@@ -5,29 +5,31 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the discovery-to-draft-planning lane
-  - [x] update `CLAUDE.md` to make draft blueprint planning the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with planning phases and success criteria
-  - [x] keep this TODO as the running control surface during implementation
+- [ ] Phase 1: freeze the draft-authoring lane
+  - [ ] update `CLAUDE.md` to make draft blueprint authoring the active proof-expansion rule
+  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with authoring phases and success criteria
+  - [ ] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: add the draft blueprint planning artifact
-  - [x] define a persisted planning artifact that consumes discovery output and requirements
-  - [x] keep the draft artifact distinct from frozen blueprint proof artifacts
-  - [x] persist proposed schemas, components, bindings, scenarios, and packetization notes
-  - Success criteria: AC14 can turn a discovery artifact into a reviewable draft blueprint planning artifact
+- [ ] Phase 2: materialize the draft bundle
+  - [ ] generate a six-file draft bundle from the persisted planning artifact
+  - [ ] synthesize explicit placeholders where freeze-time data is still missing
+  - [ ] keep the draft bundle distinct from frozen proof artifacts
+  - Success criteria: AC14 can turn a persisted planning artifact into a concrete draft bundle on disk
 
-- [x] Phase 3: expose discovery-to-plan operator surface
-  - [x] add a CLI entrypoint for draft blueprint planning
-  - [x] add a Make target for the same surface
-  - [x] add deterministic tests that validate the planning artifact contract without live LLM calls
-  - Success criteria: the draft planning surface is invokable and testable locally
+- [ ] Phase 3: add freeze-readiness reporting
+  - [ ] run validation-backed readiness checks against the draft bundle
+  - [ ] add authoring-specific findings for placeholders and unresolved planning questions
+  - [ ] persist the readiness report next to the draft bundle
+  - Success criteria: AC14 can explain why a draft bundle is or is not freeze-ready
 
-- [x] Phase 4: verify and lock the lane
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect actual final state
+- [ ] Phase 4: operator surface and lock
+  - [ ] expose draft authoring through CLI and Make
+  - [ ] add deterministic tests for authoring and readiness
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -38,6 +40,7 @@ Last updated: 2026-03-30
 - live LLM acceptance may be too expensive for the default gate and may remain optional outside targeted runs
 - discovery will start with local input inspection and environment/dependency planning before broader doc/repo retrieval is implemented
 - the next bridge will produce draft planning artifacts, not claim that blueprint freeze is solved
+- the next bridge will materialize draft bundles and readiness reports, not claim those drafts are frozen
 
 ## Latest Verified Results
 

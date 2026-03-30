@@ -1,37 +1,36 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: Active
 Last updated: 2026-03-30
 
 ## Purpose
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The discovery lane is now complete. The next honest gap was that AC14 could
-inspect inputs before blueprint freeze, but it still could not persist how
-those findings should shape draft decomposition decisions.
+The draft planning lane is now complete. The next honest gap is that AC14 can
+propose decomposition from discovery, but it still cannot turn that plan into a
+real draft bundle or say explicitly why the bundle is not freeze-ready.
 
-The immediate goal for this lane was a narrow, explicit bridge:
+The immediate goal is a narrow, explicit authoring bridge:
 
-1. discovery artifact in
-2. LLM-backed draft blueprint planning artifact out
-3. proposed schemas, components, bindings, scenarios, and packet notes captured explicitly
+1. draft planning artifact in
+2. six-file draft bundle out
+3. freeze-readiness report out
 
 ## Progress Update
 
 Completed before this lane:
 
-1. six-file blueprint bundle
-2. canonical models and loader
-3. packet compilation and proof surfaces
-4. explicit scenario semantics and semantic acceptance
-5. pre-freeze discovery for local inputs and environment planning
+1. six-file frozen blueprint bundle and proof surfaces
+2. explicit scenario semantics and semantic acceptance
+3. pre-freeze discovery for local inputs and environment planning
+4. discovery-to-draft blueprint planning
 
-Delivered in this lane:
+Next:
 
-1. persisted draft blueprint planning artifact
-2. prompt-as-data and structured-output planning call
-3. CLI and Make surface for discovery-to-plan transition
+1. materialize a six-file draft bundle from the planning artifact
+2. run freeze-readiness checks against that draft bundle
+3. expose the authoring surface through CLI and Make
 
 ## Execution Rule
 
@@ -62,38 +61,38 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Draft Blueprint Planning Artifact
+### Phase 2: Draft Bundle Authoring
 
 Deliverables:
 
-- persisted draft planning artifact models
-- prompt-as-data for discovery-to-plan transition
-- structured-output planning call backed by `llm_client`
+- deterministic draft bundle authoring from the planning artifact
+- six YAML files written to disk
+- default authoring placeholders where freeze-time information is still missing
 
 Acceptance criteria:
 
-- AC14 can load a persisted discovery artifact and persist a draft blueprint planning artifact
-- the draft artifact proposes schemas, components, bindings, scenarios, and packet notes
-- the draft artifact remains explicitly separate from the frozen blueprint proof surface
+- AC14 can materialize a draft bundle from a persisted planning artifact
+- the draft bundle stays clearly distinct from the frozen proof surface
 
-### Phase 3: Operator Surface And Tests
+### Phase 3: Freeze Readiness
 
 Deliverables:
 
-- CLI entrypoint for draft blueprint planning
-- Make target for the same surface
-- deterministic tests for the planning artifact and operator surface
+- freeze-readiness report
+- validation-backed findings against the draft bundle
+- authoring-specific findings for placeholders and unresolved questions
 
 Acceptance criteria:
 
-- the planning surface is invokable without manual imports
-- tests cover the planning artifact contract without relying on live LLM calls
+- AC14 can explain why a draft bundle is or is not freeze-ready
+- readiness findings are persisted as artifacts rather than implied by missing work
 
-### Phase 4: Verification And Lock
+### Phase 4: Operator Surface And Lock
 
 Deliverables:
 
-- updated TODO/plan state
+- CLI and Make entrypoints for draft bundle authoring
+- deterministic tests for authoring and readiness
 - clean local verification
 
 Acceptance criteria:
@@ -103,32 +102,8 @@ Acceptance criteria:
 - `python -m ruff check ac14 tests` passes
 - docs match the implemented state
 
-## Lane Outcome
-
-Completed:
-
-1. AC14 can load a persisted discovery artifact and build a reviewable draft blueprint planning artifact
-2. the draft artifact persists planning summary, proposed schemas, components, bindings, proof scenarios, packetization notes, dependency decisions, and open questions
-3. the planning bridge uses prompt-as-data plus `llm_client` structured output
-4. programmatic validation fails loud when the LLM proposes duplicate schemas/components or invalid binding references
-5. CLI and Make now expose `draft-blueprint-plan`
-6. deterministic tests cover the planning contract without relying on live LLM calls
-
-Verification:
-
-1. `pytest -q tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py` passed
-2. `python -m mypy ac14 tests` passed on 46 source files
-3. `python -m ruff check ac14 tests` passed
-4. full repo verification passed with `69 passed`
-
-Next lane:
-
-1. connect draft planning artifacts into actual blueprint authoring and freeze transitions
-2. widen proof breadth beyond the current ticket-digest slice
-3. extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces without coupling AC14 to agent-only MCP assumptions
-
 ## Known Uncertainties
 
-1. this lane proposes draft decomposition; it does not claim blueprint freeze is solved
-2. broader doc/repo retrieval remains out of scope for this narrow bridge
-3. the first planning artifact may still lean on current proof-slice heuristics until proof breadth grows
+1. the first authoring bridge will synthesize placeholders for invariants, fixtures, and constraints that are still unresolved
+2. draft bundles may intentionally fail freeze-readiness until fixtures and richer proof details are authored
+3. broader proof breadth and retrieval expansion remain outside this narrow lane
