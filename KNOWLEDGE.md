@@ -45,4 +45,9 @@ draft bundle plus a freeze-readiness report so missing fixtures, placeholder
 contracts, and unresolved questions become explicit artifacts instead of hidden
 gaps.
 
+### 2026-03-30 — codex — best-practice
+Readiness is still not a decision. AC14 now persists an explicit freeze
+decision artifact and only promotes when approval is true, so promotion is no
+longer an implicit manual interpretation step.
+
 ---

@@ -5,30 +5,30 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze the freeze-decision lane
-  - [ ] update `CLAUDE.md` to make freeze decisioning the active proof-expansion rule
-  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with freeze-decision phases and success criteria
-  - [ ] keep this TODO as the running control surface during implementation
+- [x] Phase 1: freeze the freeze-decision lane
+  - [x] update `CLAUDE.md` to make freeze decisioning the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with freeze-decision phases and success criteria
+  - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add the freeze decision artifact
-  - [ ] persist an explicit approve/block artifact for freeze decisions
-  - [ ] support decisions driven by readiness reports
-  - [ ] support decisions on already-authored bundles without a readiness report
+- [x] Phase 2: add the freeze decision artifact
+  - [x] persist an explicit approve/block artifact for freeze decisions
+  - [x] support decisions driven by readiness reports
+  - [x] support decisions on already-authored bundles without a readiness report
   - Success criteria: AC14 can explain in one artifact why a bundle is approved or blocked
 
-- [ ] Phase 3: add promotion behavior
-  - [ ] promote approved bundles into a frozen-bundle directory
-  - [ ] keep blocked bundles from promoting
-  - [ ] expose the same surface through CLI and Make
+- [x] Phase 3: add promotion behavior
+  - [x] promote approved bundles into a frozen-bundle directory
+  - [x] keep blocked bundles from promoting
+  - [x] expose the same surface through CLI and Make
   - Success criteria: approved bundles promote deterministically and blocked bundles fail loud without silent promotion
 
-- [ ] Phase 4: verify and lock the lane
-  - [ ] add deterministic tests for freeze decisions and promotion
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect actual final state
+- [x] Phase 4: verify and lock the lane
+  - [x] add deterministic tests for freeze decisions and promotion
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -44,6 +44,14 @@ Last updated: 2026-03-30
 
 ## Latest Verified Results
 
+- freeze-decision lane verification passed:
+  - `pytest -q` passed with `78 passed`
+  - `python -m mypy ac14 tests` passed on 50 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted freeze-decision verification passed:
+  - `pytest -q tests/test_freeze_decision.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - draft-authoring lane verification passed:
   - `pytest -q` passed with `73 passed`
   - `python -m mypy ac14 tests` passed on 48 source files
@@ -94,6 +102,6 @@ Last updated: 2026-03-30
 ## Longer-Term Next Steps
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
-- [ ] use the draft bundle and readiness report to drive actual freeze decisions rather than only draft authoring
+- [ ] make freeze decisions richer than pass/block by connecting them to actual authoring loops
 - [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions
