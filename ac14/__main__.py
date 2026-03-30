@@ -12,6 +12,11 @@ from ac14.acceptance import (
     build_acceptance_report,
     build_suite_acceptance_report,
 )
+from ac14.blueprint_planning import (
+    DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    DEFAULT_BLUEPRINT_PLAN_MODEL,
+    build_draft_blueprint_plan,
+)
 from ac14.comparison import build_generator_comparison_report
 from ac14.discovery import build_discovery_artifact, persist_environment_inventory
 from ac14.evidence_bundle import build_evidence_bundle
@@ -60,6 +65,20 @@ def main() -> int:
     environment_parser.add_argument("--output-dir", type=Path, required=True)
     environment_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     environment_parser.add_argument("--packages", nargs="*", default=[])
+
+    draft_plan_parser = subparsers.add_parser(
+        "draft-blueprint-plan",
+        help="Build an LLM-backed draft blueprint planning artifact from discovery.",
+    )
+    draft_plan_parser.add_argument("discovery_artifact_path", type=Path)
+    draft_plan_parser.add_argument("--output-dir", type=Path, required=True)
+    draft_plan_parser.add_argument("--requirements", nargs="+", required=True)
+    draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
+    draft_plan_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    )
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -217,6 +236,14 @@ def main() -> int:
             args.project_root,
             cast(list[str], args.packages),
         )
+    if args.command == "draft-blueprint-plan":
+        return _draft_blueprint_plan(
+            args.discovery_artifact_path,
+            args.output_dir,
+            cast(list[str], args.requirements),
+            args.model,
+            args.max_budget,
+        )
     if args.command == "prove-example":
         return _prove_example(
             args.blueprint_dir,
@@ -373,6 +400,26 @@ def _inspect_environment(
         requested_packages=packages,
     )
     print(json.dumps(inventory.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _draft_blueprint_plan(
+    discovery_artifact_path: Path,
+    output_dir: Path,
+    requirements: list[str],
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a persisted draft blueprint planning artifact."""
+
+    plan = build_draft_blueprint_plan(
+        discovery_artifact_path=discovery_artifact_path,
+        output_dir=output_dir,
+        requirements=requirements,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(plan.model_dump(mode="json"), indent=2))
     return 0
 
 

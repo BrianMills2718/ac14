@@ -65,12 +65,13 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after scenario acceptance is the pre-freeze discovery layer.
+The active lane after pre-freeze discovery is discovery-to-draft blueprint planning.
 
-- inspect real local inputs before blueprint freeze instead of assuming schemas
-- capture discovery as a persisted artifact, not a transient chat step
-- plan dependencies and environment needs before code generation begins
-- keep discovery scoped to the smallest thesis-preserving slice while logging broader context/doc/repo retrieval needs explicitly
+- keep discovery and frozen proof artifacts separate
+- turn persisted discovery findings into an explicit draft blueprint planning artifact
+- use an LLM where semantic decomposition is needed, but keep the output artifact-backed and reviewable
+- record packet-planning implications before pretending the blueprint is frozen
+- keep broader doc/repo retrieval needs logged explicitly without blocking the smaller thesis-preserving lane
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

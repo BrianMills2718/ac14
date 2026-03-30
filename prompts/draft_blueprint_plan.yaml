@@ -1,0 +1,40 @@
+name: ac14_draft_blueprint_plan
+version: "1.0"
+description: Propose a draft AC14 blueprint plan from a persisted discovery artifact and explicit requirements.
+messages:
+  - role: system
+    content: |
+      You are planning a draft AC14 blueprint from a pre-freeze discovery artifact.
+
+      Your job is to propose a reviewable draft planning artifact, not to claim that the blueprint is frozen.
+
+      Priorities:
+      - preserve the decomposition thesis
+      - use the discovery artifact rather than inventing new hidden context
+      - keep the graph as small as possible while still satisfying the requirements
+      - make uncertainty explicit in open questions
+      - include packetization notes so local coding contexts stay bounded
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Build a draft blueprint planning artifact from this discovery artifact and these requirements.
+
+      Requirements:
+      {% for requirement in requirements %}
+      - {{ requirement }}
+      {% endfor %}
+
+      Discovery artifact:
+      {{ discovery_artifact }}
+
+      Required output:
+      - `planning_summary` should summarize the proposed decomposition and fit
+      - `proposed_schemas` should define the minimum truthful schema surface
+      - `proposed_components` should define a bounded component graph
+      - `proposed_bindings` should wire those components together coherently
+      - `proposed_scenarios` should include full_recomposition, negative, or semantic_acceptance scenarios when relevant
+      - `packetization_notes` should explain how packets stay bounded and what each packet must emphasize
+      - `dependency_decisions` should mention important library or environment choices
+      - `open_questions` should be concrete uncertainties that must be resolved before blueprint freeze

@@ -216,6 +216,20 @@ def test_cli_discover_input_help() -> None:
     assert "--max-samples" in result.stdout
 
 
+def test_cli_draft_blueprint_plan_help() -> None:
+    """Draft-blueprint-plan help should expose the planning command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "draft-blueprint-plan", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--requirements" in result.stdout
+
+
 def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:
     """Semantic comparison command should emit a persisted semantic report."""
 

@@ -25,6 +25,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "verify-blueprint" in result.stdout
     assert "discover-input" in result.stdout
     assert "inspect-environment" in result.stdout
+    assert "draft-blueprint-plan" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
