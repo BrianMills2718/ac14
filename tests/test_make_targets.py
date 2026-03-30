@@ -26,10 +26,12 @@ def test_make_help_lists_proof_targets() -> None:
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
+    assert "acceptance-review" in result.stdout
     assert "semantic-compare" in result.stdout
     assert "prove-suite" in result.stdout
     assert "compare-suite" in result.stdout
     assert "semantic-compare-suite" in result.stdout
+    assert "acceptance-review-suite" in result.stdout
     assert "recommend-default-generator" in result.stdout
 
 

@@ -14,7 +14,7 @@ MODES ?= reference deterministic
 MODEL ?= gemini/gemini-2.5-flash-lite
 MAX_BUDGET ?= 0.50
 
-.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators semantic-compare list-examples prove-suite compare-suite semantic-compare-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -49,6 +49,9 @@ fresh-runs: ## Run repeated fresh generation trials (INPUT=... OUTPUT=.ac14_out/
 compare-generators: ## Compare generator modes (INPUT=... OUTPUT=.ac14_out/compare GENERATORS="deterministic llm")
 	$(PYTHON) -m ac14 compare-generators "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)" --generators $(GENERATORS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
+acceptance-review: ## Run requirements-aware acceptance review for one blueprint (INPUT=... OUTPUT=.ac14_out/acceptance GENERATOR=reference|deterministic|llm)
+	$(PYTHON) -m ac14 acceptance-review "$(INPUT)" --output-dir "$(OUTPUT)" --mode "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
 semantic-compare: ## Compare semantic outputs for one blueprint (INPUT=... OUTPUT=.ac14_out/semantic MODES="reference deterministic")
 	$(PYTHON) -m ac14 semantic-compare "$(INPUT)" --output-dir "$(OUTPUT)" --modes $(MODES) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
@@ -63,6 +66,9 @@ compare-suite: ## Compare generator modes across shipped examples (OUTPUT=.ac14_
 
 semantic-compare-suite: ## Compare semantic outputs across shipped examples (OUTPUT=.ac14_out/suite_semantic MODES="reference deterministic")
 	$(PYTHON) -m ac14 semantic-compare-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --modes $(MODES) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+acceptance-review-suite: ## Run requirements-aware acceptance review across shipped examples (OUTPUT=.ac14_out/suite_acceptance GENERATOR=reference|deterministic|llm)
+	$(PYTHON) -m ac14 acceptance-review-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --mode "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 recommend-default-generator: ## Recommend the current default generator (OUTPUT=.ac14_out/recommend GENERATORS="deterministic")
 	$(PYTHON) -m ac14 recommend-default-generator --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --generators $(GENERATORS) --fresh-run-trials "$(TRIALS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

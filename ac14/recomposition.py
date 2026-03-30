@@ -85,7 +85,7 @@ def build_recomposition_scenario_catalog(
     skipped_scenarios: list[SkippedScenario] = []
 
     for scenario in blueprint.scenarios.values():
-        if _expects_failure(scenario.scenario_id):
+        if scenario.kind == "negative":
             skipped_scenarios.append(
                 SkippedScenario(
                     scenario_id=scenario.scenario_id,
@@ -260,8 +260,3 @@ def _find_first_mismatch(
             )
     return None
 
-
-def _expects_failure(scenario_id: str) -> bool:
-    """Return true for scenarios reserved for failure-oriented packet checks."""
-
-    return scenario_id.endswith("_rejected")

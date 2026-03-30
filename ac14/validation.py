@@ -25,6 +25,7 @@ def validate_blueprint(blueprint: FrozenBlueprint) -> ValidationResult:
     _validate_state_stores(blueprint, findings)
     _validate_bindings(blueprint, findings)
     _validate_fixture_references(blueprint, findings)
+    _validate_scenarios_and_coverage(blueprint, findings)
     _validate_graph(blueprint, findings)
 
     return ValidationResult(passed=not findings, findings=findings)
@@ -242,6 +243,18 @@ def _validate_fixture_references(
                         path=f"validation.scenarios.{scenario.scenario_id}.fixture_ids",
                     ),
                 )
+        for evaluator_id in scenario.evaluator_ids:
+            if evaluator_id not in blueprint.evaluators:
+                findings.append(
+                    ValidationFinding(
+                        code="E-B1-SCENARIO-EVALUATOR-MISSING",
+                        message=(
+                            f"scenario {scenario.scenario_id} references missing evaluator "
+                            f"{evaluator_id}"
+                        ),
+                        path=f"validation.scenarios.{scenario.scenario_id}.evaluator_ids",
+                    ),
+                )
 
     for fixture in blueprint.fixtures.values():
         component = blueprint.components.get(fixture.component_id)
@@ -288,6 +301,130 @@ def _validate_fixture_references(
                         path=f"fixtures.{fixture.fixture_id}.expected_outputs.{output_name}",
                     ),
                 )
+
+
+def _validate_scenarios_and_coverage(
+    blueprint: FrozenBlueprint,
+    findings: list[ValidationFinding],
+) -> None:
+    """Validate scenario intent, evaluator usage, and fixture coverage rules."""
+
+    fixture_ids_by_component: dict[str, list[str]] = {component_id: [] for component_id in blueprint.components}
+    for fixture in blueprint.fixtures.values():
+        if fixture.component_id in fixture_ids_by_component:
+            fixture_ids_by_component[fixture.component_id].append(fixture.fixture_id)
+
+    for component_id, fixture_ids in fixture_ids_by_component.items():
+        if not fixture_ids:
+            findings.append(
+                ValidationFinding(
+                    code="E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING",
+                    message=f"component {component_id} has no fixture coverage",
+                    path=f"components.{component_id}",
+                ),
+            )
+
+    recomposition_like_count = 0
+    semantic_acceptance_count = 0
+    realistic_input_count = 0
+    all_component_ids = set(blueprint.components)
+
+    for scenario in blueprint.scenarios.values():
+        if not scenario.evaluator_ids:
+            findings.append(
+                ValidationFinding(
+                    code="E-B1-SCENARIO-EVALUATORS-EMPTY",
+                    message=f"scenario {scenario.scenario_id} must declare at least one evaluator",
+                    path=f"validation.scenarios.{scenario.scenario_id}.evaluator_ids",
+                ),
+            )
+        evaluator_kinds = {
+            blueprint.evaluators[evaluator_id].kind
+            for evaluator_id in scenario.evaluator_ids
+            if evaluator_id in blueprint.evaluators
+        }
+        if scenario.kind == "negative" and "programmatic_failure" not in evaluator_kinds:
+            findings.append(
+                ValidationFinding(
+                    code="E-B1-NEGATIVE-SCENARIO-EVALUATOR-MISSING",
+                    message=(
+                        f"negative scenario {scenario.scenario_id} must use a "
+                        "programmatic_failure evaluator"
+                    ),
+                    path=f"validation.scenarios.{scenario.scenario_id}.evaluator_ids",
+                ),
+            )
+        if scenario.kind == "semantic_acceptance":
+            semantic_acceptance_count += 1
+            if not scenario.requirements:
+                findings.append(
+                    ValidationFinding(
+                        code="E-B1-SEMANTIC-SCENARIO-REQUIREMENTS-MISSING",
+                        message=(
+                            f"semantic_acceptance scenario {scenario.scenario_id} must declare requirements"
+                        ),
+                        path=f"validation.scenarios.{scenario.scenario_id}.requirements",
+                    ),
+                )
+            if "llm_requirements_acceptance" not in evaluator_kinds:
+                findings.append(
+                    ValidationFinding(
+                        code="E-B1-SEMANTIC-SCENARIO-LLM-EVALUATOR-MISSING",
+                        message=(
+                            f"semantic_acceptance scenario {scenario.scenario_id} must use an "
+                            "llm_requirements_acceptance evaluator"
+                        ),
+                        path=f"validation.scenarios.{scenario.scenario_id}.evaluator_ids",
+                    ),
+                )
+        if scenario.kind in {"full_recomposition", "semantic_acceptance"}:
+            recomposition_like_count += 1
+            if scenario.realistic_input:
+                realistic_input_count += 1
+            fixture_component_ids = {
+                blueprint.fixtures[fixture_id].component_id
+                for fixture_id in scenario.fixture_ids
+                if fixture_id in blueprint.fixtures
+            }
+            missing_components = sorted(all_component_ids.difference(fixture_component_ids))
+            if missing_components:
+                findings.append(
+                    ValidationFinding(
+                        code="E-B1-END-TO-END-SCENARIO-COVERAGE-MISSING",
+                        message=(
+                            f"scenario {scenario.scenario_id} is missing component fixtures for: "
+                            + ", ".join(missing_components)
+                        ),
+                        path=f"validation.scenarios.{scenario.scenario_id}.fixture_ids",
+                    ),
+                )
+
+    if recomposition_like_count == 0:
+        findings.append(
+            ValidationFinding(
+                code="E-B1-FULL-SCENARIO-MISSING",
+                message="blueprint must declare at least one full_recomposition or semantic_acceptance scenario",
+                path="validation.scenarios",
+            ),
+        )
+    if semantic_acceptance_count == 0:
+        findings.append(
+            ValidationFinding(
+                code="E-B1-SEMANTIC-ACCEPTANCE-SCENARIO-MISSING",
+                message="blueprint must declare at least one semantic_acceptance scenario",
+                path="validation.scenarios",
+            ),
+        )
+    if realistic_input_count == 0:
+        findings.append(
+            ValidationFinding(
+                code="E-B1-REALISTIC-INPUT-SCENARIO-MISSING",
+                message=(
+                    "blueprint must declare at least one realistic-input full-system scenario"
+                ),
+                path="validation.scenarios",
+            ),
+        )
 
 
 def _validate_graph(

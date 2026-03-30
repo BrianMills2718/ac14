@@ -87,3 +87,60 @@ def test_validate_blueprint_rejects_graph_cycle() -> None:
     result = validate_blueprint(broken_blueprint)
     assert not result.passed
     assert any(finding.code == "E-B1-GRAPH-CYCLE" for finding in result.findings)
+
+
+def test_validate_blueprint_requires_semantic_acceptance_scenario() -> None:
+    """Blueprints must declare at least one semantic-acceptance scenario."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    scenarios = {
+        scenario_id: scenario
+        for scenario_id, scenario in blueprint.scenarios.items()
+        if scenario.kind != "semantic_acceptance"
+    }
+    broken_blueprint = blueprint.model_copy(update={"scenarios": scenarios})
+
+    result = validate_blueprint(broken_blueprint)
+    assert not result.passed
+    assert any(
+        finding.code == "E-B1-SEMANTIC-ACCEPTANCE-SCENARIO-MISSING"
+        for finding in result.findings
+    )
+
+
+def test_validate_blueprint_requires_component_fixture_coverage() -> None:
+    """Each component must retain at least one fixture."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    fixtures = {
+        fixture_id: fixture
+        for fixture_id, fixture in blueprint.fixtures.items()
+        if fixture.component_id != "customer_context_loader"
+    }
+    broken_blueprint = blueprint.model_copy(update={"fixtures": fixtures})
+
+    result = validate_blueprint(broken_blueprint)
+    assert not result.passed
+    assert any(
+        finding.code == "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING"
+        for finding in result.findings
+    )
+
+
+def test_validate_blueprint_requires_llm_evaluator_for_semantic_acceptance() -> None:
+    """Semantic-acceptance scenarios must declare an LLM evaluator."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    happy_path = blueprint.scenarios["happy_path"].model_copy(
+        update={"evaluator_ids": ["exact_outputs"]},
+    )
+    broken_blueprint = blueprint.model_copy(
+        update={"scenarios": {**blueprint.scenarios, "happy_path": happy_path}},
+    )
+
+    result = validate_blueprint(broken_blueprint)
+    assert not result.passed
+    assert any(
+        finding.code == "E-B1-SEMANTIC-SCENARIO-LLM-EVALUATOR-MISSING"
+        for finding in result.findings
+    )

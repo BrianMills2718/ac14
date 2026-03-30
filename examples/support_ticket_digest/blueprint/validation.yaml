@@ -4,9 +4,29 @@ global_invariants:
   - invariant_id: digest_store_unique_ticket_ids
     description: DigestStore must contain at most one entry per ticket_id.
 
+evaluators:
+  - evaluator_id: exact_outputs
+    kind: programmatic_exact
+    description: Compare actual outputs to declared fixture outputs exactly.
+  - evaluator_id: negative_failure
+    kind: programmatic_failure
+    description: Confirm that a negative scenario fails loudly rather than silently succeeding.
+  - evaluator_id: requirements_acceptance
+    kind: llm_requirements_acceptance
+    description: Review outputs against scenario requirements and business logic.
+
 scenarios:
   - scenario_id: happy_path
+    kind: semantic_acceptance
     description: All required inputs exist and customer context is available.
+    evaluator_ids:
+      - exact_outputs
+      - requirements_acceptance
+    realistic_input: true
+    requirements:
+      - The system should escalate a billing renewal failure affecting a known enterprise customer.
+      - The digest entry should preserve the ticket summary, billing label, high priority, and enterprise tier.
+      - The output should suggest an action consistent with billing operations escalation.
     fixture_ids:
       - happy_path_ticket_parser
       - happy_path_issue_classifier
@@ -14,7 +34,11 @@ scenarios:
       - happy_path_customer_context_loader
       - happy_path_digest_assembler
   - scenario_id: missing_customer_context
+    kind: full_recomposition
     description: Customer context is omitted but required inputs still join.
+    evaluator_ids:
+      - exact_outputs
+    realistic_input: false
     fixture_ids:
       - missing_customer_context_ticket_parser
       - missing_customer_context_issue_classifier
@@ -22,6 +46,10 @@ scenarios:
       - missing_customer_context_customer_context_loader
       - missing_customer_context_digest_assembler
   - scenario_id: schema_mismatch_rejected
+    kind: negative
     description: Digest assembler must reject incompatible required inputs.
+    evaluator_ids:
+      - negative_failure
+    realistic_input: false
     fixture_ids:
       - schema_mismatch_rejected_digest_assembler

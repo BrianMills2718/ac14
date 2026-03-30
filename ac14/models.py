@@ -127,12 +127,36 @@ class GlobalInvariant(BaseModel):
     description: str = Field(description="Invariant meaning.")
 
 
+class EvaluatorDefinition(BaseModel):
+    """Named evaluator policy used by one or more scenarios."""
+
+    evaluator_id: str = Field(description="Stable evaluator identifier.")
+    kind: Literal[
+        "programmatic_exact",
+        "programmatic_failure",
+        "llm_requirements_acceptance",
+    ] = Field(description="Evaluator kind.")
+    description: str = Field(description="What this evaluator checks.")
+
+
 class Scenario(BaseModel):
     """Named validation scenario that points to one or more fixtures."""
 
     scenario_id: str = Field(description="Stable scenario identifier.")
+    kind: Literal["full_recomposition", "negative", "semantic_acceptance"] = Field(
+        description="Scenario kind.",
+    )
     description: str = Field(description="Scenario meaning.")
     fixture_ids: list[str] = Field(description="Referenced fixture identifiers.")
+    evaluator_ids: list[str] = Field(description="Evaluators that must review this scenario.")
+    realistic_input: bool = Field(
+        default=False,
+        description="Whether the scenario uses realistic input data rather than minimal synthetic data.",
+    )
+    requirements: list[str] = Field(
+        default_factory=list,
+        description="Requirements or acceptance expectations for semantic review.",
+    )
 
 
 class Fixture(BaseModel):
@@ -187,6 +211,10 @@ class ValidationFile(BaseModel):
         default_factory=list,
         description="Cross-component invariants.",
     )
+    evaluators: list[EvaluatorDefinition] = Field(
+        default_factory=list,
+        description="Named evaluator definitions.",
+    )
     scenarios: list[Scenario] = Field(description="Named validation scenarios.")
 
 
@@ -209,6 +237,9 @@ class FrozenBlueprint(BaseModel):
     state_stores: dict[str, StateStore] = Field(description="State stores keyed by store_id.")
     global_invariants: list[GlobalInvariant] = Field(
         description="Global invariants for validation and recomposition.",
+    )
+    evaluators: dict[str, EvaluatorDefinition] = Field(
+        description="Evaluators keyed by evaluator_id.",
     )
     scenarios: dict[str, Scenario] = Field(description="Scenarios keyed by scenario_id.")
     fixtures: dict[str, Fixture] = Field(description="Fixtures keyed by fixture_id.")

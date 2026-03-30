@@ -7,6 +7,11 @@ import json
 from pathlib import Path
 from typing import cast
 
+from ac14.acceptance import (
+    AcceptanceMode,
+    build_acceptance_report,
+    build_suite_acceptance_report,
+)
 from ac14.comparison import build_generator_comparison_report
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
@@ -68,6 +73,16 @@ def main() -> int:
     compare_parser.add_argument("--fresh-run-trials", type=int, default=2)
     compare_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     compare_parser.add_argument("--max-budget", type=float, default=0.50)
+
+    acceptance_parser = subparsers.add_parser(
+        "acceptance-review",
+        help="Build a persisted requirements-aware acceptance report for one blueprint.",
+    )
+    acceptance_parser.add_argument("blueprint_dir", type=Path)
+    acceptance_parser.add_argument("--output-dir", type=Path, required=True)
+    acceptance_parser.add_argument("--mode", choices=["reference", "deterministic", "llm"], default="deterministic")
+    acceptance_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    acceptance_parser.add_argument("--max-budget", type=float, default=0.50)
 
     semantic_compare_parser = subparsers.add_parser(
         "semantic-compare",
@@ -132,6 +147,16 @@ def main() -> int:
     semantic_compare_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     semantic_compare_suite_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    acceptance_suite_parser = subparsers.add_parser(
+        "acceptance-review-suite",
+        help="Build persisted requirements-aware acceptance reports across shipped examples.",
+    )
+    acceptance_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    acceptance_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    acceptance_suite_parser.add_argument("--mode", choices=["reference", "deterministic", "llm"], default="deterministic")
+    acceptance_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    acceptance_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
     recommend_default_parser = subparsers.add_parser(
         "recommend-default-generator",
         help="Build an evidence-backed default-generator recommendation.",
@@ -186,6 +211,14 @@ def main() -> int:
             args.model,
             args.max_budget,
         )
+    if args.command == "acceptance-review":
+        return _acceptance_review(
+            args.blueprint_dir,
+            args.output_dir,
+            cast(AcceptanceMode, args.mode),
+            args.model,
+            args.max_budget,
+        )
     if args.command == "semantic-compare":
         return _semantic_compare(
             args.blueprint_dir,
@@ -219,6 +252,14 @@ def main() -> int:
             args.output_dir,
             args.examples_root,
             [cast(ComparisonMode, mode) for mode in args.modes],
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "acceptance-review-suite":
+        return _acceptance_review_suite(
+            args.output_dir,
+            args.examples_root,
+            cast(AcceptanceMode, args.mode),
             args.model,
             args.max_budget,
         )
@@ -332,6 +373,26 @@ def _compare_generators(
     return 0
 
 
+def _acceptance_review(
+    blueprint_dir: Path,
+    output_dir: Path,
+    mode: AcceptanceMode,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build a persisted requirements-aware acceptance report for one blueprint."""
+
+    report = build_acceptance_report(
+        blueprint_dir=blueprint_dir,
+        output_dir=output_dir,
+        mode=mode,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
 def _semantic_compare(
     blueprint_dir: Path,
     output_dir: Path,
@@ -347,6 +408,26 @@ def _semantic_compare(
         modes=modes,
         llm_model=model,
         llm_max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _acceptance_review_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    mode: AcceptanceMode,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build persisted requirements-aware acceptance reports across shipped examples."""
+
+    report = build_suite_acceptance_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        mode=mode,
+        model=model,
+        max_budget=max_budget,
     )
     print(json.dumps(report.model_dump(mode="json"), indent=2))
     return 0

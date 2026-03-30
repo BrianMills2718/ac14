@@ -70,14 +70,14 @@ def run_generated_packet_tests(
             error: str | None
             try:
                 outputs = component.execute(case.inputs)
-                if _expects_failure(case.scenario_id):
+                if _expects_failure(case.scenario_kind):
                     passed = False
                     error = "negative case unexpectedly succeeded"
                 else:
                     passed = outputs == case.expected_outputs
                     error = None if passed else "generated outputs did not match expected outputs"
             except Exception as exc:  # pragma: no cover - explicit failure capture
-                if _expects_failure(case.scenario_id):
+                if _expects_failure(case.scenario_kind):
                     passed = True
                     error = None
                 else:
@@ -163,7 +163,7 @@ def run_fresh_generation_trials(
     return summary
 
 
-def _expects_failure(scenario_id: str) -> bool:
+def _expects_failure(scenario_kind: str) -> bool:
     """Return true for negative packet-test scenarios that should fail loudly."""
 
-    return scenario_id.endswith("_rejected")
+    return scenario_kind == "negative"

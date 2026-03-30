@@ -15,6 +15,7 @@ class PacketTestCase(BaseModel):
     component_id: str = Field(description="Target component identifier.")
     fixture_id: str = Field(description="Source fixture identifier.")
     scenario_id: str = Field(description="Owning scenario identifier.")
+    scenario_kind: str = Field(description="Owning scenario kind.")
     description: str = Field(description="Fixture description.")
     inputs: dict[str, dict[str, Any]] = Field(description="Port-keyed fixture inputs.")
     expected_outputs: dict[str, dict[str, Any]] = Field(
@@ -34,6 +35,7 @@ def materialize_packet_test_cases(
                 component_id=component_id,
                 fixture_id=fixture.fixture_id,
                 scenario_id=fixture.scenario_id,
+                scenario_kind=packet.relevant_scenarios[fixture.scenario_id].kind,
                 description=fixture.description,
                 inputs=fixture.inputs,
                 expected_outputs=fixture.expected_outputs,

@@ -54,6 +54,7 @@ def load_blueprint_dir(path: Path | str) -> FrozenBlueprint:
         bindings=architecture_file.bindings,
         state_stores=_index_by_id(architecture_file.state_stores, "store_id", "state_store"),
         global_invariants=validation_file.global_invariants,
+        evaluators=_index_by_id(validation_file.evaluators, "evaluator_id", "evaluator"),
         scenarios=_index_by_id(validation_file.scenarios, "scenario_id", "scenario"),
         fixtures=_index_by_id(fixtures_file.fixtures, "fixture_id", "fixture"),
     )

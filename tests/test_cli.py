@@ -129,6 +129,20 @@ def test_cli_compare_generators_deterministic_only(tmp_path: Path) -> None:
     assert len(payload["runs"]) == 1
 
 
+def test_cli_acceptance_review_help() -> None:
+    """Acceptance-review help should expose the command without running live evaluation."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "acceptance-review", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--mode" in result.stdout
+
+
 def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:
     """Semantic comparison command should emit a persisted semantic report."""
 
@@ -229,6 +243,20 @@ def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["example_count"] >= 2
+
+
+def test_cli_acceptance_review_suite_help() -> None:
+    """Acceptance-review-suite help should expose the suite command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "acceptance-review-suite", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--examples-root" in result.stdout
 
 
 def test_cli_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
