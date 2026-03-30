@@ -206,7 +206,7 @@ def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
 
 
 def test_cli_decide_freeze_promotes_ready_bundle(tmp_path: Path) -> None:
-    """Freeze decision command should promote a ready bundle."""
+    """Freeze decision command should emit remediation metadata as well."""
 
     result = subprocess.run(
         [
@@ -227,6 +227,7 @@ def test_cli_decide_freeze_promotes_ready_bundle(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["approved"] is True
     assert Path(payload["promoted_bundle_dir"]).exists()
+    assert Path(payload["remediation_plan_path"]).exists()
 
 
 def test_cli_prove_example(tmp_path: Path) -> None:

@@ -5,30 +5,30 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the freeze-decision lane
-  - [x] update `CLAUDE.md` to make freeze decisioning the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with freeze-decision phases and success criteria
+- [x] Phase 1: freeze the remediation lane
+  - [x] update `CLAUDE.md` to make freeze remediation the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with remediation phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: add the freeze decision artifact
-  - [x] persist an explicit approve/block artifact for freeze decisions
-  - [x] support decisions driven by readiness reports
-  - [x] support decisions on already-authored bundles without a readiness report
-  - Success criteria: AC14 can explain in one artifact why a bundle is approved or blocked
+- [ ] Phase 2: add the freeze remediation artifact
+  - [ ] persist remediation tasks alongside each freeze decision
+  - [ ] group findings into actionable authoring buckets
+  - [ ] point tasks at bundle files or upstream planning artifacts
+  - [ ] include an explicit rerun path for freeze after edits
+  - Success criteria: a blocked freeze decision becomes a usable authoring worklist instead of a flat finding dump
 
-- [x] Phase 3: add promotion behavior
-  - [x] promote approved bundles into a frozen-bundle directory
-  - [x] keep blocked bundles from promoting
-  - [x] expose the same surface through CLI and Make
-  - Success criteria: approved bundles promote deterministically and blocked bundles fail loud without silent promotion
+- [ ] Phase 3: wire remediation through CLI, Make, and tests
+  - [ ] expose remediation-path details through `decide-freeze`
+  - [ ] keep the Make surface aligned with the CLI behavior
+  - [ ] add deterministic tests for blocked-remediation and approved-no-work paths
+  - Success criteria: the remediation loop is discoverable and verified from operator surfaces
 
-- [x] Phase 4: verify and lock the lane
-  - [x] add deterministic tests for freeze decisions and promotion
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect actual final state
+- [ ] Phase 4: verify and lock the lane
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -41,6 +41,7 @@ Last updated: 2026-03-30
 - the next bridge will produce draft planning artifacts, not claim that blueprint freeze is solved
 - the next bridge will materialize draft bundles and readiness reports, not claim those drafts are frozen
 - the next bridge will decide and promote only when approval is explicit; it still does not broaden proof breadth
+- the new remediation loop will guide direct draft-bundle editing first; automated rewrite loops are still deferred
 
 ## Latest Verified Results
 
@@ -102,6 +103,6 @@ Last updated: 2026-03-30
 ## Longer-Term Next Steps
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
-- [ ] make freeze decisions richer than pass/block by connecting them to actual authoring loops
+- [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
 - [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

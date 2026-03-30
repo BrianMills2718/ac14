@@ -198,7 +198,7 @@ def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
 
 
 def test_make_decide_freeze_runs_end_to_end(tmp_path: Path) -> None:
-    """Make freeze-decision target should persist a decision and promoted bundle."""
+    """Make freeze-decision target should persist decision and remediation artifacts."""
 
     output_dir = tmp_path / "freeze_decision"
     result = subprocess.run(
@@ -215,6 +215,7 @@ def test_make_decide_freeze_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "freeze_decision.json").exists()
+    assert (output_dir / "freeze_remediation_plan.json").exists()
     assert (output_dir / "frozen_bundle" / "metadata.yaml").exists()
 
 

@@ -84,7 +84,7 @@ def _write_plan_artifact(path: Path) -> Path:
 
 
 def test_build_freeze_decision_blocks_draft_bundle(tmp_path: Path) -> None:
-    """Draft bundles with readiness blockers should produce blocked decisions."""
+    """Draft bundles with readiness blockers should produce blocked worklists."""
 
     plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
     manifest = materialize_draft_blueprint_bundle(
@@ -104,6 +104,17 @@ def test_build_freeze_decision_blocks_draft_bundle(tmp_path: Path) -> None:
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
     assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
     assert (tmp_path / "freeze_decision" / "freeze_decision.json").exists()
+    remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
+    assert remediation_payload["blocked"] is True
+    assert remediation_payload["task_count"] >= 2
+    target_files = {
+        Path(target_file).name
+        for task in remediation_payload["tasks"]
+        for target_file in task["target_files"]
+    }
+    assert "components.yaml" in target_files
+    assert "fixtures.yaml" in target_files
+    assert remediation_payload["bundle_retry_command"].startswith("python -m ac14 decide-freeze")
 
 
 def test_build_freeze_decision_promotes_ready_bundle(tmp_path: Path) -> None:
@@ -119,3 +130,6 @@ def test_build_freeze_decision_promotes_ready_bundle(tmp_path: Path) -> None:
     promoted_dir = Path(decision.promoted_bundle_dir)
     assert (promoted_dir / "metadata.yaml").exists()
     assert (promoted_dir / "schemas.yaml").exists()
+    remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
+    assert remediation_payload["blocked"] is False
+    assert remediation_payload["task_count"] == 0

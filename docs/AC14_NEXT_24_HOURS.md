@@ -1,20 +1,20 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: Active
 Last updated: 2026-03-30
 
 ## Purpose
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The draft authoring lane was complete, but AC14 still could not produce an
-explicit approve/block decision artifact for promotion.
+The explicit freeze-decision lane is complete, but a blocked decision still
+lands as a flat finding list. That is not yet a usable authoring loop.
 
-The immediate goal for this lane was a narrow freeze-decision bridge:
+The immediate goal for this lane is a narrow remediation bridge:
 
-1. draft bundle plus readiness report in
-2. explicit freeze decision out
-3. promoted frozen bundle only when approval is true
+1. blocked freeze decision in
+2. persisted authoring tasks out
+3. explicit rerun path for bundle editing and freeze retry
 
 ## Progress Update
 
@@ -23,12 +23,14 @@ Completed before this lane:
 1. six-file frozen blueprint bundle and proof surfaces
 2. pre-freeze discovery and draft planning
 3. draft bundle authoring and freeze-readiness reporting
+4. explicit freeze approve/block decisions and deterministic promotion
 
-Delivered in this lane:
+Required in this lane:
 
-1. explicit approve/block freeze decision artifact
-2. deterministic promotion path for approved bundles
-3. CLI and Make surface for freeze decisions
+1. persisted freeze-remediation artifact tied to each decision
+2. actionable task grouping from readiness and validation findings
+3. bundle-edit retry command so blocked drafts can move forward without
+   stop-and-ask interpretation
 
 ## Execution Rule
 
@@ -59,39 +61,41 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Freeze Decision Artifact
+### Phase 2: Freeze Remediation Artifact
 
 Deliverables:
 
-- persisted approve/block decision artifact
-- support for readiness-report-driven decisions
-- support for direct freeze-candidate decisions on already-authored bundles
+- persisted remediation artifact produced alongside freeze decisions
+- actionable grouping from readiness and validation findings
+- concrete target files and rerun commands in the remediation artifact
 
 Acceptance criteria:
 
-- AC14 can explain in one persisted artifact why a bundle is approved or blocked
-- decision artifacts carry the blocking findings forward instead of discarding them
+- a blocked freeze decision produces at least one remediation task
+- tasks point at concrete bundle files or upstream planning artifacts
+- remediation output explains how to retry freeze after edits
 
-### Phase 3: Promotion Surface
+### Phase 3: CLI, Make, And Test Surface
 
 Deliverables:
 
-- deterministic promotion path for approved bundles
-- no promotion when approval is false
-- CLI and Make entrypoints for the same surface
+- `decide-freeze` emits remediation-path information
+- Make surface exposes the same behavior
+- deterministic tests cover blocked and approved cases
 
 Acceptance criteria:
 
-- approved bundles are copied into a promoted frozen-bundle directory
-- blocked bundles do not silently promote
+- CLI users can discover and read remediation artifacts without extra code
+- Make-driven freeze decisions write the remediation artifact
+- tests prove both blocked-worklist and approved-no-work paths
 
 ### Phase 4: Verification And Lock
 
 Deliverables:
 
-- deterministic tests for freeze decisions and promotion
 - clean local verification
-- updated TODO/plan state
+- updated TODO/plan/README/KNOWLEDGE state
+- clean committed repo state
 
 Acceptance criteria:
 
@@ -100,32 +104,10 @@ Acceptance criteria:
 - `python -m ruff check ac14 tests` passes
 - docs match the implemented state
 
-## Lane Outcome
-
-Completed:
-
-1. AC14 can build a persisted freeze decision artifact from either a readiness-backed draft bundle or a direct freeze candidate
-2. decision artifacts preserve the blocking findings instead of reducing them to an implicit yes/no
-3. approved bundles are promoted into a deterministic `frozen_bundle` directory
-4. blocked bundles remain unpromoted without silent fallbacks
-5. CLI and Make now expose `decide-freeze`
-6. deterministic tests cover decision artifacts, promotion, CLI, and Make surfaces
-
-Verification:
-
-1. `pytest -q tests/test_freeze_decision.py tests/test_cli.py tests/test_make_targets.py` passed
-2. `python -m mypy ac14 tests` passed on 50 source files
-3. `python -m ruff check ac14 tests` passed
-4. full repo verification passed with `78 passed`
-
-Next lane:
-
-1. make freeze decisions richer than pass/block by connecting them to actual authoring loops
-2. widen proof breadth beyond the current ticket-digest slice
-3. extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces without coupling AC14 to agent-only MCP assumptions
-
 ## Known Uncertainties
 
-1. the first freeze-decision bridge still relies on current proof-slice validation semantics
-2. bundles with placeholders are expected to block rather than promote
+1. the first remediation loop will route humans through direct bundle editing
+   and freeze retry, not through automated draft rewriting
+2. some findings originate from draft authoring heuristics and may still need
+   upstream planning changes in addition to bundle edits
 3. broader proof breadth and retrieval expansion remain outside this narrow lane

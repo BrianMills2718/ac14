@@ -65,12 +65,15 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after draft authoring is explicit freeze decisioning.
+The active lane after explicit freeze decisioning is freeze remediation.
 
-- use draft bundles plus readiness reports to make approve/block decisions explicit
-- persist the freeze decision as an artifact instead of leaving promotion implicit
-- promote only when the bundle is actually ready; otherwise fail loud with concrete blockers
-- keep broader proof-breadth and retrieval work logged explicitly without blocking the smaller thesis-preserving lane
+- turn blocked freeze decisions into persisted authoring tasks instead of leaving
+  them as a flat finding list
+- point each remediation task at concrete bundle files and an explicit rerun path
+- treat edited draft bundles as real authoring surfaces instead of forcing the
+  operator back through chat history
+- keep broader proof-breadth and retrieval work logged explicitly without
+  blocking the smaller thesis-preserving lane
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule
