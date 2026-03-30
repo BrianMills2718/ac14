@@ -14,6 +14,9 @@ from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
+from ac14.recommendation import build_default_generator_recommendation
+from ac14.semantic_comparison import ComparisonMode, build_semantic_comparison_report
+from ac14.semantic_suite import build_suite_semantic_comparison_report
 from ac14.suite import build_suite_comparison_report, build_suite_proof_report
 from ac14.validation import validate_blueprint
 
@@ -66,6 +69,21 @@ def main() -> int:
     compare_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     compare_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    semantic_compare_parser = subparsers.add_parser(
+        "semantic-compare",
+        help="Build a persisted semantic comparison report for one blueprint.",
+    )
+    semantic_compare_parser.add_argument("blueprint_dir", type=Path)
+    semantic_compare_parser.add_argument("--output-dir", type=Path, required=True)
+    semantic_compare_parser.add_argument(
+        "--modes",
+        nargs="+",
+        choices=["reference", "deterministic", "llm"],
+        default=["reference", "deterministic"],
+    )
+    semantic_compare_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    semantic_compare_parser.add_argument("--max-budget", type=float, default=0.50)
+
     list_examples_parser = subparsers.add_parser(
         "list-examples",
         help="List shipped blueprint examples.",
@@ -98,6 +116,37 @@ def main() -> int:
     compare_suite_parser.add_argument("--fresh-run-trials", type=int, default=2)
     compare_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     compare_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
+    semantic_compare_suite_parser = subparsers.add_parser(
+        "semantic-compare-suite",
+        help="Build persisted semantic comparison artifacts across shipped examples.",
+    )
+    semantic_compare_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    semantic_compare_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    semantic_compare_suite_parser.add_argument(
+        "--modes",
+        nargs="+",
+        choices=["reference", "deterministic", "llm"],
+        default=["reference", "deterministic"],
+    )
+    semantic_compare_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    semantic_compare_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
+    recommend_default_parser = subparsers.add_parser(
+        "recommend-default-generator",
+        help="Build an evidence-backed default-generator recommendation.",
+    )
+    recommend_default_parser.add_argument("--output-dir", type=Path, required=True)
+    recommend_default_parser.add_argument("--examples-root", type=Path, default=None)
+    recommend_default_parser.add_argument(
+        "--generators",
+        nargs="+",
+        choices=["deterministic", "llm"],
+        default=["deterministic"],
+    )
+    recommend_default_parser.add_argument("--fresh-run-trials", type=int, default=2)
+    recommend_default_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    recommend_default_parser.add_argument("--max-budget", type=float, default=0.50)
 
     args = parser.parse_args()
     if args.command == "verify-blueprint":
@@ -137,6 +186,14 @@ def main() -> int:
             args.model,
             args.max_budget,
         )
+    if args.command == "semantic-compare":
+        return _semantic_compare(
+            args.blueprint_dir,
+            args.output_dir,
+            [cast(ComparisonMode, mode) for mode in args.modes],
+            args.model,
+            args.max_budget,
+        )
     if args.command == "list-examples":
         return _list_examples(args.examples_root)
     if args.command == "prove-suite":
@@ -150,6 +207,23 @@ def main() -> int:
         )
     if args.command == "compare-suite":
         return _compare_suite(
+            args.output_dir,
+            args.examples_root,
+            [cast(GeneratorKind, generator) for generator in args.generators],
+            args.fresh_run_trials,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "semantic-compare-suite":
+        return _semantic_compare_suite(
+            args.output_dir,
+            args.examples_root,
+            [cast(ComparisonMode, mode) for mode in args.modes],
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "recommend-default-generator":
+        return _recommend_default_generator(
             args.output_dir,
             args.examples_root,
             [cast(GeneratorKind, generator) for generator in args.generators],
@@ -258,6 +332,26 @@ def _compare_generators(
     return 0
 
 
+def _semantic_compare(
+    blueprint_dir: Path,
+    output_dir: Path,
+    modes: list[ComparisonMode],
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build a persisted semantic comparison report for one blueprint."""
+
+    report = build_semantic_comparison_report(
+        blueprint_dir=blueprint_dir,
+        output_dir=output_dir,
+        modes=modes,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
 def _list_examples(examples_root: Path | None) -> int:
     """Print shipped blueprint examples."""
 
@@ -312,6 +406,48 @@ def _compare_suite(
         llm_max_budget=max_budget,
     )
     print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _semantic_compare_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    modes: list[ComparisonMode],
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build a persisted suite semantic comparison report."""
+
+    report = build_suite_semantic_comparison_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        modes=modes,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _recommend_default_generator(
+    output_dir: Path,
+    examples_root: Path | None,
+    generators: list[GeneratorKind],
+    fresh_run_trials: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build the evidence-backed default-generator recommendation."""
+
+    recommendation = build_default_generator_recommendation(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        generator_kinds=generators,
+        fresh_run_trials=fresh_run_trials,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(recommendation.model_dump(mode="json"), indent=2))
     return 0
 
 

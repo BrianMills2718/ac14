@@ -10,10 +10,11 @@ OUTPUT ?= .ac14_out
 TRIALS ?= 3
 GENERATOR ?= deterministic
 GENERATORS ?= deterministic llm
+MODES ?= reference deterministic
 MODEL ?= gemini/gemini-2.5-flash-lite
 MAX_BUDGET ?= 0.50
 
-.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators list-examples prove-suite compare-suite
+.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators semantic-compare list-examples prove-suite compare-suite semantic-compare-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -48,6 +49,9 @@ fresh-runs: ## Run repeated fresh generation trials (INPUT=... OUTPUT=.ac14_out/
 compare-generators: ## Compare generator modes (INPUT=... OUTPUT=.ac14_out/compare GENERATORS="deterministic llm")
 	$(PYTHON) -m ac14 compare-generators "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)" --generators $(GENERATORS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
+semantic-compare: ## Compare semantic outputs for one blueprint (INPUT=... OUTPUT=.ac14_out/semantic MODES="reference deterministic")
+	$(PYTHON) -m ac14 semantic-compare "$(INPUT)" --output-dir "$(OUTPUT)" --modes $(MODES) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
 list-examples: ## List shipped blueprint examples (EXAMPLES_ROOT=examples)
 	$(PYTHON) -m ac14 list-examples --examples-root "$(EXAMPLES_ROOT)"
 
@@ -56,3 +60,9 @@ prove-suite: ## Build persisted proof bundles across shipped examples (OUTPUT=.a
 
 compare-suite: ## Compare generator modes across shipped examples (OUTPUT=.ac14_out/suite_compare GENERATORS="deterministic llm")
 	$(PYTHON) -m ac14 compare-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --fresh-run-trials "$(TRIALS)" --generators $(GENERATORS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+semantic-compare-suite: ## Compare semantic outputs across shipped examples (OUTPUT=.ac14_out/suite_semantic MODES="reference deterministic")
+	$(PYTHON) -m ac14 semantic-compare-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --modes $(MODES) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+recommend-default-generator: ## Recommend the current default generator (OUTPUT=.ac14_out/recommend GENERATORS="deterministic")
+	$(PYTHON) -m ac14 recommend-default-generator --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --generators $(GENERATORS) --fresh-run-trials "$(TRIALS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

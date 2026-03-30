@@ -1,7 +1,7 @@
 # AC14 Next 24 Hours
 
-Status: Completed
-Last updated: 2026-03-28
+Status: Active
+Last updated: 2026-03-29
 
 ## Purpose
 
@@ -21,28 +21,27 @@ The first honest slice is already in place:
 10. `llm_client`-backed generator with prompt YAML and structured output
 11. persisted comparison artifacts for one shipped example
 
-The current gap is not "more generation." It is that proof is still too tied to
-one shipped example. This lane broadens proof coverage and removes the remaining
-example-specific execution assumptions.
+The suite-proof lane is complete. The next gap is that comparison is still too
+shallow: it mostly records pass/fail and module hashes, and the repo still has
+no explicit evidence-backed answer for whether the LLM generator should become
+the default anywhere.
 
 ## Progress Update
 
 Completed:
 
-1. control-surface reset for the suite-proof lane
-2. blueprint-driven recomposition scenario inference
-3. removal of hard-coded `support_ticket_digest` recomposition assumptions
-4. targeted proof/lint/type checks for the generic recomposition path
-5. shipped blueprint discovery and second bundled example
-6. suite-level proof and comparison artifacts
-7. CLI and Make support for suite workflows
-8. targeted suite verification across discovery, CLI, Make, and aggregate artifacts
+1. suite-proof lane closed cleanly
+2. shipped suite now has more than one blueprint
+3. CLI and Make can prove and compare the shipped suite
+4. reference runtime generalized across the shipped suite
+5. blueprint-level and suite-level semantic comparison artifacts
+6. explicit default-generator recommendation surface
+7. targeted verification for reference, semantic, recommendation, CLI, and Make paths
 
 Next:
 
-1. richer semantic comparison between reference, deterministic, and LLM-backed outputs
-2. decision on whether any suite lane should promote LLM generation from optional to default
-3. broader semantic-responsibility coverage beyond the current ticket-digest family
+1. full repo verification
+2. final doc lock for the semantic-comparison lane
 
 ## Execution Rule
 
@@ -72,47 +71,44 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Generic Recomposition Proof
+### Phase 2: Generalized Reference Lane
 
 Deliverables:
 
-- blueprint-driven recomposition scenario selection
-- removal of hard-coded example-specific fixture/component assumptions
-- fail-loud handling for non-runnable scenarios
+- blueprint-derived reference runtime configuration
+- reference execution support across the shipped suite
+- fail-loud handling for unsupported blueprint shapes
 
 Acceptance criteria:
 
-- recomposition proof logic works from blueprint structure and fixtures
-- generated proof execution is no longer tied to `support_ticket_digest` internals
-- negative or incomplete scenarios are either rejected loudly or skipped under explicit rules
+- reference execution works on every shipped example in the current semantic family
+- no reference path remains tied to one example's fixture ids or static maps
 
-### Phase 3: Multi-Example Coverage
+### Phase 3: Semantic Comparison Artifacts
 
 Deliverables:
 
-- example discovery or registry
-- at least one additional shipped blueprint bundle
-- proof execution across more than one blueprint
+- per-blueprint semantic comparison report
+- suite-level semantic comparison report
+- machine-readable artifacts capturing agreement with expected outputs and reference outputs
 
 Acceptance criteria:
 
-- AC14 can enumerate the shipped blueprint suite
-- the full local proof lane passes on each shipped blueprint
+- deterministic comparison can run across the shipped suite locally
+- semantic mismatches are explicit and attributable by scenario and mode
 
-### Phase 4: Suite Artifacts And Operator Surface
+### Phase 4: Default-Generator Decision
 
 Deliverables:
 
-- suite-level proof runner
-- suite-level comparison runner
-- CLI and Make targets for suite execution
-- persisted machine-readable suite artifacts
+- promotion criteria for the LLM generator
+- persisted default-generator recommendation artifact
+- CLI and Make entrypoints for the decision surface
 
 Acceptance criteria:
 
-- operator can prove the shipped suite without importing Python modules manually
-- operator can compare generator modes across the suite from the CLI/Make surface
-- suite artifacts record per-example and aggregate results
+- the repo can answer the default-generator question from local artifacts
+- the decision remains deterministic unless stronger evidence justifies change
 
 ### Phase 5: Verification And Lock
 
@@ -131,7 +127,7 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. blueprint scenarios do not currently declare an explicit recomposition-proof mode
-2. the second shipped example should broaden coverage without forcing a new semantic-responsibility family in the same lane
-3. live suite-wide LLM comparison may remain optional if cost or latency is too high
-4. richer semantic comparison can remain a later lane after suite execution is honest
+1. blueprint scenarios still do not declare an explicit recomposition-proof mode
+2. the shipped suite is still only one semantic family
+3. live suite-wide LLM semantic comparison may remain optional if cost or latency is too high
+4. recommendation logic should stay conservative until broader evidence exists

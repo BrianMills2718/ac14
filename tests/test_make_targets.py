@@ -26,8 +26,11 @@ def test_make_help_lists_proof_targets() -> None:
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
+    assert "semantic-compare" in result.stdout
     assert "prove-suite" in result.stdout
     assert "compare-suite" in result.stdout
+    assert "semantic-compare-suite" in result.stdout
+    assert "recommend-default-generator" in result.stdout
 
 
 def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
@@ -92,3 +95,46 @@ def test_make_compare_suite_deterministic_only(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "suite_comparison_report.json").exists()
+
+
+def test_make_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
+    """Make semantic suite target should build aggregate semantic artifacts."""
+
+    output_dir = tmp_path / "suite_semantic"
+    result = subprocess.run(
+        [
+            "make",
+            "semantic-compare-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "MODES=reference deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "suite_semantic_comparison_report.json").exists()
+
+
+def test_make_recommend_default_generator_deterministic_only(tmp_path: Path) -> None:
+    """Make recommendation target should produce the default-generator artifact."""
+
+    output_dir = tmp_path / "recommendation"
+    result = subprocess.run(
+        [
+            "make",
+            "recommend-default-generator",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "GENERATORS=deterministic",
+            "TRIALS=1",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "default_generator_recommendation.json").exists()

@@ -1,49 +1,49 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-03-28
+Last updated: 2026-03-29
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the suite-proof plan
-  - [x] strengthen `CLAUDE.md` for the proof-expansion lane
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with explicit phases and success criteria
-  - [x] keep this TODO as the running source of truth while the lane executes
-  - Success criteria: docs describe the active lane honestly and phases can be executed without stopping for interpretation
+- [x] Phase 1: freeze the semantic-comparison lane
+  - [x] strengthen `CLAUDE.md` for semantic comparison and explicit default decisions
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with new phases and success criteria
+  - [x] keep this TODO as the running control surface during implementation
+  - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: remove example-specific proof assumptions
-  - [x] replace hard-coded recomposition fixture/component assumptions with blueprint-driven scenario execution
-  - [x] define what makes a scenario runnable for full recomposition proof
-  - [x] preserve fail-loud behavior for negative or underspecified scenarios
-  - Success criteria: generated proof execution no longer depends on `support_ticket_digest`-specific component ids or fixture ids
+- [x] Phase 2: generalize the reference lane
+  - [x] derive reference runtime configuration from blueprint fixtures rather than one hard-coded example
+  - [x] make the reference runtime reusable across the shipped suite
+  - [x] preserve fail-loud behavior when a blueprint does not support the current reference component family
+  - Success criteria: reference execution works on every shipped example in the current semantic family
 
-- [x] Phase 3: ship broader blueprint coverage
-  - [x] add example discovery or registry for shipped blueprints
-  - [x] add at least one additional shipped blueprint bundle
-  - [x] ensure the second bundle exercises the existing semantic responsibilities without relying on copied proof artifacts
-  - Success criteria: AC14 can enumerate more than one shipped blueprint and execute the full local proof lane on each
+- [x] Phase 3: add semantic comparison artifacts
+  - [x] build blueprint-level semantic comparison across reference and generator modes
+  - [x] build suite-level semantic comparison aggregates
+  - [x] persist machine-readable semantic comparison artifacts
+  - Success criteria: AC14 can report semantic agreement with expected outputs and with the reference lane
 
-- [x] Phase 4: add suite-level evidence and comparison
-  - [x] add suite proof runner across shipped examples
-  - [x] add aggregate suite comparison across generator modes
-  - [x] persist machine-readable suite artifacts
-  - Success criteria: one CLI/Make surface can produce a suite-level proof artifact and comparison artifact
+- [x] Phase 4: make the default-generator decision explicit
+  - [x] define promotion criteria for the LLM generator
+  - [x] build a persisted default-generator recommendation artifact
+  - [x] expose the recommendation through CLI and Make
+  - Success criteria: the repo can answer "what should be the default generator today?" from local evidence
 
-- [x] Phase 5: verify and lock the lane
-  - [x] add deterministic unit tests for suite discovery, suite proof, and suite comparison
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect the actual final state
-  - Success criteria: all local verification passes and the control docs match the implemented state
+- [ ] Phase 5: verify and lock the lane
+  - [ ] add deterministic tests for reference generalization, semantic comparison, and recommendation artifacts
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect actual final state
+  - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
 
 - the generated component logic is still semantic-responsibility-specific rather than general synthesis
 - blueprint scenarios do not currently carry an explicit "full recomposition" flag, so suite execution must infer runnable scenarios conservatively
 - negative scenarios may remain packet-only if they do not provide enough information for a whole-graph run
-- the second shipped example should widen proof coverage without forcing a new semantic-responsibility family in the same lane
-- live LLM suite comparison may be too expensive for the default gate and may remain optional
+- the shipped suite is still one semantic-responsibility family even though it now has multiple blueprints
+- live LLM semantic comparison may be too expensive for the default gate and may remain optional
 
 ## Latest Verified Results
 
@@ -57,9 +57,8 @@ Last updated: 2026-03-28
 - `pytest -q` passed with `43 passed`
 - `python -m mypy ac14 tests` passed on 35 source files
 - `python -m ruff check ac14 tests` passed
+- targeted reference, semantic comparison, recommendation, CLI, and Make tests passed
 
 ## Longer-Term Next Steps
 
-- [ ] compare deterministic, LLM, and reference outputs with richer semantic checks
-- [ ] decide whether any suite lane should promote the LLM generator from optional to default
 - [ ] widen semantic-responsibility coverage beyond the current ticket-digest slice

@@ -24,6 +24,8 @@ AC14 now supports:
 - writing persisted evidence bundles and repeated fresh-run summaries
 - comparing deterministic and LLM-backed generators
 - building suite-level proof and comparison artifacts across shipped examples
+- building semantic comparison artifacts across reference and generated modes
+- producing an evidence-backed default-generator recommendation
 
 ## Quickstart
 
@@ -36,4 +38,6 @@ make prove-example OUTPUT=.ac14_out/proof TRIALS=3
 make fresh-runs OUTPUT=.ac14_out/fresh TRIALS=3
 make prove-suite OUTPUT=.ac14_out/suite TRIALS=1
 make compare-suite OUTPUT=.ac14_out/suite_compare TRIALS=1 GENERATORS=deterministic
+make semantic-compare-suite OUTPUT=.ac14_out/suite_semantic MODES="reference deterministic"
+make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

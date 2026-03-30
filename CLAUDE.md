@@ -49,10 +49,11 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after the first LLM-backed generator is proof expansion.
+The active lane after suite proof expansion is semantic comparison and default
+generator decision.
 
-- remove hard-coded proof assumptions before adding more examples
-- prefer blueprint-driven scenario execution over example-specific wiring
-- prove the system on a suite of shipped blueprints, not one blueprint
-- keep deterministic generation as the control lane until a broader suite says otherwise
+- compare reference, deterministic, and optional LLM outputs semantically
+- prefer blueprint-driven comparison over module-hash-only summaries
+- make the default-generator decision explicit and evidence-backed
+- keep deterministic generation as the control lane until broader suite evidence says otherwise
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane

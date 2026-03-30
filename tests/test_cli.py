@@ -129,6 +129,32 @@ def test_cli_compare_generators_deterministic_only(tmp_path: Path) -> None:
     assert len(payload["runs"]) == 1
 
 
+def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:
+    """Semantic comparison command should emit a persisted semantic report."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "semantic-compare",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "semantic"),
+            "--modes",
+            "reference",
+            "deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["runnable_scenario_count"] == 2
+
+
 def test_cli_list_examples() -> None:
     """List-examples command should return the shipped suite."""
 
@@ -203,3 +229,58 @@ def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["example_count"] >= 2
+
+
+def test_cli_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
+    """Suite semantic comparison command should build aggregate semantic artifacts."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "semantic-compare-suite",
+            "--output-dir",
+            str(tmp_path / "suite_semantic"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--modes",
+            "reference",
+            "deterministic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["example_count"] >= 2
+
+
+def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> None:
+    """Recommendation command should keep deterministic as the default in the local lane."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "recommend-default-generator",
+            "--output-dir",
+            str(tmp_path / "recommendation"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--generators",
+            "deterministic",
+            "--fresh-run-trials",
+            "1",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["recommended_default"] == "deterministic"

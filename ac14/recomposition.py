@@ -50,6 +50,17 @@ class RecompositionScenarioResult(BaseModel):
     error: str | None = Field(default=None, description="Failure explanation when the scenario fails.")
 
 
+class RecompositionScenarioExecution(BaseModel):
+    """Actual execution result for one runnable recomposition scenario."""
+
+    scenario_id: str = Field(description="Scenario identifier.")
+    outputs_by_component: dict[str, dict[str, dict[str, Any]]] | None = Field(
+        default=None,
+        description="Actual outputs keyed by component when execution succeeds.",
+    )
+    error: str | None = Field(default=None, description="Execution error when the scenario fails.")
+
+
 class RecompositionReport(BaseModel):
     """Aggregate recomposition proof result for one blueprint and component set."""
 
@@ -141,43 +152,40 @@ def run_recomposition_proof(
 ) -> RecompositionReport:
     """Execute all runnable full-graph recomposition scenarios for one blueprint."""
 
-    missing_builders = sorted(set(blueprint.components).difference(component_builders))
-    if missing_builders:
-        raise ValueError(
-            "missing component builders for recomposition proof: " + ", ".join(missing_builders)
-        )
-
-    catalog = build_recomposition_scenario_catalog(blueprint)
+    catalog, executions = execute_recomposition_scenarios(blueprint, component_builders)
     results: list[RecompositionScenarioResult] = []
-    for scenario in catalog.runnable_scenarios:
-        implementations = {
-            component_id: component_builders[component_id]()
-            for component_id in blueprint.components
-        }
-        try:
-            outputs = run_blueprint_once(blueprint, implementations, scenario.initial_inputs)
-            mismatch = _find_first_mismatch(outputs, scenario.expected_outputs_by_component)
-            if mismatch is None:
-                results.append(
-                    RecompositionScenarioResult(
-                        scenario_id=scenario.scenario_id,
-                        passed=True,
-                    ),
-                )
-            else:
-                results.append(
-                    RecompositionScenarioResult(
-                        scenario_id=scenario.scenario_id,
-                        passed=False,
-                        error=mismatch,
-                    ),
-                )
-        except Exception as exc:  # pragma: no cover - explicit failure capture
+    scenario_lookup = {
+        scenario.scenario_id: scenario for scenario in catalog.runnable_scenarios
+    }
+    for execution in executions:
+        scenario = scenario_lookup[execution.scenario_id]
+        if execution.error is not None:
             results.append(
                 RecompositionScenarioResult(
-                    scenario_id=scenario.scenario_id,
+                    scenario_id=execution.scenario_id,
                     passed=False,
-                    error=str(exc),
+                    error=execution.error,
+                ),
+            )
+            continue
+
+        mismatch = _find_first_mismatch(
+            execution.outputs_by_component or {},
+            scenario.expected_outputs_by_component,
+        )
+        if mismatch is None:
+            results.append(
+                RecompositionScenarioResult(
+                    scenario_id=execution.scenario_id,
+                    passed=True,
+                ),
+            )
+        else:
+            results.append(
+                RecompositionScenarioResult(
+                    scenario_id=execution.scenario_id,
+                    passed=False,
+                    error=mismatch,
                 ),
             )
 
@@ -187,6 +195,43 @@ def run_recomposition_proof(
         skipped_scenarios=catalog.skipped_scenarios,
         results=results,
     )
+
+
+def execute_recomposition_scenarios(
+    blueprint: FrozenBlueprint,
+    component_builders: dict[str, Callable[[], RuntimeComponent]],
+) -> tuple[RecompositionScenarioCatalog, list[RecompositionScenarioExecution]]:
+    """Execute all runnable recomposition scenarios and return actual outputs."""
+
+    missing_builders = sorted(set(blueprint.components).difference(component_builders))
+    if missing_builders:
+        raise ValueError(
+            "missing component builders for recomposition proof: " + ", ".join(missing_builders)
+        )
+
+    catalog = build_recomposition_scenario_catalog(blueprint)
+    executions: list[RecompositionScenarioExecution] = []
+    for scenario in catalog.runnable_scenarios:
+        implementations = {
+            component_id: component_builders[component_id]()
+            for component_id in blueprint.components
+        }
+        try:
+            outputs = run_blueprint_once(blueprint, implementations, scenario.initial_inputs)
+            executions.append(
+                RecompositionScenarioExecution(
+                    scenario_id=scenario.scenario_id,
+                    outputs_by_component=outputs,
+                ),
+            )
+        except Exception as exc:  # pragma: no cover - explicit failure capture
+            executions.append(
+                RecompositionScenarioExecution(
+                    scenario_id=scenario.scenario_id,
+                    error=str(exc),
+                ),
+            )
+    return catalog, executions
 
 
 def _source_components(blueprint: FrozenBlueprint) -> list[str]:
