@@ -22,6 +22,7 @@ from ac14.discovery import build_discovery_artifact, persist_environment_invento
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
+from ac14.freeze_decision import build_freeze_decision
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
@@ -87,6 +88,14 @@ def main() -> int:
     )
     author_draft_parser.add_argument("plan_artifact_path", type=Path)
     author_draft_parser.add_argument("--output-dir", type=Path, required=True)
+
+    freeze_parser = subparsers.add_parser(
+        "decide-freeze",
+        help="Build an explicit approve/block freeze decision and promote only when approved.",
+    )
+    freeze_parser.add_argument("bundle_dir", type=Path)
+    freeze_parser.add_argument("--output-dir", type=Path, required=True)
+    freeze_parser.add_argument("--readiness-report", type=Path, default=None)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -256,6 +265,12 @@ def main() -> int:
         return _materialize_draft_bundle(
             args.plan_artifact_path,
             args.output_dir,
+        )
+    if args.command == "decide-freeze":
+        return _decide_freeze(
+            args.bundle_dir,
+            args.output_dir,
+            args.readiness_report,
         )
     if args.command == "prove-example":
         return _prove_example(
@@ -447,6 +462,22 @@ def _materialize_draft_bundle(
         output_dir=output_dir,
     )
     print(json.dumps(manifest.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _decide_freeze(
+    bundle_dir: Path,
+    output_dir: Path,
+    readiness_report: Path | None,
+) -> int:
+    """Build and print a persisted freeze decision artifact."""
+
+    decision = build_freeze_decision(
+        bundle_dir=bundle_dir,
+        output_dir=output_dir,
+        readiness_report_path=readiness_report,
+    )
+    print(json.dumps(decision.model_dump(mode="json"), indent=2))
     return 0
 
 

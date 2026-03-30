@@ -1,36 +1,35 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: Active
 Last updated: 2026-03-30
 
 ## Purpose
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The draft planning lane was complete, but AC14 still could not turn that plan
-into a real draft bundle or state explicitly why the bundle was not
-freeze-ready.
+The draft authoring lane is now complete. The next honest gap is that AC14 can
+materialize a draft bundle and explain why it is not freeze-ready, but it still
+does not produce an explicit approve/block decision artifact for promotion.
 
-The immediate goal for this lane was a narrow authoring bridge:
+The immediate goal is a narrow freeze-decision bridge:
 
-1. draft planning artifact in
-2. six-file draft bundle out
-3. freeze-readiness report out
+1. draft bundle plus readiness report in
+2. explicit freeze decision out
+3. promoted frozen bundle only when approval is true
 
 ## Progress Update
 
 Completed before this lane:
 
 1. six-file frozen blueprint bundle and proof surfaces
-2. explicit scenario semantics and semantic acceptance
-3. pre-freeze discovery for local inputs and environment planning
-4. discovery-to-draft blueprint planning
+2. pre-freeze discovery and draft planning
+3. draft bundle authoring and freeze-readiness reporting
 
-Delivered in this lane:
+Next:
 
-1. six-file draft bundle authoring from the planning artifact
-2. freeze-readiness reporting for draft bundles
-3. CLI and Make surface for authoring and readiness
+1. explicit freeze-decision artifact
+2. deterministic promotion path for approved bundles
+3. CLI and Make surface for freeze decisions
 
 ## Execution Rule
 
@@ -61,39 +60,39 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Draft Bundle Authoring
+### Phase 2: Freeze Decision Artifact
 
 Deliverables:
 
-- deterministic draft bundle authoring from the planning artifact
-- six YAML files written to disk
-- default authoring placeholders where freeze-time information is still missing
+- persisted approve/block decision artifact
+- support for readiness-report-driven decisions
+- support for direct freeze-candidate decisions on already-authored bundles
 
 Acceptance criteria:
 
-- AC14 can materialize a draft bundle from a persisted planning artifact
-- the draft bundle stays clearly distinct from the frozen proof surface
+- AC14 can explain in one persisted artifact why a bundle is approved or blocked
+- decision artifacts carry the blocking findings forward instead of discarding them
 
-### Phase 3: Freeze Readiness
+### Phase 3: Promotion Surface
 
 Deliverables:
 
-- freeze-readiness report
-- validation-backed findings against the draft bundle
-- authoring-specific findings for placeholders and unresolved questions
+- deterministic promotion path for approved bundles
+- no promotion when approval is false
+- CLI and Make entrypoints for the same surface
 
 Acceptance criteria:
 
-- AC14 can explain why a draft bundle is or is not freeze-ready
-- readiness findings are persisted as artifacts rather than implied by missing work
+- approved bundles are copied into a promoted frozen-bundle directory
+- blocked bundles do not silently promote
 
-### Phase 4: Operator Surface And Lock
+### Phase 4: Verification And Lock
 
 Deliverables:
 
-- CLI and Make entrypoints for draft bundle authoring
-- deterministic tests for authoring and readiness
+- deterministic tests for freeze decisions and promotion
 - clean local verification
+- updated TODO/plan state
 
 Acceptance criteria:
 
@@ -102,31 +101,8 @@ Acceptance criteria:
 - `python -m ruff check ac14 tests` passes
 - docs match the implemented state
 
-## Lane Outcome
-
-Completed:
-
-1. AC14 can materialize a six-file draft bundle from a persisted planning artifact
-2. draft bundles include deterministic authoring placeholders where freeze-time detail is still missing
-3. freeze-readiness reports combine frozen-blueprint validation findings with authoring-specific placeholder and open-question findings
-4. CLI and Make now expose `materialize-draft-bundle`
-5. deterministic tests cover draft bundle authoring, readiness reporting, CLI, and Make surfaces
-
-Verification:
-
-1. `pytest -q tests/test_draft_authoring.py tests/test_cli.py tests/test_make_targets.py` passed
-2. `python -m mypy ac14 tests` passed on 48 source files
-3. `python -m ruff check ac14 tests` passed
-4. full repo verification passed with `73 passed`
-
-Next lane:
-
-1. use the draft bundle and readiness report to drive actual freeze decisions rather than only authoring placeholders
-2. widen proof breadth beyond the current ticket-digest slice
-3. extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces without coupling AC14 to agent-only MCP assumptions
-
 ## Known Uncertainties
 
-1. the first authoring bridge intentionally synthesizes placeholders for invariants, fixtures, and constraints that still need real authoring
-2. draft bundles are expected to fail freeze-readiness until fixtures and richer proof details are authored
+1. the first freeze-decision bridge will still rely on current proof-slice validation semantics
+2. bundles with placeholders are expected to block rather than promote
 3. broader proof breadth and retrieval expansion remain outside this narrow lane

@@ -17,8 +17,9 @@ PACKAGES ?=
 DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 REQUIREMENTS ?= clarify input schema preserve bounded packets
+READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment draft-blueprint-plan materialize-draft-bundle generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment draft-blueprint-plan materialize-draft-bundle decide-freeze generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -52,6 +53,9 @@ draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac
 
 materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness report (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle)
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"
+
+decide-freeze: ## Build a freeze decision and promote only when approved (INPUT=bundle_dir OUTPUT=.ac14_out/freeze READINESS=optional_report.json)
+	$(PYTHON) -m ac14 decide-freeze "$(INPUT)" --output-dir "$(OUTPUT)" $(if $(READINESS),--readiness-report "$(READINESS)",)
 
 generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated GENERATOR=deterministic|llm)
 	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

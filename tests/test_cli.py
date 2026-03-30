@@ -205,6 +205,30 @@ def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
     assert Path(payload["freeze_readiness_report_path"]).exists()
 
 
+def test_cli_decide_freeze_promotes_ready_bundle(tmp_path: Path) -> None:
+    """Freeze decision command should promote a ready bundle."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "decide-freeze",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "freeze_decision"),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["approved"] is True
+    assert Path(payload["promoted_bundle_dir"]).exists()
+
+
 def test_cli_prove_example(tmp_path: Path) -> None:
     """Proof command should build a persisted evidence bundle."""
 
@@ -337,6 +361,20 @@ def test_cli_materialize_draft_bundle_help() -> None:
     )
     assert result.returncode == 0
     assert "--output-dir" in result.stdout
+
+
+def test_cli_decide_freeze_help() -> None:
+    """Decide-freeze help should expose the promotion command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "decide-freeze", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--readiness-report" in result.stdout
 
 
 def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:

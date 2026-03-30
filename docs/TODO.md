@@ -5,31 +5,30 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the draft-authoring lane
-  - [x] update `CLAUDE.md` to make draft blueprint authoring the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with authoring phases and success criteria
-  - [x] keep this TODO as the running control surface during implementation
+- [ ] Phase 1: freeze the freeze-decision lane
+  - [ ] update `CLAUDE.md` to make freeze decisioning the active proof-expansion rule
+  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with freeze-decision phases and success criteria
+  - [ ] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: materialize the draft bundle
-  - [x] generate a six-file draft bundle from the persisted planning artifact
-  - [x] synthesize explicit placeholders where freeze-time data is still missing
-  - [x] keep the draft bundle distinct from frozen proof artifacts
-  - Success criteria: AC14 can turn a persisted planning artifact into a concrete draft bundle on disk
+- [ ] Phase 2: add the freeze decision artifact
+  - [ ] persist an explicit approve/block artifact for freeze decisions
+  - [ ] support decisions driven by readiness reports
+  - [ ] support decisions on already-authored bundles without a readiness report
+  - Success criteria: AC14 can explain in one artifact why a bundle is approved or blocked
 
-- [x] Phase 3: add freeze-readiness reporting
-  - [x] run validation-backed readiness checks against the draft bundle
-  - [x] add authoring-specific findings for placeholders and unresolved planning questions
-  - [x] persist the readiness report next to the draft bundle
-  - Success criteria: AC14 can explain why a draft bundle is or is not freeze-ready
+- [ ] Phase 3: add promotion behavior
+  - [ ] promote approved bundles into a frozen-bundle directory
+  - [ ] keep blocked bundles from promoting
+  - [ ] expose the same surface through CLI and Make
+  - Success criteria: approved bundles promote deterministically and blocked bundles fail loud without silent promotion
 
-- [x] Phase 4: operator surface and lock
-  - [x] expose draft authoring through CLI and Make
-  - [x] add deterministic tests for authoring and readiness
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect actual final state
+- [ ] Phase 4: verify and lock the lane
+  - [ ] add deterministic tests for freeze decisions and promotion
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -41,6 +40,7 @@ Last updated: 2026-03-30
 - discovery will start with local input inspection and environment/dependency planning before broader doc/repo retrieval is implemented
 - the next bridge will produce draft planning artifacts, not claim that blueprint freeze is solved
 - the next bridge will materialize draft bundles and readiness reports, not claim those drafts are frozen
+- the next bridge will decide and promote only when approval is explicit; it still does not broaden proof breadth
 
 ## Latest Verified Results
 

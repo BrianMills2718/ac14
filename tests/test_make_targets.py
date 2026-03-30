@@ -99,6 +99,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "inspect-environment" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
+    assert "decide-freeze" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
@@ -194,6 +195,27 @@ def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "freeze_readiness_report.json").exists()
+
+
+def test_make_decide_freeze_runs_end_to_end(tmp_path: Path) -> None:
+    """Make freeze-decision target should persist a decision and promoted bundle."""
+
+    output_dir = tmp_path / "freeze_decision"
+    result = subprocess.run(
+        [
+            "make",
+            "decide-freeze",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "freeze_decision.json").exists()
+    assert (output_dir / "frozen_bundle" / "metadata.yaml").exists()
 
 
 def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:
