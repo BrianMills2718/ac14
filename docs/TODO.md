@@ -5,31 +5,31 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze the draft-authoring lane
-  - [ ] update `CLAUDE.md` to make draft blueprint authoring the active proof-expansion rule
-  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with authoring phases and success criteria
-  - [ ] keep this TODO as the running control surface during implementation
+- [x] Phase 1: freeze the draft-authoring lane
+  - [x] update `CLAUDE.md` to make draft blueprint authoring the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with authoring phases and success criteria
+  - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: materialize the draft bundle
-  - [ ] generate a six-file draft bundle from the persisted planning artifact
-  - [ ] synthesize explicit placeholders where freeze-time data is still missing
-  - [ ] keep the draft bundle distinct from frozen proof artifacts
+- [x] Phase 2: materialize the draft bundle
+  - [x] generate a six-file draft bundle from the persisted planning artifact
+  - [x] synthesize explicit placeholders where freeze-time data is still missing
+  - [x] keep the draft bundle distinct from frozen proof artifacts
   - Success criteria: AC14 can turn a persisted planning artifact into a concrete draft bundle on disk
 
-- [ ] Phase 3: add freeze-readiness reporting
-  - [ ] run validation-backed readiness checks against the draft bundle
-  - [ ] add authoring-specific findings for placeholders and unresolved planning questions
-  - [ ] persist the readiness report next to the draft bundle
+- [x] Phase 3: add freeze-readiness reporting
+  - [x] run validation-backed readiness checks against the draft bundle
+  - [x] add authoring-specific findings for placeholders and unresolved planning questions
+  - [x] persist the readiness report next to the draft bundle
   - Success criteria: AC14 can explain why a draft bundle is or is not freeze-ready
 
-- [ ] Phase 4: operator surface and lock
-  - [ ] expose draft authoring through CLI and Make
-  - [ ] add deterministic tests for authoring and readiness
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect actual final state
+- [x] Phase 4: operator surface and lock
+  - [x] expose draft authoring through CLI and Make
+  - [x] add deterministic tests for authoring and readiness
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -44,6 +44,14 @@ Last updated: 2026-03-30
 
 ## Latest Verified Results
 
+- draft-authoring lane verification passed:
+  - `pytest -q` passed with `73 passed`
+  - `python -m mypy ac14 tests` passed on 48 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted draft-authoring verification passed:
+  - `pytest -q tests/test_draft_authoring.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - discovery-to-plan lane verification passed:
   - `pytest -q` passed with `69 passed`
   - `python -m mypy ac14 tests` passed on 46 source files
@@ -86,6 +94,6 @@ Last updated: 2026-03-30
 ## Longer-Term Next Steps
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
-- [ ] connect draft planning artifacts into actual blueprint authoring and freeze transitions
+- [ ] use the draft bundle and readiness report to drive actual freeze decisions rather than only draft authoring
 - [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

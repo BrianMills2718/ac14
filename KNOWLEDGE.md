@@ -39,4 +39,10 @@ Discovery artifacts are not enough by themselves. AC14 now uses them as inputs
 to a separate draft blueprint planning artifact so decomposition proposals stay
 explicit, reviewable, and distinct from frozen proof artifacts.
 
+### 2026-03-30 — codex — best-practice
+Draft planning is still not authoring. AC14 now materializes a real six-file
+draft bundle plus a freeze-readiness report so missing fixtures, placeholder
+contracts, and unresolved questions become explicit artifacts instead of hidden
+gaps.
+
 ---
