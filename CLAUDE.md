@@ -10,6 +10,22 @@ system in context. AC14 addresses that by compiling a specification into a
 frozen blueprint with explicit components, typed ports, and recomposition
 rules, then projecting that blueprint into bounded local packets.
 
+## Anti-Drift Hierarchy
+
+Read [docs/AC14_ANTI_DRIFT_DOCTRINE.md](./docs/AC14_ANTI_DRIFT_DOCTRINE.md)
+before broad architectural changes or strategic claims.
+
+The short version:
+
+1. AC14 is a general coding agent through decomposition.
+2. The current repo is only a narrow proof slice of that vision.
+3. Current examples and heuristics are implementation artifacts, not product scope.
+4. Validation is not deterministic-only; it must combine strong programmatic
+   checks with strong LLM-based semantic checks.
+5. Pre-freeze data inspection, schema discovery, library/doc/repo use, and
+   realistic end-to-end acceptance are part of the long-term system even when
+   the current proof slice does not implement them yet.
+
 ## First Proof Slice
 
 The first slice must prove:
