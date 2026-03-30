@@ -1,6 +1,6 @@
 # AC14 Next 24 Hours
 
-Status: Active
+Status: Completed
 Last updated: 2026-03-29
 
 ## Purpose
@@ -40,8 +40,9 @@ Completed:
 
 Next:
 
-1. full repo verification
-2. final doc lock for the semantic-comparison lane
+1. widen semantic-responsibility coverage beyond the current ticket-digest family
+2. evaluate LLM semantic comparison on the shipped suite when cost and latency are acceptable
+3. revisit promotion criteria only after broader family coverage exists
 
 ## Execution Rule
 

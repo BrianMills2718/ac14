@@ -29,12 +29,12 @@ Last updated: 2026-03-29
   - [x] expose the recommendation through CLI and Make
   - Success criteria: the repo can answer "what should be the default generator today?" from local evidence
 
-- [ ] Phase 5: verify and lock the lane
-  - [ ] add deterministic tests for reference generalization, semantic comparison, and recommendation artifacts
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO and plan docs to reflect actual final state
+- [x] Phase 5: verify and lock the lane
+  - [x] add deterministic tests for reference generalization, semantic comparison, and recommendation artifacts
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -58,7 +58,11 @@ Last updated: 2026-03-29
 - `python -m mypy ac14 tests` passed on 35 source files
 - `python -m ruff check ac14 tests` passed
 - targeted reference, semantic comparison, recommendation, CLI, and Make tests passed
+- `pytest -q` passed with `50 passed`
+- `python -m mypy ac14 tests` passed on 40 source files
+- `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps
 
 - [ ] widen semantic-responsibility coverage beyond the current ticket-digest slice
+- [ ] evaluate LLM semantic comparison on the shipped suite when cost/latency is acceptable
