@@ -5,36 +5,30 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the scenario-and-acceptance lane
-  - [x] strengthen `CLAUDE.md` for explicit scenario semantics and final acceptance
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with new phases and success criteria
-  - [x] keep this TODO as the running control surface during implementation
+- [ ] Phase 1: freeze the pre-freeze discovery lane
+  - [ ] update `CLAUDE.md` to make discovery the active proof-expansion rule
+  - [ ] refresh `docs/AC14_NEXT_24_HOURS.md` with discovery phases and success criteria
+  - [ ] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: make scenario semantics explicit
-  - [x] add explicit scenario kinds and evaluator definitions to the blueprint model
-  - [x] stop using naming heuristics where scenario metadata can be explicit
-  - [x] update shipped examples to use the explicit scenario contract
-  - Success criteria: full-recomposition, negative, and semantic-acceptance scenarios are distinguished by blueprint data rather than inference
+- [ ] Phase 2: add discovery artifacts
+  - [ ] define a persisted discovery artifact for local inputs, inferred schemas, and open concerns
+  - [ ] distinguish discovery outputs from frozen blueprints so draft work does not masquerade as proof
+  - [ ] capture realistic samples and inferred field structure from local files
+  - Success criteria: AC14 can inspect local inputs and persist a discovery artifact before blueprint freeze
 
-- [x] Phase 3: strengthen coverage validation
-  - [x] require every component to have fixture coverage
-  - [x] require every blueprint to have explicit end-to-end scenarios
-  - [x] require at least one realistic-input acceptance path
-  - Success criteria: weak fixture/scenario coverage fails loud during validation
+- [ ] Phase 3: plan dependencies and environment needs
+  - [ ] inventory the current environment relevant to a discovery run
+  - [ ] represent dependency needs and installation status as explicit artifact data
+  - [ ] expose discovery and environment planning through CLI and Make
+  - Success criteria: AC14 can persist what libraries/context it already has and what still needs to be installed or researched
 
-- [x] Phase 4: add requirements-aware semantic acceptance
-  - [x] implement a persisted acceptance artifact for semantic-acceptance scenarios
-  - [x] use `llm_client` with prompts-as-data and structured output for final review
-  - [x] expose acceptance through CLI and Make
-  - Success criteria: AC14 can run realistic inputs through the system and produce an LLM-backed acceptance artifact against scenario requirements
-
-- [x] Phase 5: verify and lock the lane
-  - [x] add deterministic tests for scenario semantics, coverage validation, and acceptance artifacts
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO and plan docs to reflect actual final state
+- [ ] Phase 4: verify and lock the discovery slice
+  - [ ] add deterministic tests for discovery parsing, schema inference summaries, and dependency planning
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO and plan docs to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -43,6 +37,7 @@ Last updated: 2026-03-30
 - realistic-input acceptance will still be synthetic-but-plausible until the pre-freeze discovery layer exists
 - proof breadth is still narrow even though the suite now has multiple blueprints
 - live LLM acceptance may be too expensive for the default gate and may remain optional outside targeted runs
+- discovery will start with local input inspection and environment/dependency planning before broader doc/repo retrieval is implemented
 
 ## Latest Verified Results
 
@@ -73,3 +68,4 @@ Last updated: 2026-03-30
 
 - [ ] widen proof breadth beyond the current ticket-digest slice
 - [ ] add the pre-freeze discovery layer for data inspection, schema discovery, and dependency/doc/repo context
+- [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

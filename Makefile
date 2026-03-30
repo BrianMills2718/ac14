@@ -13,8 +13,9 @@ GENERATORS ?= deterministic llm
 MODES ?= reference deterministic
 MODEL ?= gemini/gemini-2.5-flash-lite
 MAX_BUDGET ?= 0.50
+PACKAGES ?=
 
-.PHONY: help test test-quick check status verify-blueprint generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -36,6 +37,12 @@ status: ## Show git status
 
 verify-blueprint: ## Validate a blueprint bundle (INPUT=examples/.../blueprint)
 	$(PYTHON) -m ac14 verify-blueprint "$(INPUT)"
+
+discover-input: ## Inspect a local input and persist a pre-freeze discovery artifact (INPUT=data.json OUTPUT=.ac14_out/discovery PACKAGES="pandas requests")
+	$(PYTHON) -m ac14 discover-input "$(INPUT)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" --packages $(PACKAGES)
+
+inspect-environment: ## Persist the current discovery environment inventory (OUTPUT=.ac14_out/environment PACKAGES="pandas requests")
+	$(PYTHON) -m ac14 inspect-environment --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" --packages $(PACKAGES)
 
 generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated GENERATOR=deterministic|llm)
 	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

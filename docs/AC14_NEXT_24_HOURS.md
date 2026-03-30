@@ -1,45 +1,42 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: Active
 Last updated: 2026-03-30
 
 ## Purpose
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The first honest slice is already in place:
+The scenario-and-acceptance lane is now complete. The next honest gap is the
+front half of the thesis: AC14 still freezes blueprints without first inspecting
+real local inputs or persisting what the environment already provides.
+
+The immediate goal is not full autonomous research. The immediate goal is a
+small, explicit pre-freeze discovery layer that:
+
+1. inspects real local inputs
+2. infers and summarizes likely schema structure
+3. records open concerns before blueprint freeze
+4. records dependency and environment needs before code generation
+
+## Progress Update
+
+Completed before this lane:
 
 1. six-file blueprint bundle
 2. canonical models and loader
 3. B1 validation
 4. packet compilation and B2 validation
-5. manual recomposition proof
-6. packet-local test materialization
-7. packet-to-codegen-context projection
-8. deterministic generated-component flow
-9. executable proof surface
-10. `llm_client`-backed generator with prompt YAML and structured output
-11. persisted comparison artifacts for one shipped example
+5. deterministic and LLM-backed generation
+6. recomposition proof
+7. suite proof and comparison
+8. explicit scenario semantics and requirements-aware semantic acceptance
 
-The semantic-comparison lane is complete. The next gap is that scenario meaning,
-coverage requirements, and final semantic acceptance are still too implicit.
-The repo can compare outputs, but it still infers too much about which
-scenarios are runnable, which are negative, and what counts as final acceptance.
+Next:
 
-## Progress Update
-
-Completed:
-
-1. semantic-comparison lane closed cleanly
-2. blueprint-level and suite-level semantic comparison artifacts
-3. explicit default-generator recommendation surface
-4. full repo verification after that lane
-
-Delivered in this lane:
-
-1. explicit scenario kinds and evaluator definitions
-2. stronger fixture and acceptance coverage rules
-3. requirements-aware semantic acceptance artifacts
+1. persisted discovery artifact for local inputs
+2. dependency and environment planning artifact
+3. CLI and Make surface for pre-freeze discovery
 
 ## Execution Rule
 
@@ -51,7 +48,8 @@ If something is underspecified:
 2. choose the smallest thesis-preserving option
 3. continue immediately
 
-Only stop if the next step would clearly contradict the frozen AC14 spec.
+Only stop if the next step would clearly contradict the frozen AC14 spec or the
+anti-drift doctrine.
 
 ## Phases
 
@@ -69,50 +67,39 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Explicit Scenario Semantics
+### Phase 2: Discovery Artifact
 
 Deliverables:
 
-- blueprint-level scenario kinds
-- evaluator definitions
-- shipped examples updated to the explicit scenario model
+- persisted discovery artifact models
+- local input inspection with compact schema summaries and example samples
+- clear separation between discovery outputs and frozen blueprints
 
 Acceptance criteria:
 
-- scenario meaning is explicit in the blueprint
-- negative and full-system scenarios are not distinguished by naming conventions
+- AC14 can inspect local input files and persist a discovery artifact
+- discovery findings are explicit enough to review before blueprint freeze
+- inferred structure and open concerns are persisted, not only printed
 
-### Phase 3: Coverage Validation
+### Phase 3: Dependency And Environment Planning
 
 Deliverables:
 
-- fixture coverage checks for every component
-- explicit full-system scenario requirements
-- realistic-input acceptance requirement
+- environment inventory relevant to discovery
+- dependency planning artifact with installation status
+- CLI and Make entrypoints for discovery and environment planning
 
 Acceptance criteria:
 
-- missing coverage fails loud during validation
-- shipped examples satisfy the stronger coverage contract
+- AC14 can record what libraries and runtime capabilities are already present
+- missing dependencies or open context needs are persisted as explicit findings
+- discovery can be run without importing the whole project manually
 
-### Phase 4: Requirements-Aware Semantic Acceptance
-
-Deliverables:
-
-- persisted acceptance artifact for semantic-acceptance scenarios
-- `llm_client`-backed review prompt and structured result
-- CLI and Make entrypoints for final acceptance
-
-Acceptance criteria:
-
-- AC14 can run a semantic-acceptance scenario and persist an LLM review artifact
-- the review is tied to requirements and actual outputs, not just generic judgment
-
-### Phase 5: Verification And Lock
+### Phase 4: Verification And Lock
 
 Deliverables:
 
-- deterministic tests for scenario semantics, coverage, and acceptance artifacts
+- deterministic tests for discovery artifacts and environment planning
 - updated TODO/plan state
 - clean local verification
 
@@ -123,36 +110,9 @@ Acceptance criteria:
 - `python -m ruff check ac14 tests` passes
 - docs match the implemented state
 
-## Lane Outcome
-
-Completed:
-
-1. blueprint scenarios now carry explicit `kind`, `evaluator_ids`, `realistic_input`, and requirements fields
-2. validation now fails loud when components lack fixtures, when blueprints lack end-to-end coverage, and when semantic-acceptance scenarios omit LLM review requirements
-3. recomposition and packet-test surfaces now use explicit scenario metadata instead of scenario-id naming heuristics
-4. semantic-acceptance review is implemented as a persisted `llm_client`-backed artifact with prompts-as-data and structured output
-5. CLI and Make now expose `acceptance-review` and `acceptance-review-suite`
-6. deterministic regression tests cover the new scenario, validation, and acceptance surface
-
-Verification:
-
-1. `pytest -q tests/test_validation.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
-2. `python -m mypy ac14 tests` passed
-3. `python -m ruff check ac14 tests` passed
-4. full repo verification passed:
-   - `pytest -q` passed with `57 passed`
-   - `python -m mypy ac14 tests` passed on 42 source files
-   - `python -m ruff check ac14 tests` passed
-
-Next lane:
-
-1. widen proof breadth beyond the current ticket-digest slice
-2. add the pre-freeze discovery layer for data inspection, schema discovery, dependency planning, library installation, and doc/repo retrieval
-3. connect that discovery layer back into blueprint freeze without weakening the anti-drift hierarchy
-
 ## Known Uncertainties
 
-1. realistic-input acceptance is still bounded by the current synthetic shipped examples
-2. proof breadth is still narrow even though the suite has multiple blueprints
-3. live LLM acceptance may remain optional if cost or latency is too high
-4. the pre-freeze discovery layer still does not exist in the implementation
+1. the first discovery slice will inspect local inputs only; broader doc/repo retrieval still needs a later shared-infra-aligned design
+2. inferred schemas will start as pragmatic summaries, not a final universal schema language
+3. environment planning may record unmet dependency needs before AC14 automates installation decisions
+4. realistic example data is still bounded by the current shipped examples until the discovery layer is applied to external inputs

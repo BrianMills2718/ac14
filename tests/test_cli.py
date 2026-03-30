@@ -51,6 +51,65 @@ def test_cli_generate_components(tmp_path: Path) -> None:
     assert "ticket_parser" in payload["module_paths"]
 
 
+def test_cli_discover_input(tmp_path: Path) -> None:
+    """Discovery command should persist a pre-freeze discovery artifact."""
+
+    input_path = tmp_path / "sample.json"
+    input_path.write_text('[{"id": 1, "status": "open"}, {"id": "2", "status": "closed"}]')
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "discover-input",
+            str(input_path),
+            "--output-dir",
+            str(tmp_path / "discovery"),
+            "--project-root",
+            str(REPO_ROOT),
+            "--packages",
+            "pydantic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["input_inspection"]["input_format"] == "json"
+    assert (tmp_path / "discovery" / "discovery_artifact.json").exists()
+
+
+def test_cli_inspect_environment(tmp_path: Path) -> None:
+    """Environment inspection command should persist dependency inventory."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "inspect-environment",
+            "--output-dir",
+            str(tmp_path / "environment"),
+            "--project-root",
+            str(REPO_ROOT),
+            "--packages",
+            "pydantic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    dependency_names = {status["package_name"] for status in payload["dependency_statuses"]}
+    assert "pydantic" in dependency_names
+    assert (tmp_path / "environment" / "environment_inventory.json").exists()
+
+
 def test_cli_prove_example(tmp_path: Path) -> None:
     """Proof command should build a persisted evidence bundle."""
 
@@ -141,6 +200,20 @@ def test_cli_acceptance_review_help() -> None:
     )
     assert result.returncode == 0
     assert "--mode" in result.stdout
+
+
+def test_cli_discover_input_help() -> None:
+    """Discover-input help should expose the discovery command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "discover-input", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--max-samples" in result.stdout
 
 
 def test_cli_semantic_compare_deterministic_only(tmp_path: Path) -> None:

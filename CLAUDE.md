@@ -65,14 +65,12 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after semantic comparison is explicit scenario semantics and
-requirements-aware acceptance.
+The active lane after scenario acceptance is the pre-freeze discovery layer.
 
-- stop inferring what scenarios mean when the blueprint can say it explicitly
-- require stronger fixture and scenario coverage before trusting a proof
-- combine robust programmatic checks with robust LLM semantic checks
-- make final acceptance requirements-aware and artifact-backed
-- keep deterministic controls where they are strongest, without treating them as the whole validation philosophy
+- inspect real local inputs before blueprint freeze instead of assuming schemas
+- capture discovery as a persisted artifact, not a transient chat step
+- plan dependencies and environment needs before code generation begins
+- keep discovery scoped to the smallest thesis-preserving slice while logging broader context/doc/repo retrieval needs explicitly
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

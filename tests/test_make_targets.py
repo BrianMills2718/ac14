@@ -23,6 +23,8 @@ def test_make_help_lists_proof_targets() -> None:
     )
     assert result.returncode == 0
     assert "verify-blueprint" in result.stdout
+    assert "discover-input" in result.stdout
+    assert "inspect-environment" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
@@ -54,6 +56,49 @@ def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "manifest.json").exists()
+
+
+def test_make_discover_input_runs_end_to_end(tmp_path: Path) -> None:
+    """Make discovery target should persist a discovery artifact."""
+
+    input_path = tmp_path / "sample.json"
+    input_path.write_text('[{"id": 1, "status": "open"}, {"id": "2", "status": "closed"}]')
+    output_dir = tmp_path / "discovery"
+    result = subprocess.run(
+        [
+            "make",
+            "discover-input",
+            f"INPUT={input_path}",
+            f"OUTPUT={output_dir}",
+            "PACKAGES=pydantic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "discovery_artifact.json").exists()
+
+
+def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
+    """Make environment target should persist an environment inventory artifact."""
+
+    output_dir = tmp_path / "environment"
+    result = subprocess.run(
+        [
+            "make",
+            "inspect-environment",
+            f"OUTPUT={output_dir}",
+            "PACKAGES=pydantic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "environment_inventory.json").exists()
 
 
 def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:

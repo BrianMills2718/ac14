@@ -13,6 +13,7 @@ from ac14.acceptance import (
     build_suite_acceptance_report,
 )
 from ac14.comparison import build_generator_comparison_report
+from ac14.discovery import build_discovery_artifact, persist_environment_inventory
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
@@ -41,6 +42,24 @@ def main() -> int:
     generate_parser.add_argument("--generator", choices=["deterministic", "llm"], default="deterministic")
     generate_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     generate_parser.add_argument("--max-budget", type=float, default=0.50)
+
+    discover_parser = subparsers.add_parser(
+        "discover-input",
+        help="Inspect a local input and persist a pre-freeze discovery artifact.",
+    )
+    discover_parser.add_argument("input_path", type=Path)
+    discover_parser.add_argument("--output-dir", type=Path, required=True)
+    discover_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    discover_parser.add_argument("--packages", nargs="*", default=[])
+    discover_parser.add_argument("--max-samples", type=int, default=5)
+
+    environment_parser = subparsers.add_parser(
+        "inspect-environment",
+        help="Persist the environment inventory used during discovery planning.",
+    )
+    environment_parser.add_argument("--output-dir", type=Path, required=True)
+    environment_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    environment_parser.add_argument("--packages", nargs="*", default=[])
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -184,6 +203,20 @@ def main() -> int:
             args.model,
             args.max_budget,
         )
+    if args.command == "discover-input":
+        return _discover_input(
+            args.input_path,
+            args.output_dir,
+            args.project_root,
+            cast(list[str], args.packages),
+            args.max_samples,
+        )
+    if args.command == "inspect-environment":
+        return _inspect_environment(
+            args.output_dir,
+            args.project_root,
+            cast(list[str], args.packages),
+        )
     if args.command == "prove-example":
         return _prove_example(
             args.blueprint_dir,
@@ -304,6 +337,42 @@ def _generate_components(
         trace_id_prefix="ac14/cli_generate_components",
     )
     print(json.dumps(package.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _discover_input(
+    input_path: Path,
+    output_dir: Path,
+    project_root: Path | None,
+    packages: list[str],
+    max_samples: int,
+) -> int:
+    """Build and print a persisted pre-freeze discovery artifact."""
+
+    artifact = build_discovery_artifact(
+        input_path=input_path,
+        output_dir=output_dir,
+        project_root=project_root,
+        requested_packages=packages,
+        max_samples=max_samples,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _inspect_environment(
+    output_dir: Path,
+    project_root: Path | None,
+    packages: list[str],
+) -> int:
+    """Build and print the persisted discovery environment inventory."""
+
+    inventory = persist_environment_inventory(
+        output_dir=output_dir,
+        project_root=project_root,
+        requested_packages=packages,
+    )
+    print(json.dumps(inventory.model_dump(mode="json"), indent=2))
     return 0
 
 
