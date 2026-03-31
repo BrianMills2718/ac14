@@ -7,32 +7,31 @@ Last updated: 2026-03-31
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The proof-breadth lane is complete, but discovery still focuses almost entirely
-on local input files plus package inventory. That is too thin for the longer
-term vision where blueprint drafting should use repo docs, setup knowledge, and
-other persisted context before freeze.
+The discovery-context lane is complete, but discovery still stops at local
+inputs, package inventory, and local project docs. The longer-term system needs
+reviewable retrieval artifacts for external documentation and repository search
+before blueprint freeze.
 
-The immediate goal for this lane is a narrow discovery-context bridge:
+The immediate goal for this lane is a narrow shared-retrieval bridge:
 
-1. persist local project-document context alongside input and environment context
-2. expose that context through the same operator surface as discovery
-3. keep the artifact reviewable so it can later compose with broader
-   documentation/GitHub/web retrieval
+1. define persisted external retrieval artifacts
+2. expose them through the same operator surface as discovery
+3. keep them compatible with shared infrastructure rather than agent-only MCP assumptions
 
 ## Progress Update
 
 Completed before this lane:
 
 1. six-file frozen blueprint bundle and proof surfaces
-2. pre-freeze discovery and draft planning
-3. draft bundle authoring, freeze remediation, and promotion
-4. broader proof breadth across ticket and incident workflow slices
+2. pre-freeze discovery, draft planning, authoring, freeze remediation, and promotion
+3. broader proof breadth across ticket and incident workflow slices
+4. local project-context inventory inside discovery artifacts
 
 Required in this lane:
 
-1. project-context inventory from local repo docs
-2. discovery artifact integration for that project context
-3. CLI, Make, and tests for the new context surface
+1. retrieval artifact model for external docs/repo search
+2. operator surfaces for the retrieval bridge
+3. deterministic tests and persisted outputs
 
 ## Phases
 
@@ -50,30 +49,30 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Project-Context Inventory
+### Phase 2: Retrieval Artifact Model
 
 Deliverables:
 
-- persisted inventory of local project docs
-- compact document summaries suitable for blueprint planning review
-- integration into the main discovery artifact
+- persisted artifact shape for external documentation and repository retrieval
+- integration points back into discovery and planning
+- explicit provenance for what was searched and what was found
 
 Acceptance criteria:
 
-- discovery captures README/CLAUDE/docs context when `project_root` is available
-- project-document context is persisted as a first-class artifact, not hidden in logs
+- retrieval output is reviewable and persisted
+- discovery/planning can consume the artifact without scraping ad hoc logs
 
 ### Phase 3: Operator Surface And Tests
 
 Deliverables:
 
-- CLI and Make surfaces for project-context inspection
-- deterministic tests for inventory persistence and discovery integration
+- CLI and Make surfaces for the retrieval bridge
+- deterministic tests for artifact persistence and integration
 
 Acceptance criteria:
 
-- operators can inspect project context without writing Python glue code
-- tests cover discovery with project context plus the standalone context inventory
+- operators can build retrieval artifacts without manual glue code
+- tests prove the retrieval bridge persists and loads cleanly
 
 ### Phase 4: Verification And Lock
 
@@ -92,9 +91,9 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. the first context bridge will stay local to the repo and will not yet claim
-   GitHub/web/Context7 retrieval
-2. local doc inventory is only a first context layer, not the whole pre-freeze
-   research system
-3. broader external retrieval should still persist reviewable artifacts rather
-   than acting as opaque prompt stuffing
+1. the next bridge should still prefer shared library surfaces over agent-only
+   MCP assumptions
+2. GitHub/web/documentation retrieval will need persisted provenance to stay
+   reviewable
+3. dependency-install planning should stay tied to discovery rather than become
+   a separate opaque side channel

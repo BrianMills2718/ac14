@@ -5,22 +5,22 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the discovery-context lane
-  - [x] update `CLAUDE.md` to make discovery-context expansion the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with discovery-context phases and success criteria
+- [x] Phase 1: freeze the shared-retrieval lane
+  - [x] update `CLAUDE.md` to make shared retrieval expansion the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with shared-retrieval phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add project-context inventory
-  - [ ] persist local README/CLAUDE/docs context as a reviewable artifact
-  - [ ] integrate that context into the main discovery artifact
-  - [ ] keep the first bridge local rather than pretending external retrieval is solved
-  - Success criteria: discovery captures project-document context when `project_root` is available
+- [ ] Phase 2: add shared retrieval artifacts
+  - [ ] define persisted retrieval artifacts for external docs and repository search
+  - [ ] keep those artifacts reviewable and compatible with discovery/planning
+  - [ ] avoid coupling the first bridge to agent-only MCP assumptions
+  - Success criteria: AC14 has an explicit retrieval artifact model instead of hidden ad hoc search
 
-- [ ] Phase 3: wire operator surface and tests
-  - [ ] expose project-context inspection through CLI and Make
-  - [ ] add deterministic tests for inventory persistence and discovery integration
-  - Success criteria: operators can inspect project context without manual Python glue and the behavior is tested
+- [ ] Phase 3: connect retrieval into operator surfaces
+  - [ ] expose the retrieval bridge through CLI and Make
+  - [ ] add deterministic tests for artifact persistence and discovery integration
+  - Success criteria: operators can produce retrieval artifacts without manual glue code and the behavior is tested
 
 - [ ] Phase 4: verify and lock the lane
   - [ ] run full `pytest -q`
@@ -42,9 +42,18 @@ Last updated: 2026-03-30
 - the new remediation loop will guide direct draft-bundle editing first; automated rewrite loops are still deferred
 - proof breadth will still be approximate because the current metric is based on workflow signatures rather than a richer benchmark taxonomy
 - the next bridge will start with local project docs and will not yet claim GitHub/web/context-server retrieval
+- the next bridge after local project docs should persist external retrieval artifacts rather than hiding them inside prompts
 
 ## Latest Verified Results
 
+- discovery-context lane verification passed:
+  - `pytest -q` passed with `82 passed`
+  - `python -m mypy ac14 tests` passed on 50 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted discovery-context verification passed:
+  - `pytest -q tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed with `39 passed`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - proof-breadth lane verification passed:
   - `pytest -q` passed with `78 passed`
   - `python -m mypy ac14 tests` passed on 50 source files

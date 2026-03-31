@@ -65,14 +65,13 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after proof breadth expansion is discovery-context expansion.
+The active lane after discovery-context expansion is shared retrieval expansion.
 
-- extend discovery beyond local input files into persisted project-document context
-- keep the first bridge local and reviewable instead of jumping straight to opaque
-  external retrieval
-- treat README, CLAUDE, and project docs as first-class pre-freeze context
-- keep broader GitHub/web/documentation retrieval logged explicitly without
-  blocking the smaller thesis-preserving lane
+- extend discovery from local project docs into reviewable external
+  documentation/repository retrieval artifacts
+- keep retrieval explicit and persisted rather than opaque prompt stuffing
+- prefer reusable shared retrieval surfaces over agent-only assumptions
+- keep package/dependency install planning tied to the same discovery context
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

@@ -56,4 +56,9 @@ broader shipped suite with `incident_alert_digest` plus ticket-digest slices,
 and the recommendation surface talks about `proof_breadth_count` rather than
 `semantic_family_count`.
 
+### 2026-03-31 — codex — best-practice
+Pre-freeze discovery should not stop at input shape plus package inventory.
+AC14 now persists a local project-context inventory so README, CLAUDE, and docs
+become explicit reviewable planning inputs before blueprint freeze.
+
 ---

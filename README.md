@@ -19,6 +19,7 @@ AC14 now supports:
 - loading and validating the six-file blueprint bundle
 - inspecting local inputs before blueprint freeze and persisting discovery artifacts with inferred field summaries and open concerns
 - recording environment and dependency inventory before generation begins
+- recording local project-document context before blueprint freeze so README, CLAUDE, and docs become explicit planning inputs
 - turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
 - making an explicit approve/block freeze decision and promoting only approved bundles
@@ -42,6 +43,7 @@ make test
 make verify-blueprint
 make discover-input INPUT=path/to/input.json OUTPUT=.ac14_out/discovery PACKAGES="pydantic"
 make inspect-environment OUTPUT=.ac14_out/environment PACKAGES="pydantic"
+make inspect-project-context OUTPUT=.ac14_out/project_context
 make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="bounded decomposition preserve semantics"
 make materialize-draft-bundle PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle
 make decide-freeze INPUT=.ac14_out/draft_bundle OUTPUT=.ac14_out/freeze READINESS=.ac14_out/draft_bundle/freeze_readiness_report.json
