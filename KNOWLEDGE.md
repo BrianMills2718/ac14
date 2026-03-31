@@ -74,4 +74,10 @@ freeze. AC14 now persists an explicit dependency plan with `reuse`, `install`,
 docs/repos, and carried-forward concerns instead of hiding package judgments in
 draft-planning prompts.
 
+### 2026-03-31 — codex — best-practice
+Dependency planning should not stop at a side artifact. AC14 now feeds
+dependency-plan provenance, compact dependency actions, and unresolved
+dependency questions into draft blueprint planning so draft authoring and freeze
+readiness can surface those issues explicitly.
+
 ---

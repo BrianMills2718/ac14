@@ -65,16 +65,16 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after dependency and library planning is dependency-aware draft
-planning.
+The active lane after dependency-aware draft planning is dependency execution
+probing.
 
-- feed explicit dependency decisions back into draft blueprint planning instead
-  of leaving them as a disconnected side artifact
-- keep library/install questions reviewable all the way through draft authoring
-  and freeze readiness
-- prefer explicit artifact handoff over hidden prompt stuffing
-- keep package planning tied to blueprint freeze rather than a separate side
-  channel
+- turn approved dependency recommendations into explicit execution probes rather
+  than leaving them permanently advisory
+- keep install/reuse checks reviewable with persisted environment deltas and
+  fail-loud results
+- prefer explicit execution artifacts over hidden shell side effects
+- keep dependency execution tied to blueprint freeze preparation rather than a
+  disconnected package-management workflow
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

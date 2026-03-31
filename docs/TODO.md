@@ -5,22 +5,22 @@ Last updated: 2026-03-31
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the dependency-aware planning lane
-  - [x] update `CLAUDE.md` to make dependency-aware draft planning the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with dependency-aware planning phases and success criteria
+- [x] Phase 1: freeze the dependency execution-probing lane
+  - [x] update `CLAUDE.md` to make dependency execution probing the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with dependency execution-probing phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: make draft planning dependency-aware
-  - [ ] let draft blueprint planning consume an explicit dependency plan artifact
-  - [ ] preserve dependency-plan provenance inside the draft planning artifact
-  - [ ] keep unresolved dependency questions visible through planning and readiness
-  - Success criteria: AC14 no longer loses explicit dependency decisions between discovery and draft planning
+- [ ] Phase 2: add dependency execution probes
+  - [ ] define a persisted dependency execution-probe artifact
+  - [ ] keep probe results explicit with states such as confirmed, blocked, or skipped
+  - [ ] record post-probe environment observations rather than only shell output
+  - Success criteria: AC14 can test dependency recommendations without hiding side effects
 
-- [ ] Phase 3: connect dependency-aware planning into operator surfaces
-  - [ ] expose the enriched planning bridge through CLI and Make
-  - [ ] add deterministic tests for artifact persistence and provenance flow
-  - Success criteria: operators can produce dependency-aware draft plans without manual glue code and the behavior is tested
+- [ ] Phase 3: connect dependency execution into operator surfaces
+  - [ ] expose the probing bridge through CLI and Make
+  - [ ] add deterministic tests for artifact persistence and fail-loud probe behavior
+  - Success criteria: operators can run dependency probes without manual glue code and the behavior is tested
 
 - [ ] Phase 4: verify and lock the lane
   - [ ] run full `pytest -q`
@@ -45,9 +45,18 @@ Last updated: 2026-03-31
 - the next bridge after local project docs should persist external retrieval artifacts rather than hiding them inside prompts
 - the next bridge after shared retrieval should recommend dependency actions without pretending package installation is already automated
 - the next bridge after dependency planning should feed those decisions into draft planning rather than leaving them as disconnected advisory artifacts
+- the next bridge after dependency-aware planning should probe explicit recommendations without becoming a broad automatic package manager
 
 ## Latest Verified Results
 
+- dependency-aware planning lane verification passed:
+  - `pytest -q` passed with `93 passed`
+  - `python -m mypy ac14 tests` passed on 54 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted dependency-aware planning verification passed:
+  - `pytest -q tests/test_blueprint_planning.py tests/test_draft_authoring.py tests/test_cli.py tests/test_make_targets.py -x` passed with `42 passed`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - dependency-planning lane verification passed:
   - `pytest -q` passed with `91 passed`
   - `python -m mypy ac14 tests` passed on 54 source files

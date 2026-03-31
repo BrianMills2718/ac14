@@ -7,17 +7,17 @@ Last updated: 2026-03-31
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The dependency-planning lane is now complete. AC14 can inspect local inputs,
-environment state, local project docs, external retrieval artifacts, and then
-produce an explicit advisory dependency/library plan. The next missing piece is
-to feed that plan back into draft blueprint planning and freeze preparation so
-library decisions do not disappear into side artifacts.
+The dependency-aware planning lane is now complete. AC14 can inspect inputs and
+environment state, retrieve external context, build an advisory dependency
+plan, and carry that plan into draft blueprint planning and freeze readiness.
+The next missing piece is to probe whether those dependency decisions actually
+work in the current environment.
 
-The immediate goal for this lane is a dependency-aware planning bridge:
+The immediate goal for this lane is a dependency execution bridge:
 
-1. let draft blueprint planning consume an explicit dependency plan artifact
-2. preserve the provenance between retrieval, dependency decisions, and draft planning
-3. keep freeze-readiness aware of unresolved dependency questions
+1. define a persisted execution-probe artifact for dependency recommendations
+2. execute reviewable reuse/install probes without hidden side effects
+3. record post-probe environment state and blocking failures explicitly
 
 ## Progress Update
 
@@ -29,11 +29,12 @@ Completed before this lane:
 4. local project-context inventory inside discovery artifacts
 5. persisted external web/repository retrieval artifacts with discovery integration
 6. evidence-backed dependency and library planning artifacts
+7. dependency-aware draft planning with preserved dependency provenance
 
 Required in this lane:
 
-1. dependency-plan-aware draft blueprint planning artifact
-2. CLI and Make surfaces for the enriched planning bridge
+1. dependency execution-probe artifact
+2. CLI and Make surfaces for advisory execution probing
 3. deterministic tests and persisted outputs
 
 ## Phases
@@ -52,30 +53,30 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Dependency-Aware Planning Artifact
+### Phase 2: Dependency Execution Artifact
 
 Deliverables:
 
-- draft blueprint planning can consume a dependency plan artifact
-- persisted planning output records the dependency-plan provenance
-- unresolved dependency questions are preserved as planning context
+- persisted execution-probe artifact for reuse/install recommendations
+- explicit result states such as `confirmed`, `blocked`, `skipped`
+- explicit post-probe environment observations
 
 Acceptance criteria:
 
-- draft planning no longer loses explicit dependency decisions
-- operators can inspect how dependency choices influenced the draft plan
+- dependency execution attempts are reviewable and persisted
+- failures surface as explicit artifacts rather than silent shell behavior
 
 ### Phase 3: Operator Surface And Tests
 
 Deliverables:
 
-- CLI and Make surfaces for dependency-aware planning
-- deterministic tests for artifact persistence and provenance flow
+- CLI and Make surfaces for execution probing
+- deterministic tests for probe persistence and fail-loud behavior
 
 Acceptance criteria:
 
-- operators can build dependency-aware draft plans without manual glue code
-- tests prove the handoff from discovery to dependency plan to draft plan
+- operators can run dependency probes without manual glue code
+- tests prove the probe artifact and failure handling
 
 ### Phase 4: Verification And Lock
 
@@ -94,6 +95,6 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. the first dependency-aware planning bridge should consume dependency plans, not execute installs
-2. some dependency questions should remain open through draft planning rather than being prematurely forced closed
-3. freeze readiness should surface unresolved dependency issues without silently mutating the dependency plan
+1. the first execution bridge should probe explicit recommendations, not attempt broad automatic environment mutation
+2. install probes may need a dry-run or no-op mode for deterministic tests and cautious operation
+3. environment deltas should be explicit artifacts so follow-on planning can inspect what changed
