@@ -365,6 +365,14 @@ def _authoring_findings(
                 path="plan.open_questions",
             ),
         )
+    for question in plan.dependency_open_questions:
+        findings.append(
+            ValidationFinding(
+                code="W-DRAFT-DEPENDENCY-QUESTION",
+                message=f"dependency question before freeze: {question.question}",
+                path="plan.dependency_open_questions",
+            ),
+        )
     return findings
 
 

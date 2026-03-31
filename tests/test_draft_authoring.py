@@ -24,6 +24,15 @@ def _write_plan_artifact(path: Path) -> Path:
         discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
         requirements=["normalize discovered ticket input", "keep packets bounded"],
         discovery_open_concerns=["field priority is sparse across samples"],
+        dependency_plan_path=str(path.parent / "dependency_plan.json"),
+        dependency_plan_summary="Reuse pydantic and leave richer UI libraries unresolved.",
+        dependency_recommendations=["reuse pydantic: typed schema contracts"],
+        dependency_open_questions=[
+            PlanningQuestion(
+                question="Should richer terminal rendering stay out of the first draft slice?",
+                why_it_matters="It affects dependency scope before freeze.",
+            ),
+        ],
         planning_summary="Use a single source component as the first draft bundle.",
         proposed_schemas=[
             PlannedSchema(
@@ -105,3 +114,4 @@ def test_materialize_draft_blueprint_bundle_persists_bundle_and_report(tmp_path:
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
     assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
     assert "W-DRAFT-OPEN-QUESTION" in codes
+    assert "W-DRAFT-DEPENDENCY-QUESTION" in codes

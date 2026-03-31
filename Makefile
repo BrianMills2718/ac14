@@ -20,6 +20,7 @@ REPOS ?=
 RETRIEVAL_ARTIFACTS ?=
 DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
+DEPENDENCY_PLAN ?=
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
@@ -61,8 +62,8 @@ retrieve-context: ## Persist reviewable external documentation/repository retrie
 plan-dependencies: ## Build an evidence-backed dependency plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/dependency_plan REQUIREMENTS="...")
 	$(PYTHON) -m ac14 plan-dependencies "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
-draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="requirement one requirement two")
-	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json)
+	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness report (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle)
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"

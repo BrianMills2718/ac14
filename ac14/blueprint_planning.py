@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing import Literal, cast
 
 from pydantic import BaseModel, Field
 
+from ac14.dependency_planning import DependencyPlanningArtifact
 from ac14.discovery import DiscoveryArtifact
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
@@ -132,6 +134,22 @@ class DraftBlueprintPlanArtifact(BaseModel):
     discovery_open_concerns: list[str] = Field(
         description="Open concerns carried forward from the discovery artifact.",
     )
+    dependency_plan_path: str | None = Field(
+        default=None,
+        description="Optional dependency-planning artifact used as additional planning input.",
+    )
+    dependency_plan_summary: str | None = Field(
+        default=None,
+        description="Summary of the dependency-planning artifact when one was provided.",
+    )
+    dependency_recommendations: list[str] = Field(
+        default_factory=list,
+        description="Compact advisory dependency actions carried into draft planning.",
+    )
+    dependency_open_questions: list[PlanningQuestion] = Field(
+        default_factory=list,
+        description="Dependency questions carried into draft planning from the dependency plan.",
+    )
     planning_summary: str = Field(
         description="Short summary of the proposed decomposition and its fit.",
     )
@@ -151,6 +169,7 @@ async def abuild_draft_blueprint_plan(
     output_dir: Path | str,
     *,
     requirements: list[str],
+    dependency_plan_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -164,26 +183,66 @@ async def abuild_draft_blueprint_plan(
     destination.mkdir(parents=True, exist_ok=True)
     artifact_path = Path(discovery_artifact_path)
     discovery_artifact = DiscoveryArtifact.model_validate_json(artifact_path.read_text())
+    dependency_plan = (
+        DependencyPlanningArtifact.model_validate_json(Path(dependency_plan_path).read_text())
+        if dependency_plan_path is not None
+        else None
+    )
 
-    messages = render_prompt(
-        PROMPT_PATH,
-        discovery_artifact=discovery_artifact.model_dump(mode="json"),
-        requirements=requirements,
-    )
-    response, _meta = await acall_llm_structured(
-        model,
-        messages,
-        response_model=DraftBlueprintPlanResponse,
-        task=task,
-        trace_id=f"ac14/draft_blueprint_plan/{artifact_path.stem}",
-        max_budget=max_budget,
-    )
-    typed_response = cast(DraftBlueprintPlanResponse, response)
+    fixture_path = os.environ.get("AC14_BLUEPRINT_PLAN_FIXTURE")
+    if fixture_path:
+        typed_response = DraftBlueprintPlanResponse.model_validate_json(Path(fixture_path).read_text())
+    else:
+        messages = render_prompt(
+            PROMPT_PATH,
+            discovery_artifact=discovery_artifact.model_dump(mode="json"),
+            dependency_plan=(
+                dependency_plan.model_dump(mode="json")
+                if dependency_plan is not None
+                else None
+            ),
+            requirements=requirements,
+        )
+        response, _meta = await acall_llm_structured(
+            model,
+            messages,
+            response_model=DraftBlueprintPlanResponse,
+            task=task,
+            trace_id=f"ac14/draft_blueprint_plan/{artifact_path.stem}",
+            max_budget=max_budget,
+        )
+        typed_response = cast(DraftBlueprintPlanResponse, response)
     _validate_draft_blueprint_plan(typed_response)
     plan = DraftBlueprintPlanArtifact(
         discovery_artifact_path=str(artifact_path),
         requirements=requirements,
         discovery_open_concerns=discovery_artifact.open_concerns,
+        dependency_plan_path=str(dependency_plan_path) if dependency_plan_path is not None else None,
+        dependency_plan_summary=(
+            dependency_plan.planning_summary if dependency_plan is not None else None
+        ),
+        dependency_recommendations=(
+            [
+                (
+                    f"{recommendation.action} {recommendation.package_name}: "
+                    f"{recommendation.capability_need}"
+                )
+                for recommendation in dependency_plan.recommendations
+            ]
+            if dependency_plan is not None
+            else []
+        ),
+        dependency_open_questions=(
+            [
+                PlanningQuestion(
+                    question=question.question,
+                    why_it_matters=question.why_it_matters,
+                )
+                for question in dependency_plan.open_questions
+            ]
+            if dependency_plan is not None
+            else []
+        ),
         planning_summary=typed_response.planning_summary,
         proposed_schemas=typed_response.proposed_schemas,
         proposed_components=typed_response.proposed_components,
@@ -204,6 +263,7 @@ def build_draft_blueprint_plan(
     output_dir: Path | str,
     *,
     requirements: list[str],
+    dependency_plan_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -215,6 +275,7 @@ def build_draft_blueprint_plan(
             discovery_artifact_path=discovery_artifact_path,
             output_dir=output_dir,
             requirements=requirements,
+            dependency_plan_path=dependency_plan_path,
             model=model,
             max_budget=max_budget,
             task=task,

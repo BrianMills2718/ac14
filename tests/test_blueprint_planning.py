@@ -17,6 +17,12 @@ from ac14.blueprint_planning import (
     PlanningQuestion,
     build_draft_blueprint_plan,
 )
+from ac14.dependency_planning import (
+    DependencyPlanningArtifact,
+    DependencyQuestion,
+    DependencyRecommendation,
+    DependencyEvidence,
+)
 from ac14.discovery import build_discovery_artifact
 
 
@@ -38,6 +44,40 @@ def test_build_draft_blueprint_plan_persists_artifact(
         requested_packages=["pydantic"],
     )
     discovery_artifact_path = tmp_path / "discovery" / "discovery_artifact.json"
+    dependency_plan = DependencyPlanningArtifact(
+        discovery_artifact_path=str(discovery_artifact_path),
+        requirements=["reuse installed schema tooling"],
+        carried_forward_concerns=[],
+        planning_summary="Reuse pydantic for typed schema contracts.",
+        recommendations=[
+            DependencyRecommendation(
+                package_name="pydantic",
+                action="reuse",
+                capability_need="typed schema contracts",
+                justification="already installed and directly aligned with schema validation",
+                already_installed=True,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="pydantic",
+                        detail="Installed in the environment inventory.",
+                    ),
+                ],
+            ),
+        ],
+        standard_library_notes=[],
+        open_questions=[
+            DependencyQuestion(
+                question="Is any additional serialization library needed beyond Pydantic plus stdlib?",
+                why_it_matters="It changes dependency scope before freeze.",
+            ),
+        ],
+    )
+    dependency_plan_path = tmp_path / "dependency_plan.json"
+    dependency_plan_path.write_text(
+        dependency_plan.model_dump_json(indent=2),
+    )
 
     fake_response = DraftBlueprintPlanResponse(
         planning_summary="Use a source parser and one sink to keep packets bounded.",
@@ -97,6 +137,7 @@ def test_build_draft_blueprint_plan_persists_artifact(
         discovery_artifact_path=discovery_artifact_path,
         output_dir=tmp_path / "plan",
         requirements=["normalize discovered ticket input", "keep packets bounded"],
+        dependency_plan_path=dependency_plan_path,
         max_budget=0.1,
     )
 
@@ -104,6 +145,10 @@ def test_build_draft_blueprint_plan_persists_artifact(
         "normalize discovered ticket input",
         "keep packets bounded",
     ]
+    assert plan.dependency_plan_path == str(dependency_plan_path)
+    assert plan.dependency_plan_summary == "Reuse pydantic for typed schema contracts."
+    assert plan.dependency_recommendations == ["reuse pydantic: typed schema contracts"]
+    assert plan.dependency_open_questions[0].question.startswith("Is any additional serialization")
     assert plan.proposed_components[0].component_id == "ticket_ingest"
     assert (tmp_path / "plan" / "draft_blueprint_plan.json").exists()
     assert fake_call.await_count == 1

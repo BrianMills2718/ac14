@@ -377,6 +377,172 @@ def test_make_plan_dependencies_runs_with_fixture_env(tmp_path: Path) -> None:
     assert (output_dir / "dependency_plan.json").exists()
 
 
+def test_make_draft_blueprint_plan_runs_with_dependency_plan(tmp_path: Path) -> None:
+    """Make draft-planning target should carry dependency-plan provenance."""
+
+    discovery_path = tmp_path / "discovery_artifact.json"
+    discovery_path.write_text(
+        json.dumps(
+            {
+                "input_inspection": {
+                    "input_path": str(tmp_path / "sample.json"),
+                    "input_format": "json",
+                    "root_kind": "list",
+                    "sample_count": 1,
+                    "truncated": False,
+                    "sample_records": [{"ticket_id": "T-1"}],
+                    "field_summaries": [],
+                    "concerns": [],
+                },
+                "environment_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "python_version": "3.12.0",
+                    "platform": "linux",
+                    "dependency_statuses": [
+                        {
+                            "package_name": "pydantic",
+                            "sources": ["requested"],
+                            "installed": True,
+                            "version": "2.12.0",
+                        }
+                    ],
+                    "concerns": [],
+                },
+                "project_context_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "document_count": 1,
+                    "truncated": False,
+                    "documents": [
+                        {
+                            "path": str(REPO_ROOT / "README.md"),
+                            "category": "readme",
+                            "title": "AC14",
+                            "preview": "AC14 overview",
+                            "line_count": 10,
+                        }
+                    ],
+                    "concerns": [],
+                },
+                "external_retrieval_summaries": [],
+                "open_concerns": [],
+            }
+        )
+    )
+    dependency_plan_path = tmp_path / "dependency_plan.json"
+    dependency_plan_path.write_text(
+        json.dumps(
+            {
+                "discovery_artifact_path": str(discovery_path),
+                "requirements": ["reuse installed schema tooling"],
+                "carried_forward_concerns": [],
+                "planning_summary": "Reuse pydantic for typed schema contracts.",
+                "recommendations": [
+                    {
+                        "package_name": "pydantic",
+                        "action": "reuse",
+                        "capability_need": "typed schema contracts",
+                        "justification": "already installed",
+                        "already_installed": True,
+                        "install_command": None,
+                        "evidence": [
+                            {
+                                "source": "environment",
+                                "locator": "pydantic",
+                                "detail": "Installed in the environment inventory",
+                            }
+                        ],
+                    }
+                ],
+                "standard_library_notes": [],
+                "open_questions": [
+                    {
+                        "question": "Is any additional serialization library needed?",
+                        "why_it_matters": "It changes dependency scope before freeze.",
+                    }
+                ],
+            }
+        )
+    )
+    fixture_path = tmp_path / "draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Use a single source component as the first draft bundle.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "RawTicket",
+                        "kind": "record",
+                        "description": "Normalized raw ticket input.",
+                        "fields": [
+                            {
+                                "field_name": "ticket_id",
+                                "field_type": "str",
+                                "description": "Stable ticket identifier.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "ticket_ingest",
+                        "semantic_responsibility": "ingest_ticket",
+                        "purpose": "Normalize the discovered input into RawTicket.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "raw_ticket",
+                                "schema_name": "RawTicket",
+                                "description": "Normalized ticket payload.",
+                            }
+                        ],
+                        "packet_focus": ["normalize incoming fields", "preserve ticket identity"],
+                        "dependency_notes": ["reuse pydantic for schema models"],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "happy_path",
+                        "kind": "semantic_acceptance",
+                        "description": "Review one realistic ticket end to end.",
+                        "requirement_focus": ["normalize ticket input", "preserve meaning"],
+                    }
+                ],
+                "packetization_notes": ["Keep the first packet focused on source normalization only."],
+                "dependency_decisions": ["Reuse pydantic for schema contracts."],
+                "open_questions": [
+                    {
+                        "question": "Should tags be preserved as a field in RawTicket?",
+                        "why_it_matters": "It changes schema shape before freeze.",
+                    }
+                ],
+            }
+        )
+    )
+    output_dir = tmp_path / "draft_plan"
+    env = os.environ.copy()
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
+    result = subprocess.run(
+        [
+            "make",
+            "draft-blueprint-plan",
+            f"DISCOVERY={discovery_path}",
+            f"DEPENDENCY_PLAN={dependency_plan_path}",
+            f"OUTPUT={output_dir}",
+            "REQUIREMENTS=normalize discovered ticket input",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
+    assert payload["dependency_plan_path"] == str(dependency_plan_path)
+    assert payload["dependency_recommendations"] == ["reuse pydantic: typed schema contracts"]
+
+
 def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
     """Make authoring target should persist the draft bundle and readiness report."""
 

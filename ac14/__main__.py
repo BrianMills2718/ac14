@@ -123,6 +123,7 @@ def main() -> int:
     draft_plan_parser.add_argument("discovery_artifact_path", type=Path)
     draft_plan_parser.add_argument("--output-dir", type=Path, required=True)
     draft_plan_parser.add_argument("--requirements", nargs="+", required=True)
+    draft_plan_parser.add_argument("--dependency-plan", type=Path, default=None)
     draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
     draft_plan_parser.add_argument(
         "--max-budget",
@@ -330,6 +331,7 @@ def main() -> int:
             args.discovery_artifact_path,
             args.output_dir,
             cast(list[str], args.requirements),
+            args.dependency_plan,
             args.model,
             args.max_budget,
         )
@@ -570,6 +572,7 @@ def _draft_blueprint_plan(
     discovery_artifact_path: Path,
     output_dir: Path,
     requirements: list[str],
+    dependency_plan_path: Path | None,
     model: str,
     max_budget: float,
 ) -> int:
@@ -579,6 +582,7 @@ def _draft_blueprint_plan(
         discovery_artifact_path=discovery_artifact_path,
         output_dir=output_dir,
         requirements=requirements,
+        dependency_plan_path=dependency_plan_path,
         model=model,
         max_budget=max_budget,
     )
