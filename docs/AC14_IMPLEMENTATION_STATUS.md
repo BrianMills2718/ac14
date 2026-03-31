@@ -17,6 +17,10 @@ Use it to keep the implementation aligned with:
 If this document and the code disagree, the document should be updated or the
 code should change. Silent drift is not acceptable.
 
+Related roadmap:
+
+- [AC14_ROADMAP.md](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
+
 ## Thesis Check
 
 AC14 is still aligned with the project thesis.

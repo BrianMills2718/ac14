@@ -12,7 +12,16 @@ The first proof slice is intentionally narrow:
 AC14 is not trying to solve enterprise deployment, full autonomy, or broad
 tool/runtime integration in the first pass.
 
-## Current Proof Surface
+## Core Docs
+
+- [Roadmap](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
+- [Anti-Drift Doctrine](/home/brian/projects/ac14/docs/AC14_ANTI_DRIFT_DOCTRINE.md)
+- [Implementation Status](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
+- [Next 24 Hours](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
+- [TODO](/home/brian/projects/ac14/docs/TODO.md)
+- [Execution Notebook](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
+
+## What Works Today
 
 AC14 now supports:
 
@@ -39,6 +48,18 @@ AC14 now supports:
 - building semantic comparison artifacts across reference and generated modes
 - building requirements-aware semantic-acceptance artifacts against actual system outputs
 - producing an evidence-backed default-generator recommendation that reasons about proof breadth
+
+## What Is Still Missing
+
+AC14 is still incomplete on:
+
+- broader proof breadth across many workflow shapes
+- stronger messy-input blueprint derivation
+- explicit dependency execution/install verification
+- richer first-class semantic/business-logic review at every major gate
+- first-class tool/runtime nodes in the blueprint model
+
+The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
 ## Quickstart
 
