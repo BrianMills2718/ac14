@@ -16,6 +16,7 @@ tool/runtime integration in the first pass.
 
 AC14 now supports:
 
+- keeping an AC14-native execution/alignment notebook and status surface so the story artifact can stay synchronized with the implementation
 - loading and validating the six-file blueprint bundle
 - inspecting local inputs before blueprint freeze and persisting discovery artifacts with inferred field summaries and open concerns
 - recording environment and dependency inventory before generation begins

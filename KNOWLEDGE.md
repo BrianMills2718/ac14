@@ -80,4 +80,10 @@ dependency-plan provenance, compact dependency actions, and unresolved
 dependency questions into draft blueprint planning so draft authoring and freeze
 readiness can surface those issues explicitly.
 
+### 2026-03-31 — codex — best-practice
+Planning-artifact drift is a real failure mode. AC14 now has an AC14-native
+execution/alignment notebook plus a blunt implementation-status document so the
+story artifact can stay synchronized with the code instead of relying only on
+the older bootstrap notebook in `ac12`.
+
 ---

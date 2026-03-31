@@ -1,0 +1,65 @@
+journeys:
+  - journey_id: ac14_execution_status_journey
+    title: AC14 Execution Status And Alignment Journey
+    notebook: notebooks/01_ac14_execution_status_journey.ipynb
+    status: partial
+    purpose: >
+      Keep the AC14 implementation, notebook story, and anti-drift hierarchy
+      synchronized after the implementation moved beyond the original bootstrap
+      notebook in ac12.
+    related_docs:
+      - docs/AC14_ANTI_DRIFT_DOCTRINE.md
+      - docs/AC14_IMPLEMENTATION_STATUS.md
+      - docs/AC14_NEXT_24_HOURS.md
+      - docs/TODO.md
+      - CLAUDE.md
+    related_code:
+      - ac14/blueprint_planning.py
+      - ac14/draft_authoring.py
+      - ac14/dependency_planning.py
+      - ac14/discovery.py
+      - ac14/retrieval.py
+    related_tests:
+      - tests/test_blueprint_planning.py
+      - tests/test_draft_authoring.py
+      - tests/test_dependency_planning.py
+      - tests/test_discovery.py
+      - tests/test_retrieval.py
+    related_evidence: []
+    phases:
+      - phase_id: phase_01_thesis_alignment
+        title: Thesis Alignment Check
+        status: proven
+        execution_mode: fixture
+        input_artifact: anti-drift doctrine + current implementation
+        output_artifact: explicit statement of what is aligned and what is not
+        acceptance_criteria:
+          - The notebook distinguishes vision, proof slice, implementation, and heuristics.
+          - The notebook states whether current work is still on-thesis.
+      - phase_id: phase_02_implemented_surface
+        title: Implemented Surface
+        status: proven
+        execution_mode: fixture
+        input_artifact: current ac14 code and tests
+        output_artifact: blunt summary of implemented capabilities
+        acceptance_criteria:
+          - The notebook states what is implemented in the front half and back half.
+          - The notebook identifies the strongest completed surfaces.
+      - phase_id: phase_03_gaps_and_risks
+        title: Gaps And Risks
+        status: proven
+        execution_mode: fixture
+        input_artifact: implementation status and control docs
+        output_artifact: explicit missing capabilities and failure risks
+        acceptance_criteria:
+          - The notebook names the main risks without euphemism.
+          - The notebook distinguishes partial implementation from missing implementation.
+      - phase_id: phase_04_next_gates
+        title: Next Gates
+        status: partial
+        execution_mode: fixture
+        input_artifact: current implementation + active plan
+        output_artifact: explicit next decision gates
+        acceptance_criteria:
+          - The notebook states what should happen before more broad implementation.
+          - The notebook ties next lanes back to the decomposition thesis.

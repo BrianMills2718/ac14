@@ -7,10 +7,9 @@ Last updated: 2026-03-31
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The dependency-aware planning lane is now complete. AC14 can inspect inputs and
-environment state, retrieve external context, build an advisory dependency
-plan, and carry that plan into draft blueprint planning and freeze readiness.
-The next missing piece is to probe whether those dependency decisions actually
+The planning-artifact resynchronization lane is complete. AC14 now has an
+AC14-native canonical notebook and a blunt implementation-status document. The
+next missing piece is to probe whether advisory dependency decisions actually
 work in the current environment.
 
 The immediate goal for this lane is a dependency execution bridge:
