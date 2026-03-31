@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -98,6 +99,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "discover-input" in result.stdout
     assert "inspect-environment" in result.stdout
     assert "inspect-project-context" in result.stdout
+    assert "retrieve-context" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
@@ -194,6 +196,65 @@ def test_make_inspect_project_context_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "project_context_inventory.json").exists()
+
+
+def test_make_retrieve_context_runs_with_fixture_env(tmp_path: Path) -> None:
+    """Make retrieval target should persist an external retrieval artifact."""
+
+    web_fixture = tmp_path / "web_fixture.json"
+    web_fixture.write_text(
+        json.dumps(
+            {
+                "incident response playbook": [
+                    {
+                        "query": "incident response playbook",
+                        "provider": "fixture",
+                        "url": "https://example.com/playbook",
+                        "title": "Playbook",
+                        "publisher": "Example",
+                        "snippet": "playbook snippet",
+                        "preview": "playbook preview",
+                    }
+                ]
+            }
+        )
+    )
+    repo_fixture = tmp_path / "repo_fixture.json"
+    repo_fixture.write_text(
+        json.dumps(
+            {
+                "packet compiler": [
+                    {
+                        "query": "packet compiler",
+                        "repository": "example/ac14",
+                        "path": "ac14/packets.py",
+                        "url": "https://github.com/example/ac14/blob/main/ac14/packets.py",
+                    }
+                ]
+            }
+        )
+    )
+    output_dir = tmp_path / "retrieval"
+    env = os.environ.copy()
+    env["AC14_WEB_RETRIEVAL_FIXTURE"] = str(web_fixture)
+    env["AC14_REPO_RETRIEVAL_FIXTURE"] = str(repo_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "retrieve-context",
+            f"OUTPUT={output_dir}",
+            "WEB_QUERY=incident response playbook",
+            "REPO_QUERY=packet compiler",
+            "REPOS=example/ac14",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "external_retrieval_artifact.json").exists()
 
 
 def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:

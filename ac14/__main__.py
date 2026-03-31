@@ -35,6 +35,11 @@ from ac14.recommendation import build_default_generator_recommendation
 from ac14.semantic_comparison import ComparisonMode, build_semantic_comparison_report
 from ac14.semantic_suite import build_suite_semantic_comparison_report
 from ac14.suite import build_suite_comparison_report, build_suite_proof_report
+from ac14.retrieval import (
+    RepoRetrievalQuery,
+    WebRetrievalQuery,
+    build_external_retrieval_artifact,
+)
 from ac14.validation import validate_blueprint
 
 
@@ -62,6 +67,7 @@ def main() -> int:
     discover_parser.add_argument("--output-dir", type=Path, required=True)
     discover_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     discover_parser.add_argument("--packages", nargs="*", default=[])
+    discover_parser.add_argument("--retrieval-artifact", nargs="*", default=[])
     discover_parser.add_argument("--max-samples", type=int, default=5)
 
     environment_parser = subparsers.add_parser(
@@ -79,6 +85,17 @@ def main() -> int:
     project_context_parser.add_argument("--output-dir", type=Path, required=True)
     project_context_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     project_context_parser.add_argument("--max-documents", type=int, default=20)
+
+    retrieval_parser = subparsers.add_parser(
+        "retrieve-context",
+        help="Persist reviewable external documentation and repository retrieval artifacts.",
+    )
+    retrieval_parser.add_argument("--output-dir", type=Path, required=True)
+    retrieval_parser.add_argument("--web-query", action="append", default=[])
+    retrieval_parser.add_argument("--repo-query", action="append", default=[])
+    retrieval_parser.add_argument("--repo", action="append", default=[])
+    retrieval_parser.add_argument("--web-top-k", type=int, default=3)
+    retrieval_parser.add_argument("--repo-limit", type=int, default=5)
 
     draft_plan_parser = subparsers.add_parser(
         "draft-blueprint-plan",
@@ -257,6 +274,7 @@ def main() -> int:
             args.output_dir,
             args.project_root,
             cast(list[str], args.packages),
+            [Path(path) for path in cast(list[str], args.retrieval_artifact)],
             args.max_samples,
         )
     if args.command == "inspect-environment":
@@ -270,6 +288,15 @@ def main() -> int:
             args.output_dir,
             args.project_root,
             args.max_documents,
+        )
+    if args.command == "retrieve-context":
+        return _retrieve_context(
+            args.output_dir,
+            cast(list[str], args.web_query),
+            cast(list[str], args.repo_query),
+            cast(list[str], args.repo),
+            args.web_top_k,
+            args.repo_limit,
         )
     if args.command == "draft-blueprint-plan":
         return _draft_blueprint_plan(
@@ -418,6 +445,7 @@ def _discover_input(
     output_dir: Path,
     project_root: Path | None,
     packages: list[str],
+    retrieval_artifact_paths: list[Path],
     max_samples: int,
 ) -> int:
     """Build and print a persisted pre-freeze discovery artifact."""
@@ -427,6 +455,7 @@ def _discover_input(
         output_dir=output_dir,
         project_root=project_root,
         requested_packages=packages,
+        retrieval_artifact_paths=retrieval_artifact_paths,
         max_samples=max_samples,
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))
@@ -462,6 +491,31 @@ def _inspect_project_context(
         max_documents=max_documents,
     )
     print(json.dumps(inventory.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _retrieve_context(
+    output_dir: Path,
+    web_queries: list[str],
+    repo_queries: list[str],
+    repos: list[str],
+    web_top_k: int,
+    repo_limit: int,
+) -> int:
+    """Build and print a persisted external retrieval artifact."""
+
+    artifact = build_external_retrieval_artifact(
+        output_dir=output_dir,
+        web_queries=[
+            WebRetrievalQuery(query=query, top_k=web_top_k)
+            for query in web_queries
+        ],
+        repo_queries=[
+            RepoRetrievalQuery(query=query, repos=repos, limit=repo_limit)
+            for query in repo_queries
+        ],
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0
 
 

@@ -13,6 +13,13 @@ from ac14.discovery import (
     persist_environment_inventory,
     persist_project_context_inventory,
 )
+from ac14.retrieval import (
+    RepoRetrievalQuery,
+    RetrievedRepoMatch,
+    RetrievedWebDocument,
+    WebRetrievalQuery,
+    build_external_retrieval_artifact,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -84,6 +91,54 @@ def test_build_discovery_artifact_persists_environment_and_input(tmp_path: Path)
     assert "README.md" in document_paths
     assert "CLAUDE.md" in document_paths
     assert (tmp_path / "discovery" / "discovery_artifact.json").exists()
+
+
+def test_build_discovery_artifact_loads_external_retrieval_summaries(tmp_path: Path) -> None:
+    """Discovery should summarize persisted external retrieval artifacts when provided."""
+
+    input_path = tmp_path / "sample.csv"
+    input_path.write_text("ticket_id,priority\n1,high\n")
+    build_external_retrieval_artifact(
+        output_dir=tmp_path / "retrieval",
+        web_queries=[WebRetrievalQuery(query="incident response playbook")],
+        repo_queries=[RepoRetrievalQuery(query="structured output helper")],
+        web_retriever=lambda _query: [
+            RetrievedWebDocument(
+                query="incident response playbook",
+                provider="fixture",
+                url="https://example.com/playbook",
+                title="Playbook",
+                publisher="Example",
+                snippet="playbook snippet",
+                preview="playbook preview",
+            ),
+        ],
+        repo_retriever=lambda _query: [
+            RetrievedRepoMatch(
+                query="structured output helper",
+                repository="example/repo",
+                path="src/helper.py",
+                url="https://github.com/example/repo/blob/main/src/helper.py",
+            ),
+        ],
+    )
+
+    artifact = build_discovery_artifact(
+        input_path=input_path,
+        output_dir=tmp_path / "discovery",
+        project_root=REPO_ROOT,
+        retrieval_artifact_paths=[
+            tmp_path / "retrieval" / "external_retrieval_artifact.json",
+        ],
+        max_samples=5,
+    )
+
+    assert len(artifact.external_retrieval_summaries) == 1
+    summary = artifact.external_retrieval_summaries[0]
+    assert summary.web_document_count == 1
+    assert summary.repo_match_count == 1
+    assert "https://example.com/playbook" in summary.web_urls
+    assert "example/repo:src/helper.py" in summary.repo_paths
 
 
 def test_build_environment_inventory_reads_project_dependencies() -> None:

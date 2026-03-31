@@ -8,6 +8,7 @@ import platform
 import re
 import sys
 import tomllib
+from collections.abc import Sequence
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, Literal
@@ -97,6 +98,17 @@ class ProjectContextInventory(BaseModel):
     concerns: list[str] = Field(description="Project-document concerns raised during discovery.")
 
 
+class ExternalRetrievalSummary(BaseModel):
+    """Compact summary of one persisted external retrieval artifact."""
+
+    artifact_path: str = Field(description="Path to the external retrieval artifact.")
+    web_document_count: int = Field(description="Number of retrieved web documents.")
+    repo_match_count: int = Field(description="Number of retrieved repo matches.")
+    web_urls: list[str] = Field(description="Top retrieved web URLs for reviewer context.")
+    repo_paths: list[str] = Field(description="Top retrieved repo paths for reviewer context.")
+    concerns: list[str] = Field(description="Concerns carried forward from the retrieval artifact.")
+
+
 class DiscoveryArtifact(BaseModel):
     """Persisted artifact combining local input inspection and environment planning."""
 
@@ -108,6 +120,10 @@ class DiscoveryArtifact(BaseModel):
     )
     project_context_inventory: ProjectContextInventory = Field(
         description="Local project-document context captured for the same discovery run.",
+    )
+    external_retrieval_summaries: list[ExternalRetrievalSummary] = Field(
+        default_factory=list,
+        description="Reviewable summaries of external retrieval artifacts consumed during discovery.",
     )
     open_concerns: list[str] = Field(
         description="Combined open concerns that should be resolved before blueprint freeze.",
@@ -138,6 +154,7 @@ def build_discovery_artifact(
     *,
     project_root: Path | str | None = None,
     requested_packages: list[str] | None = None,
+    retrieval_artifact_paths: Sequence[Path | str] | None = None,
     max_samples: int = 5,
 ) -> DiscoveryArtifact:
     """Inspect a local input and persist a discovery artifact before blueprint freeze."""
@@ -150,13 +167,26 @@ def build_discovery_artifact(
         requested_packages=requested_packages or [],
     )
     project_context = build_project_context_inventory(project_root=project_root)
+    external_retrieval_summaries = _load_external_retrieval_summaries(
+        retrieval_artifact_paths or [],
+    )
     open_concerns = _dedupe_preserve_order(
-        [*inspection.concerns, *environment.concerns, *project_context.concerns],
+        [
+            *inspection.concerns,
+            *environment.concerns,
+            *project_context.concerns,
+            *[
+                concern
+                for summary in external_retrieval_summaries
+                for concern in summary.concerns
+            ],
+        ],
     )
     artifact = DiscoveryArtifact(
         input_inspection=inspection,
         environment_inventory=environment,
         project_context_inventory=project_context,
+        external_retrieval_summaries=external_retrieval_summaries,
         open_concerns=open_concerns,
     )
     (destination / "discovery_artifact.json").write_text(
@@ -312,6 +342,36 @@ def persist_project_context_inventory(
         json.dumps(inventory.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return inventory
+
+
+def _load_external_retrieval_summaries(
+    artifact_paths: Sequence[Path | str],
+) -> list[ExternalRetrievalSummary]:
+    """Load compact summaries from persisted external retrieval artifacts."""
+
+    if not artifact_paths:
+        return []
+
+    from ac14.retrieval import ExternalRetrievalArtifact
+
+    summaries: list[ExternalRetrievalSummary] = []
+    for artifact_path in artifact_paths:
+        path = Path(artifact_path)
+        artifact = ExternalRetrievalArtifact.model_validate_json(path.read_text())
+        summaries.append(
+            ExternalRetrievalSummary(
+                artifact_path=str(path),
+                web_document_count=len(artifact.web_documents),
+                repo_match_count=len(artifact.repo_matches),
+                web_urls=[document.url for document in artifact.web_documents[:3]],
+                repo_paths=[
+                    f"{match.repository}:{match.path}"
+                    for match in artifact.repo_matches[:3]
+                ],
+                concerns=artifact.concerns,
+            ),
+        )
+    return summaries
 
 
 def _detect_input_format(path: Path) -> InputFormat:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -204,6 +205,74 @@ def test_cli_inspect_project_context(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["document_count"] >= 2
     assert (tmp_path / "project_context" / "project_context_inventory.json").exists()
+
+
+def test_cli_retrieve_context_with_fixture_env(tmp_path: Path) -> None:
+    """Retrieval command should persist reviewable artifacts with fixture-backed inputs."""
+
+    web_fixture = tmp_path / "web_fixture.json"
+    web_fixture.write_text(
+        json.dumps(
+            {
+                "incident response playbook": [
+                    {
+                        "query": "incident response playbook",
+                        "provider": "fixture",
+                        "url": "https://example.com/playbook",
+                        "title": "Playbook",
+                        "publisher": "Example",
+                        "snippet": "playbook snippet",
+                        "preview": "playbook preview",
+                    }
+                ]
+            }
+        )
+    )
+    repo_fixture = tmp_path / "repo_fixture.json"
+    repo_fixture.write_text(
+        json.dumps(
+            {
+                "packet compiler": [
+                    {
+                        "query": "packet compiler",
+                        "repository": "example/ac14",
+                        "path": "ac14/packets.py",
+                        "url": "https://github.com/example/ac14/blob/main/ac14/packets.py",
+                    }
+                ]
+            }
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_WEB_RETRIEVAL_FIXTURE"] = str(web_fixture)
+    env["AC14_REPO_RETRIEVAL_FIXTURE"] = str(repo_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "retrieve-context",
+            "--output-dir",
+            str(tmp_path / "retrieval"),
+            "--web-query",
+            "incident response playbook",
+            "--repo-query",
+            "packet compiler",
+            "--repo",
+            "example/ac14",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert len(payload["web_documents"]) == 1
+    assert len(payload["repo_matches"]) == 1
+    assert (tmp_path / "retrieval" / "external_retrieval_artifact.json").exists()
 
 
 def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
