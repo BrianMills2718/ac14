@@ -50,4 +50,10 @@ Readiness is still not a decision. AC14 now persists an explicit freeze
 decision artifact and only promotes when approval is true, so promotion is no
 longer an implicit manual interpretation step.
 
+### 2026-03-31 — codex — best-practice
+Proof breadth is an evaluation heuristic, not project ontology. AC14 now uses a
+broader shipped suite with `incident_alert_digest` plus ticket-digest slices,
+and the recommendation surface talks about `proof_breadth_count` rather than
+`semantic_family_count`.
+
 ---

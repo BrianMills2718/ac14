@@ -22,8 +22,9 @@ AC14 now supports:
 - turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
 - making an explicit approve/block freeze decision and promoting only approved bundles
+- turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
-- discovering a shipped suite of blueprint examples
+- discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
 - emitting standalone generated Python components from packet/codegen contexts
 - running packet-local tests and recomposition proof on generated code
@@ -32,7 +33,7 @@ AC14 now supports:
 - building suite-level proof and comparison artifacts across shipped examples
 - building semantic comparison artifacts across reference and generated modes
 - building requirements-aware semantic-acceptance artifacts against actual system outputs
-- producing an evidence-backed default-generator recommendation
+- producing an evidence-backed default-generator recommendation that reasons about proof breadth
 
 ## Quickstart
 

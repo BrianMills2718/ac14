@@ -1,114 +1,55 @@
 # AC14 Next 24 Hours
 
-Status: Active
-Last updated: 2026-03-30
+Status: Complete
+Last updated: 2026-03-31
 
 ## Purpose
 
-This plan defines the next continuous implementation lane inside `ac14`.
+This plan defined the proof-breadth lane inside `ac14`.
 
-The freeze-remediation lane is complete, but the shipped proof suite still
-mostly demonstrates one ticket-digest workflow pattern. That is not enough
+The freeze-remediation lane was complete, but the shipped proof suite still
+mostly demonstrated one ticket-digest workflow pattern. That was not enough
 proof breadth for the broader decomposition thesis.
 
-The immediate goal for this lane is a narrow proof-breadth bridge:
+The goal for this lane was:
 
 1. broaden the shipped suite beyond the ticket-digest slice
 2. support the broader slice in the reference and deterministic lanes
-3. replace `semantic family` wording with `proof breadth` wording where it is
+3. replace `semantic family` wording with `proof breadth` wording where it was
    only acting as an evaluation heuristic
 
-## Progress Update
+## Lane Outcome
 
-Completed before this lane:
+Completed:
 
-1. six-file frozen blueprint bundle and proof surfaces
-2. pre-freeze discovery and draft planning
-3. draft bundle authoring and freeze-readiness reporting
-4. explicit freeze decisions, remediation tasks, and deterministic promotion
+1. added `incident_alert_digest` as a second shipped workflow slice with a distinct
+   semantic-responsibility signature
+2. extended the reference runtime to support both ticket-digest and
+   incident-alert slices
+3. extended deterministic generation to support both slices
+4. updated recommendation terminology from `semantic family` to `proof breadth`
+5. kept shipped-suite discovery, suite proof, CLI, and Make surfaces green
 
-Required in this lane:
+## Verification
 
-1. one additional shipped workflow with a distinct semantic-responsibility signature
-2. reference and deterministic support for that new workflow
-3. recommendation metrics and wording that describe proof breadth honestly
-
-## Execution Rule
-
-Do not stop because of uncertainty that can be documented.
-
-If something is underspecified:
-
-1. record it in this file and `docs/TODO.md`
-2. choose the smallest thesis-preserving option
-3. continue immediately
-
-Only stop if the next step would clearly contradict the frozen AC14 spec or the
-anti-drift doctrine.
-
-## Phases
-
-### Phase 1: Control Surface Reset
-
-Deliverables:
-
-- updated `CLAUDE.md`
-- updated `docs/TODO.md`
-- updated this plan with explicit phase criteria
-
-Acceptance criteria:
-
-- the active lane is described honestly
-- each phase has explicit success criteria
-- the TODO ledger can be used as the running control surface without extra explanation
-
-### Phase 2: Broader Shipped Example
-
-Deliverables:
-
-- one additional shipped blueprint bundle outside the ticket-digest vocabulary
-- reference-runtime support for that bundle
-- deterministic generator support for that bundle
-
-Acceptance criteria:
-
-- the new example passes blueprint validation, packet tests, recomposition proof,
-  and semantic comparison
-- the shipped suite now contains at least two distinct workflow signatures
-
-### Phase 3: Proof-Breadth Terminology And Recommendation Surface
-
-Deliverables:
-
-- recommendation artifacts use `proof breadth` terminology instead of
-  `semantic family`
-- tests and docs reflect the broader suite honestly
-
-Acceptance criteria:
-
-- code and docs no longer imply that `semantic family` is core project ontology
-- the default-generator recommendation reasons about proof breadth using the
-  broader shipped suite
-
-### Phase 4: Verification And Lock
-
-Deliverables:
-
-- clean local verification
-- updated TODO/plan/README/KNOWLEDGE state
-- clean committed repo state
-
-Acceptance criteria:
-
-- `pytest -q` passes
-- `python -m mypy ac14 tests` passes
-- `python -m ruff check ac14 tests` passes
-- docs match the implemented state
+1. `pytest -q` passed with `78 passed`
+2. `python -m mypy ac14 tests` passed on 50 source files
+3. `python -m ruff check ac14 tests` passed
+4. `pytest -q tests/test_examples.py tests/test_reference_runtime.py tests/test_recommendation.py tests/test_generated_evidence.py tests/test_semantic_comparison.py tests/test_acceptance.py` passed with `11 passed`
+5. `pytest -q tests/test_suite.py tests/test_make_targets.py tests/test_cli.py` passed with `33 passed`
+6. `python -m ac14 list-examples --examples-root examples` returned three shipped examples including `incident_alert_digest`
 
 ## Known Uncertainties
 
-1. the next breadth example may keep a similar graph shape while changing the
-   workflow vocabulary and acceptance semantics
-2. deterministic generation is still responsibility-specific, so each new
-   shipped slice currently expands the hard-coded proof surface
-3. retrieval/doc/repo expansion remains outside this narrow lane
+1. the broader suite now has more than one workflow slice, but proof breadth is
+   still narrow overall
+2. deterministic generation is still responsibility-specific, so broader proof
+   breadth still expands the hard-coded proof surface
+3. retrieval/doc/repo expansion remains outside this completed lane
+
+## Next Lane
+
+1. extend discovery beyond local inputs into reusable documentation/repository
+   context surfaces without coupling AC14 to agent-only MCP assumptions
+2. keep explicit package/dependency install planning as part of discovery
+3. avoid adding opaque retrieval magic; persist reviewable artifacts instead

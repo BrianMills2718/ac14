@@ -111,7 +111,7 @@ Local heuristics are allowed only as temporary evaluation devices.
 Examples:
 
 1. current example domains such as support-ticket workflows
-2. current terminology such as `semantic_family_count`
+2. current terminology such as `proof_breadth_count`
 3. current exact-match checks where exactness is appropriate
 4. current conservative inference of full-recomposition scenarios
 

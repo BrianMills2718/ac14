@@ -11,30 +11,30 @@ Last updated: 2026-03-30
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: broaden the shipped proof suite
-  - [ ] add one non-ticket workflow bundle with a distinct semantic-responsibility signature
-  - [ ] support that bundle in the reference runtime
-  - [ ] support that bundle in the deterministic generator
+- [x] Phase 2: broaden the shipped proof suite
+  - [x] add one non-ticket workflow bundle with a distinct semantic-responsibility signature
+  - [x] support that bundle in the reference runtime
+  - [x] support that bundle in the deterministic generator
   - Success criteria: the suite has at least two distinct workflow signatures and the new example passes the same proof surfaces as the old one
 
-- [ ] Phase 3: replace narrow proof-breadth wording
-  - [ ] rename `semantic family` metrics and messages to `proof breadth`
-  - [ ] update recommendation and related tests to use the broader suite honestly
-  - [ ] keep anti-drift docs aligned with the implementation wording
+- [x] Phase 3: replace narrow proof-breadth wording
+  - [x] rename `semantic family` metrics and messages to `proof breadth`
+  - [x] update recommendation and related tests to use the broader suite honestly
+  - [x] keep anti-drift docs aligned with the implementation wording
   - Success criteria: evaluation heuristics stop reading like project ontology
 
-- [ ] Phase 4: verify and lock the lane
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
+- [x] Phase 4: verify and lock the lane
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
 
 - the generated component logic is still semantic-responsibility-specific rather than general synthesis
 - realistic-input acceptance will still be synthetic-but-plausible until the pre-freeze discovery layer exists
-- proof breadth is still narrow even though the suite now has multiple blueprints
+- proof breadth is broader than one workflow slice now, but it is still narrow overall
 - live LLM acceptance may be too expensive for the default gate and may remain optional outside targeted runs
 - discovery will start with local input inspection and environment/dependency planning before broader doc/repo retrieval is implemented
 - the next bridge will produce draft planning artifacts, not claim that blueprint freeze is solved
@@ -45,6 +45,16 @@ Last updated: 2026-03-30
 
 ## Latest Verified Results
 
+- proof-breadth lane verification passed:
+  - `pytest -q` passed with `78 passed`
+  - `python -m mypy ac14 tests` passed on 50 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted proof-breadth verification passed:
+  - `pytest -q tests/test_examples.py tests/test_reference_runtime.py tests/test_recommendation.py tests/test_generated_evidence.py tests/test_semantic_comparison.py tests/test_acceptance.py` passed with `11 passed`
+  - `pytest -q tests/test_suite.py tests/test_make_targets.py tests/test_cli.py` passed with `33 passed`
+  - `python -m ac14 list-examples --examples-root examples` returned three shipped examples including `incident_alert_digest`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - freeze-remediation lane verification passed:
   - `pytest -q` passed with `78 passed`
   - `python -m mypy ac14 tests` passed on 50 source files
