@@ -65,16 +65,16 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after shared retrieval expansion is dependency and library
+The active lane after dependency and library planning is dependency-aware draft
 planning.
 
-- turn discovery plus persisted retrieval into explicit library/dependency
-  decisions rather than passive inventory only
-- keep install/reuse recommendations reviewable and tied to retrieved evidence
-- prefer shared library surfaces and explicit provenance over opaque prompt-time
-  guessing
-- keep package/dependency planning tied to blueprint freeze rather than a
-  separate side channel
+- feed explicit dependency decisions back into draft blueprint planning instead
+  of leaving them as a disconnected side artifact
+- keep library/install questions reviewable all the way through draft authoring
+  and freeze readiness
+- prefer explicit artifact handoff over hidden prompt stuffing
+- keep package planning tied to blueprint freeze rather than a separate side
+  channel
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

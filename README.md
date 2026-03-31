@@ -21,6 +21,7 @@ AC14 now supports:
 - recording environment and dependency inventory before generation begins
 - recording local project-document context before blueprint freeze so README, CLAUDE, and docs become explicit planning inputs
 - retrieving and persisting reviewable external documentation and repository-search artifacts before blueprint freeze
+- building an evidence-backed advisory dependency and library plan before blueprint freeze
 - turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
 - making an explicit approve/block freeze decision and promoting only approved bundles
@@ -46,6 +47,7 @@ make discover-input INPUT=path/to/input.json OUTPUT=.ac14_out/discovery PACKAGES
 make inspect-environment OUTPUT=.ac14_out/environment PACKAGES="pydantic"
 make inspect-project-context OUTPUT=.ac14_out/project_context
 make retrieve-context OUTPUT=.ac14_out/retrieval WEB_QUERY="incident response playbook" REPO_QUERY="packet compiler" REPOS="example/ac14"
+make plan-dependencies DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/dependency_plan REQUIREMENTS="preserve typed schema contracts avoid unnecessary dependencies"
 make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="bounded decomposition preserve semantics"
 make materialize-draft-bundle PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle
 make decide-freeze INPUT=.ac14_out/draft_bundle OUTPUT=.ac14_out/freeze READINESS=.ac14_out/draft_bundle/freeze_readiness_report.json

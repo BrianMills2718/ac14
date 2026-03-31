@@ -67,4 +67,11 @@ external retrieval artifacts with explicit queries, URLs, repo paths, and
 concerns, then folds only compact summaries into discovery artifacts so
 planning context stays inspectable instead of disappearing into prompt text.
 
+### 2026-03-31 — codex — best-practice
+Dependency and library choices should stay advisory and evidence-backed before
+freeze. AC14 now persists an explicit dependency plan with `reuse`, `install`,
+`investigate`, and `avoid` actions grounded in environment state, retrieved
+docs/repos, and carried-forward concerns instead of hiding package judgments in
+draft-planning prompts.
+
 ---

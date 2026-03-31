@@ -7,16 +7,17 @@ Last updated: 2026-03-31
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The shared-retrieval lane is now complete. AC14 can inspect local inputs,
-environment state, local project docs, and persisted external retrieval
-artifacts. The next missing piece is turning that context into explicit
-dependency and library planning before blueprint freeze.
+The dependency-planning lane is now complete. AC14 can inspect local inputs,
+environment state, local project docs, external retrieval artifacts, and then
+produce an explicit advisory dependency/library plan. The next missing piece is
+to feed that plan back into draft blueprint planning and freeze preparation so
+library decisions do not disappear into side artifacts.
 
-The immediate goal for this lane is a narrow dependency-planning bridge:
+The immediate goal for this lane is a dependency-aware planning bridge:
 
-1. define a persisted dependency and library planning artifact
-2. ground recommendations in discovery plus retrieved evidence
-3. expose the planning bridge through the same operator surface as discovery
+1. let draft blueprint planning consume an explicit dependency plan artifact
+2. preserve the provenance between retrieval, dependency decisions, and draft planning
+3. keep freeze-readiness aware of unresolved dependency questions
 
 ## Progress Update
 
@@ -27,11 +28,12 @@ Completed before this lane:
 3. broader proof breadth across ticket and incident workflow slices
 4. local project-context inventory inside discovery artifacts
 5. persisted external web/repository retrieval artifacts with discovery integration
+6. evidence-backed dependency and library planning artifacts
 
 Required in this lane:
 
-1. dependency/library planning artifact with explicit actions
-2. CLI and Make surfaces for dependency planning
+1. dependency-plan-aware draft blueprint planning artifact
+2. CLI and Make surfaces for the enriched planning bridge
 3. deterministic tests and persisted outputs
 
 ## Phases
@@ -50,30 +52,30 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Dependency Planning Artifact
+### Phase 2: Dependency-Aware Planning Artifact
 
 Deliverables:
 
-- persisted artifact shape for dependency/library planning
-- evidence-backed actions such as `reuse`, `install`, `investigate`
-- explicit provenance linking the recommendation to discovery and retrieval context
+- draft blueprint planning can consume a dependency plan artifact
+- persisted planning output records the dependency-plan provenance
+- unresolved dependency questions are preserved as planning context
 
 Acceptance criteria:
 
-- dependency planning output is reviewable and persisted
-- install/reuse decisions are tied to explicit evidence rather than hidden judgment
+- draft planning no longer loses explicit dependency decisions
+- operators can inspect how dependency choices influenced the draft plan
 
 ### Phase 3: Operator Surface And Tests
 
 Deliverables:
 
-- CLI and Make surfaces for the dependency-planning bridge
-- deterministic tests for artifact persistence and planning behavior
+- CLI and Make surfaces for dependency-aware planning
+- deterministic tests for artifact persistence and provenance flow
 
 Acceptance criteria:
 
-- operators can produce dependency plans without manual glue code
-- tests prove the planning bridge persists and loads cleanly
+- operators can build dependency-aware draft plans without manual glue code
+- tests prove the handoff from discovery to dependency plan to draft plan
 
 ### Phase 4: Verification And Lock
 
@@ -92,6 +94,6 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. the first dependency-planning bridge should recommend actions, not perform installs automatically
-2. some library choices will still require LLM judgment, but the artifact should preserve the evidence and open questions
-3. dependency planning should stay part of blueprint freeze preparation rather than becoming a disconnected package-management workflow
+1. the first dependency-aware planning bridge should consume dependency plans, not execute installs
+2. some dependency questions should remain open through draft planning rather than being prematurely forced closed
+3. freeze readiness should surface unresolved dependency issues without silently mutating the dependency plan
