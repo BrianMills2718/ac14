@@ -1,0 +1,36 @@
+bindings:
+  - from_component: alert_parser
+    from_port: parsed_alert
+    to_component: impact_classifier
+    to_port: parsed_alert
+  - from_component: alert_parser
+    from_port: parsed_alert
+    to_component: urgency_scorer
+    to_port: parsed_alert
+  - from_component: alert_parser
+    from_port: parsed_alert
+    to_component: service_context_loader
+    to_port: parsed_alert
+  - from_component: alert_parser
+    from_port: parsed_alert
+    to_component: incident_assembler
+    to_port: on_alert
+  - from_component: impact_classifier
+    from_port: impact_label
+    to_component: incident_assembler
+    to_port: on_impact
+  - from_component: urgency_scorer
+    from_port: urgency_score
+    to_component: incident_assembler
+    to_port: on_urgency
+  - from_component: service_context_loader
+    from_port: service_context
+    to_component: incident_assembler
+    to_port: on_service_context
+
+state_stores:
+  - store_id: incident_digest_store
+    owner_component: incident_assembler
+    schema_id: IncidentDigestStore
+    description: Rolling incident digest snapshot keyed by processed alert_id.
+    update_semantics: replace existing entry on repeated alert_id, otherwise append

@@ -1,0 +1,55 @@
+global_invariants:
+  - invariant_id: incident_digest_entry_alert_id_consistency
+    description: IncidentDigestEntry.alert_id must equal the joined upstream alert_id.
+  - invariant_id: incident_digest_store_unique_alert_ids
+    description: IncidentDigestStore must contain at most one entry per alert_id.
+
+evaluators:
+  - evaluator_id: exact_outputs
+    kind: programmatic_exact
+    description: Compare actual outputs to declared fixture outputs exactly.
+  - evaluator_id: negative_failure
+    kind: programmatic_failure
+    description: Confirm that a negative scenario fails loudly rather than silently succeeding.
+  - evaluator_id: requirements_acceptance
+    kind: llm_requirements_acceptance
+    description: Review outputs against scenario requirements and business logic.
+
+scenarios:
+  - scenario_id: critical_path
+    kind: semantic_acceptance
+    description: Required inputs exist and service context is available for a production incident.
+    evaluator_ids:
+      - exact_outputs
+      - requirements_acceptance
+    realistic_input: true
+    requirements:
+      - The system should escalate a production error incident with clear urgency.
+      - The digest entry should preserve the alert summary, reliability label, critical urgency, and tier-1 service context.
+      - The output should recommend an action consistent with incident-command escalation.
+    fixture_ids:
+      - critical_path_alert_parser
+      - critical_path_impact_classifier
+      - critical_path_urgency_scorer
+      - critical_path_service_context_loader
+      - critical_path_incident_assembler
+  - scenario_id: missing_service_context
+    kind: full_recomposition
+    description: Service context is omitted but required alert inputs still join.
+    evaluator_ids:
+      - exact_outputs
+    realistic_input: false
+    fixture_ids:
+      - missing_service_context_alert_parser
+      - missing_service_context_impact_classifier
+      - missing_service_context_urgency_scorer
+      - missing_service_context_service_context_loader
+      - missing_service_context_incident_assembler
+  - scenario_id: schema_mismatch_rejected
+    kind: negative
+    description: Incident assembler must reject incompatible required inputs.
+    evaluator_ids:
+      - negative_failure
+    realistic_input: false
+    fixture_ids:
+      - schema_mismatch_rejected_incident_assembler

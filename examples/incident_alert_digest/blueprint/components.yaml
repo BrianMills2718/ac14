@@ -1,0 +1,126 @@
+components:
+  - component_id: alert_parser
+    kind: transform
+    purpose: Normalize raw operational alerts for downstream processing.
+    semantic_responsibility: parse_alert
+    input_ports:
+      - name: raw_alert
+        schema_id: RawAlert
+        description: Raw alert payload.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: parsed_alert
+        schema_id: ParsedAlert
+        description: Normalized alert output.
+    local_invariants:
+      - parsed_alert.alert_id must equal raw_alert.alert_id
+    failure_semantics:
+      - fail loud if required raw alert fields are absent
+    implementation_constraints:
+      - do not call external services
+
+  - component_id: impact_classifier
+    kind: transform
+    purpose: Assign an impact category to a parsed alert.
+    semantic_responsibility: classify_impact
+    input_ports:
+      - name: parsed_alert
+        schema_id: ParsedAlert
+        description: Parsed alert for impact classification.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: impact_label
+        schema_id: ImpactLabel
+        description: Classified impact label.
+    local_invariants:
+      - impact_label.alert_id must equal parsed_alert.alert_id
+    failure_semantics:
+      - fail loud on missing parsed_alert fields used for classification
+    implementation_constraints:
+      - keep the classifier deterministic in the first proof slice
+
+  - component_id: urgency_scorer
+    kind: transform
+    purpose: Score alert urgency from parsed alert content.
+    semantic_responsibility: score_urgency
+    input_ports:
+      - name: parsed_alert
+        schema_id: ParsedAlert
+        description: Parsed alert for urgency scoring.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: urgency_score
+        schema_id: UrgencyScore
+        description: Urgency output.
+    local_invariants:
+      - urgency_score.alert_id must equal parsed_alert.alert_id
+    failure_semantics:
+      - fail loud on missing parsed_alert fields used for scoring
+    implementation_constraints:
+      - keep the scorer deterministic in the first proof slice
+
+  - component_id: service_context_loader
+    kind: transform
+    purpose: Derive optional service context from a parsed alert.
+    semantic_responsibility: load_service_context
+    input_ports:
+      - name: parsed_alert
+        schema_id: ParsedAlert
+        description: Parsed alert used to locate service context.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: service_context
+        schema_id: ServiceContext
+        description: Optional service context.
+    local_invariants:
+      - service_context.alert_id must equal parsed_alert.alert_id when emitted
+    failure_semantics:
+      - omission is allowed when parsed_alert.service_id is absent
+    implementation_constraints:
+      - omit output rather than synthesizing placeholder context
+
+  - component_id: incident_assembler
+    kind: join
+    purpose: Join parsed alert, impact, urgency, and optional service context into a digest entry and store snapshot.
+    semantic_responsibility: assemble_incident_digest_and_update_store
+    input_ports:
+      - name: on_alert
+        schema_id: ParsedAlert
+        description: Parsed alert input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_impact
+        schema_id: ImpactLabel
+        description: Impact input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_urgency
+        schema_id: UrgencyScore
+        description: Urgency input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_service_context
+        schema_id: ServiceContext
+        description: Optional service context input.
+        required: false
+        arrival_policy: optional_latest
+    output_ports:
+      - name: incident_digest_entry
+        schema_id: IncidentDigestEntry
+        description: Joined incident digest entry.
+      - name: incident_digest_store
+        schema_id: IncidentDigestStore
+        description: Updated digest store snapshot.
+    local_invariants:
+      - all required inputs must share the same alert_id
+      - incident_digest_entry.alert_id must equal the joined alert_id
+    failure_semantics:
+      - fail loud on required port schema mismatch
+      - omit service tier when optional service context is absent
+    implementation_constraints:
+      - correlate required inputs on alert_id
+      - update the incident digest store deterministically

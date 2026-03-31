@@ -5,24 +5,23 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the remediation lane
-  - [x] update `CLAUDE.md` to make freeze remediation the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with remediation phases and success criteria
+- [x] Phase 1: freeze the proof-breadth lane
+  - [x] update `CLAUDE.md` to make proof breadth expansion the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with proof-breadth phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add the freeze remediation artifact
-  - [ ] persist remediation tasks alongside each freeze decision
-  - [ ] group findings into actionable authoring buckets
-  - [ ] point tasks at bundle files or upstream planning artifacts
-  - [ ] include an explicit rerun path for freeze after edits
-  - Success criteria: a blocked freeze decision becomes a usable authoring worklist instead of a flat finding dump
+- [ ] Phase 2: broaden the shipped proof suite
+  - [ ] add one non-ticket workflow bundle with a distinct semantic-responsibility signature
+  - [ ] support that bundle in the reference runtime
+  - [ ] support that bundle in the deterministic generator
+  - Success criteria: the suite has at least two distinct workflow signatures and the new example passes the same proof surfaces as the old one
 
-- [ ] Phase 3: wire remediation through CLI, Make, and tests
-  - [ ] expose remediation-path details through `decide-freeze`
-  - [ ] keep the Make surface aligned with the CLI behavior
-  - [ ] add deterministic tests for blocked-remediation and approved-no-work paths
-  - Success criteria: the remediation loop is discoverable and verified from operator surfaces
+- [ ] Phase 3: replace narrow proof-breadth wording
+  - [ ] rename `semantic family` metrics and messages to `proof breadth`
+  - [ ] update recommendation and related tests to use the broader suite honestly
+  - [ ] keep anti-drift docs aligned with the implementation wording
+  - Success criteria: evaluation heuristics stop reading like project ontology
 
 - [ ] Phase 4: verify and lock the lane
   - [ ] run full `pytest -q`
@@ -42,9 +41,18 @@ Last updated: 2026-03-30
 - the next bridge will materialize draft bundles and readiness reports, not claim those drafts are frozen
 - the next bridge will decide and promote only when approval is explicit; it still does not broaden proof breadth
 - the new remediation loop will guide direct draft-bundle editing first; automated rewrite loops are still deferred
+- proof breadth will still be approximate because the current metric is based on workflow signatures rather than a richer benchmark taxonomy
 
 ## Latest Verified Results
 
+- freeze-remediation lane verification passed:
+  - `pytest -q` passed with `78 passed`
+  - `python -m mypy ac14 tests` passed on 50 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted freeze-remediation verification passed:
+  - `pytest -q tests/test_freeze_decision.py tests/test_cli.py tests/test_make_targets.py` passed with `33 passed`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - freeze-decision lane verification passed:
   - `pytest -q` passed with `78 passed`
   - `python -m mypy ac14 tests` passed on 50 source files
@@ -102,7 +110,7 @@ Last updated: 2026-03-30
 
 ## Longer-Term Next Steps
 
-- [ ] widen proof breadth beyond the current ticket-digest slice
+- [ ] connect broader proof breadth to less hard-coded deterministic generation
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
 - [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

@@ -1,0 +1,161 @@
+schemas:
+  - schema_id: RawAlert
+    kind: object
+    description: Raw operational alert emitted by monitoring.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: observed_at
+        type: string
+        required: true
+        description: Observation timestamp.
+      - name: service_id
+        type: string
+        required: false
+        description: Service identifier when the alert maps cleanly to one service.
+        optional_reason: Some alerts are global or have not been routed yet.
+        absence_meaning: The system should skip service-context lookup.
+      - name: title
+        type: string
+        required: true
+        description: Short alert title.
+      - name: body
+        type: string
+        required: true
+        description: Longer alert detail.
+      - name: tags
+        type: list[string]
+        required: true
+        description: Monitoring or routing tags attached to the alert.
+
+  - schema_id: ParsedAlert
+    kind: object
+    description: Normalized alert representation for downstream reasoning.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: service_id
+        type: string
+        required: false
+        description: Service identifier when known.
+        optional_reason: Some alerts are global or unrouted.
+        absence_meaning: Downstream components should omit service lookup.
+      - name: alert_summary
+        type: string
+        required: true
+        description: Normalized alert summary.
+      - name: normalized_text
+        type: string
+        required: true
+        description: Cleaned body text used by downstream heuristics.
+      - name: signals
+        type: list[string]
+        required: true
+        description: Extracted alert signal tokens.
+
+  - schema_id: ImpactLabel
+    kind: object
+    description: Classified incident impact category.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: label
+        type: string
+        required: true
+        description: Impact category label.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the label.
+
+  - schema_id: UrgencyScore
+    kind: object
+    description: Urgency assessment for one alert.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: urgency_band
+        type: string
+        required: true
+        description: Bucketed urgency label.
+      - name: score
+        type: integer
+        required: true
+        description: Numeric urgency score.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the score.
+
+  - schema_id: ServiceContext
+    kind: object
+    description: Optional service context associated with one alert.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: service_tier
+        type: string
+        required: true
+        description: Criticality tier for the affected service.
+      - name: open_incident_count
+        type: integer
+        required: true
+        description: Number of still-open incidents for the service.
+      - name: deployment_state
+        type: string
+        required: true
+        description: Recent deployment or stability state for the service.
+
+  - schema_id: IncidentDigestEntry
+    kind: object
+    description: Joined digest record for one processed alert.
+    fields:
+      - name: alert_id
+        type: string
+        required: true
+        description: Stable alert identifier.
+      - name: summary
+        type: string
+        required: true
+        description: Summary used in the digest.
+      - name: label
+        type: string
+        required: true
+        description: Classified impact label.
+      - name: urgency_band
+        type: string
+        required: true
+        description: Urgency bucket.
+      - name: service_tier
+        type: string
+        required: false
+        description: Service tier when service context exists.
+        optional_reason: Service context is optional in v1.
+        absence_meaning: No service context was available for this alert.
+      - name: action_hint
+        type: string
+        required: true
+        description: Operator-facing next action.
+
+  - schema_id: IncidentDigestStore
+    kind: object
+    description: Rolling store of incident digest entries.
+    fields:
+      - name: generated_at
+        type: string
+        required: true
+        description: Timestamp of the current store snapshot.
+      - name: entries
+        type: list[IncidentDigestEntry]
+        required: true
+        description: Ordered incident digest entries.

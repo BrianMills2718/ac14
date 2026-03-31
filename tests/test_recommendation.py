@@ -14,7 +14,7 @@ EXAMPLES_ROOT = REPO_ROOT / "examples"
 def test_build_default_generator_recommendation_keeps_deterministic_default(
     tmp_path: Path,
 ) -> None:
-    """Without LLM evidence and broader semantic-family coverage, deterministic stays default."""
+    """Without LLM evidence and broader proof breadth, deterministic stays default."""
 
     recommendation = build_default_generator_recommendation(
         output_dir=tmp_path / "recommendation",
@@ -27,4 +27,4 @@ def test_build_default_generator_recommendation_keeps_deterministic_default(
     assert report_path.exists()
     assert recommendation.recommended_default == "deterministic"
     assert recommendation.llm_promotion_ready is False
-    assert recommendation.semantic_family_count == 1
+    assert recommendation.proof_breadth_count >= 2

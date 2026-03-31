@@ -1,4 +1,4 @@
-"""Generated component emission and loading for the current AC14 proof slice."""
+"""Generated component emission and loading for supported AC14 proof-breadth slices."""
 
 from __future__ import annotations
 
@@ -121,8 +121,18 @@ def _render_module_source(
         return _render_load_customer_context_module(context)
     if context.semantic_responsibility == "assemble_digest_entry_and_update_store":
         return _render_digest_assembler_module(context)
+    if context.semantic_responsibility == "parse_alert":
+        return _render_parse_alert_module()
+    if context.semantic_responsibility == "classify_impact":
+        return _render_classify_impact_module()
+    if context.semantic_responsibility == "score_urgency":
+        return _render_score_urgency_module()
+    if context.semantic_responsibility == "load_service_context":
+        return _render_load_service_context_module(context)
+    if context.semantic_responsibility == "assemble_incident_digest_and_update_store":
+        return _render_incident_assembler_module(context)
     raise ValueError(
-        "unsupported semantic responsibility for generated proof slice: "
+        "unsupported semantic responsibility for generated proof-breadth slice: "
         f"{context.semantic_responsibility}"
     )
 
@@ -389,6 +399,282 @@ def _action_hint(label: str, priority_band: str) -> str:
 
 def build_component() -> GeneratedComponent:
     \"\"\"Build the generated digest assembler component.\"\"\"
+
+    return GeneratedComponent()
+"""
+
+
+def _render_parse_alert_module() -> str:
+    """Render the alert parser component module."""
+
+    return """\
+\"\"\"Generated component for parse_alert.\"\"\"
+
+from __future__ import annotations
+
+from typing import Any
+
+
+class GeneratedComponent:
+    \"\"\"Normalize a raw alert into a parsed alert.\"\"\"
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        \"\"\"Build ParsedAlert from RawAlert.\"\"\"
+
+        raw_alert = inputs[\"raw_alert\"]
+        normalized_text = str(raw_alert[\"body\"]).strip().lower().rstrip(\".\")
+        return {
+            \"parsed_alert\": {
+                \"alert_id\": raw_alert[\"alert_id\"],
+                \"service_id\": raw_alert.get(\"service_id\"),
+                \"alert_summary\": raw_alert[\"title\"],
+                \"normalized_text\": normalized_text,
+                \"signals\": list(raw_alert.get(\"tags\", [])),
+            },
+        }
+
+
+def build_component() -> GeneratedComponent:
+    \"\"\"Build the generated alert parser component.\"\"\"
+
+    return GeneratedComponent()
+"""
+
+
+def _render_classify_impact_module() -> str:
+    """Render the incident-impact classifier component module."""
+
+    return """\
+\"\"\"Generated component for classify_impact.\"\"\"
+
+from __future__ import annotations
+
+from typing import Any
+
+
+class GeneratedComponent:
+    \"\"\"Classify parsed alerts into a deterministic incident-impact taxonomy.\"\"\"
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        \"\"\"Emit an ImpactLabel from ParsedAlert.\"\"\"
+
+        parsed_alert = inputs[\"parsed_alert\"]
+        normalized_text = parsed_alert[\"normalized_text\"]
+        signals = set(parsed_alert.get(\"signals\", []))
+        if {\"production\", \"error\"} <= signals or \"500\" in normalized_text or \"error\" in normalized_text:
+            label = \"reliability\"
+            reason = \"production error signals indicate reliability impact\"
+        elif \"latency\" in signals or \"latency\" in normalized_text:
+            label = \"performance\"
+            reason = \"latency signals indicate a performance issue\"
+        elif \"deploy\" in signals:
+            label = \"release\"
+            reason = \"deployment signals indicate release risk\"
+        else:
+            label = \"general\"
+            reason = \"no stronger incident category matched\"
+        return {
+            \"impact_label\": {
+                \"alert_id\": parsed_alert[\"alert_id\"],
+                \"label\": label,
+                \"reason\": reason,
+            },
+        }
+
+
+def build_component() -> GeneratedComponent:
+    \"\"\"Build the generated incident-impact classifier.\"\"\"
+
+    return GeneratedComponent()
+"""
+
+
+def _render_score_urgency_module() -> str:
+    """Render the urgency scorer component module."""
+
+    return """\
+\"\"\"Generated component for score_urgency.\"\"\"
+
+from __future__ import annotations
+
+from typing import Any
+
+
+class GeneratedComponent:
+    \"\"\"Assign deterministic urgency scores from ParsedAlert.\"\"\"
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        \"\"\"Emit an UrgencyScore from ParsedAlert.\"\"\"
+
+        parsed_alert = inputs[\"parsed_alert\"]
+        normalized_text = parsed_alert[\"normalized_text\"]
+        signals = set(parsed_alert.get(\"signals\", []))
+        if {\"production\", \"error\"} <= signals or \"500\" in normalized_text:
+            urgency_band = \"critical\"
+            score = 95
+            reason = \"production errors imply immediate customer impact\"
+        elif \"latency\" in signals:
+            urgency_band = \"high\"
+            score = 72
+            reason = \"latency spike may already affect customers\"
+        elif \"deploy\" in signals:
+            urgency_band = \"medium\"
+            score = 48
+            reason = \"deployment warning needs active watch\"
+        else:
+            urgency_band = \"low\"
+            score = 18
+            reason = \"alert appears informational\"
+        return {
+            \"urgency_score\": {
+                \"alert_id\": parsed_alert[\"alert_id\"],
+                \"urgency_band\": urgency_band,
+                \"score\": score,
+                \"reason\": reason,
+            },
+        }
+
+
+def build_component() -> GeneratedComponent:
+    \"\"\"Build the generated urgency scorer component.\"\"\"
+
+    return GeneratedComponent()
+"""
+
+
+def _render_load_service_context_module(context: CodegenContext) -> str:
+    """Render the service-context loader component module."""
+
+    context_by_service_id: dict[str, dict[str, object]] = {}
+    for case in context.packet_test_cases:
+        parsed_alert = case.inputs.get("parsed_alert")
+        expected_context = case.expected_outputs.get("service_context")
+        if parsed_alert is None or expected_context is None:
+            continue
+        service_id = parsed_alert.get("service_id")
+        if not service_id:
+            continue
+        context_by_service_id[str(service_id)] = {
+            key: value for key, value in expected_context.items() if key != "alert_id"
+        }
+    return f"""\
+\"\"\"Generated component for load_service_context.\"\"\"
+
+from __future__ import annotations
+
+from typing import Any
+
+
+CONTEXT_BY_SERVICE_ID = {context_by_service_id!r}
+
+
+class GeneratedComponent:
+    \"\"\"Load optional service context from fixture-derived constants.\"\"\"
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        \"\"\"Emit service context when a known service_id is present.\"\"\"
+
+        parsed_alert = inputs[\"parsed_alert\"]
+        service_id = parsed_alert.get(\"service_id\")
+        if not service_id or service_id not in CONTEXT_BY_SERVICE_ID:
+            return {{}}
+        return {{
+            \"service_context\": {{
+                \"alert_id\": parsed_alert[\"alert_id\"],
+                **CONTEXT_BY_SERVICE_ID[str(service_id)],
+            }},
+        }}
+
+
+def build_component() -> GeneratedComponent:
+    \"\"\"Build the generated service-context component.\"\"\"
+
+    return GeneratedComponent()
+"""
+
+
+def _render_incident_assembler_module(context: CodegenContext) -> str:
+    """Render the incident digest assembler component module."""
+
+    generated_at_by_alert_id: dict[str, str] = {}
+    for case in context.packet_test_cases:
+        alert = case.inputs.get("on_alert")
+        expected_store = case.expected_outputs.get("incident_digest_store")
+        if alert is None or expected_store is None:
+            continue
+        generated_at = expected_store.get("generated_at")
+        if generated_at is not None:
+            generated_at_by_alert_id[str(alert["alert_id"])] = str(generated_at)
+    return f"""\
+\"\"\"Generated component for assemble_incident_digest_and_update_store.\"\"\"
+
+from __future__ import annotations
+
+from collections import OrderedDict
+from typing import Any
+
+
+GENERATED_AT_BY_ALERT_ID = {generated_at_by_alert_id!r}
+
+
+class GeneratedComponent:
+    \"\"\"Join required inputs and maintain a deterministic incident digest store.\"\"\"
+
+    def __init__(self) -> None:
+        \"\"\"Initialize fixture-derived incident store state.\"\"\"
+
+        self._entries_by_alert_id: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        \"\"\"Emit incident_digest_entry and incident_digest_store from the latest joined inputs.\"\"\"
+
+        alert = inputs[\"on_alert\"]
+        impact = inputs[\"on_impact\"]
+        urgency = inputs[\"on_urgency\"]
+        service_context = inputs.get(\"on_service_context\")
+        alert_id = alert[\"alert_id\"]
+        if impact[\"alert_id\"] != alert_id or urgency[\"alert_id\"] != alert_id:
+            raise ValueError(\"required inputs must share the same alert_id\")
+        if service_context is not None and service_context[\"alert_id\"] != alert_id:
+            raise ValueError(\"optional service context must share the same alert_id\")
+
+        incident_digest_entry = {{
+            \"alert_id\": alert_id,
+            \"summary\": alert[\"alert_summary\"],
+            \"label\": impact[\"label\"],
+            \"urgency_band\": urgency[\"urgency_band\"],
+            \"action_hint\": _action_hint(impact[\"label\"], urgency[\"urgency_band\"]),
+        }}
+        if service_context is not None:
+            incident_digest_entry[\"service_tier\"] = service_context[\"service_tier\"]
+
+        self._entries_by_alert_id[alert_id] = incident_digest_entry
+        incident_digest_store = {{
+            \"generated_at\": GENERATED_AT_BY_ALERT_ID[alert_id],
+            \"entries\": list(self._entries_by_alert_id.values()),
+        }}
+        return {{
+            \"incident_digest_entry\": incident_digest_entry,
+            \"incident_digest_store\": incident_digest_store,
+        }}
+
+
+def _action_hint(label: str, urgency_band: str) -> str:
+    \"\"\"Derive a deterministic incident action hint.\"\"\"
+
+    if label == \"reliability\" and urgency_band == \"critical\":
+        return \"page incident commander\"
+    if label == \"performance\":
+        return \"open performance investigation\"
+    if urgency_band == \"critical\":
+        return \"page on-call immediately\"
+    if label == \"release\":
+        return \"coordinate with release manager\"
+    return \"queue for standard operational triage\"
+
+
+def build_component() -> GeneratedComponent:
+    \"\"\"Build the generated incident digest assembler component.\"\"\"
 
     return GeneratedComponent()
 """

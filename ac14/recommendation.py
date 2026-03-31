@@ -34,8 +34,8 @@ class DefaultGeneratorRecommendation(BaseModel):
     evaluated_generators: list[GeneratorKind] = Field(
         description="Generator modes evaluated during this recommendation run.",
     )
-    semantic_family_count: int = Field(
-        description="Distinct semantic responsibility families across the shipped suite.",
+    proof_breadth_count: int = Field(
+        description="Distinct workflow-signature slices across the shipped suite.",
     )
     suite_comparison_report_path: str = Field(
         description="Persisted suite comparison report used by this recommendation.",
@@ -78,20 +78,20 @@ def build_default_generator_recommendation(
         llm_max_budget=llm_max_budget,
     )
 
-    semantic_family_count = _semantic_family_count(examples_root)
+    proof_breadth_count = _proof_breadth_count(examples_root)
     reasons: list[str] = []
     llm_promotion_ready = _llm_promotion_ready(
         selected_generators,
         suite_comparison,
         suite_semantic,
-        semantic_family_count,
+        proof_breadth_count,
         reasons,
     )
     recommendation = DefaultGeneratorRecommendation(
         recommended_default="llm" if llm_promotion_ready else "deterministic",
         llm_promotion_ready=llm_promotion_ready,
         evaluated_generators=selected_generators,
-        semantic_family_count=semantic_family_count,
+        proof_breadth_count=proof_breadth_count,
         suite_comparison_report_path=str(
             destination / "suite_comparison" / "suite_comparison_report.json"
         ),
@@ -106,8 +106,8 @@ def build_default_generator_recommendation(
     return recommendation
 
 
-def _semantic_family_count(examples_root: Path | str | None) -> int:
-    """Return the number of distinct semantic-responsibility families in the shipped suite."""
+def _proof_breadth_count(examples_root: Path | str | None) -> int:
+    """Return the number of distinct workflow signatures in the shipped suite."""
 
     from ac14.loader import load_blueprint_dir
 
@@ -129,7 +129,7 @@ def _llm_promotion_ready(
     selected_generators: list[GeneratorKind],
     suite_comparison: SuiteComparisonReport,
     suite_semantic: SuiteSemanticComparisonReport,
-    semantic_family_count: int,
+    proof_breadth_count: int,
     reasons: list[str],
 ) -> bool:
     """Evaluate whether current evidence is strong enough to promote the LLM generator."""
@@ -148,14 +148,14 @@ def _llm_promotion_ready(
         reasons.append("LLM generator diverges from expected outputs on the shipped suite.")
     if (llm_semantic.failing_reference_examples or 0) != 0:
         reasons.append("LLM generator diverges from the reference lane on the shipped suite.")
-    if semantic_family_count <= 1:
-        reasons.append("The shipped suite still covers only one semantic family.")
+    if proof_breadth_count <= 1:
+        reasons.append("The shipped suite still covers only one proof-breadth slice.")
 
     promotion_ready = (
         llm_comparison.failed_examples == 0
         and llm_semantic.failing_expected_examples == 0
         and (llm_semantic.failing_reference_examples or 0) == 0
-        and semantic_family_count > 1
+        and proof_breadth_count > 1
     )
     if promotion_ready:
         reasons.append("LLM generator satisfies the current promotion criteria.")

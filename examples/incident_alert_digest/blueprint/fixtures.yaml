@@ -1,0 +1,239 @@
+fixtures:
+  - fixture_id: critical_path_alert_parser
+    scenario_id: critical_path
+    component_id: alert_parser
+    description: Parser normalizes a production reliability alert.
+    inputs:
+      raw_alert:
+        alert_id: A-100
+        observed_at: 2026-03-30T02:00:00Z
+        service_id: S-1
+        title: Production error rate spike
+        body: HTTP 500 errors spiking after deploy.
+        tags: [production, error, deploy]
+    expected_outputs:
+      parsed_alert:
+        alert_id: A-100
+        service_id: S-1
+        alert_summary: Production error rate spike
+        normalized_text: http 500 errors spiking after deploy
+        signals: [production, error, deploy]
+
+  - fixture_id: critical_path_impact_classifier
+    scenario_id: critical_path
+    component_id: impact_classifier
+    description: Classifier recognizes a reliability incident.
+    inputs:
+      parsed_alert:
+        alert_id: A-100
+        service_id: S-1
+        alert_summary: Production error rate spike
+        normalized_text: http 500 errors spiking after deploy
+        signals: [production, error, deploy]
+    expected_outputs:
+      impact_label:
+        alert_id: A-100
+        label: reliability
+        reason: production error signals indicate reliability impact
+
+  - fixture_id: critical_path_urgency_scorer
+    scenario_id: critical_path
+    component_id: urgency_scorer
+    description: Urgency scorer marks the production incident as critical.
+    inputs:
+      parsed_alert:
+        alert_id: A-100
+        service_id: S-1
+        alert_summary: Production error rate spike
+        normalized_text: http 500 errors spiking after deploy
+        signals: [production, error, deploy]
+    expected_outputs:
+      urgency_score:
+        alert_id: A-100
+        urgency_band: critical
+        score: 95
+        reason: production errors imply immediate customer impact
+
+  - fixture_id: critical_path_service_context_loader
+    scenario_id: critical_path
+    component_id: service_context_loader
+    description: Service context is available for the affected tier-1 service.
+    inputs:
+      parsed_alert:
+        alert_id: A-100
+        service_id: S-1
+        alert_summary: Production error rate spike
+        normalized_text: http 500 errors spiking after deploy
+        signals: [production, error, deploy]
+    expected_outputs:
+      service_context:
+        alert_id: A-100
+        service_tier: tier1
+        open_incident_count: 1
+        deployment_state: degraded
+
+  - fixture_id: critical_path_incident_assembler
+    scenario_id: critical_path
+    component_id: incident_assembler
+    description: Join required inputs and optional service context into one incident digest entry.
+    inputs:
+      on_alert:
+        alert_id: A-100
+        service_id: S-1
+        alert_summary: Production error rate spike
+        normalized_text: http 500 errors spiking after deploy
+        signals: [production, error, deploy]
+      on_impact:
+        alert_id: A-100
+        label: reliability
+        reason: production error signals indicate reliability impact
+      on_urgency:
+        alert_id: A-100
+        urgency_band: critical
+        score: 95
+        reason: production errors imply immediate customer impact
+      on_service_context:
+        alert_id: A-100
+        service_tier: tier1
+        open_incident_count: 1
+        deployment_state: degraded
+    expected_outputs:
+      incident_digest_entry:
+        alert_id: A-100
+        summary: Production error rate spike
+        label: reliability
+        urgency_band: critical
+        service_tier: tier1
+        action_hint: page incident commander
+      incident_digest_store:
+        generated_at: "2026-03-30T02:00:00Z"
+        entries:
+          - alert_id: A-100
+            summary: Production error rate spike
+            label: reliability
+            urgency_band: critical
+            service_tier: tier1
+            action_hint: page incident commander
+
+  - fixture_id: missing_service_context_alert_parser
+    scenario_id: missing_service_context
+    component_id: alert_parser
+    description: Parser normalizes a latency alert with no routed service_id.
+    inputs:
+      raw_alert:
+        alert_id: A-101
+        observed_at: 2026-03-30T02:05:00Z
+        service_id:
+        title: Elevated latency in one region
+        body: Latency spike observed in eu-west.
+        tags: [latency, region]
+    expected_outputs:
+      parsed_alert:
+        alert_id: A-101
+        service_id:
+        alert_summary: Elevated latency in one region
+        normalized_text: latency spike observed in eu-west
+        signals: [latency, region]
+
+  - fixture_id: missing_service_context_impact_classifier
+    scenario_id: missing_service_context
+    component_id: impact_classifier
+    description: Classifier recognizes a performance issue.
+    inputs:
+      parsed_alert:
+        alert_id: A-101
+        service_id:
+        alert_summary: Elevated latency in one region
+        normalized_text: latency spike observed in eu-west
+        signals: [latency, region]
+    expected_outputs:
+      impact_label:
+        alert_id: A-101
+        label: performance
+        reason: latency signals indicate a performance issue
+
+  - fixture_id: missing_service_context_urgency_scorer
+    scenario_id: missing_service_context
+    component_id: urgency_scorer
+    description: Urgency scorer marks the latency alert as high.
+    inputs:
+      parsed_alert:
+        alert_id: A-101
+        service_id:
+        alert_summary: Elevated latency in one region
+        normalized_text: latency spike observed in eu-west
+        signals: [latency, region]
+    expected_outputs:
+      urgency_score:
+        alert_id: A-101
+        urgency_band: high
+        score: 72
+        reason: latency spike may already affect customers
+
+  - fixture_id: missing_service_context_service_context_loader
+    scenario_id: missing_service_context
+    component_id: service_context_loader
+    description: Loader omits output when service_id is absent.
+    inputs:
+      parsed_alert:
+        alert_id: A-101
+        service_id:
+        alert_summary: Elevated latency in one region
+        normalized_text: latency spike observed in eu-west
+        signals: [latency, region]
+    expected_outputs: {}
+
+  - fixture_id: missing_service_context_incident_assembler
+    scenario_id: missing_service_context
+    component_id: incident_assembler
+    description: Join still succeeds when optional service context is omitted.
+    inputs:
+      on_alert:
+        alert_id: A-101
+        service_id:
+        alert_summary: Elevated latency in one region
+        normalized_text: latency spike observed in eu-west
+        signals: [latency, region]
+      on_impact:
+        alert_id: A-101
+        label: performance
+        reason: latency signals indicate a performance issue
+      on_urgency:
+        alert_id: A-101
+        urgency_band: high
+        score: 72
+        reason: latency spike may already affect customers
+    expected_outputs:
+      incident_digest_entry:
+        alert_id: A-101
+        summary: Elevated latency in one region
+        label: performance
+        urgency_band: high
+        action_hint: open performance investigation
+      incident_digest_store:
+        generated_at: "2026-03-30T02:05:00Z"
+        entries:
+          - alert_id: A-101
+            summary: Elevated latency in one region
+            label: performance
+            urgency_band: high
+            action_hint: open performance investigation
+
+  - fixture_id: schema_mismatch_rejected_incident_assembler
+    scenario_id: schema_mismatch_rejected
+    component_id: incident_assembler
+    description: Schema mismatch on a required input should fail validation before execution.
+    inputs:
+      on_alert:
+        alert_id: A-102
+        service_id: S-2
+        alert_summary: Deployment health warning
+        normalized_text: deployment health warning
+        signals: [deploy]
+      on_impact:
+        alert_id: A-102
+        label: release
+        reason: deploy-only alert maps to release watch
+      on_urgency:
+        score: wrong-shape
+    expected_outputs: {}

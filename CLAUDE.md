@@ -65,15 +65,14 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after explicit freeze decisioning is freeze remediation.
+The active lane after freeze remediation is proof breadth expansion.
 
-- turn blocked freeze decisions into persisted authoring tasks instead of leaving
-  them as a flat finding list
-- point each remediation task at concrete bundle files and an explicit rerun path
-- treat edited draft bundles as real authoring surfaces instead of forcing the
-  operator back through chat history
-- keep broader proof-breadth and retrieval work logged explicitly without
-  blocking the smaller thesis-preserving lane
+- widen the shipped suite beyond the current ticket-digest slice
+- prefer the term `proof breadth` over `semantic family` in code and docs
+- keep the next breadth example meaningfully different in component vocabulary
+  and acceptance semantics, not just fixture wording
+- keep broader retrieval work logged explicitly without blocking the smaller
+  thesis-preserving lane
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

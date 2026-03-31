@@ -7,14 +7,16 @@ Last updated: 2026-03-30
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The explicit freeze-decision lane is complete, but a blocked decision still
-lands as a flat finding list. That is not yet a usable authoring loop.
+The freeze-remediation lane is complete, but the shipped proof suite still
+mostly demonstrates one ticket-digest workflow pattern. That is not enough
+proof breadth for the broader decomposition thesis.
 
-The immediate goal for this lane is a narrow remediation bridge:
+The immediate goal for this lane is a narrow proof-breadth bridge:
 
-1. blocked freeze decision in
-2. persisted authoring tasks out
-3. explicit rerun path for bundle editing and freeze retry
+1. broaden the shipped suite beyond the ticket-digest slice
+2. support the broader slice in the reference and deterministic lanes
+3. replace `semantic family` wording with `proof breadth` wording where it is
+   only acting as an evaluation heuristic
 
 ## Progress Update
 
@@ -23,14 +25,13 @@ Completed before this lane:
 1. six-file frozen blueprint bundle and proof surfaces
 2. pre-freeze discovery and draft planning
 3. draft bundle authoring and freeze-readiness reporting
-4. explicit freeze approve/block decisions and deterministic promotion
+4. explicit freeze decisions, remediation tasks, and deterministic promotion
 
 Required in this lane:
 
-1. persisted freeze-remediation artifact tied to each decision
-2. actionable task grouping from readiness and validation findings
-3. bundle-edit retry command so blocked drafts can move forward without
-   stop-and-ask interpretation
+1. one additional shipped workflow with a distinct semantic-responsibility signature
+2. reference and deterministic support for that new workflow
+3. recommendation metrics and wording that describe proof breadth honestly
 
 ## Execution Rule
 
@@ -61,33 +62,33 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Freeze Remediation Artifact
+### Phase 2: Broader Shipped Example
 
 Deliverables:
 
-- persisted remediation artifact produced alongside freeze decisions
-- actionable grouping from readiness and validation findings
-- concrete target files and rerun commands in the remediation artifact
+- one additional shipped blueprint bundle outside the ticket-digest vocabulary
+- reference-runtime support for that bundle
+- deterministic generator support for that bundle
 
 Acceptance criteria:
 
-- a blocked freeze decision produces at least one remediation task
-- tasks point at concrete bundle files or upstream planning artifacts
-- remediation output explains how to retry freeze after edits
+- the new example passes blueprint validation, packet tests, recomposition proof,
+  and semantic comparison
+- the shipped suite now contains at least two distinct workflow signatures
 
-### Phase 3: CLI, Make, And Test Surface
+### Phase 3: Proof-Breadth Terminology And Recommendation Surface
 
 Deliverables:
 
-- `decide-freeze` emits remediation-path information
-- Make surface exposes the same behavior
-- deterministic tests cover blocked and approved cases
+- recommendation artifacts use `proof breadth` terminology instead of
+  `semantic family`
+- tests and docs reflect the broader suite honestly
 
 Acceptance criteria:
 
-- CLI users can discover and read remediation artifacts without extra code
-- Make-driven freeze decisions write the remediation artifact
-- tests prove both blocked-worklist and approved-no-work paths
+- code and docs no longer imply that `semantic family` is core project ontology
+- the default-generator recommendation reasons about proof breadth using the
+  broader shipped suite
 
 ### Phase 4: Verification And Lock
 
@@ -106,8 +107,8 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. the first remediation loop will route humans through direct bundle editing
-   and freeze retry, not through automated draft rewriting
-2. some findings originate from draft authoring heuristics and may still need
-   upstream planning changes in addition to bundle edits
-3. broader proof breadth and retrieval expansion remain outside this narrow lane
+1. the next breadth example may keep a similar graph shape while changing the
+   workflow vocabulary and acceptance semantics
+2. deterministic generation is still responsibility-specific, so each new
+   shipped slice currently expands the hard-coded proof surface
+3. retrieval/doc/repo expansion remains outside this narrow lane

@@ -20,6 +20,7 @@ def test_discover_shipped_blueprints_finds_multiple_examples() -> None:
         example.example_id for example in examples
     )
     assert {example.example_id for example in examples} >= {
+        "incident_alert_digest",
         "support_ticket_digest",
         "support_ticket_digest_auth_mix",
     }
