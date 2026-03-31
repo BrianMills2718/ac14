@@ -5,29 +5,28 @@ Last updated: 2026-03-30
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the proof-breadth lane
-  - [x] update `CLAUDE.md` to make proof breadth expansion the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with proof-breadth phases and success criteria
+- [x] Phase 1: freeze the discovery-context lane
+  - [x] update `CLAUDE.md` to make discovery-context expansion the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with discovery-context phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [x] Phase 2: broaden the shipped proof suite
-  - [x] add one non-ticket workflow bundle with a distinct semantic-responsibility signature
-  - [x] support that bundle in the reference runtime
-  - [x] support that bundle in the deterministic generator
-  - Success criteria: the suite has at least two distinct workflow signatures and the new example passes the same proof surfaces as the old one
+- [ ] Phase 2: add project-context inventory
+  - [ ] persist local README/CLAUDE/docs context as a reviewable artifact
+  - [ ] integrate that context into the main discovery artifact
+  - [ ] keep the first bridge local rather than pretending external retrieval is solved
+  - Success criteria: discovery captures project-document context when `project_root` is available
 
-- [x] Phase 3: replace narrow proof-breadth wording
-  - [x] rename `semantic family` metrics and messages to `proof breadth`
-  - [x] update recommendation and related tests to use the broader suite honestly
-  - [x] keep anti-drift docs aligned with the implementation wording
-  - Success criteria: evaluation heuristics stop reading like project ontology
+- [ ] Phase 3: wire operator surface and tests
+  - [ ] expose project-context inspection through CLI and Make
+  - [ ] add deterministic tests for inventory persistence and discovery integration
+  - Success criteria: operators can inspect project context without manual Python glue and the behavior is tested
 
-- [x] Phase 4: verify and lock the lane
-  - [x] run full `pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
+- [ ] Phase 4: verify and lock the lane
+  - [ ] run full `pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Logged Uncertainties
@@ -42,6 +41,7 @@ Last updated: 2026-03-30
 - the next bridge will decide and promote only when approval is explicit; it still does not broaden proof breadth
 - the new remediation loop will guide direct draft-bundle editing first; automated rewrite loops are still deferred
 - proof breadth will still be approximate because the current metric is based on workflow signatures rather than a richer benchmark taxonomy
+- the next bridge will start with local project docs and will not yet claim GitHub/web/context-server retrieval
 
 ## Latest Verified Results
 
@@ -122,5 +122,5 @@ Last updated: 2026-03-30
 
 - [ ] connect broader proof breadth to less hard-coded deterministic generation
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
-- [ ] extend discovery beyond local files into shared doc/repo/dependency retrieval surfaces
+- [ ] extend discovery from local project docs into shared doc/repo/dependency retrieval surfaces
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

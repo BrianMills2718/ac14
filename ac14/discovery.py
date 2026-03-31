@@ -1,4 +1,4 @@
-"""Pre-freeze discovery artifacts for local input inspection and dependency planning."""
+"""Pre-freeze discovery artifacts for local input, docs, and dependency planning."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 InputFormat = Literal["json", "jsonl", "csv", "yaml", "text"]
 RootKind = Literal["record", "record_stream", "list", "scalar", "text"]
 DependencySource = Literal["project", "requested"]
+DocumentCategory = Literal["readme", "claude", "doc"]
 
 
 class InferredFieldSummary(BaseModel):
@@ -71,6 +72,31 @@ class EnvironmentInventory(BaseModel):
     concerns: list[str] = Field(description="Environment or dependency concerns.")
 
 
+class ProjectDocumentSummary(BaseModel):
+    """Compact summary of one local project document relevant to blueprint planning."""
+
+    path: str = Field(description="Path to the discovered local document.")
+    category: DocumentCategory = Field(description="Document category inferred from its location.")
+    title: str = Field(description="Best-effort document title for review.")
+    preview: str = Field(description="Compact preview of the document contents.")
+    line_count: int = Field(description="Line count for rough document size context.")
+
+
+class ProjectContextInventory(BaseModel):
+    """Persisted summary of local project documents relevant to blueprint planning."""
+
+    project_root: str | None = Field(
+        default=None,
+        description="Project root used to inspect local planning documents.",
+    )
+    document_count: int = Field(description="Number of discovered local planning documents.")
+    truncated: bool = Field(description="Whether discovery truncated the document inventory.")
+    documents: list[ProjectDocumentSummary] = Field(
+        description="Discovered local planning documents with compact summaries.",
+    )
+    concerns: list[str] = Field(description="Project-document concerns raised during discovery.")
+
+
 class DiscoveryArtifact(BaseModel):
     """Persisted artifact combining local input inspection and environment planning."""
 
@@ -79,6 +105,9 @@ class DiscoveryArtifact(BaseModel):
     )
     environment_inventory: EnvironmentInventory = Field(
         description="Environment planning context captured for the same discovery run.",
+    )
+    project_context_inventory: ProjectContextInventory = Field(
+        description="Local project-document context captured for the same discovery run.",
     )
     open_concerns: list[str] = Field(
         description="Combined open concerns that should be resolved before blueprint freeze.",
@@ -120,12 +149,14 @@ def build_discovery_artifact(
         project_root=project_root,
         requested_packages=requested_packages or [],
     )
+    project_context = build_project_context_inventory(project_root=project_root)
     open_concerns = _dedupe_preserve_order(
-        [*inspection.concerns, *environment.concerns],
+        [*inspection.concerns, *environment.concerns, *project_context.concerns],
     )
     artifact = DiscoveryArtifact(
         input_inspection=inspection,
         environment_inventory=environment,
+        project_context_inventory=project_context,
         open_concerns=open_concerns,
     )
     (destination / "discovery_artifact.json").write_text(
@@ -218,6 +249,66 @@ def persist_environment_inventory(
         requested_packages=requested_packages or [],
     )
     (destination / "environment_inventory.json").write_text(
+        json.dumps(inventory.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return inventory
+
+
+def build_project_context_inventory(
+    *,
+    project_root: Path | str | None = None,
+    max_documents: int = 20,
+) -> ProjectContextInventory:
+    """Inspect local project documents relevant to blueprint planning."""
+
+    project_path = Path(project_root) if project_root is not None else None
+    if project_path is None:
+        return ProjectContextInventory(
+            project_root=None,
+            document_count=0,
+            truncated=False,
+            documents=[],
+            concerns=[],
+        )
+
+    candidate_paths = _candidate_project_document_paths(project_path)
+    truncated = len(candidate_paths) > max_documents
+    selected_paths = candidate_paths[:max_documents]
+    documents = [
+        _summarize_project_document(project_path, document_path)
+        for document_path in selected_paths
+    ]
+    concerns: list[str] = []
+    if not documents:
+        concerns.append("project root exposes no README, CLAUDE, or docs markdown files")
+    if truncated:
+        concerns.append(
+            f"project document inventory truncated to {max_documents} files during discovery"
+        )
+    return ProjectContextInventory(
+        project_root=str(project_path),
+        document_count=len(documents),
+        truncated=truncated,
+        documents=documents,
+        concerns=concerns,
+    )
+
+
+def persist_project_context_inventory(
+    output_dir: Path | str,
+    *,
+    project_root: Path | str | None = None,
+    max_documents: int = 20,
+) -> ProjectContextInventory:
+    """Persist the local project-document inventory used during discovery."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    inventory = build_project_context_inventory(
+        project_root=project_root,
+        max_documents=max_documents,
+    )
+    (destination / "project_context_inventory.json").write_text(
         json.dumps(inventory.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return inventory
@@ -400,6 +491,78 @@ def _load_project_dependency_names(project_root: Path | None) -> list[str]:
         if match is not None:
             names.append(match.group(0))
     return names
+
+
+def _candidate_project_document_paths(project_root: Path) -> list[Path]:
+    """Return local project documents that should seed pre-freeze context."""
+
+    candidates: list[Path] = []
+    for direct_name in ("README.md", "CLAUDE.md"):
+        candidate = project_root / direct_name
+        if candidate.exists():
+            candidates.append(candidate)
+    docs_dir = project_root / "docs"
+    if docs_dir.exists():
+        candidates.extend(sorted(path for path in docs_dir.rglob("*.md") if path.is_file()))
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        deduped.append(candidate)
+    return deduped
+
+
+def _summarize_project_document(project_root: Path, document_path: Path) -> ProjectDocumentSummary:
+    """Build a compact summary for one local project document."""
+
+    text = document_path.read_text(errors="ignore")
+    lines = text.splitlines()
+    title = _document_title(lines, fallback=document_path.stem.replace("_", " ").title())
+    preview = _document_preview(lines)
+    return ProjectDocumentSummary(
+        path=str(document_path.relative_to(project_root)),
+        category=_document_category(project_root, document_path),
+        title=title,
+        preview=preview,
+        line_count=len(lines),
+    )
+
+
+def _document_category(project_root: Path, document_path: Path) -> DocumentCategory:
+    """Infer a compact category for one project document."""
+
+    if document_path == project_root / "README.md":
+        return "readme"
+    if document_path == project_root / "CLAUDE.md":
+        return "claude"
+    return "doc"
+
+
+def _document_title(lines: list[str], *, fallback: str) -> str:
+    """Extract a best-effort title from markdown lines."""
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            return stripped.lstrip("#").strip() or fallback
+    return fallback
+
+
+def _document_preview(lines: list[str]) -> str:
+    """Extract a compact preview from non-empty markdown lines."""
+
+    preview_lines = [
+        line.strip()
+        for line in lines
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    if not preview_lines:
+        return ""
+    preview = " ".join(preview_lines[:3])
+    return preview if len(preview) <= 200 else preview[:197] + "..."
 
 
 def _installed_package_version(package_name: str) -> str | None:

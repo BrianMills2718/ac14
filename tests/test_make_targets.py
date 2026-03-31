@@ -97,6 +97,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "verify-blueprint" in result.stdout
     assert "discover-input" in result.stdout
     assert "inspect-environment" in result.stdout
+    assert "inspect-project-context" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
@@ -174,6 +175,25 @@ def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "environment_inventory.json").exists()
+
+
+def test_make_inspect_project_context_runs_end_to_end(tmp_path: Path) -> None:
+    """Make project-context target should persist a local doc inventory artifact."""
+
+    output_dir = tmp_path / "project_context"
+    result = subprocess.run(
+        [
+            "make",
+            "inspect-project-context",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "project_context_inventory.json").exists()
 
 
 def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:

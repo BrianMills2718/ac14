@@ -65,14 +65,14 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after freeze remediation is proof breadth expansion.
+The active lane after proof breadth expansion is discovery-context expansion.
 
-- widen the shipped suite beyond the current ticket-digest slice
-- prefer the term `proof breadth` over `semantic family` in code and docs
-- keep the next breadth example meaningfully different in component vocabulary
-  and acceptance semantics, not just fixture wording
-- keep broader retrieval work logged explicitly without blocking the smaller
-  thesis-preserving lane
+- extend discovery beyond local input files into persisted project-document context
+- keep the first bridge local and reviewable instead of jumping straight to opaque
+  external retrieval
+- treat README, CLAUDE, and project docs as first-class pre-freeze context
+- keep broader GitHub/web/documentation retrieval logged explicitly without
+  blocking the smaller thesis-preserving lane
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

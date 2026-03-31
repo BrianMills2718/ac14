@@ -18,7 +18,11 @@ from ac14.blueprint_planning import (
     build_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
-from ac14.discovery import build_discovery_artifact, persist_environment_inventory
+from ac14.discovery import (
+    build_discovery_artifact,
+    persist_environment_inventory,
+    persist_project_context_inventory,
+)
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
@@ -67,6 +71,14 @@ def main() -> int:
     environment_parser.add_argument("--output-dir", type=Path, required=True)
     environment_parser.add_argument("--project-root", type=Path, default=Path.cwd())
     environment_parser.add_argument("--packages", nargs="*", default=[])
+
+    project_context_parser = subparsers.add_parser(
+        "inspect-project-context",
+        help="Persist local project-document context used during discovery planning.",
+    )
+    project_context_parser.add_argument("--output-dir", type=Path, required=True)
+    project_context_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    project_context_parser.add_argument("--max-documents", type=int, default=20)
 
     draft_plan_parser = subparsers.add_parser(
         "draft-blueprint-plan",
@@ -253,6 +265,12 @@ def main() -> int:
             args.project_root,
             cast(list[str], args.packages),
         )
+    if args.command == "inspect-project-context":
+        return _inspect_project_context(
+            args.output_dir,
+            args.project_root,
+            args.max_documents,
+        )
     if args.command == "draft-blueprint-plan":
         return _draft_blueprint_plan(
             args.discovery_artifact_path,
@@ -426,6 +444,22 @@ def _inspect_environment(
         output_dir=output_dir,
         project_root=project_root,
         requested_packages=packages,
+    )
+    print(json.dumps(inventory.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _inspect_project_context(
+    output_dir: Path,
+    project_root: Path | None,
+    max_documents: int,
+) -> int:
+    """Build and print the persisted local project-document inventory."""
+
+    inventory = persist_project_context_inventory(
+        output_dir=output_dir,
+        project_root=project_root,
+        max_documents=max_documents,
     )
     print(json.dumps(inventory.model_dump(mode="json"), indent=2))
     return 0

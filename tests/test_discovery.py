@@ -8,8 +8,10 @@ from pathlib import Path
 from ac14.discovery import (
     build_discovery_artifact,
     build_environment_inventory,
+    build_project_context_inventory,
     inspect_input_path,
     persist_environment_inventory,
+    persist_project_context_inventory,
 )
 
 
@@ -52,7 +54,7 @@ def test_inspect_input_path_infers_field_summaries_and_concerns(tmp_path: Path) 
 
 
 def test_build_discovery_artifact_persists_environment_and_input(tmp_path: Path) -> None:
-    """Discovery artifact should persist both input and environment context."""
+    """Discovery artifact should persist input, environment, and project-doc context."""
 
     input_path = tmp_path / "sample.csv"
     input_path.write_text("ticket_id,priority\n1,high\n2,low\n")
@@ -77,6 +79,10 @@ def test_build_discovery_artifact_persists_environment_and_input(tmp_path: Path)
     assert any(
         "definitely-missing-package-ac14" in concern for concern in artifact.open_concerns
     )
+    assert artifact.project_context_inventory.document_count >= 2
+    document_paths = {document.path for document in artifact.project_context_inventory.documents}
+    assert "README.md" in document_paths
+    assert "CLAUDE.md" in document_paths
     assert (tmp_path / "discovery" / "discovery_artifact.json").exists()
 
 
@@ -101,3 +107,27 @@ def test_persist_environment_inventory_writes_artifact(tmp_path: Path) -> None:
 
     assert inventory.project_root == str(REPO_ROOT)
     assert (tmp_path / "environment" / "environment_inventory.json").exists()
+
+
+def test_build_project_context_inventory_reads_local_docs() -> None:
+    """Project-context inventory should summarize local planning documents."""
+
+    inventory = build_project_context_inventory(project_root=REPO_ROOT)
+
+    assert inventory.project_root == str(REPO_ROOT)
+    assert inventory.document_count >= 2
+    categories = {document.category for document in inventory.documents}
+    assert "readme" in categories
+    assert "claude" in categories
+
+
+def test_persist_project_context_inventory_writes_artifact(tmp_path: Path) -> None:
+    """Project-context inventory should persist as its own discovery artifact."""
+
+    inventory = persist_project_context_inventory(
+        output_dir=tmp_path / "project_context",
+        project_root=REPO_ROOT,
+    )
+
+    assert inventory.project_root == str(REPO_ROOT)
+    assert (tmp_path / "project_context" / "project_context_inventory.json").exists()

@@ -181,6 +181,31 @@ def test_cli_inspect_environment(tmp_path: Path) -> None:
     assert (tmp_path / "environment" / "environment_inventory.json").exists()
 
 
+def test_cli_inspect_project_context(tmp_path: Path) -> None:
+    """Project-context inspection command should persist local doc inventory."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "inspect-project-context",
+            "--output-dir",
+            str(tmp_path / "project_context"),
+            "--project-root",
+            str(REPO_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["document_count"] >= 2
+    assert (tmp_path / "project_context" / "project_context_inventory.json").exists()
+
+
 def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
     """Draft bundle materialization command should write a readiness-backed bundle."""
 
