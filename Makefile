@@ -23,7 +23,7 @@ PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context draft-blueprint-plan materialize-draft-bundle decide-freeze generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -57,6 +57,9 @@ inspect-project-context: ## Persist local project-document context (OUTPUT=.ac14
 
 retrieve-context: ## Persist reviewable external documentation/repository retrieval artifacts (OUTPUT=.ac14_out/retrieval WEB_QUERY="..." REPO_QUERY="..." REPOS="owner/repo")
 	$(PYTHON) -m ac14 retrieve-context --output-dir "$(OUTPUT)" $(if $(WEB_QUERY),--web-query "$(WEB_QUERY)",) $(if $(REPO_QUERY),--repo-query "$(REPO_QUERY)",) $(foreach repo,$(REPOS),--repo "$(repo)")
+
+plan-dependencies: ## Build an evidence-backed dependency plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/dependency_plan REQUIREMENTS="...")
+	$(PYTHON) -m ac14 plan-dependencies "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="requirement one requirement two")
 	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

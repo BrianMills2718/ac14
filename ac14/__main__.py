@@ -18,6 +18,11 @@ from ac14.blueprint_planning import (
     build_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
+from ac14.dependency_planning import (
+    DEFAULT_DEPENDENCY_PLAN_MAX_BUDGET,
+    DEFAULT_DEPENDENCY_PLAN_MODEL,
+    build_dependency_plan,
+)
 from ac14.discovery import (
     build_discovery_artifact,
     persist_environment_inventory,
@@ -96,6 +101,20 @@ def main() -> int:
     retrieval_parser.add_argument("--repo", action="append", default=[])
     retrieval_parser.add_argument("--web-top-k", type=int, default=3)
     retrieval_parser.add_argument("--repo-limit", type=int, default=5)
+
+    dependency_plan_parser = subparsers.add_parser(
+        "plan-dependencies",
+        help="Build an evidence-backed dependency and library planning artifact from discovery.",
+    )
+    dependency_plan_parser.add_argument("discovery_artifact_path", type=Path)
+    dependency_plan_parser.add_argument("--output-dir", type=Path, required=True)
+    dependency_plan_parser.add_argument("--requirements", nargs="+", required=True)
+    dependency_plan_parser.add_argument("--model", default=DEFAULT_DEPENDENCY_PLAN_MODEL)
+    dependency_plan_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_DEPENDENCY_PLAN_MAX_BUDGET,
+    )
 
     draft_plan_parser = subparsers.add_parser(
         "draft-blueprint-plan",
@@ -297,6 +316,14 @@ def main() -> int:
             cast(list[str], args.repo),
             args.web_top_k,
             args.repo_limit,
+        )
+    if args.command == "plan-dependencies":
+        return _plan_dependencies(
+            args.discovery_artifact_path,
+            args.output_dir,
+            cast(list[str], args.requirements),
+            args.model,
+            args.max_budget,
         )
     if args.command == "draft-blueprint-plan":
         return _draft_blueprint_plan(
@@ -516,6 +543,26 @@ def _retrieve_context(
         ],
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _plan_dependencies(
+    discovery_artifact_path: Path,
+    output_dir: Path,
+    requirements: list[str],
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a persisted dependency and library planning artifact."""
+
+    plan = build_dependency_plan(
+        discovery_artifact_path=discovery_artifact_path,
+        output_dir=output_dir,
+        requirements=requirements,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(plan.model_dump(mode="json"), indent=2))
     return 0
 
 

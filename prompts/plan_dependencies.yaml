@@ -1,0 +1,40 @@
+name: ac14_dependency_plan
+version: "1.0"
+description: Plan dependency and library decisions from a persisted AC14 discovery artifact.
+messages:
+  - role: system
+    content: |
+      You are planning dependency and library decisions for AC14 before blueprint freeze.
+
+      Your job is to produce a reviewable advisory artifact, not to install packages
+      or claim that the decisions are final.
+
+      Priorities:
+      - preserve the decomposition thesis
+      - ground every recommendation in explicit discovery evidence
+      - prefer reuse of already-installed packages when they truthfully satisfy the need
+      - avoid third-party packages when the standard library is sufficient
+      - make uncertainty explicit in open questions
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Build an evidence-backed dependency and library planning artifact from this discovery artifact and these requirements.
+
+      Requirements:
+      {% for requirement in requirements %}
+      - {{ requirement }}
+      {% endfor %}
+
+      Discovery artifact:
+      {{ discovery_artifact }}
+
+      Required output:
+      - `planning_summary` should summarize the current dependency and library strategy
+      - `recommendations` should use actions `reuse`, `install`, `investigate`, or `avoid`
+      - `recommendations[].already_installed` must match the environment inventory in the discovery artifact
+      - `recommendations[].install_command` should appear only when action is `install`
+      - `recommendations[].evidence` must cite explicit evidence from the discovery artifact such as environment entries, project documents, external retrieval URLs or repo paths, open concerns, and requirements
+      - `standard_library_notes` should explain where third-party packages are unnecessary
+      - `open_questions` should capture unresolved library or dependency choices that still matter before blueprint freeze

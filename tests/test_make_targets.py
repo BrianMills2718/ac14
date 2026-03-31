@@ -100,6 +100,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "inspect-environment" in result.stdout
     assert "inspect-project-context" in result.stdout
     assert "retrieve-context" in result.stdout
+    assert "plan-dependencies" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
@@ -255,6 +256,125 @@ def test_make_retrieve_context_runs_with_fixture_env(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "external_retrieval_artifact.json").exists()
+
+
+def test_make_plan_dependencies_runs_with_fixture_env(tmp_path: Path) -> None:
+    """Make dependency-planning target should persist an advisory artifact."""
+
+    discovery_path = tmp_path / "discovery_artifact.json"
+    discovery_path.write_text(
+        json.dumps(
+            {
+                "input_inspection": {
+                    "input_path": str(tmp_path / "sample.json"),
+                    "input_format": "json",
+                    "root_kind": "list",
+                    "sample_count": 1,
+                    "truncated": False,
+                    "sample_records": [{"ticket_id": "T-1"}],
+                    "field_summaries": [],
+                    "concerns": [],
+                },
+                "environment_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "python_version": "3.12.0",
+                    "platform": "linux",
+                    "dependency_statuses": [
+                        {
+                            "package_name": "pydantic",
+                            "sources": ["requested"],
+                            "installed": True,
+                            "version": "2.12.0",
+                        },
+                        {
+                            "package_name": "ac14-missing-lib",
+                            "sources": ["requested"],
+                            "installed": False,
+                            "version": None,
+                        },
+                    ],
+                    "concerns": ["dependency ac14-missing-lib is not installed in the current environment"],
+                },
+                "project_context_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "document_count": 1,
+                    "truncated": False,
+                    "documents": [
+                        {
+                            "path": str(REPO_ROOT / "README.md"),
+                            "category": "readme",
+                            "title": "AC14",
+                            "preview": "AC14 overview",
+                            "line_count": 10,
+                        }
+                    ],
+                    "concerns": [],
+                },
+                "external_retrieval_summaries": [
+                    {
+                        "artifact_path": str(tmp_path / "external_retrieval_artifact.json"),
+                        "web_document_count": 1,
+                        "repo_match_count": 1,
+                        "web_urls": ["https://docs.pydantic.dev/latest/"],
+                        "repo_paths": ["ac14/packets.py"],
+                        "concerns": [],
+                    }
+                ],
+                "open_concerns": ["dependency ac14-missing-lib is not installed in the current environment"],
+            }
+        )
+    )
+    fixture_path = tmp_path / "dependency_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Reuse pydantic and investigate ac14-missing-lib.",
+                "recommendations": [
+                    {
+                        "package_name": "pydantic",
+                        "action": "reuse",
+                        "capability_need": "typed schema contracts",
+                        "justification": "pydantic is already installed and fits the schema need",
+                        "already_installed": True,
+                        "install_command": None,
+                        "evidence": [
+                            {
+                                "source": "environment",
+                                "locator": "pydantic",
+                                "detail": "Installed in the environment inventory",
+                            },
+                            {
+                                "source": "external_retrieval",
+                                "locator": "https://docs.pydantic.dev/latest/",
+                                "detail": "Retrieved docs confirm schema support",
+                            },
+                        ],
+                    }
+                ],
+                "standard_library_notes": ["pathlib and json are sufficient for file glue"],
+                "open_questions": [],
+            }
+        )
+    )
+    output_dir = tmp_path / "dependency_plan"
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(fixture_path)
+    result = subprocess.run(
+        [
+            "make",
+            "plan-dependencies",
+            f"DISCOVERY={discovery_path}",
+            f"OUTPUT={output_dir}",
+            "REQUIREMENTS=preserve typed schema contracts",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "dependency_plan.json").exists()
 
 
 def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
