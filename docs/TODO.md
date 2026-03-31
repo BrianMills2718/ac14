@@ -1,26 +1,26 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-03-30
+Last updated: 2026-03-31
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the shared-retrieval lane
-  - [x] update `CLAUDE.md` to make shared retrieval expansion the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with shared-retrieval phases and success criteria
+- [x] Phase 1: freeze the dependency-planning lane
+  - [x] update `CLAUDE.md` to make dependency and library planning the active proof-expansion rule
+  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with dependency-planning phases and success criteria
   - [x] keep this TODO as the running control surface during implementation
   - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
 
-- [ ] Phase 2: add shared retrieval artifacts
-  - [ ] define persisted retrieval artifacts for external docs and repository search
-  - [ ] keep those artifacts reviewable and compatible with discovery/planning
-  - [ ] avoid coupling the first bridge to agent-only MCP assumptions
-  - Success criteria: AC14 has an explicit retrieval artifact model instead of hidden ad hoc search
+- [ ] Phase 2: add dependency and library planning artifacts
+  - [ ] define a persisted dependency/library planning artifact
+  - [ ] keep recommended actions tied to discovery and retrieved evidence
+  - [ ] keep the first bridge advisory rather than auto-installing packages
+  - Success criteria: AC14 has an explicit dependency-planning artifact instead of passive inventory only
 
-- [ ] Phase 3: connect retrieval into operator surfaces
-  - [ ] expose the retrieval bridge through CLI and Make
-  - [ ] add deterministic tests for artifact persistence and discovery integration
-  - Success criteria: operators can produce retrieval artifacts without manual glue code and the behavior is tested
+- [ ] Phase 3: connect dependency planning into operator surfaces
+  - [ ] expose the dependency-planning bridge through CLI and Make
+  - [ ] add deterministic tests for artifact persistence and advisory planning behavior
+  - Success criteria: operators can produce dependency plans without manual glue code and the behavior is tested
 
 - [ ] Phase 4: verify and lock the lane
   - [ ] run full `pytest -q`
@@ -43,9 +43,18 @@ Last updated: 2026-03-30
 - proof breadth will still be approximate because the current metric is based on workflow signatures rather than a richer benchmark taxonomy
 - the next bridge will start with local project docs and will not yet claim GitHub/web/context-server retrieval
 - the next bridge after local project docs should persist external retrieval artifacts rather than hiding them inside prompts
+- the next bridge after shared retrieval should recommend dependency actions without pretending package installation is already automated
 
 ## Latest Verified Results
 
+- shared-retrieval lane verification passed:
+  - `pytest -q` passed with `82 passed`
+  - `python -m mypy ac14 tests` passed on 52 source files
+  - `python -m ruff check ac14 tests` passed
+- targeted shared-retrieval verification passed:
+  - `pytest -q tests/test_retrieval.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py -x` passed with `43 passed`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
 - discovery-context lane verification passed:
   - `pytest -q` passed with `82 passed`
   - `python -m mypy ac14 tests` passed on 50 source files
@@ -131,5 +140,5 @@ Last updated: 2026-03-30
 
 - [ ] connect broader proof breadth to less hard-coded deterministic generation
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
-- [ ] extend discovery from local project docs into shared doc/repo/dependency retrieval surfaces
+- [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

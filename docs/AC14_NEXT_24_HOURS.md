@@ -7,16 +7,16 @@ Last updated: 2026-03-31
 
 This plan defines the next continuous implementation lane inside `ac14`.
 
-The discovery-context lane is complete, but discovery still stops at local
-inputs, package inventory, and local project docs. The longer-term system needs
-reviewable retrieval artifacts for external documentation and repository search
-before blueprint freeze.
+The shared-retrieval lane is now complete. AC14 can inspect local inputs,
+environment state, local project docs, and persisted external retrieval
+artifacts. The next missing piece is turning that context into explicit
+dependency and library planning before blueprint freeze.
 
-The immediate goal for this lane is a narrow shared-retrieval bridge:
+The immediate goal for this lane is a narrow dependency-planning bridge:
 
-1. define persisted external retrieval artifacts
-2. expose them through the same operator surface as discovery
-3. keep them compatible with shared infrastructure rather than agent-only MCP assumptions
+1. define a persisted dependency and library planning artifact
+2. ground recommendations in discovery plus retrieved evidence
+3. expose the planning bridge through the same operator surface as discovery
 
 ## Progress Update
 
@@ -26,11 +26,12 @@ Completed before this lane:
 2. pre-freeze discovery, draft planning, authoring, freeze remediation, and promotion
 3. broader proof breadth across ticket and incident workflow slices
 4. local project-context inventory inside discovery artifacts
+5. persisted external web/repository retrieval artifacts with discovery integration
 
 Required in this lane:
 
-1. retrieval artifact model for external docs/repo search
-2. operator surfaces for the retrieval bridge
+1. dependency/library planning artifact with explicit actions
+2. CLI and Make surfaces for dependency planning
 3. deterministic tests and persisted outputs
 
 ## Phases
@@ -49,30 +50,30 @@ Acceptance criteria:
 - each phase has explicit success criteria
 - the TODO ledger can be used as the running control surface without extra explanation
 
-### Phase 2: Retrieval Artifact Model
+### Phase 2: Dependency Planning Artifact
 
 Deliverables:
 
-- persisted artifact shape for external documentation and repository retrieval
-- integration points back into discovery and planning
-- explicit provenance for what was searched and what was found
+- persisted artifact shape for dependency/library planning
+- evidence-backed actions such as `reuse`, `install`, `investigate`
+- explicit provenance linking the recommendation to discovery and retrieval context
 
 Acceptance criteria:
 
-- retrieval output is reviewable and persisted
-- discovery/planning can consume the artifact without scraping ad hoc logs
+- dependency planning output is reviewable and persisted
+- install/reuse decisions are tied to explicit evidence rather than hidden judgment
 
 ### Phase 3: Operator Surface And Tests
 
 Deliverables:
 
-- CLI and Make surfaces for the retrieval bridge
-- deterministic tests for artifact persistence and integration
+- CLI and Make surfaces for the dependency-planning bridge
+- deterministic tests for artifact persistence and planning behavior
 
 Acceptance criteria:
 
-- operators can build retrieval artifacts without manual glue code
-- tests prove the retrieval bridge persists and loads cleanly
+- operators can produce dependency plans without manual glue code
+- tests prove the planning bridge persists and loads cleanly
 
 ### Phase 4: Verification And Lock
 
@@ -91,9 +92,6 @@ Acceptance criteria:
 
 ## Known Uncertainties
 
-1. the next bridge should still prefer shared library surfaces over agent-only
-   MCP assumptions
-2. GitHub/web/documentation retrieval will need persisted provenance to stay
-   reviewable
-3. dependency-install planning should stay tied to discovery rather than become
-   a separate opaque side channel
+1. the first dependency-planning bridge should recommend actions, not perform installs automatically
+2. some library choices will still require LLM judgment, but the artifact should preserve the evidence and open questions
+3. dependency planning should stay part of blueprint freeze preparation rather than becoming a disconnected package-management workflow

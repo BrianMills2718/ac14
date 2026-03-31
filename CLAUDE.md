@@ -65,13 +65,16 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after discovery-context expansion is shared retrieval expansion.
+The active lane after shared retrieval expansion is dependency and library
+planning.
 
-- extend discovery from local project docs into reviewable external
-  documentation/repository retrieval artifacts
-- keep retrieval explicit and persisted rather than opaque prompt stuffing
-- prefer reusable shared retrieval surfaces over agent-only assumptions
-- keep package/dependency install planning tied to the same discovery context
+- turn discovery plus persisted retrieval into explicit library/dependency
+  decisions rather than passive inventory only
+- keep install/reuse recommendations reviewable and tied to retrieved evidence
+- prefer shared library surfaces and explicit provenance over opaque prompt-time
+  guessing
+- keep package/dependency planning tied to blueprint freeze rather than a
+  separate side channel
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

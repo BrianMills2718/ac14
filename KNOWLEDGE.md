@@ -61,4 +61,10 @@ Pre-freeze discovery should not stop at input shape plus package inventory.
 AC14 now persists a local project-context inventory so README, CLAUDE, and docs
 become explicit reviewable planning inputs before blueprint freeze.
 
+### 2026-03-31 — codex — best-practice
+External web and repository lookup should stay reviewable. AC14 now persists
+external retrieval artifacts with explicit queries, URLs, repo paths, and
+concerns, then folds only compact summaries into discovery artifacts so
+planning context stays inspectable instead of disappearing into prompt text.
+
 ---
