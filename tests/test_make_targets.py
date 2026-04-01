@@ -96,6 +96,57 @@ def _write_plan_artifact(path: Path) -> Path:
     return path
 
 
+def _write_blocked_freeze_inputs(tmp_path: Path, plan_path: Path) -> tuple[Path, Path]:
+    """Persist one blocked freeze-decision/remediation pair for Make refinement tests."""
+
+    remediation_plan_path = tmp_path / "freeze_remediation_plan.json"
+    remediation_plan_path.write_text(
+        json.dumps(
+            {
+                "blocked": True,
+                "summary": "1 remediation task generated for blocked freeze",
+                "task_count": 1,
+                "upstream_plan_path": str(plan_path),
+                "tasks": [
+                    {
+                        "task_id": "freeze-remediation-01",
+                        "blocking": True,
+                        "title": "Resolve blocked dependency probes",
+                        "summary": "Update dependency evidence before retrying freeze.",
+                        "target_files": [str(plan_path)],
+                        "source_paths": ["metadata.dependencies"],
+                        "finding_codes": ["E-DRAFT-DEPENDENCY-BLOCKED"],
+                        "authoring_actions": ["Update dependency decisions and open questions."],
+                        "retry_command": "python -m ac14 materialize-draft-bundle",
+                    }
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    freeze_decision_path = tmp_path / "freeze_decision.json"
+    freeze_decision_path.write_text(
+        json.dumps(
+            {
+                "approved": False,
+                "decision_summary": "bundle blocked by freeze-readiness findings",
+                "findings": [
+                    {
+                        "code": "E-DRAFT-DEPENDENCY-BLOCKED",
+                        "message": "Blocked dependency probe remains unresolved.",
+                        "path": "metadata.dependencies",
+                    }
+                ],
+                "remediation_plan_path": str(remediation_plan_path),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return freeze_decision_path, remediation_plan_path
+
+
 def _write_dependency_plan_artifact(path: Path) -> Path:
     """Persist a deterministic dependency-planning artifact for Make probe tests."""
 
@@ -1161,6 +1212,54 @@ def test_make_draft_blueprint_plan_accepts_dependency_remediation_artifact(tmp_p
     payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
     assert payload["dependency_remediation_artifact_path"] == str(remediation_path)
     assert payload["dependency_execution_artifact_path"] == str(dependency_execution_path)
+
+
+def test_make_refine_draft_blueprint_plan_runs_end_to_end(tmp_path: Path) -> None:
+    """Make refinement target should emit a refined planning artifact with provenance."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    freeze_decision_path, remediation_plan_path = _write_blocked_freeze_inputs(tmp_path, plan_path)
+    fixture_path = tmp_path / "refine_draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "refinement_summary": "Clarified dependency scope after the blocked freeze.",
+                "planning_summary": "Keep the bounded graph and tighten dependency decisions.",
+                "proposed_schemas": [],
+                "proposed_components": [],
+                "proposed_bindings": [],
+                "proposed_scenarios": [],
+                "packetization_notes": ["Keep the packet boundary unchanged."],
+                "dependency_decisions": ["Keep optional formatting dependencies out of the first freeze."],
+                "open_questions": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    output_dir = tmp_path / "refined_plan"
+    env = os.environ.copy()
+    env["AC14_REFINE_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
+    result = subprocess.run(
+        [
+            "make",
+            "refine-draft-blueprint-plan",
+            f"PLAN={plan_path}",
+            f"INPUT={freeze_decision_path}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
+    assert payload["source_draft_blueprint_plan_path"] == str(plan_path)
+    assert payload["source_freeze_decision_path"] == str(freeze_decision_path)
+    assert payload["source_freeze_remediation_plan_path"] == str(remediation_plan_path)
+    assert payload["refinement_round"] == 1
 
 
 def test_make_decide_freeze_runs_end_to_end(tmp_path: Path) -> None:

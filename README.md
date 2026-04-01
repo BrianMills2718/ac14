@@ -64,6 +64,7 @@ AC14 now supports:
 - proving one explicit messy-input front-half lane on a reviewable CSV asset without changing the blueprint/runtime model
 - rerunning previously blocked install probes through one explicit dependency-remediation artifact that points to a fresh dependency execution artifact for downstream reuse
 - feeding a dependency-remediation artifact directly back into draft planning while keeping both the remediation path and the chosen dependency execution path explicit
+- refining a blocked draft planning artifact directly from the freeze decision plus remediation plan while preserving the full retry provenance
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review

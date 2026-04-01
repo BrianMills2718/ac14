@@ -299,6 +299,19 @@ paths explicitly, and fails loud if direct execution-path input disagrees with
 the remediation artifact.
 **Date resolved:** 2026-04-01
 
+### U-032: The first blocked-freeze retry step still required manual bundle editing.
+**Status:** Resolved
+**Context:** AC14 could emit remediation tasks from a blocked freeze decision,
+but the first explicit retry still depended on a human editing the materialized
+bundle directly.
+**Why it matters:** The next thesis-preserving automation step should refine
+the plan, not mutate the bundle in place.
+**Resolution:** AC14 now emits a remediation-driven refined draft planning
+artifact that preserves the source plan, freeze decision, remediation plan,
+and refinement round while letting later phases rematerialize from the updated
+plan instead of editing the bundle directly.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

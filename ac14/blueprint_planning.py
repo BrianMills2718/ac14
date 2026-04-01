@@ -16,12 +16,16 @@ from ac14.dependency_execution import (
 )
 from ac14.dependency_planning import DependencyPlanningArtifact
 from ac14.discovery import DiscoveryArtifact
+from ac14.models import ValidationFinding
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
 DEFAULT_BLUEPRINT_PLAN_MODEL = "gemini/gemini-2.5-flash-lite"
 DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET = 0.75
 PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "draft_blueprint_plan.yaml"
+REFINE_PROMPT_PATH = (
+    Path(__file__).resolve().parents[1] / "prompts" / "refine_draft_blueprint_plan.yaml"
+)
 
 
 class PlannedSchemaField(BaseModel):
@@ -128,6 +132,56 @@ class DraftBlueprintPlanResponse(BaseModel):
     )
 
 
+class RefinedDraftBlueprintPlanResponse(DraftBlueprintPlanResponse):
+    """Structured LLM response for remediation-driven draft plan refinement."""
+
+    refinement_summary: str = Field(
+        description="Short summary of what changed in response to the blocked freeze decision.",
+    )
+
+
+class RefinementFreezeDecisionArtifact(BaseModel):
+    """Minimal freeze decision shape needed for draft-plan refinement."""
+
+    approved: bool = Field(description="Whether the source freeze decision was approved.")
+    decision_summary: str = Field(description="Compact summary of the source freeze decision.")
+    findings: list[ValidationFinding] = Field(
+        description="Findings carried on the source freeze decision.",
+    )
+    remediation_plan_path: str = Field(
+        description="Path to the remediation plan that explains the blocked retry work.",
+    )
+
+
+class RefinementFreezeRemediationTask(BaseModel):
+    """Minimal remediation task shape needed for draft-plan refinement."""
+
+    task_id: str = Field(description="Stable remediation task identifier.")
+    blocking: bool = Field(description="Whether the task remains blocking.")
+    title: str = Field(description="Short title for the task.")
+    summary: str = Field(description="Compact explanation of the task.")
+    target_files: list[str] = Field(description="Files or artifacts the task points at.")
+    source_paths: list[str] = Field(description="Source finding paths behind the task.")
+    finding_codes: list[str] = Field(description="Finding codes grouped into the task.")
+    authoring_actions: list[str] = Field(description="Concrete actions suggested by the task.")
+    retry_command: str = Field(description="Retry command suggested by the task.")
+
+
+class RefinementFreezeRemediationPlan(BaseModel):
+    """Minimal remediation plan shape needed for draft-plan refinement."""
+
+    blocked: bool = Field(description="Whether remediation work remains before retrying freeze.")
+    summary: str = Field(description="Compact summary of the remediation plan.")
+    task_count: int = Field(description="Number of remediation tasks.")
+    upstream_plan_path: str | None = Field(
+        default=None,
+        description="Upstream draft planning artifact path when one was recorded.",
+    )
+    tasks: list[RefinementFreezeRemediationTask] = Field(
+        description="Remediation tasks carried into the refinement loop.",
+    )
+
+
 class DraftBlueprintPlanArtifact(BaseModel):
     """Persisted draft blueprint planning artifact built from discovery plus requirements."""
 
@@ -161,6 +215,26 @@ class DraftBlueprintPlanArtifact(BaseModel):
     dependency_remediation_summary: str | None = Field(
         default=None,
         description="Compact summary of dependency remediation when one was provided.",
+    )
+    source_draft_blueprint_plan_path: str | None = Field(
+        default=None,
+        description="Source planning artifact path when this plan was produced by refinement.",
+    )
+    source_freeze_decision_path: str | None = Field(
+        default=None,
+        description="Source freeze decision path when this plan was produced by refinement.",
+    )
+    source_freeze_remediation_plan_path: str | None = Field(
+        default=None,
+        description="Source freeze remediation plan path when this plan was produced by refinement.",
+    )
+    refinement_summary: str | None = Field(
+        default=None,
+        description="Compact summary of how a refinement pass changed the plan.",
+    )
+    refinement_round: int = Field(
+        default=0,
+        description="How many refinement passes produced this planning artifact.",
     )
     dependency_recommendations: list[str] = Field(
         default_factory=list,
@@ -392,6 +466,117 @@ def build_draft_blueprint_plan(
     )
 
 
+async def abuild_refined_draft_blueprint_plan(
+    plan_artifact_path: Path | str,
+    freeze_decision_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
+    max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    task: str = "ac14_refine_draft_blueprint_plan",
+) -> DraftBlueprintPlanArtifact:
+    """Build a refined draft planning artifact from a blocked freeze decision."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    source_plan_path = Path(plan_artifact_path)
+    source_plan = DraftBlueprintPlanArtifact.model_validate_json(source_plan_path.read_text())
+    decision_path = Path(freeze_decision_path)
+    freeze_decision = RefinementFreezeDecisionArtifact.model_validate_json(
+        decision_path.read_text(),
+    )
+    remediation_plan_path = Path(freeze_decision.remediation_plan_path)
+    remediation_plan = RefinementFreezeRemediationPlan.model_validate_json(
+        remediation_plan_path.read_text(),
+    )
+    _validate_refinement_request(
+        source_plan_path=source_plan_path,
+        source_plan=source_plan,
+        freeze_decision=freeze_decision,
+        remediation_plan=remediation_plan,
+    )
+
+    fixture_path = os.environ.get("AC14_REFINE_BLUEPRINT_PLAN_FIXTURE")
+    if fixture_path:
+        typed_response = RefinedDraftBlueprintPlanResponse.model_validate_json(
+            Path(fixture_path).read_text(),
+        )
+    else:
+        messages = render_prompt(
+            REFINE_PROMPT_PATH,
+            source_plan=source_plan.model_dump(mode="json"),
+            freeze_decision=freeze_decision.model_dump(mode="json"),
+            remediation_plan=remediation_plan.model_dump(mode="json"),
+        )
+        response, _meta = await acall_llm_structured(
+            model,
+            messages,
+            response_model=RefinedDraftBlueprintPlanResponse,
+            task=task,
+            trace_id=f"ac14/refine_draft_blueprint_plan/{source_plan_path.stem}",
+            max_budget=max_budget,
+        )
+        typed_response = cast(RefinedDraftBlueprintPlanResponse, response)
+
+    _validate_draft_blueprint_plan(typed_response)
+    refined_plan = DraftBlueprintPlanArtifact(
+        discovery_artifact_path=source_plan.discovery_artifact_path,
+        requirements=source_plan.requirements,
+        discovery_open_concerns=source_plan.discovery_open_concerns,
+        dependency_plan_path=source_plan.dependency_plan_path,
+        dependency_plan_summary=source_plan.dependency_plan_summary,
+        dependency_execution_artifact_path=source_plan.dependency_execution_artifact_path,
+        dependency_remediation_artifact_path=source_plan.dependency_remediation_artifact_path,
+        dependency_execution_summary=source_plan.dependency_execution_summary,
+        dependency_remediation_summary=source_plan.dependency_remediation_summary,
+        source_draft_blueprint_plan_path=str(source_plan_path),
+        source_freeze_decision_path=str(decision_path),
+        source_freeze_remediation_plan_path=str(remediation_plan_path),
+        refinement_summary=typed_response.refinement_summary,
+        refinement_round=source_plan.refinement_round + 1,
+        dependency_recommendations=source_plan.dependency_recommendations,
+        confirmed_dependency_probes=source_plan.confirmed_dependency_probes,
+        blocked_dependency_probes=source_plan.blocked_dependency_probes,
+        dependency_probe_observations=source_plan.dependency_probe_observations,
+        dependency_open_questions=source_plan.dependency_open_questions,
+        planning_summary=typed_response.planning_summary,
+        proposed_schemas=typed_response.proposed_schemas,
+        proposed_components=typed_response.proposed_components,
+        proposed_bindings=typed_response.proposed_bindings,
+        proposed_scenarios=typed_response.proposed_scenarios,
+        packetization_notes=typed_response.packetization_notes,
+        dependency_decisions=typed_response.dependency_decisions,
+        open_questions=typed_response.open_questions,
+    )
+    (destination / "draft_blueprint_plan.json").write_text(
+        json.dumps(refined_plan.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return refined_plan
+
+
+def build_refined_draft_blueprint_plan(
+    plan_artifact_path: Path | str,
+    freeze_decision_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
+    max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    task: str = "ac14_refine_draft_blueprint_plan",
+) -> DraftBlueprintPlanArtifact:
+    """Synchronous wrapper for remediation-driven draft plan refinement."""
+
+    return asyncio.run(
+        abuild_refined_draft_blueprint_plan(
+            plan_artifact_path=plan_artifact_path,
+            freeze_decision_path=freeze_decision_path,
+            output_dir=output_dir,
+            model=model,
+            max_budget=max_budget,
+            task=task,
+        ),
+    )
+
+
 def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:
     """Fail loud when the structured draft plan is internally inconsistent."""
 
@@ -432,6 +617,29 @@ def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:
             raise ValueError(
                 f"draft blueprint plan binding references unknown to_port {binding.to_port!r}",
             )
+
+
+def _validate_refinement_request(
+    *,
+    source_plan_path: Path,
+    source_plan: DraftBlueprintPlanArtifact,
+    freeze_decision: RefinementFreezeDecisionArtifact,
+    remediation_plan: RefinementFreezeRemediationPlan,
+) -> None:
+    """Fail loud when refinement input artifacts disagree."""
+
+    if freeze_decision.approved:
+        raise ValueError("cannot refine a draft plan from an approved freeze decision")
+    if not remediation_plan.blocked or remediation_plan.task_count == 0:
+        raise ValueError("cannot refine a draft plan without blocked remediation tasks")
+    if remediation_plan.upstream_plan_path is not None and Path(
+        remediation_plan.upstream_plan_path,
+    ) != source_plan_path:
+        raise ValueError(
+            "freeze remediation plan points at a different draft plan than the one provided",
+        )
+    if source_plan.discovery_artifact_path == "":
+        raise ValueError("source draft plan is missing discovery artifact provenance")
 
 
 def _resolve_dependency_plan_path(

@@ -31,7 +31,8 @@ current executable lane.
 | 18 | [Messy-Input Front-Half Proof](18_messy_input_front_half_proof.md) | High | Complete | - |
 | 19 | [Controlled Dependency Remediation](19_controlled_dependency_remediation.md) | High | Complete | - |
 | 20 | [Remediation Hand-Off Automation](20_remediation_handoff_automation.md) | High | Complete | - |
-| 21 | [Freeze Remediation Plan Refinement](21_freeze_remediation_plan_refinement.md) | High | Planned | - |
+| 21 | [Freeze Remediation Plan Refinement](21_freeze_remediation_plan_refinement.md) | High | Complete | - |
+| 22 | [Freeze Retry Chain](22_freeze_retry_chain.md) | High | Planned | - |
 
 ## Status Key
 

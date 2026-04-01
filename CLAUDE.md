@@ -100,7 +100,7 @@ process failure. The required behavior is:
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-turning blocked freeze remediation into an explicit, reviewable refinement loop.
+turning blocked freeze remediation into an explicit, reviewable retry chain.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -124,6 +124,8 @@ turning blocked freeze remediation into an explicit, reviewable refinement loop.
   leaving it as an isolated side command
 - keep the first blocked-freeze retry step plan-first; prefer refined planning
   artifacts over in-place bundle mutation
+- once refinement exists, keep the next retry step explicit too; prefer a
+  persisted retry-chain artifact over hidden multi-command orchestration
 
 ## Continuation Rule
 

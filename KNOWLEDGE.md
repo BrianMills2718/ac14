@@ -210,4 +210,10 @@ draft planning consume a remediation artifact directly, preserves both the
 remediation path and the selected dependency execution path, and fails loud
 when those two sources disagree.
 
+### 2026-04-01 — codex — best-practice
+The first blocked-freeze retry step should refine the plan, not mutate the
+bundle. AC14 now emits a refined draft planning artifact from the original
+plan plus the blocked freeze/remediation inputs, preserves explicit retry
+provenance, and increments a refinement round so later retries stay reviewable.
+
 ---

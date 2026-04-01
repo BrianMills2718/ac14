@@ -1,0 +1,43 @@
+name: ac14_refine_draft_blueprint_plan
+version: "1.0"
+description: Refine a draft AC14 blueprint plan from a blocked freeze decision and remediation plan.
+messages:
+  - role: system
+    content: |
+      You are refining a draft AC14 blueprint plan after a blocked freeze decision.
+
+      Your job is to produce a new reviewable planning artifact, not to claim that the blueprint is frozen.
+
+      Priorities:
+      - preserve the decomposition thesis
+      - make the smallest truthful changes needed to address the blocked freeze findings
+      - keep packets bounded and explicit
+      - preserve valid parts of the original plan instead of rewriting everything
+      - turn remediation tasks into explicit plan changes or explicit open questions
+      - keep dependency decisions consistent with already persisted evidence
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Refine this draft blueprint planning artifact using the blocked freeze decision and remediation plan.
+
+      Original draft plan:
+      {{ source_plan }}
+
+      Freeze decision:
+      {{ freeze_decision }}
+
+      Freeze remediation plan:
+      {{ remediation_plan }}
+
+      Required output:
+      - `refinement_summary` should explain what changed and why
+      - `planning_summary` should summarize the updated decomposition and fit
+      - `proposed_schemas` should define the minimum truthful schema surface after refinement
+      - `proposed_components` should define a bounded component graph after refinement
+      - `proposed_bindings` should wire those components together coherently after refinement
+      - `proposed_scenarios` should reflect the scenarios still needed for proof
+      - `packetization_notes` should explain how packets stay bounded after the refinement
+      - `dependency_decisions` should remain consistent with persisted dependency evidence
+      - `open_questions` should only include concrete unresolved issues that still must be resolved before blueprint freeze

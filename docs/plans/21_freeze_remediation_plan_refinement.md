@@ -1,6 +1,6 @@
 # Plan #21: Freeze Remediation Plan Refinement
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -38,17 +38,18 @@ plan changes before bundle materialization and freeze retry.
 ## Open Questions
 
 ### Q1: What is the first refinement target?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The first loop should stay explicit and bounded instead of
 jumping straight to automatic bundle mutation.
-**Default:** Refine the draft planning artifact, not the materialized bundle.
+**Decision:** Refine the draft planning artifact, not the materialized bundle.
 
 ### Q2: How should refinement provenance stay explicit?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** A refinement loop should not hide which blocked findings
 drove the new plan.
-**Default:** Persist the source freeze decision path, remediation plan path,
-and a compact refinement summary on the refined planning artifact.
+**Decision:** Persist the source draft plan path, source freeze decision path,
+source remediation plan path, refinement summary, and refinement round on the
+refined planning artifact.
 
 ---
 
@@ -105,10 +106,28 @@ and a compact refinement summary on the refined planning artifact.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can refine a blocked draft planning artifact from freeze remediation input.
-- [ ] The refined planning artifact records explicit provenance back to the blocked freeze/remediation source.
-- [ ] The lane stays plan-first and does not mutate the draft bundle in place.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can refine a blocked draft planning artifact from freeze remediation input.
+- [x] The refined planning artifact records explicit provenance back to the blocked freeze/remediation source.
+- [x] The lane stays plan-first and does not mutate the draft bundle in place.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted refinement verification passed:
+  - `python -m pytest -q tests/test_blueprint_planning.py::test_refine_draft_blueprint_plan_from_freeze_remediation_preserves_provenance tests/test_cli.py::test_cli_refine_draft_blueprint_plan_runs_end_to_end tests/test_make_targets.py::test_make_refine_draft_blueprint_plan_runs_end_to_end`
+  - `python -m mypy ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py`
+- Full verification passed:
+  - `python -m pytest -q`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
+
+## Outcome
+
+AC14 now exposes a remediation-driven draft-plan refinement lane that consumes
+the original draft plan plus a blocked freeze decision, preserves explicit
+retry provenance, increments a refinement round, and emits a fresh planning
+artifact instead of mutating the bundle in place.
 
 ---
 

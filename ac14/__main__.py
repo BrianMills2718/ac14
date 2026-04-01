@@ -18,6 +18,7 @@ from ac14.blueprint_planning import (
     DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     DEFAULT_BLUEPRINT_PLAN_MODEL,
     build_draft_blueprint_plan,
+    build_refined_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
 from ac14.dependency_execution import (
@@ -169,6 +170,20 @@ def main() -> int:
     draft_plan_parser.add_argument("--dependency-remediation", type=Path, default=None)
     draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
     draft_plan_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    )
+
+    refine_draft_plan_parser = subparsers.add_parser(
+        "refine-draft-blueprint-plan",
+        help="Refine a draft blueprint planning artifact from a blocked freeze decision.",
+    )
+    refine_draft_plan_parser.add_argument("plan_artifact_path", type=Path)
+    refine_draft_plan_parser.add_argument("--freeze-decision", type=Path, required=True)
+    refine_draft_plan_parser.add_argument("--output-dir", type=Path, required=True)
+    refine_draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
+    refine_draft_plan_parser.add_argument(
         "--max-budget",
         type=float,
         default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
@@ -475,6 +490,14 @@ def main() -> int:
             args.dependency_plan,
             args.dependency_execution,
             args.dependency_remediation,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "refine-draft-blueprint-plan":
+        return _refine_draft_blueprint_plan(
+            args.plan_artifact_path,
+            args.freeze_decision,
+            args.output_dir,
             args.model,
             args.max_budget,
         )
@@ -829,6 +852,26 @@ def _draft_blueprint_plan(
         dependency_plan_path=dependency_plan_path,
         dependency_execution_artifact_path=dependency_execution_artifact_path,
         dependency_remediation_artifact_path=dependency_remediation_artifact_path,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(plan.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _refine_draft_blueprint_plan(
+    plan_artifact_path: Path,
+    freeze_decision_path: Path,
+    output_dir: Path,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a remediation-driven refined draft planning artifact."""
+
+    plan = build_refined_draft_blueprint_plan(
+        plan_artifact_path=plan_artifact_path,
+        freeze_decision_path=freeze_decision_path,
+        output_dir=output_dir,
         model=model,
         max_budget=max_budget,
     )

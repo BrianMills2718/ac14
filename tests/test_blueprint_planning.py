@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
 from ac14.blueprint_planning import (
+    DraftBlueprintPlanArtifact,
     DraftBlueprintPlanResponse,
     PlannedComponent,
     PlannedPort,
@@ -16,6 +18,8 @@ from ac14.blueprint_planning import (
     PlannedSchemaField,
     PlanningQuestion,
     build_draft_blueprint_plan,
+    build_refined_draft_blueprint_plan,
+    RefinedDraftBlueprintPlanResponse,
 )
 from ac14.dependency_execution import (
     DependencyExecutionArtifact,
@@ -522,3 +526,158 @@ def test_build_draft_blueprint_plan_accepts_dependency_remediation_artifact(
     assert plan.dependency_remediation_artifact_path == str(remediation_path)
     assert plan.dependency_execution_artifact_path == str(dependency_execution_path)
     assert plan.dependency_remediation_summary == "no blocked install probes required remediation"
+
+
+def test_refine_draft_blueprint_plan_from_freeze_remediation_preserves_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Refinement should emit a new planning artifact with explicit blocked-freeze provenance."""
+
+    source_plan_path = tmp_path / "draft_blueprint_plan.json"
+    source_plan = DraftBlueprintPlanArtifact(
+        discovery_artifact_path=str(tmp_path / "discovery_artifact.json"),
+        requirements=["normalize discovered ticket input", "keep packets bounded"],
+        discovery_open_concerns=["input tags may be sparse"],
+        dependency_plan_path=str(tmp_path / "dependency_plan.json"),
+        dependency_plan_summary="Reuse pydantic for typed schema contracts.",
+        dependency_execution_artifact_path=str(tmp_path / "dependency_execution_artifact.json"),
+        dependency_remediation_artifact_path=str(tmp_path / "dependency_remediation_artifact.json"),
+        dependency_execution_summary="allow_install dependency probes: 1 confirmed, 0 blocked, 0 skipped",
+        dependency_remediation_summary="confirmed prior blocked dependency",
+        dependency_recommendations=["reuse pydantic: typed schema contracts"],
+        confirmed_dependency_probes=["reuse pydantic: probe confirmed availability"],
+        blocked_dependency_probes=[],
+        dependency_probe_observations=["all dependency probes are confirmed after remediation"],
+        dependency_open_questions=[],
+        planning_summary="Use a source parser and one sink to keep packets bounded.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="RawTicket",
+                kind="record",
+                description="Normalized raw ticket shape.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="ticket_id",
+                        field_type="str",
+                        description="Stable ticket identifier.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="ticket_ingest",
+                semantic_responsibility="ingest_ticket",
+                purpose="Normalize the discovered ticket input into a source schema.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="raw_ticket",
+                        schema_name="RawTicket",
+                        description="Normalized ticket payload.",
+                    ),
+                ],
+                packet_focus=["normalize incoming fields", "preserve ticket identity"],
+                dependency_notes=["no external libraries required"],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="happy_path",
+                kind="semantic_acceptance",
+                description="Review one realistic ticket end to end.",
+                requirement_focus=["normalize ticket input", "preserve meaning"],
+            ),
+        ],
+        packetization_notes=["Keep the source component packet focused on normalization only."],
+        dependency_decisions=["Stay within the current environment for the first slice."],
+        open_questions=[],
+    )
+    source_plan_path.write_text(source_plan.model_dump_json(indent=2))
+
+    remediation_plan_path = tmp_path / "freeze_remediation_plan.json"
+    remediation_plan_path.write_text(
+        json.dumps(
+            {
+                "blocked": True,
+                "summary": "1 remediation task generated for blocked freeze",
+                "task_count": 1,
+                "upstream_plan_path": str(source_plan_path),
+                "tasks": [
+                    {
+                        "task_id": "freeze-remediation-01",
+                        "blocking": True,
+                        "title": "Resolve blocked dependency probes",
+                        "summary": "Update dependency evidence before retrying freeze.",
+                        "target_files": [str(source_plan_path)],
+                        "source_paths": ["metadata.dependencies"],
+                        "finding_codes": ["E-DRAFT-DEPENDENCY-BLOCKED"],
+                        "authoring_actions": ["Update dependency decisions and open questions."],
+                        "retry_command": "python -m ac14 materialize-draft-bundle",
+                    }
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    freeze_decision_path = tmp_path / "freeze_decision.json"
+    freeze_decision_path.write_text(
+        json.dumps(
+            {
+                "approved": False,
+                "decision_summary": "bundle blocked by freeze-readiness findings",
+                "findings": [
+                    {
+                        "code": "E-DRAFT-DEPENDENCY-BLOCKED",
+                        "message": "Blocked dependency probe remains unresolved.",
+                        "path": "metadata.dependencies",
+                    }
+                ],
+                "remediation_plan_path": str(remediation_plan_path),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+    fake_response = RefinedDraftBlueprintPlanResponse(
+        refinement_summary="Updated dependency decisions and clarified the retry story.",
+        planning_summary="Keep the same bounded graph but make dependency handling explicit.",
+        proposed_schemas=source_plan.proposed_schemas,
+        proposed_components=source_plan.proposed_components,
+        proposed_bindings=source_plan.proposed_bindings,
+        proposed_scenarios=source_plan.proposed_scenarios,
+        packetization_notes=[
+            "Keep the source packet bounded and call out dependency expectations explicitly.",
+        ],
+        dependency_decisions=[
+            "Reuse pydantic and keep optional formatting libraries out of the first frozen slice.",
+        ],
+        open_questions=[
+            PlanningQuestion(
+                question="Should richer formatting remain deferred until after the first freeze?",
+                why_it_matters="It affects whether any new dependency is still in scope.",
+            ),
+        ],
+    )
+    fake_call = AsyncMock(return_value=(fake_response, object()))
+    monkeypatch.setattr("ac14.blueprint_planning.acall_llm_structured", fake_call)
+
+    refined_plan = build_refined_draft_blueprint_plan(
+        plan_artifact_path=source_plan_path,
+        freeze_decision_path=freeze_decision_path,
+        output_dir=tmp_path / "refined_plan",
+        max_budget=0.1,
+    )
+
+    assert refined_plan.source_draft_blueprint_plan_path == str(source_plan_path)
+    assert refined_plan.source_freeze_decision_path == str(freeze_decision_path)
+    assert refined_plan.source_freeze_remediation_plan_path == str(remediation_plan_path)
+    assert refined_plan.refinement_summary == fake_response.refinement_summary
+    assert refined_plan.refinement_round == 1
+    assert refined_plan.dependency_remediation_artifact_path == source_plan.dependency_remediation_artifact_path
+    assert (tmp_path / "refined_plan" / "draft_blueprint_plan.json").exists()
+    assert fake_call.await_count == 1

@@ -29,7 +29,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan refine-draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -78,6 +78,9 @@ remediate-dependencies: ## Rerun blocked install probes from an execution artifa
 
 draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json DEPENDENCY_REMEDIATION=optional.json)
 	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) $(if $(DEPENDENCY_REMEDIATION),--dependency-remediation "$(DEPENDENCY_REMEDIATION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+refine-draft-blueprint-plan: ## Refine a blocked draft plan from a freeze decision (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json INPUT=.ac14_out/freeze_decision/freeze_decision.json OUTPUT=.ac14_out/refined_draft_plan)
+	$(PYTHON) -m ac14 refine-draft-blueprint-plan "$(PLAN)" --freeze-decision "$(INPUT)" --output-dir "$(OUTPUT)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness report (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle)
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"

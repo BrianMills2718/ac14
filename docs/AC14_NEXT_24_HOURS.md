@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #21: Freeze Remediation Plan Refinement](/home/brian/projects/ac14/docs/plans/21_freeze_remediation_plan_refinement.md)
+- [Plan #22: Freeze Retry Chain](/home/brian/projects/ac14/docs/plans/22_freeze_retry_chain.md)
 
-Plan #20 closed the first narrow remediation hand-off lane into draft planning.
-The current active gap is replacing the first manual blocked-freeze retry step
-with an explicit refined planning artifact.
+Plan #21 closed the first explicit refinement lane from blocked freeze back into
+planning. The current active gap is reducing the remaining manual orchestration
+across refine -> materialize -> refreeze.
 
 ## Progress Update
 
@@ -33,30 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #21:
+Required in Plan #22:
 
-1. explicit refinement of the draft planning artifact from blocked freeze input
-2. explicit persisted provenance from blocked freeze/remediation back into the refined plan
-3. less manual bundle editing in the first retry step
+1. an explicit retry-chain artifact from blocked freeze input
+2. explicit persisted paths for the refined plan, refreshed bundle, refreshed readiness report, and refreshed freeze decision
+3. less manual command stitching in the first retry step
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#21.
+#22.
 
-### Phase 1: refinement-loop scope design
+### Phase 1: retry-chain scope design
 
-- choose the first retry target and keep it plan-first
-- pre-make how refinement provenance stays explicit
+- choose the first retry chain and keep it artifact-backed
+- pre-make how retried intermediate paths stay explicit
 
-### Phase 2: refinement implementation
+### Phase 2: retry-chain implementation
 
-- emit a refined draft planning artifact from blocked freeze/remediation input
-- keep the selected remediation/freeze provenance explicit in the refined output
+- emit one retry artifact that runs refine -> materialize -> refreeze
+- keep every intermediate path and the refreshed final verdict explicit
 
 ### Phase 3: Verification And Lock
 
-- targeted refinement verification
+- targeted retry-chain verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first retry loop should stay plan-first instead of mutating bundles in place
-2. refinement provenance must stay explicit instead of becoming another hidden prompt path
-3. the lane should preserve reviewability instead of collapsing manual remediation into silent automation
+1. the retry chain should stay artifact-backed instead of hiding steps behind one black-box command
+2. refreshed freeze outputs must stay explicit instead of overwriting the original blocked evidence
+3. the lane should preserve reviewability instead of collapsing retry orchestration into silent automation
