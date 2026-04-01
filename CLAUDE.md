@@ -64,6 +64,14 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 
 The default failure mode here is waiting too early. Avoid that.
 
+Treat this as a strong mandatory rule:
+
+- the default behavior is CONTINUE until the active numbered plan is complete
+- do not pause after one passing subphase just because the repo is currently green
+- do not let unlogged uncertainty become an excuse to stop
+- if a concern can be written down and bounded, write it down and keep moving
+- only stop for a real contradiction to the thesis, a real blocker, or a user redirect
+
 Treat the active numbered plan as a mandatory execution contract:
 
 - do not stop because a phase revealed uncertainty that can be logged
@@ -73,13 +81,17 @@ Treat the active numbered plan as a mandatory execution contract:
 
 ## Active Proof Expansion Rule
 
-The current focus after realistic-input full-system acceptance is broadening
-that final gate beyond the narrow `reference` slice.
+The current focus after realistic-input full-system acceptance is realistic-input
+acceptance breadth.
 
+- extend realistic-input final acceptance from `reference` into
+  `deterministic` mode before claiming broader mode coverage
+- add at least one second shipped realistic-input slice so the final gate is no
+  longer proved on only one workflow
+- add one suite-level realistic-input acceptance artifact so proof breadth
+  remains explicit rather than conversational
 - keep realistic-input final acceptance tied to actual blueprint execution
   rather than a disconnected review workflow
-- broaden the final gate carefully from `reference` outward instead of claiming
-  multi-mode support before it is real
 - keep the final verdict as combined evidence: hard programmatic artifacts plus
   LLM semantic review
 - preserve the AC14-native notebook and implementation-status doc as the

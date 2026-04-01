@@ -1,20 +1,20 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: In Progress
 Last updated: 2026-03-31
 
 ## Purpose
 
 This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contract for the completed lane is:
+The authoritative implementation contract for the current lane is:
 
-- [Plan #5: Realistic-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/05_realistic_input_full_system_acceptance.md)
+- [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
 
-Plan #4 proved a realistic-input front-half artifact. Plan #5 extended that
-into the final gate by running realistic input through actual blueprint
-execution in `reference` mode and then reviewing the resulting outputs against
-the requirements.
+Plan #5 proved a realistic-input full-system acceptance artifact in
+`reference` mode. Plan #6 now broadens that final gate by adding deterministic
+mode support, a second shipped realistic-input slice, and one suite-level
+realistic-input acceptance artifact.
 
 ## Progress Update
 
@@ -35,34 +35,41 @@ Completed before this lane:
 2. one structured review over the full front-half chain
 3. one shipped realistic input file plus operator surfaces
 
-Completed in Plan #5:
+Completed before this lane:
 
-1. one persisted realistic-input full-system acceptance artifact
+1. one persisted realistic-input full-system acceptance artifact in `reference` mode
 2. one final structured review over actual system outputs
 3. one shipped realistic-input slice exercised through blueprint execution
 
+Required in Plan #6:
+
+1. deterministic realistic-input acceptance for the support-ticket slice
+2. one second shipped realistic-input slice
+3. one suite-level realistic-input acceptance artifact across shipped examples and supported modes
+
 ## Tactical Phase Summary
 
-This document mirrors the completed plan at a higher level. Detailed
-references, write scope, tests, and acceptance criteria live in Plan #5.
+This document mirrors the active plan at a higher level. Detailed references,
+write scope, tests, and acceptance criteria live in Plan #6.
 
-### Phase 1: full-system artifact
+### Phase 1: deterministic realistic-input acceptance
 
-- persisted realistic inputs, actual outputs, and final review
-- one reviewable artifact for a realistic-input execution run
+- persist realistic-input acceptance in `deterministic` mode
+- surface and resolve generated-state assumptions explicitly
 
-### Phase 2: final structured review
+### Phase 2: second shipped realistic-input slice
 
-- review full-system outputs against explicit requirements
-- support `reference` mode on the first honest slice
+- add one realistic-input artifact for the incident slice
+- prove realistic-input acceptance there
 
-### Phase 3: operator surface
+### Phase 3: suite-level acceptance
 
-- CLI and Make expose the new lane cleanly
-- at least one shipped realistic-input slice is wired into the lane
+- persist one suite-level realistic-input acceptance artifact
+- keep supported modes explicit and reviewable
 
 ### Phase 4: Verification And Lock
 
+- any widened CLI and Make surfaces
 - full local verification
 - doc lock and clean commit
 
@@ -74,6 +81,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. realistic-input full-system acceptance should strengthen the final gate without replacing the separate front-half artifact
-2. realistic-input full-system acceptance is now persisted, but it is still `reference`-mode only
-3. realistic-input acceptance is now persisted, but the current shipped input remains plausible rather than broadly messy
+1. deterministic realistic-input acceptance may expose more hidden fixture-derived state assumptions
+2. realistic-input acceptance should strengthen the final gate without replacing the separate front-half artifact
+3. realistic-input acceptance is still plausible rather than broadly messy

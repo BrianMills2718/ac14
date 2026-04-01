@@ -10,8 +10,8 @@ The most recently completed implementation contracts are:
 - [Plan #3: Meta-Process Dependency Probe Policy](/home/brian/projects/ac14/docs/plans/03_meta_process_dependency_probe_policy.md)
 - [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
 
-This file is the running checklist and short verification ledger for the current
-or most recently completed plan.
+This file is the running checklist and short verification ledger for the active
+plan.
 
 Detailed uncertainty tracking now lives in:
 
@@ -19,34 +19,35 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: add realistic-input full-system acceptance artifact
-  - [x] persist actual blueprint outputs for one realistic-input acceptance run
-  - [x] keep the full-system acceptance artifact distinct from the front-half artifact
-  - Success criteria: one artifact shows realistic inputs, actual outputs, and final review together
+- [ ] Phase 1: deterministic realistic-input acceptance
+  - [ ] support deterministic realistic-input full-system acceptance on the support-ticket slice
+  - [ ] resolve generated-state assumptions explicitly rather than hiding them
+  - Success criteria: support-ticket realistic input passes in `deterministic` mode with persisted outputs and review
 
-- [x] Phase 2: add final structured review
-  - [x] review realistic-input outputs against explicit requirements
-  - [x] support `reference` mode on the first honest slice
-  - Success criteria: realistic-input system behavior gets a final semantic verdict instead of only raw outputs
+- [ ] Phase 2: second shipped realistic-input slice
+  - [ ] add one realistic-input artifact for the incident slice
+  - [ ] prove realistic-input acceptance on that slice
+  - Success criteria: realistic-input acceptance is no longer proved on only one workflow
 
-- [x] Phase 3: expose operator surfaces
-  - [x] add CLI and Make entrypoints or extend the existing acceptance surface cleanly
-  - [x] wire at least one shipped realistic-input slice into the lane
-  - Success criteria: operators can run the lane without manual assembly
+- [ ] Phase 3: suite-level realistic-input acceptance
+  - [ ] persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes
+  - [ ] keep the suite artifact explicit about what modes are and are not covered
+  - Success criteria: proof breadth for realistic-input final acceptance is reviewable in one persisted artifact
 
-- [x] Phase 4: verify and lock the lane
-  - [x] run targeted realistic-input full-system acceptance tests
-  - [x] run full `python -m pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the realistic-input full-system acceptance lane
+- [ ] Phase 4: operator surface and lock
+  - [ ] expose any widened CLI and Make surfaces cleanly
+  - [ ] run targeted realistic-input breadth tests
+  - [ ] run full `python -m pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
+  - Success criteria: verification passes and the docs match the realistic-input breadth lane
 
 ## Current Open Uncertainties
 
-- realistic-input full-system acceptance now exists, but it is still `reference`-mode only
+- realistic-input full-system acceptance now exists, but it is still too narrow on mode and workflow coverage
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- the next decision after this lane is whether blocked dependency remediation should stay manual or become a later controlled automation lane
+- deterministic realistic-input acceptance may expose more hidden fixture-derived state assumptions
 
 ## Latest Verified Results
 
@@ -56,7 +57,9 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
-- the most recently completed lane is:
+- the current active lane is:
+  - `docs/plans/06_realistic_input_acceptance_breadth.md`
+- the most recently completed lane before this one was:
   - `docs/plans/05_realistic_input_full_system_acceptance.md`
 - targeted realistic-input full-system acceptance verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_artifact tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_runs_end_to_end` passed with `3 passed`
@@ -89,7 +92,6 @@ Detailed uncertainty tracking now lives in:
 ## Longer-Term Next Steps
 
 - [ ] connect broader proof breadth to less hard-coded deterministic generation
-- [ ] extend realistic-input full-system acceptance beyond `reference` mode
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
