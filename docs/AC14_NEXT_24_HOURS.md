@@ -9,13 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #8: LLM Realistic-Input Breadth](/home/brian/projects/ac14/docs/plans/08_llm_realistic_input_breadth.md)
+- [Plan #9: Live LLM Readiness Boundary](/home/brian/projects/ac14/docs/plans/09_live_llm_readiness_boundary.md)
 
-Plan #7 proved one honest realistic-input `llm` final gate and one per-blueprint
-realistic-input mode-comparison artifact. The next honest gap is breadth:
-AC14 should widen `llm` realistic-input evidence across shipped examples without
-pretending that fixture-backed breadth is the same thing as live default
-readiness.
+Plan #8 closed the fixture-backed suite-level `llm` breadth gap. The next
+honest gap is the readiness boundary: AC14 should stop leaving it implicit
+whether a result comes from fixture-backed proof breadth or from live `llm`
+evidence.
 
 ## Progress Update
 
@@ -24,31 +23,31 @@ Completed before this lane:
 1. six-file frozen blueprint bundle and proof surfaces
 2. pre-freeze discovery, draft planning, authoring, freeze remediation, and promotion
 3. realistic-input front-half acceptance from discovery through freeze decision
-4. realistic-input full-system acceptance in `reference` and `deterministic` modes
-5. suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
-6. one bounded realistic-input `llm` acceptance slice
-7. one per-blueprint realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
+4. realistic-input full-system acceptance in `reference`, `deterministic`, and one bounded `llm` slice
+5. suite-level realistic-input acceptance artifacts across shipped examples for supported non-LLM modes
+6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
+7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Required in Plan #8:
+Required in Plan #9:
 
-1. blueprint-aware fixture-backed `llm` codegen
-2. one suite-level realistic-input `llm` acceptance artifact across shipped examples
-3. explicit bounded wording that this is proof breadth, not live default readiness
+1. one persisted realistic-input live-readiness artifact for `llm` acceptance
+2. explicit `ready` / `blocked` / `skipped` semantics
+3. recommendation and status surfaces that distinguish fixture-backed breadth from live readiness
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#8.
+#9.
 
-### Phase 1: blueprint-aware fixture-backed llm codegen
+### Phase 1: persisted live-readiness artifact
 
-- disambiguate repeated component IDs across blueprints
-- fail loud on ambiguous fixture payloads
+- add one explicit realistic-input live-readiness artifact for `llm` acceptance
+- use explicit states such as `ready`, `blocked`, and `skipped`
 
-### Phase 2: suite-level llm realistic-input acceptance
+### Phase 2: recommendation boundary
 
-- persist one fixture-backed realistic-input suite artifact in `llm` mode
-- keep the suite artifact explicit about scope and non-default status
+- feed live-readiness state into recommendation/status surfaces
+- keep fixture-backed breadth and live readiness explicit and separate
 
 ### Phase 3: Verification And Lock
 
@@ -64,6 +63,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. current fixture-backed `llm` codegen is too narrow for multi-blueprint breadth because it keys by component ID only
-2. fixture-backed `llm` breadth must not be mistaken for live default readiness
-3. suite-level `llm` breadth may reveal hidden blueprint-specific state assumptions that the one-slice lane did not
+1. live provider keys may be absent, so the artifact must support honest `skipped` outcomes
+2. the project should remain conservative even if fixture-backed breadth is strong but live evidence is absent
+3. recommendation logic may need a sharper separation between proof breadth and live readiness than it has today

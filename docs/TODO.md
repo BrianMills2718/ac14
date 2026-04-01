@@ -12,6 +12,7 @@ The most recently completed implementation contracts are:
 - [Plan #5: Realistic-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/05_realistic_input_full_system_acceptance.md)
 - [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
 - [Plan #7: Realistic-Input LLM Acceptance](/home/brian/projects/ac14/docs/plans/07_realistic_input_llm_acceptance.md)
+- [Plan #8: LLM Realistic-Input Breadth](/home/brian/projects/ac14/docs/plans/08_llm_realistic_input_breadth.md)
 
 This file is the running checklist and short verification ledger for the active
 plan.
@@ -22,30 +23,30 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: blueprint-aware fixture-backed llm codegen
-  - [ ] make LLM-codegen fixtures disambiguate repeated component IDs across blueprints
-  - [ ] fail loud when a fixture payload is ambiguous for the current blueprint
-  - Success criteria: multi-blueprint `llm` tests can run without hidden fixture collisions
+- [ ] Phase 1: persisted live-readiness artifact
+  - [ ] add one explicit realistic-input live-readiness artifact for `llm` acceptance
+  - [ ] use explicit statuses such as `ready`, `blocked`, or `skipped`
+  - Success criteria: live-readiness state is persisted instead of inferred from missing or manual runs
 
-- [ ] Phase 2: suite-level llm realistic-input acceptance
-  - [ ] persist one realistic-input suite artifact in `llm` mode across shipped examples
-  - [ ] keep the suite artifact explicit about its fixture-backed scope
-  - Success criteria: one persisted artifact broadens `llm` realistic-input evidence beyond a single blueprint
+- [ ] Phase 2: recommendation boundary
+  - [ ] feed live-readiness state into recommendation/status surfaces
+  - [ ] keep fixture-backed breadth and live readiness explicit and separate
+  - Success criteria: recommendation logic cannot silently treat fixture-backed breadth as live readiness
 
 - [ ] Phase 3: operator surface and lock
   - [ ] expose any widened CLI and Make surfaces cleanly
-  - [ ] run targeted `llm` breadth tests
+  - [ ] run targeted live-readiness tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the `llm` breadth lane
+  - Success criteria: verification passes and the docs match the live-readiness lane
 
 ## Current Open Uncertainties
 
-- realistic-input full-system acceptance now has one `llm` slice, but suite-level `llm` breadth is still unproven
+- fixture-backed suite-level `llm` breadth now exists, but live/default readiness is still unproven
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- fixture-backed `llm` codegen is still too narrow for multi-blueprint breadth because it keys by component ID only
+- live/default recommendation boundaries are still too implicit after the new fixture-backed `llm` breadth lane
 
 ## Latest Verified Results
 
@@ -101,7 +102,7 @@ Detailed uncertainty tracking now lives in:
   - `python -m mypy ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
-    - `python -m pytest -q` passed with `128 passed`
+    - `python -m pytest -q` passed with `132 passed`
     - `python -m mypy ac14 tests` passed on `60` source files
     - `python -m ruff check ac14 tests` passed
 

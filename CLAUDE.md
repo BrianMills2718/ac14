@@ -89,15 +89,14 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after one honest realistic-input `llm` slice is bounded
-`llm` breadth across shipped examples.
+The current focus after fixture-backed suite-level `llm` breadth is the live
+readiness boundary.
 
-- make fixture-backed `llm` codegen blueprint-aware before claiming suite-level
-  `llm` breadth
-- prove one suite-level realistic-input `llm` artifact only after that
-  blueprint-aware fixture surface exists
-- keep the docs explicit that fixture-backed `llm` breadth is still proof
-  breadth, not default live readiness
+- keep fixture-backed breadth and live readiness as separate evidence categories
+- do not let fixture-backed `llm` breadth silently upgrade the default-generator
+  or live-readiness story
+- persist explicit live-readiness artifacts that can say `ready`, `blocked`, or
+  `skipped`
 - keep realistic-input final acceptance tied to actual blueprint execution
   rather than a disconnected review workflow
 - keep the final verdict as combined evidence: hard programmatic artifacts plus

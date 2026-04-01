@@ -131,13 +131,24 @@ the support-ticket blueprint, plus one per-blueprint realistic-input
 comparison artifact across `reference`, `deterministic`, and `llm`.
 **Date resolved:** 2026-03-31
 
-### U-018: Fixture-backed `llm` breadth is still too narrow for multi-blueprint coverage.
+### U-018: Can fixture-backed `llm` breadth extend honestly across multiple blueprints?
+**Status:** Resolved
+**Context:** The initial fixture-backed LLM codegen path keyed responses by
+component ID only, which was too weak for multi-blueprint breadth.
+**Why it matters:** Suite-level `llm` breadth would have been misleading until
+the fixture path became blueprint-aware and failed loud on ambiguity.
+**Resolution:** AC14 now carries `blueprint_id` through packets and codegen
+contexts, fixture-backed LLM codegen can disambiguate by `blueprint_id` plus
+`component_id`, and one fixture-backed suite-level realistic-input `llm`
+acceptance artifact now exists across shipped examples.
+**Date resolved:** 2026-03-31
+
+### U-019: Fixture-backed `llm` breadth is still not the same as live readiness.
 **Status:** Deferred
-**Context:** The current fixture-backed LLM codegen path keys responses by
-component ID only, which is too weak when multiple blueprints reuse component
-IDs with different embedded deterministic state.
-**Why it matters:** Suite-level `llm` breadth will be misleading until the
-fixture path becomes blueprint-aware and fails loud on ambiguity.
+**Context:** AC14 now has suite-level fixture-backed `llm` breadth, but that is
+not yet equivalent to live/default readiness.
+**Why it matters:** Recommendation and status surfaces need to stay conservative
+until live evidence is explicit and reviewable.
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

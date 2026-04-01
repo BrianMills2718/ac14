@@ -1,6 +1,6 @@
 # Plan #8: LLM Realistic-Input Breadth
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -126,11 +126,11 @@ codegen, plus docs that explicitly scope the claim to bounded proof breadth.
 
 ## Acceptance Criteria
 
-- [ ] Fixture-backed LLM codegen is blueprint-aware rather than only component-ID-aware.
-- [ ] AC14 can persist one suite-level realistic-input acceptance artifact in `llm` mode across shipped examples.
-- [ ] CLI and Make expose the widened `llm` breadth lane without manual glue.
-- [ ] The docs state clearly that this is bounded proof breadth, not live default readiness.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] Fixture-backed LLM codegen is blueprint-aware rather than only component-ID-aware.
+- [x] AC14 can persist one suite-level realistic-input acceptance artifact in `llm` mode across shipped examples.
+- [x] CLI and Make expose the widened `llm` breadth lane without manual glue.
+- [x] The docs state clearly that this is bounded proof breadth, not live default readiness.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

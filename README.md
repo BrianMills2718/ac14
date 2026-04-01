@@ -63,6 +63,7 @@ AC14 now supports:
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review
 - persisting one per-blueprint realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
+- persisting one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
@@ -83,7 +84,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- suite-level realistic-input acceptance in `llm` mode
+- explicit live/default readiness evidence for realistic-input `llm` acceptance
 - realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 

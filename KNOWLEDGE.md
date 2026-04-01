@@ -134,4 +134,12 @@ acceptance path because LLM codegen still routed through the sync wrapper with
 generated-package path so acceptance can call async LLM codegen directly when
 already inside an event loop.
 
+### 2026-03-31 — codex — best-practice
+Fixture-backed `llm` breadth needs blueprint-aware keys, not just component
+IDs. Once AC14 widened realistic-input `llm` acceptance beyond one blueprint,
+flat fixture maps became ambiguous because multiple blueprints reused component
+IDs with different embedded deterministic state. The right fix was carrying
+`blueprint_id` through packets/codegen contexts and resolving fixtures by
+`blueprint_id + component_id`.
+
 ---
