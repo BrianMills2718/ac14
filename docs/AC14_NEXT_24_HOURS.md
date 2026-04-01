@@ -1,21 +1,20 @@
 # AC14 Next 24 Hours
 
-Status: Complete
+Status: In Progress
 Last updated: 2026-03-31
 
 ## Purpose
 
-This document is the tactical summary for the most recently completed numbered plan.
+This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contract for this completed lane is:
+The authoritative implementation contract for the current lane is:
 
-- [Plan #3: Meta-Process Dependency Probe Policy](/home/brian/projects/ac14/docs/plans/03_meta_process_dependency_probe_policy.md)
+- [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
 
-Plan #2 made dependency probe evidence matter to AC14 freeze behavior. Plan #3
-puts the policy vocabulary into shared `meta-process` docs/templates and makes
-AC14 consume that shared config instead of hard-coding the rule privately.
-
-This lane is now complete.
+Plan #3 put dependency-probe policy into shared process config. Plan #4 now
+uses that stronger front-half foundation to run discovery through freeze
+decision on a realistic input file and then review the whole front-half result
+against the requirements.
 
 ## Progress Update
 
@@ -30,33 +29,31 @@ Completed before this lane:
 7. dependency-aware draft planning with preserved dependency provenance
 8. explicit dependency execution probes for dependency-plan recommendations
 
-Required in Plan #3:
+Required in Plan #4:
 
-1. shared `dependency_probe_policy` vocabulary in meta-process
-2. AC14 consumption of `planning.dependency_probe_policy`
-3. deterministic proof that `strict`, `warn`, and default loading behave as intended
+1. one persisted front-half acceptance artifact
+2. one structured review over the full front-half chain
+3. one shipped realistic input file plus operator surfaces
 
 ## Tactical Phase Summary
 
 This document mirrors the active plan at a higher level. Detailed references,
-write scope, tests, and acceptance criteria live in Plan #3.
+write scope, tests, and acceptance criteria live in Plan #4.
 
-### Phase 1: shared vocabulary
+### Phase 1: front-half artifact
 
-- meta-process docs/templates define `dependency_probe_policy`
-- the meaning of `strict`, `warn`, and `ignore` is explicit
+- persisted discovery, dependency, draft, freeze, and review paths
+- one reviewable artifact for a realistic input file
 
-### Phase 2: AC14 consumption
+### Phase 2: structured review
 
-- AC14 reads `planning.dependency_probe_policy` from `meta-process.yaml`
-- missing config falls back to `strict`
-- draft authoring applies the policy to blocked dependency probe findings
+- review the front-half result against explicit requirements
+- allow promising-but-blocked outcomes when the front half still looks sound
 
-### Phase 3: verification
+### Phase 3: operator surface
 
-- policy loading has deterministic tests
-- warn mode downgrades blocked probe findings without removing them
-- full repo verification still passes
+- CLI and Make expose the new lane
+- at least one shipped realistic input file exists
 
 ### Phase 4: Verification And Lock
 
@@ -71,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the shared policy should stay about gate behavior, not expand into automatic remediation
-2. AC14 should keep the default at `strict` even after configurability exists
+1. the front-half review should strengthen the front half without replacing later full-system acceptance
+2. a blocked draft bundle may still deserve a positive front-half verdict if the decomposition and findings are sound
 3. broader automation should still not outrun the current explicit operator-invoked probe model

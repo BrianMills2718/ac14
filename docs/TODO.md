@@ -8,6 +8,7 @@ The most recently completed implementation contracts are:
 - [Plan #1: Dependency Execution Probing](/home/brian/projects/ac14/docs/plans/01_dependency_execution_probing.md)
 - [Plan #2: Dependency Probe Integration](/home/brian/projects/ac14/docs/plans/02_dependency_probe_integration.md)
 - [Plan #3: Meta-Process Dependency Probe Policy](/home/brian/projects/ac14/docs/plans/03_meta_process_dependency_probe_policy.md)
+- [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
 
 This file is the running checklist and short verification ledger for the current
 or most recently completed plan.
@@ -18,32 +19,32 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: define shared dependency-probe policy vocabulary
-  - [x] add `dependency_probe_policy` to meta-process docs and templates
-  - [x] keep `strict`, `warn`, and `ignore` meanings explicit
-  - Success criteria: the policy model is shared infrastructure, not AC14-only prose
+- [ ] Phase 1: add the realistic-input front-half artifact
+  - [ ] persist discovery, dependency planning, probing, draft planning, draft bundle, freeze decision, and final review paths together
+  - [ ] keep the final review separate from the underlying programmatic artifacts
+  - Success criteria: one artifact shows the whole front-half chain for a real input file
 
-- [x] Phase 2: consume shared policy in AC14
-  - [x] read `planning.dependency_probe_policy` from `meta-process.yaml`
-  - [x] default to `strict` when config is absent
-  - [x] apply the policy in draft readiness for blocked dependency probes
-  - Success criteria: AC14 behavior is driven by shared config rather than a hard-coded rule
+- [ ] Phase 2: add structured front-half review
+  - [ ] review the front-half result against explicit requirements
+  - [ ] allow promising-but-blocked front-half outcomes instead of requiring freeze approval
+  - Success criteria: the front half gets a semantic verdict instead of only a collection of sub-artifacts
 
-- [x] Phase 3: verify distinct policy behavior
-  - [x] add deterministic tests for `strict`, `warn`, and config loading behavior
-  - [x] run targeted verification for policy loading and draft authoring
-  - Success criteria: the policy modes are real and test-backed
+- [ ] Phase 3: expose operator surfaces and shipped input
+  - [ ] add CLI and Make entrypoints
+  - [ ] add one shipped realistic input file for a current example slice
+  - Success criteria: operators can run the lane without manual assembly
 
-- [x] Phase 4: verify and lock the lane
-  - [x] run full `python -m pytest -q`
-  - [x] run full `python -m mypy ac14 tests`
-  - [x] run full `python -m ruff check ac14 tests`
-  - [x] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the shared-policy model
+- [ ] Phase 4: verify and lock the lane
+  - [ ] run targeted front-half acceptance tests
+  - [ ] run full `python -m pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
+  - Success criteria: verification passes and the docs match the realistic-input front-half lane
 
 ## Current Open Uncertainties
 
-- the policy vocabulary now exists and is verified; the next question is whether future projects should consume the same policy through a shared helper instead of repo-local readers
+- realistic-input acceptance should strengthen the front half without pretending a blocked draft bundle is already a finished system
 - the next decision after this lane is whether blocked dependency remediation should stay manual or become a later controlled automation lane
 
 ## Latest Verified Results
@@ -53,9 +54,9 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/02_dependency_probe_integration.md`
-- the current completed lane is:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
+- the current active lane is:
+  - `docs/plans/04_realistic_input_front_half_acceptance.md`
 - targeted dependency-probe integration verification passed:
   - `python -m pytest -q tests/test_blueprint_planning.py tests/test_draft_authoring.py tests/test_freeze_decision.py tests/test_cli.py tests/test_make_targets.py -x` passed with `50 passed`
 - targeted meta-process policy verification passed:

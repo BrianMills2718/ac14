@@ -64,21 +64,30 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 
 The default failure mode here is waiting too early. Avoid that.
 
+Treat the active numbered plan as a mandatory execution contract:
+
+- do not stop because a phase revealed uncertainty that can be logged
+- do not stop because one subphase passed; continue until the whole active plan is verified and committed
+- do not leave the TODO ledger stale while continuing implementation
+- if a lane spans the full work block, keep iterating until every phase is either complete or blocked by a real contradiction to the thesis
+
 ## Active Proof Expansion Rule
 
-The current focus after dependency-probe integration is shared
-meta-process-driven dependency-probe policy.
+The current focus after dependency-probe policy is realistic-input front-half
+acceptance.
 
-- keep dependency-probe policy in shared `meta-process` vocabulary rather than
-  AC14-only code comments
-- consume `planning.dependency_probe_policy` from `meta-process.yaml` with a
-  strict default
-- keep blocked probe behavior configurable as `strict`, `warn`, or `ignore`
-  without weakening the default proof slice
+- run discovery through freeze decision on a real input artifact rather than
+  only on abstract example blueprints
+- persist a reviewable front-half acceptance artifact that judges whether the
+  discovered-input pipeline looks requirements-sound
+- keep the final front-half verdict as combined evidence: hard programmatic
+  artifacts plus LLM semantic review
+- keep uncertainties logged, but do not treat them as blockers unless they
+  contradict the frozen proof slice
 - preserve the AC14-native notebook and implementation-status doc as the
   canonical story surface while implementation continues
-- keep dependency policy tied to blueprint freeze preparation rather than a
-  disconnected package-management workflow
+- keep realistic-input acceptance tied to blueprint freeze preparation rather
+  than a disconnected side review workflow
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule
