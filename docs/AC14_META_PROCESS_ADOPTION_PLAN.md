@@ -33,11 +33,15 @@ Completed:
 3. Phase 3: notebook tightening
    - updated notebook registry links and phase semantics
    - restored live execution for the current notebook's phase-4 governance check
+4. Phase 4: light enforcement
+   - added `meta-process.yaml`
+   - added tracked commit-prefix hook and setup script
+5. Phase 5: control-surface cleanup
+   - reduced `TODO.md` back to a live checklist and short verification ledger
 
 Next:
 
-1. Phase 4: light enforcement
-2. Phase 5: control-surface cleanup
+1. keep the new surfaces current while dependency execution probing proceeds
 
 ## Decision
 
@@ -68,9 +72,10 @@ Interpret AC14 governance in this order:
 2. [AC14_ROADMAP.md](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
 3. `docs/plans/CLAUDE.md`
 4. active numbered plan in `docs/plans/`
-5. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
-6. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
-7. notebook registry and active journey notebook
+5. [UNCERTAINTIES.md](/home/brian/projects/ac14/docs/UNCERTAINTIES.md)
+6. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
+7. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
+8. notebook registry and active journey notebook
 
 The rule is:
 

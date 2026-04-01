@@ -58,35 +58,11 @@ Detailed uncertainty tracking now lives in:
   - `notebooks/notebook_registry.yaml` parses successfully
   - `notebooks/01_ac14_execution_status_journey.ipynb` parses successfully
   - notebook code cells execute successfully from repo root
-- detailed implementation reality and broader risk framing now live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
-- planning-artifact resynchronization verification passed:
-  - notebook JSON parsed successfully for `notebooks/01_ac14_execution_status_journey.ipynb`
-  - notebook registry YAML parsed successfully for `notebooks/notebook_registry.yaml`
-  - AC14-native canonical notebook and implementation-status doc now exist
-- dependency-aware planning lane verification passed:
-  - `pytest -q` passed with `93 passed`
-  - `python -m mypy ac14 tests` passed on 54 source files
-  - `python -m ruff check ac14 tests` passed
-- targeted dependency-aware planning verification passed:
-  - `pytest -q tests/test_blueprint_planning.py tests/test_draft_authoring.py tests/test_cli.py tests/test_make_targets.py -x` passed with `42 passed`
-  - `python -m mypy ac14 tests`
-  - `python -m ruff check ac14 tests`
-- dependency-planning lane verification passed:
-  - `pytest -q` passed with `91 passed`
-  - `python -m mypy ac14 tests` passed on 54 source files
-  - `python -m ruff check ac14 tests` passed
-- targeted dependency-planning verification passed:
-  - `pytest -q tests/test_dependency_planning.py tests/test_cli.py tests/test_make_targets.py -x` passed with `40 passed`
-  - `python -m mypy ac14 tests`
-  - `python -m ruff check ac14 tests`
-- shared-retrieval lane verification passed:
-  - `pytest -q` passed with `86 passed`
-  - `python -m mypy ac14 tests` passed on 52 source files
-  - `python -m ruff check ac14 tests` passed
-- targeted shared-retrieval verification passed:
-  - `pytest -q tests/test_retrieval.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py -x` passed with `43 passed`
-  - `python -m mypy ac14 tests`
-  - `python -m ruff check ac14 tests`
+- light enforcement now exists:
+  - `meta-process.yaml`
+  - `hooks/commit-msg`
+  - `scripts/setup_hooks.sh`
+- current implementation reality and broader historical verification context live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 
 ## Longer-Term Next Steps
 

@@ -12,6 +12,15 @@ The first proof slice is intentionally narrow:
 AC14 is not trying to solve enterprise deployment, full autonomy, or broad
 tool/runtime integration in the first pass.
 
+## Local Setup
+
+```bash
+bash scripts/setup_hooks.sh
+```
+
+This enables the tracked `hooks/commit-msg` hook so local commits follow the
+repo's light plan-prefix discipline.
+
 ## Core Docs
 
 - [Roadmap](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
@@ -21,6 +30,7 @@ tool/runtime integration in the first pass.
 - [Next 24 Hours](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
 - [TODO](/home/brian/projects/ac14/docs/TODO.md)
 - [Plans Index](/home/brian/projects/ac14/docs/plans/CLAUDE.md)
+- [Meta-Process Adoption Plan](/home/brian/projects/ac14/docs/AC14_META_PROCESS_ADOPTION_PLAN.md)
 - [Execution Notebook](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
 
 ## What Works Today

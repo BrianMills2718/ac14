@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Validate commit prefixes against meta-process.yaml.
+
+This is a light AC14 adoption of meta-process commit discipline. It enforces
+that normal commits begin with `[Plan #N]`, `[Trivial]`, or `[Unplanned]`.
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+import yaml
+
+
+def find_repo_root() -> Path:
+    """Walk up from the hook path to the git repo root."""
+    current = Path(__file__).resolve().parent
+    while current != current.parent:
+        if (current / ".git").exists():
+            return current
+        current = current.parent
+    return Path(__file__).resolve().parent.parent
+
+
+def load_config(repo_root: Path) -> dict:
+    """Load commit-prefix config from meta-process.yaml."""
+    config_path = repo_root / "meta-process.yaml"
+    if not config_path.exists():
+        print(f"ERROR: {config_path} not found.", file=sys.stderr)
+        raise SystemExit(1)
+
+    try:
+        data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive fail-loud hook path
+        print(f"ERROR: failed to parse {config_path}: {exc}", file=sys.stderr)
+        raise SystemExit(1)
+
+    if not isinstance(data, dict) or "meta_process" not in data:
+        print(f"ERROR: {config_path} missing 'meta_process' key.", file=sys.stderr)
+        raise SystemExit(1)
+    return data["meta_process"]
+
+
+def validate_first_line(first_line: str, config: dict) -> bool:
+    """Return True when the commit prefix is allowed."""
+    if first_line.startswith("Merge"):
+        return True
+    if re.match(r"^(fixup!|squash!)", first_line):
+        return True
+
+    commits = config.get("commits", {})
+    if not commits.get("require_prefix", True):
+        return True
+
+    prefixes = commits.get("valid_prefixes", [])
+    if not prefixes:
+        print("ERROR: no valid_prefixes configured.", file=sys.stderr)
+        return False
+
+    for pattern in prefixes:
+        if re.match(pattern, first_line):
+            return True
+    return False
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Validate the first line of the provided commit message file."""
+    args = argv if argv is not None else sys.argv[1:]
+    if not args:
+        print("ERROR: no commit message file provided.", file=sys.stderr)
+        return 1
+
+    commit_path = Path(args[0])
+    if not commit_path.exists():
+        print(f"ERROR: commit message file not found: {commit_path}", file=sys.stderr)
+        return 1
+
+    first_line = commit_path.read_text(encoding="utf-8").splitlines()[0].strip()
+    config = load_config(find_repo_root())
+
+    if validate_first_line(first_line, config):
+        return 0
+
+    prefixes = config.get("commits", {}).get("valid_prefixes", [])
+    print("ERROR: commit message must start with an allowed prefix.", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Allowed patterns:", file=sys.stderr)
+    for pattern in prefixes:
+        print(f"  {pattern}", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Examples:", file=sys.stderr)
+    print("  [Plan #1] Add dependency execution probes", file=sys.stderr)
+    print("  [Trivial] Fix README link", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
