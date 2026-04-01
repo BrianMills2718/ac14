@@ -36,8 +36,8 @@ current executable lane.
 | 23 | [Front-Half Retry Integration](23_front_half_retry_integration.md) | High | Complete | - |
 | 24 | [Front-Half Retry Suite Breadth](24_front_half_retry_suite_breadth.md) | High | Complete | - |
 | 25 | [Messy-Input Retry Proof](25_messy_input_retry_proof.md) | High | Complete | - |
-| 26 | [Structured Realistic-Input Loading](26_structured_realistic_input_loading.md) | High | In Progress | - |
-| 27 | [Messy-Input Full-System Acceptance](27_messy_input_full_system_acceptance.md) | High | Planned | 26 |
+| 26 | [Structured Realistic-Input Loading](26_structured_realistic_input_loading.md) | High | Complete | - |
+| 27 | [Messy-Input Full-System Acceptance](27_messy_input_full_system_acceptance.md) | High | In Progress | 26 |
 | 28 | [Messy-Input LLM Comparison](28_messy_input_llm_comparison.md) | High | Planned | 27 |
 
 ## Status Key

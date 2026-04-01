@@ -347,13 +347,18 @@ per-example retry artifact paths.
 **Date resolved:** 2026-04-01
 
 ### U-036: Realistic-input final acceptance still assumed top-level JSON lists.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** Front-half discovery already supports multiple structured input
 formats, but full-system realistic-input acceptance still only loads top-level
 JSON lists and only auto-discovers `.json` input files.
 **Why it matters:** The final semantic gate cannot honestly claim messy-input
 coverage while it silently excludes the same structured formats the front half
 already supports.
+**Resolution:** AC14 now shares one structured-input loading surface between
+discovery and acceptance, supports `json`, `jsonl`, `csv`, and `yaml` object
+records at the final gate, and can auto-discover structured realistic-input
+artifacts without hardcoding `.json`.
+**Date resolved:** 2026-04-01
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

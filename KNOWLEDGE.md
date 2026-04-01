@@ -206,6 +206,13 @@ final semantic review explicit instead of collapsing them into one success
 claim.
 
 ### 2026-04-01 — codex — best-practice
+If discovery supports multiple structured realistic-input formats, the final
+gate should not quietly narrow back to JSON-only. AC14 now shares one
+structured-input loader between discovery and acceptance, so record-bearing
+`json`, `jsonl`, `csv`, and `yaml` inputs remain executable all the way through
+semantic acceptance.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

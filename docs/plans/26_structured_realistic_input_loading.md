@@ -1,6 +1,6 @@
 # Plan #26: Structured Realistic-Input Loading
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -98,10 +98,24 @@ silently excludes the same structured formats the front half already supports.
 
 ## Acceptance Criteria
 
-- [ ] Discovery and acceptance share one structured realistic-input loading surface.
-- [ ] Realistic-input acceptance can load record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs and still fail loud on unsupported text inputs.
-- [ ] Default realistic-input discovery no longer hardcodes `.json` as the only acceptable artifact type.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] Discovery and acceptance share one structured realistic-input loading surface.
+- [x] Realistic-input acceptance can load record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs and still fail loud on unsupported text inputs.
+- [x] Default realistic-input discovery no longer hardcodes `.json` as the only acceptable artifact type.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted structured-input loading verification passed:
+  - `python -m pytest -q tests/test_structured_inputs.py tests/test_acceptance.py::test_discover_realistic_input_path_supports_structured_non_json_inputs`
+  - `python -m mypy ac14/structured_inputs.py ac14/discovery.py ac14/acceptance.py tests/test_structured_inputs.py tests/test_acceptance.py`
+  - `python -m ruff check ac14/structured_inputs.py ac14/discovery.py ac14/acceptance.py tests/test_structured_inputs.py tests/test_acceptance.py`
+
+## Outcome
+
+AC14 now shares one structured-input loading surface between discovery and
+realistic-input acceptance, can load record-bearing `json`, `jsonl`, `csv`,
+and `yaml` inputs at the final gate, and can auto-discover a structured
+realistic-input artifact even when a shipped example has no `.json` input file.
 
 ---
 

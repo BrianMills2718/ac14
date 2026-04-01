@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 import json
 import platform
 import re
@@ -12,12 +11,9 @@ from collections.abc import Sequence
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, Literal
-
-import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
 
-
-InputFormat = Literal["json", "jsonl", "csv", "yaml", "text"]
+from ac14.structured_inputs import InputFormat, detect_input_format, load_input
 RootKind = Literal["record", "record_stream", "list", "scalar", "text"]
 DependencySource = Literal["project", "requested"]
 DocumentCategory = Literal["readme", "claude", "doc"]
@@ -199,8 +195,8 @@ def inspect_input_path(input_path: Path | str, *, max_samples: int = 5) -> Input
     """Inspect a local input file and infer a compact structural summary."""
 
     path = Path(input_path)
-    input_format = _detect_input_format(path)
-    root_value = _load_input(path, input_format)
+    input_format = detect_input_format(path)
+    root_value = load_input(path, input_format)
     root_kind, sample_records, truncated = _extract_samples(root_value, input_format, max_samples)
     field_summaries = _infer_field_summaries(sample_records, root_kind)
     concerns = _build_input_concerns(
@@ -372,40 +368,6 @@ def _load_external_retrieval_summaries(
             ),
         )
     return summaries
-
-
-def _detect_input_format(path: Path) -> InputFormat:
-    """Detect the supported input format from the file suffix."""
-
-    suffix = path.suffix.lower()
-    if suffix == ".json":
-        return "json"
-    if suffix == ".jsonl":
-        return "jsonl"
-    if suffix == ".csv":
-        return "csv"
-    if suffix in {".yaml", ".yml"}:
-        return "yaml"
-    return "text"
-
-
-def _load_input(path: Path, input_format: InputFormat) -> object:
-    """Load a supported local input file."""
-
-    if input_format == "json":
-        return json.loads(path.read_text())
-    if input_format == "jsonl":
-        return [
-            json.loads(line)
-            for line in path.read_text().splitlines()
-            if line.strip()
-        ]
-    if input_format == "csv":
-        with path.open(newline="") as handle:
-            return list(csv.DictReader(handle))
-    if input_format == "yaml":
-        return yaml.safe_load(path.read_text())
-    return path.read_text().splitlines()
 
 
 def _extract_samples(

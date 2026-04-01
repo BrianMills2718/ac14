@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from ac14.acceptance import (
+    _discover_realistic_input_path,
     AcceptanceReviewResponse,
     build_acceptance_report,
     build_realistic_mode_comparison_report,
@@ -330,3 +331,25 @@ def test_build_realistic_suite_acceptance_report_supports_llm_mode(
     assert report.example_count >= 3
     assert report.mode_summaries["llm"].accepted_examples == report.example_count
     assert (tmp_path / "realistic_suite_acceptance_llm" / "realistic_suite_acceptance_report.json").exists()
+
+
+def test_discover_realistic_input_path_supports_structured_non_json_inputs(tmp_path: Path) -> None:
+    """Acceptance should discover a supported structured input even when JSON is absent."""
+
+    example_dir = tmp_path / "csv_only_example"
+    blueprint_dir = example_dir / "blueprint"
+    input_dir = example_dir / "input"
+    blueprint_dir.mkdir(parents=True)
+    input_dir.mkdir()
+    (input_dir / "realistic_ticket_batch.csv").write_text("ticket_id,status\nSUP-1,open\n")
+
+    discovered = _discover_realistic_input_path(
+        {
+            "example_id": "csv_only_example",
+            "blueprint_dir": str(blueprint_dir),
+            "blueprint_id": "csv_only_blueprint",
+            "name": "CSV Only Example",
+        },
+    )
+
+    assert discovered == input_dir / "realistic_ticket_batch.csv"

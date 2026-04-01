@@ -22,6 +22,7 @@ from ac14.recomposition import (
 )
 from ac14.reference_components import build_reference_component_builders_for_blueprint
 from ac14.runtime import run_blueprint_once
+from ac14.structured_inputs import discover_structured_input_candidates, load_structured_input_records
 
 
 DEFAULT_ACCEPTANCE_MODEL = "gemini/gemini-2.5-flash-lite"
@@ -696,18 +697,12 @@ def _load_realistic_input_record(
     realistic_input_path: Path | str,
     record_index: int,
 ) -> dict[str, Any]:
-    """Load one realistic input record from a persisted JSON artifact."""
+    """Load one realistic input record from a persisted structured artifact."""
 
-    path = Path(realistic_input_path)
-    payload = json.loads(path.read_text())
-    if not isinstance(payload, list):
-        raise ValueError("realistic-input acceptance currently requires a top-level JSON list")
+    payload = load_structured_input_records(realistic_input_path)
     if record_index < 0 or record_index >= len(payload):
         raise ValueError("realistic-input record index is out of range")
-    record = payload[record_index]
-    if not isinstance(record, dict):
-        raise ValueError("realistic-input acceptance currently requires object records")
-    return cast(dict[str, Any], record)
+    return payload[record_index]
 
 
 def _discover_realistic_input_path(example: ShippedBlueprintExample | object) -> Path:
@@ -722,10 +717,10 @@ def _discover_realistic_input_path(example: ShippedBlueprintExample | object) ->
     input_dir = example_dir / "input"
     if not input_dir.is_dir():
         raise ValueError(f"no input directory found for shipped example {typed_example.example_id}")
-    candidates = sorted(input_dir.glob("*.json"))
+    candidates = discover_structured_input_candidates(input_dir)
     if not candidates:
         raise ValueError(
-            f"no realistic-input json artifact found for shipped example {typed_example.example_id}",
+            f"no structured realistic-input artifact found for shipped example {typed_example.example_id}",
         )
     return candidates[0]
 

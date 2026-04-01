@@ -99,6 +99,7 @@ Implemented:
 26. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
 27. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
 28. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
+29. one shared structured-input loading surface between discovery and realistic-input acceptance, so the final gate now supports record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs instead of only top-level JSON lists
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -147,7 +148,7 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. non-JSON structured realistic-input loading at the final gate
+3. explicit messy-input full-system acceptance beyond the cleaner JSON slice
 4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, and one bounded messy-input retry proof
 
 ### Generality
@@ -166,7 +167,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. non-JSON structured realistic-input loading at the final semantic gate
+1. explicit messy-input full-system acceptance at the final semantic gate
 2. broad automatic dependency installation and post-install verification as a normal lane
 3. real shared-tool execution inside blueprinted components
 4. first-class runtime tool nodes or retrieval nodes in the blueprint model
