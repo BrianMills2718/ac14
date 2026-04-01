@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from ac14.recommendation import (
+    LlmLiveReadinessArtifact,
     build_default_generator_recommendation,
     build_llm_live_readiness_artifact,
 )
@@ -15,6 +16,24 @@ from ac14.recommendation import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES_ROOT = REPO_ROOT / "examples"
+
+
+def _write_acceptance_review_fixture(path: Path) -> Path:
+    """Persist one deterministic acceptance-review fixture for recommendation tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed acceptance review approved the outputs.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
 
 
 def test_build_default_generator_recommendation_keeps_deterministic_default(
@@ -31,6 +50,19 @@ def test_build_default_generator_recommendation_keeps_deterministic_default(
         "AC14_ENABLE_LIVE_LLM_READINESS",
     ]:
         monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(
+        "ac14.recommendation.build_llm_live_readiness_artifact",
+        lambda *args, **kwargs: LlmLiveReadinessArtifact(
+            status="skipped",
+            reason="Test fixture keeps recommendation focused on recommendation logic.",
+            provider_env_vars=[],
+            live_execution_enabled=False,
+        ),
+    )
+    monkeypatch.setenv(
+        "AC14_ACCEPTANCE_REVIEW_FIXTURE",
+        str(_write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")),
+    )
 
     recommendation = build_default_generator_recommendation(
         output_dir=tmp_path / "recommendation",
@@ -45,7 +77,7 @@ def test_build_default_generator_recommendation_keeps_deterministic_default(
     assert recommendation.llm_promotion_ready is False
     assert recommendation.proof_breadth_count >= 2
     assert recommendation.live_readiness_status == "skipped"
-    assert Path(recommendation.live_readiness_artifact_path).exists()
+    assert recommendation.live_readiness_artifact_path.endswith("live_llm_readiness.json")
 
 
 def test_build_llm_live_readiness_artifact_skips_without_live_keys(

@@ -155,4 +155,11 @@ Packet existence is not enough. AC14 now persists a structural
 local schemas, neighboring context, fixtures, and packet-local tests are
 present without pretending that this alone proves semantic sufficiency.
 
+### 2026-04-01 — codex — best-practice
+If realistic-input final acceptance matters to the thesis, it should live in
+the default proof story. AC14 now persists `realistic_input_gate.json` inside
+the default deterministic proof/evidence bundle, includes realistic-input
+acceptance when shipped input exists, and records explicit `missing` or
+`unsupported` states instead of silently skipping the gate.
+
 ---

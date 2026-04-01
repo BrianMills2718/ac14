@@ -180,6 +180,19 @@ any missing structural elements per packet without overclaiming semantic
 sufficiency.
 **Date resolved:** 2026-04-01
 
+### U-022: Realistic-input full-system acceptance was still outside the default proof path.
+**Status:** Resolved
+**Context:** AC14 had realistic-input acceptance artifacts, but the default
+single-example proof/evidence bundle still ended at structural and recomposition
+artifacts.
+**Why it matters:** The final proof story should include actual realistic-input
+execution plus semantic review, not just offer it as a side command.
+**Resolution:** AC14 now persists a `realistic_input_gate.json` artifact inside
+the default deterministic proof/evidence bundle, includes realistic-input
+acceptance when shipped input exists, and records explicit `missing` or
+`unsupported` states instead of silently skipping the final gate.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

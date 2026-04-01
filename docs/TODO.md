@@ -24,28 +24,28 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: default realistic-input gate
-  - [ ] carry realistic-input full-system acceptance into the default single-example proof/evidence path
-  - [ ] keep missing realistic-input artifacts explicit instead of silently skipping them
-  - Success criteria: the default proof/evidence path includes realistic-input acceptance whenever a shipped realistic-input artifact exists
+- [ ] Phase 1: suite-level default realistic-input gate
+  - [ ] carry realistic-input acceptance into the default suite proof/evidence story
+  - [ ] keep missing realistic-input artifacts explicit in suite evidence
+  - Success criteria: suite proof/evidence includes realistic-input acceptance whenever shipped realistic-input artifacts exist
 
-- [ ] Phase 2: operator and artifact surface
-  - [ ] keep realistic-input final-gate evidence connected to the default proof/evidence bundle
-  - [ ] avoid adding a disconnected side artifact
-  - Success criteria: the final proof story becomes stronger without multiplying unrelated surfaces
+- [ ] Phase 2: artifact integration
+  - [ ] reuse existing realistic-input acceptance artifacts where possible
+  - [ ] keep suite-level final-gate evidence connected to the broader suite proof story
+  - Success criteria: the suite proof story is stronger without adding a disconnected parallel artifact
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted default-gate tests
+  - [ ] run targeted suite default-gate tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the realistic-input default-gate lane
+  - Success criteria: verification passes and the docs match the suite default-gate lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- realistic-input acceptance now exists, but it is still not part of the default proof/evidence gate
+- realistic-input acceptance is now part of the default single-example proof/evidence gate, but not yet the default suite-level proof story
 - broader live/default evidence is still narrow even after the new explicit boundary artifact
 
 ## Latest Verified Results
@@ -119,6 +119,14 @@ Detailed uncertainty tracking now lives in:
   - `python -m ruff check ac14/packet_sufficiency.py ac14/__main__.py tests/test_packets.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `138 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted realistic-input default-gate verification passed:
+  - `python -m pytest -q tests/test_evidence_bundle.py tests/test_cli.py::test_cli_prove_example tests/test_make_targets.py::test_make_prove_example_runs_end_to_end` passed with `4 passed`
+  - `python -m mypy ac14/evidence_bundle.py tests/test_evidence_bundle.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/evidence_bundle.py tests/test_evidence_bundle.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `139 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
 

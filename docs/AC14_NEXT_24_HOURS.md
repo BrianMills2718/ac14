@@ -9,12 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #11: Realistic-Input Default Gate](/home/brian/projects/ac14/docs/plans/11_realistic_input_default_gate.md)
+- [Plan #12: Realistic-Input Suite Default Gate](/home/brian/projects/ac14/docs/plans/12_realistic_input_suite_default_gate.md)
 
-Plan #10 closed the packet-sufficiency gap. The next honest gap is the default
-final gate: AC14 should stop treating realistic-input full-system acceptance as
-only an optional side artifact when shipped examples already provide realistic
-inputs.
+Plan #11 closed the single-example default-gate gap. The next honest gap is the
+suite proof story: AC14 should stop treating realistic-input acceptance as a
+side artifact outside the default suite evidence path.
 
 ## Progress Update
 
@@ -28,30 +27,30 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Required in Plan #11:
+Required in Plan #12:
 
-1. realistic-input full-system acceptance carried into the default single-example proof/evidence path
+1. realistic-input acceptance carried into the default suite proof/evidence story
 2. explicit handling for shipped examples that lack realistic-input artifacts
-3. status/docs that stop presenting realistic-input acceptance as only an optional side artifact
+3. status/docs that stop presenting suite realistic-input acceptance as only a side artifact
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#11.
+#12.
 
-### Phase 1: default realistic-input gate
+### Phase 1: suite-level default realistic-input gate
 
-- carry realistic-input full-system acceptance into the default proof/evidence path
+- carry realistic-input acceptance into the default suite proof/evidence story
 - keep missing realistic-input artifacts explicit
 
-### Phase 2: operator and artifact surface
+### Phase 2: artifact integration
 
-- keep realistic-input final-gate evidence connected to the default proof story
-- avoid multiplying disconnected artifact surfaces
+- reuse existing realistic-input acceptance artifacts where possible
+- keep suite-level final-gate evidence connected to the broader suite proof story
 
 ### Phase 3: Verification And Lock
 
-- targeted default-gate verification
+- targeted suite default-gate verification
 - full local verification
 - doc lock and clean commit
 
@@ -63,6 +62,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the new default gate should strengthen the proof story instead of adding a disconnected side artifact
-2. shipped examples without realistic-input artifacts must remain explicit in the evidence path
+1. the suite-level gate should strengthen the proof story instead of adding a disconnected side artifact
+2. shipped examples without realistic-input artifacts must remain explicit in suite evidence
 3. the lane should keep structural proof and semantic acceptance complementary rather than replacing one with the other

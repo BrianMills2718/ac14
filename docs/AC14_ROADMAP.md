@@ -59,7 +59,7 @@ Prove that blueprint-driven decomposition is real, not just well-instrumented.
 
 Remaining emphasis:
 
-1. realistic-input final gates that combine programmatic and LLM review by default
+1. realistic-input final gates that carry into suite-level proof/evidence by default
 2. slightly broader proof breadth
 3. operator-reviewed live/default readiness evidence beyond the new explicit boundary artifact
 4. stronger recomposition evidence as breadth grows
@@ -156,7 +156,7 @@ Failure signs:
 In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
-2. finish the remaining proof-slice infrastructure, especially realistic-input default-gate integration
+2. finish the remaining proof-slice infrastructure, especially suite-level realistic-input default-gate integration
 3. strengthen the front half before making stronger generality claims
 4. broaden proof breadth before expanding scope claims
 

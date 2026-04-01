@@ -1,6 +1,6 @@
 # Plan #11: Realistic-Input Default Gate
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -112,10 +112,10 @@ bundles and keep the artifact shape reusable for suite expansion.
 
 ## Acceptance Criteria
 
-- [ ] AC14 default proof/evidence path includes realistic-input acceptance when a shipped realistic-input artifact exists.
-- [ ] Missing realistic-input artifacts remain explicit instead of being silently skipped.
-- [ ] The proof story now treats realistic-input full-system acceptance as part of the default final gate, not only as an optional side artifact.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 default proof/evidence path includes realistic-input acceptance when a shipped realistic-input artifact exists.
+- [x] Missing realistic-input artifacts remain explicit instead of being silently skipped.
+- [x] The proof story now treats realistic-input full-system acceptance as part of the default final gate, not only as an optional side artifact.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

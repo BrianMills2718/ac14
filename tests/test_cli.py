@@ -193,6 +193,24 @@ def _write_blueprint_aware_llm_codegen_fixture(path: Path) -> Path:
     return path
 
 
+def _write_acceptance_review_fixture(path: Path) -> Path:
+    """Persist one deterministic acceptance-review fixture for subprocess tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed acceptance review approved the outputs.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
 def test_cli_verify_blueprint() -> None:
     """Blueprint verification command should exit cleanly for the shipped example."""
 
@@ -858,6 +876,10 @@ def test_cli_decide_freeze_promotes_ready_bundle(tmp_path: Path) -> None:
 def test_cli_prove_example(tmp_path: Path) -> None:
     """Proof command should build a persisted evidence bundle."""
 
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -874,11 +896,13 @@ def test_cli_prove_example(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert Path(payload["packet_test_report_path"]).exists()
     assert Path(payload["fresh_run_summary_path"]).exists()
+    assert Path(payload["realistic_input_gate_path"]).exists()
 
 
 def test_cli_fresh_runs(tmp_path: Path) -> None:

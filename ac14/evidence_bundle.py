@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ac14.acceptance import build_acceptance_report
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import (
     run_fresh_generation_trials,
@@ -27,6 +29,30 @@ class EvidenceBundleManifest(BaseModel):
     packet_test_report_path: str = Field(description="JSON file path for packet-test results.")
     recomposition_report_path: str = Field(description="JSON file path for recomposition results.")
     fresh_run_summary_path: str = Field(description="JSON file path for fresh-run summary.")
+    realistic_input_gate_path: str = Field(
+        description="JSON file path for the realistic-input default-gate artifact.",
+    )
+
+
+class RealisticInputGateArtifact(BaseModel):
+    """Persisted realistic-input final-gate artifact for one proof bundle."""
+
+    status: Literal["included", "missing", "unsupported"] = Field(
+        description="Whether realistic-input final-gate acceptance was included in the proof bundle.",
+    )
+    reason: str = Field(description="Concise explanation for the final-gate status.")
+    realistic_input_path: str | None = Field(
+        default=None,
+        description="Realistic-input artifact used for the final-gate acceptance when available.",
+    )
+    acceptance_report_path: str | None = Field(
+        default=None,
+        description="Persisted acceptance report path when the final gate was included.",
+    )
+    acceptance_mode: Literal["deterministic", "llm"] | None = Field(
+        default=None,
+        description="Acceptance mode used for the final gate when it was included.",
+    )
 
 
 def build_evidence_bundle(
@@ -81,6 +107,17 @@ def build_evidence_bundle(
         destination / "fresh_run_summary.json",
         fresh_run_summary.model_dump(mode="json"),
     )
+    realistic_input_gate = _build_realistic_input_gate(
+        blueprint_dir=blueprint_path,
+        output_dir=destination / "realistic_input_gate",
+        generator_kind=generator_kind,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+    )
+    _write_json(
+        destination / "realistic_input_gate.json",
+        realistic_input_gate.model_dump(mode="json"),
+    )
 
     manifest = EvidenceBundleManifest(
         blueprint_dir=str(blueprint_path),
@@ -89,6 +126,7 @@ def build_evidence_bundle(
         packet_test_report_path=str(destination / "packet_test_report.json"),
         recomposition_report_path=str(destination / "recomposition_report.json"),
         fresh_run_summary_path=str(destination / "fresh_run_summary.json"),
+        realistic_input_gate_path=str(destination / "realistic_input_gate.json"),
     )
     _write_json(destination / "manifest.json", manifest.model_dump(mode="json"))
     return manifest
@@ -102,6 +140,57 @@ def _packet_bundle_summary(packet_bundle: PacketBundle) -> dict[str, object]:
         "execution_order": list(packet_bundle.recomposition_plan.execution_order),
         "state_store_owners": dict(packet_bundle.recomposition_plan.state_store_owners),
     }
+
+
+def _build_realistic_input_gate(
+    blueprint_dir: Path,
+    output_dir: Path,
+    *,
+    generator_kind: GeneratorKind,
+    llm_model: str,
+    llm_max_budget: float,
+) -> RealisticInputGateArtifact:
+    """Build the realistic-input default-gate artifact for one proof bundle."""
+
+    realistic_input_path = _resolve_realistic_input_path(blueprint_dir)
+    if realistic_input_path is None:
+        return RealisticInputGateArtifact(
+            status="missing",
+            reason="No realistic-input artifact is available for this blueprint.",
+        )
+    if generator_kind != "deterministic":
+        return RealisticInputGateArtifact(
+            status="unsupported",
+            reason=(
+                "The default realistic-input gate is currently wired through the "
+                "deterministic control lane only."
+            ),
+            realistic_input_path=str(realistic_input_path),
+        )
+
+    build_acceptance_report(
+        blueprint_dir=blueprint_dir,
+        output_dir=output_dir,
+        mode="deterministic",
+        realistic_input_path=realistic_input_path,
+        realistic_input_record_index=0,
+        model=llm_model,
+        max_budget=llm_max_budget,
+    )
+    return RealisticInputGateArtifact(
+        status="included",
+        reason="Realistic-input final-gate acceptance is included in the proof bundle.",
+        realistic_input_path=str(realistic_input_path),
+        acceptance_report_path=str(output_dir / "acceptance_report.json"),
+        acceptance_mode="deterministic",
+    )
+
+
+def _resolve_realistic_input_path(blueprint_dir: Path) -> Path | None:
+    """Return the single shipped realistic-input artifact for a blueprint when available."""
+
+    candidates = sorted((blueprint_dir.parent / "input").glob("*.json"))
+    return candidates[0] if candidates else None
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:

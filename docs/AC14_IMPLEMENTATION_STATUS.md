@@ -48,7 +48,8 @@ Implemented:
 4. structural validation
 5. packet compilation
 6. structural packet-sufficiency artifact
-7. recomposition proof surfaces
+7. default deterministic proof/evidence bundle now includes realistic-input final-gate acceptance when a shipped realistic-input artifact exists
+8. recomposition proof surfaces
 
 This is the strongest and most thesis-central part of the repo.
 
@@ -130,7 +131,7 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. broader live/default readiness evidence beyond the new explicit boundary artifact
-3. final realistic-input full-system acceptance as the default proof/evidence gate
+3. final realistic-input full-system acceptance as the default suite-level proof/evidence gate
 4. strategy/value review during draft and freeze phases
 
 ### Generality
@@ -193,8 +194,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 94-97%
-2. long-term general coding agent vision: 44-48%
+1. first proof slice: 95-97%
+2. long-term general coding agent vision: 45-49%
 
 The remaining work is not mainly “more code.” It is:
 

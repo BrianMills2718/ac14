@@ -192,6 +192,24 @@ def _write_blueprint_aware_llm_codegen_fixture(path: Path) -> Path:
     return path
 
 
+def _write_acceptance_review_fixture(path: Path) -> Path:
+    """Persist one deterministic acceptance-review fixture for subprocess tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed acceptance review approved the outputs.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
 def test_make_help_lists_proof_targets() -> None:
     """Make help should expose the proof-surface targets."""
 
@@ -255,6 +273,10 @@ def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
     """Make proof target should build a persisted bundle without manual Python imports."""
 
     output_dir = tmp_path / "proof_bundle"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             "make",
@@ -267,9 +289,11 @@ def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "manifest.json").exists()
+    assert (output_dir / "realistic_input_gate.json").exists()
 
 
 def test_make_discover_input_runs_end_to_end(tmp_path: Path) -> None:
