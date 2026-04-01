@@ -23,12 +23,14 @@ Interpret AC14 in this order:
 1. [AC14_GENERAL_CODING_AGENT_VISION.md](/home/brian/projects/ac12/docs/AC14_GENERAL_CODING_AGENT_VISION.md)
 2. [AC14_BLUEPRINT_SPEC.md](/home/brian/projects/ac12/docs/AC14_BLUEPRINT_SPEC.md)
 3. [AC14_ANTI_DRIFT_DOCTRINE.md](/home/brian/projects/ac14/docs/AC14_ANTI_DRIFT_DOCTRINE.md)
-4. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
-5. [AC14_NEXT_24_HOURS.md](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
-6. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
+4. `docs/plans/CLAUDE.md`
+5. active numbered plan in `docs/plans/`
+6. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
+7. [AC14_NEXT_24_HOURS.md](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
+8. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
 
 The AC12 bootstrap artifacts remain historically important, but AC14-native
-control docs are the active execution surface.
+control docs plus numbered plans are the active execution surface.
 
 ## Current State
 

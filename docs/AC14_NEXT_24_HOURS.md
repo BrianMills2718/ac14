@@ -5,14 +5,18 @@ Last updated: 2026-03-31
 
 ## Purpose
 
-This plan defines the next continuous implementation lane inside `ac14`.
+This document is the tactical summary for the active numbered plan.
+
+The authoritative implementation contract for the current lane is:
+
+- [Plan #1: Dependency Execution Probing](/home/brian/projects/ac14/docs/plans/01_dependency_execution_probing.md)
 
 The planning-artifact resynchronization lane is complete. AC14 now has an
 AC14-native canonical notebook and a blunt implementation-status document. The
-next missing piece is to probe whether advisory dependency decisions actually
-work in the current environment.
+current lane asks whether advisory dependency decisions actually work in the
+current environment.
 
-The immediate goal for this lane is a dependency execution bridge:
+The immediate goal of Plan #1 is a dependency execution bridge:
 
 1. define a persisted execution-probe artifact for dependency recommendations
 2. execute reviewable reuse/install probes without hidden side effects
@@ -30,67 +34,38 @@ Completed before this lane:
 6. evidence-backed dependency and library planning artifacts
 7. dependency-aware draft planning with preserved dependency provenance
 
-Required in this lane:
+Required in Plan #1:
 
 1. dependency execution-probe artifact
 2. CLI and Make surfaces for advisory execution probing
 3. deterministic tests and persisted outputs
 
-## Phases
+## Tactical Phase Summary
 
-### Phase 1: Control Surface Reset
+This document mirrors the active plan at a higher level. Detailed references,
+write scope, tests, and acceptance criteria live in Plan #1.
 
-Deliverables:
+### Phase 1: planning surfaces established
 
-- updated `CLAUDE.md`
-- updated `docs/TODO.md`
-- updated this plan with explicit phase criteria
+- `docs/plans/` exists
+- Plan #1 exists
+- tactical docs point back to the numbered plan
 
-Acceptance criteria:
+### Phase 2: dependency execution artifact
 
-- the active lane is described honestly
-- each phase has explicit success criteria
-- the TODO ledger can be used as the running control surface without extra explanation
-
-### Phase 2: Dependency Execution Artifact
-
-Deliverables:
-
-- persisted execution-probe artifact for reuse/install recommendations
-- explicit result states such as `confirmed`, `blocked`, `skipped`
+- persisted probe artifact
+- explicit probe result states
 - explicit post-probe environment observations
 
-Acceptance criteria:
+### Phase 3: operator surface and tests
 
-- dependency execution attempts are reviewable and persisted
-- failures surface as explicit artifacts rather than silent shell behavior
-
-### Phase 3: Operator Surface And Tests
-
-Deliverables:
-
-- CLI and Make surfaces for execution probing
-- deterministic tests for probe persistence and fail-loud behavior
-
-Acceptance criteria:
-
-- operators can run dependency probes without manual glue code
-- tests prove the probe artifact and failure handling
+- CLI and Make probing bridge
+- deterministic tests for persistence and fail-loud behavior
 
 ### Phase 4: Verification And Lock
 
-Deliverables:
-
-- clean local verification
-- updated TODO/plan/README/KNOWLEDGE state
-- clean committed repo state
-
-Acceptance criteria:
-
-- `pytest -q` passes
-- `python -m mypy ac14 tests` passes
-- `python -m ruff check ac14 tests` passes
-- docs match the implemented state
+- full local verification
+- doc lock and clean commit
 
 ## Known Uncertainties
 

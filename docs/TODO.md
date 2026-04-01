@@ -3,26 +3,33 @@
 Status: Active control surface
 Last updated: 2026-03-31
 
+The active implementation contract is:
+
+- [Plan #1: Dependency Execution Probing](/home/brian/projects/ac14/docs/plans/01_dependency_execution_probing.md)
+
+This file is the running checklist and short verification ledger for that plan.
+
 ## Short-Term Active Lane
 
-- [x] Phase 1: freeze the dependency execution-probing lane
-  - [x] update `CLAUDE.md` to make dependency execution probing the active proof-expansion rule
-  - [x] refresh `docs/AC14_NEXT_24_HOURS.md` with dependency execution-probing phases and success criteria
-  - [x] keep this TODO as the running control surface during implementation
-  - Success criteria: the active lane is documented honestly and can run without stop-and-ask interpretation
+- [x] Phase 0: establish numbered planning surfaces
+  - [x] create `docs/plans/`
+  - [x] create `docs/plans/CLAUDE.md`
+  - [x] create `docs/plans/TEMPLATE.md`
+  - [x] convert the active lane into Plan #1
+  - Success criteria: roadmap, active plan, and TODO no longer compete as parallel authorities
 
-- [ ] Phase 2: add dependency execution probes
+- [ ] Phase 1: add dependency execution probes
   - [ ] define a persisted dependency execution-probe artifact
   - [ ] keep probe results explicit with states such as confirmed, blocked, or skipped
   - [ ] record post-probe environment observations rather than only shell output
   - Success criteria: AC14 can test dependency recommendations without hiding side effects
 
-- [ ] Phase 3: connect dependency execution into operator surfaces
+- [ ] Phase 2: connect dependency execution into operator surfaces
   - [ ] expose the probing bridge through CLI and Make
   - [ ] add deterministic tests for artifact persistence and fail-loud probe behavior
   - Success criteria: operators can run dependency probes without manual glue code and the behavior is tested
 
-- [ ] Phase 4: verify and lock the lane
+- [ ] Phase 3: verify and lock the lane
   - [ ] run full `pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
@@ -47,9 +54,15 @@ Last updated: 2026-03-31
 - the next bridge after dependency planning should feed those decisions into draft planning rather than leaving them as disconnected advisory artifacts
 - the next bridge after dependency-aware planning should probe explicit recommendations without becoming a broad automatic package manager
 - the current biggest risk is planning-artifact drift: the implementation has moved farther than the original bootstrap notebook
+- dependency execution probing still needs a clearer result-state model before implementation starts
+- the amount of acceptable environment mutation in the first probe lane remains intentionally narrow
 
 ## Latest Verified Results
 
+- numbered planning surfaces now exist:
+  - `docs/plans/CLAUDE.md`
+  - `docs/plans/TEMPLATE.md`
+  - `docs/plans/01_dependency_execution_probing.md`
 - detailed implementation reality and broader risk framing now live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 - planning-artifact resynchronization verification passed:
   - notebook JSON parsed successfully for `notebooks/01_ac14_execution_status_journey.ipynb`
