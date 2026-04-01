@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: retry-chain scope design
-  - [ ] pre-make the first retry chain around explicit intermediate artifacts
-  - [ ] pre-make how the retried plan, bundle, and freeze decision all stay visible
-  - Success criteria: the retry chain is explicit enough to implement without hiding steps
+- [ ] Phase 1: front-half retry scope design
+  - [ ] pre-make retry integration as an explicit optional front-half extension
+  - [ ] pre-make how initial freeze evidence and retry evidence both stay visible
+  - Success criteria: retry-aware front-half acceptance is explicit enough to implement without replacing the original freeze record
 
-- [ ] Phase 2: retry-chain implementation
-  - [ ] let AC14 run refine -> materialize -> refreeze from blocked freeze input
-  - [ ] persist one retry artifact with every intermediate path and the refreshed final verdict
-  - Success criteria: blocked freeze no longer forces the operator to hand-stitch the first retry chain
+- [ ] Phase 2: front-half retry implementation
+  - [ ] let front-half acceptance optionally run one explicit retry chain after a blocked freeze
+  - [ ] persist both the initial freeze decision path and the retry artifact path
+  - Success criteria: front-half realistic-input acceptance can expose one bounded retry without hiding the original blocked evidence
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted retry-chain tests
+  - [ ] run targeted retry-aware front-half tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the retry-chain lane
+  - Success criteria: verification passes and the docs match the retry-aware front-half lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- draft-plan refinement now exists, but the first retry chain still requires manual refine -> materialize -> freeze orchestration
+- explicit retry-chain automation now exists, but front-half acceptance still stops at the initial freeze decision
 
 ## Latest Verified Results
 
@@ -208,6 +208,10 @@ Detailed uncertainty tracking now lives in:
     - `python -m pytest -q` passed with `155 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
+- targeted retry-chain verification passed:
+  - `python -m pytest -q tests/test_freeze_retry.py::test_build_freeze_retry_artifact_runs_refine_materialize_and_refreeze tests/test_cli.py::test_cli_retry_freeze_runs_end_to_end tests/test_make_targets.py::test_make_retry_freeze_runs_end_to_end` passed with `3 passed`
+  - `python -m mypy ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py` passed
 
 ## Longer-Term Next Steps
 
@@ -215,7 +219,7 @@ Detailed uncertainty tracking now lives in:
 - [ ] broaden front-half acceptance into an explicit suite-level breadth artifact
 - [ ] prove one messier-input front-half lane without hiding ambiguity in prompts
 - [ ] turn dependency blockers into one explicit remediation lane instead of only diagnosis
-- [ ] connect explicit draft-plan refinement to one first-class retry chain artifact
+- [ ] connect retry-chain artifacts into realistic-input front-half acceptance
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

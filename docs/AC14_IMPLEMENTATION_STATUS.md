@@ -88,13 +88,14 @@ Implemented:
 15. one explicit dependency-remediation lane that reruns previously blocked install probes, persists a remediation delta artifact, and points to a fresh dependency execution artifact for downstream reuse
 16. direct draft-planning consumption of dependency-remediation artifacts, with explicit persisted provenance for both the remediation artifact path and the chosen dependency execution artifact path
 17. one remediation-driven refined draft-plan artifact that preserves source plan, blocked freeze decision, remediation plan provenance, and refinement round instead of forcing manual bundle edits as the first retry step
-18. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
-19. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
-20. one bounded realistic-input full-system acceptance slice in `llm` mode
-21. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
-22. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
-23. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
-24. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
+18. one explicit retry-chain artifact that runs refine -> materialize -> refreeze and preserves every intermediate path instead of leaving the first retry as manual command orchestration
+19. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
+20. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
+21. one bounded realistic-input full-system acceptance slice in `llm` mode
+22. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
+23. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
+24. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
+25. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -143,7 +144,7 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, and first refined-plan retry step
+3. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, and explicit retry-chain wrapper
 
 ### Generality
 
@@ -206,7 +207,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. first proof slice: 98-99%
-2. long-term general coding agent vision: 55-59%
+2. long-term general coding agent vision: 56-60%
 
 The remaining work is not mainly “more code.” It is:
 

@@ -100,7 +100,7 @@ process failure. The required behavior is:
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-turning blocked freeze remediation into an explicit, reviewable retry chain.
+getting explicit retry-chain evidence into realistic-input front-half acceptance.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -126,6 +126,8 @@ turning blocked freeze remediation into an explicit, reviewable retry chain.
   artifacts over in-place bundle mutation
 - once refinement exists, keep the next retry step explicit too; prefer a
   persisted retry-chain artifact over hidden multi-command orchestration
+- once the retry chain exists, integrate it into front-half evidence carefully;
+  preserve the initial blocked freeze record instead of replacing it
 
 ## Continuation Rule
 

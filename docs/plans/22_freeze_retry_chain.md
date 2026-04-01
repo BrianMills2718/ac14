@@ -1,6 +1,6 @@
 # Plan #22: Freeze Retry Chain
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -38,16 +38,16 @@ automation, not hidden in-place mutation or silent retries.
 ## Open Questions
 
 ### Q1: What should the retry chain own?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The first chain should reduce orchestration friction without
 hiding intermediate artifacts.
-**Default:** Own refinement, rematerialization, and refreeze only. Keep all
+**Decision:** Own refinement, rematerialization, and refreeze only. Keep all
 three intermediate artifacts persisted and exposed.
 
 ### Q2: How should retry outcomes stay reviewable?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** A chained retry should not become a black box.
-**Default:** Persist one retry artifact with the paths to the refined plan,
+**Decision:** Persist one retry artifact with the paths to the refined plan,
 refined bundle, refreshed readiness report, refreshed freeze decision, and a
 compact final summary.
 
@@ -104,10 +104,24 @@ compact final summary.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can run an explicit retry chain from blocked freeze input.
-- [ ] The retry artifact exposes every intermediate path instead of hiding the chain.
-- [ ] The lane stays artifact-backed and does not mutate bundles silently.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can run an explicit retry chain from blocked freeze input.
+- [x] The retry artifact exposes every intermediate path instead of hiding the chain.
+- [x] The lane stays artifact-backed and does not mutate bundles silently.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted retry-chain verification passed:
+  - `python -m pytest -q tests/test_freeze_retry.py::test_build_freeze_retry_artifact_runs_refine_materialize_and_refreeze tests/test_cli.py::test_cli_retry_freeze_runs_end_to_end tests/test_make_targets.py::test_make_retry_freeze_runs_end_to_end`
+  - `python -m mypy ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now provides one explicit retry-chain artifact that runs refine ->
+materialize -> refreeze, preserves every intermediate path, and keeps the
+refreshed freeze result reviewable instead of leaving that chain as manual
+operator orchestration.
 
 ---
 

@@ -216,4 +216,10 @@ bundle. AC14 now emits a refined draft planning artifact from the original
 plan plus the blocked freeze/remediation inputs, preserves explicit retry
 provenance, and increments a refinement round so later retries stay reviewable.
 
+### 2026-04-01 — codex — best-practice
+Once a refined plan exists, the next honest automation step is an explicit
+retry chain, not hidden command sequencing. AC14 now persists one retry-chain
+artifact that runs refine -> materialize -> refreeze and keeps every
+intermediate path visible.
+
 ---

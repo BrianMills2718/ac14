@@ -1316,6 +1316,63 @@ def test_cli_refine_draft_blueprint_plan_runs_end_to_end(tmp_path: Path) -> None
     assert payload["refinement_round"] == 1
 
 
+def test_cli_retry_freeze_runs_end_to_end(tmp_path: Path) -> None:
+    """Freeze-retry CLI should persist the full retry chain and refreshed freeze output."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    freeze_decision_path, remediation_plan_path = _write_blocked_freeze_inputs(tmp_path, plan_path)
+    refine_fixture_path = tmp_path / "refine_draft_blueprint_plan_fixture.json"
+    refine_fixture_path.write_text(
+        json.dumps(
+            {
+                "refinement_summary": "Clarified dependency scope after the blocked freeze.",
+                "planning_summary": "Keep the bounded graph and tighten dependency decisions.",
+                "proposed_schemas": [],
+                "proposed_components": [],
+                "proposed_bindings": [],
+                "proposed_scenarios": [],
+                "packetization_notes": ["Keep the packet boundary unchanged."],
+                "dependency_decisions": ["Keep optional formatting dependencies out of the first freeze."],
+                "open_questions": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    env = os.environ.copy()
+    env["AC14_REFINE_BLUEPRINT_PLAN_FIXTURE"] = str(refine_fixture_path)
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "retry-freeze",
+            str(plan_path),
+            "--freeze-decision",
+            str(freeze_decision_path),
+            "--output-dir",
+            str(tmp_path / "freeze_retry"),
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((tmp_path / "freeze_retry" / "freeze_retry_artifact.json").read_text())
+    assert payload["source_draft_blueprint_plan_path"] == str(plan_path)
+    assert payload["source_freeze_decision_path"] == str(freeze_decision_path)
+    assert payload["refined_draft_blueprint_plan_path"].endswith("draft_blueprint_plan.json")
+    assert payload["refined_draft_bundle_dir"].endswith("refined_bundle")
+    assert payload["refreshed_freeze_decision_path"].endswith("freeze_decision.json")
+    assert payload["refinement_round"] == 1
+    assert remediation_plan_path.exists()
+
+
 def test_cli_materialize_draft_bundle(tmp_path: Path) -> None:
     """Draft bundle materialization command should write a readiness-backed bundle."""
 

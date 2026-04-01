@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #22: Freeze Retry Chain](/home/brian/projects/ac14/docs/plans/22_freeze_retry_chain.md)
+- [Plan #23: Front-Half Retry Integration](/home/brian/projects/ac14/docs/plans/23_front_half_retry_integration.md)
 
-Plan #21 closed the first explicit refinement lane from blocked freeze back into
-planning. The current active gap is reducing the remaining manual orchestration
-across refine -> materialize -> refreeze.
+Plan #22 closed the first explicit retry chain after blocked freeze. The
+current active gap is getting that retry evidence into realistic-input
+front-half acceptance instead of stopping at the first blocked freeze.
 
 ## Progress Update
 
@@ -33,30 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #22:
+Required in Plan #23:
 
-1. an explicit retry-chain artifact from blocked freeze input
-2. explicit persisted paths for the refined plan, refreshed bundle, refreshed readiness report, and refreshed freeze decision
-3. less manual command stitching in the first retry step
+1. an optional retry-aware front-half acceptance path
+2. explicit persisted paths for both the initial freeze decision and the retry artifact
+3. stronger realistic-input front-half evidence beyond the first blocked freeze
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#22.
+#23.
 
-### Phase 1: retry-chain scope design
+### Phase 1: front-half retry scope design
 
-- choose the first retry chain and keep it artifact-backed
-- pre-make how retried intermediate paths stay explicit
+- choose retry integration as an explicit optional extension
+- pre-make how both initial and retried freeze paths stay explicit
 
-### Phase 2: retry-chain implementation
+### Phase 2: front-half retry implementation
 
-- emit one retry artifact that runs refine -> materialize -> refreeze
-- keep every intermediate path and the refreshed final verdict explicit
+- let front-half acceptance optionally call the retry chain after a blocked freeze
+- keep the initial freeze decision path and the retry artifact path explicit
 
 ### Phase 3: Verification And Lock
 
-- targeted retry-chain verification
+- targeted retry-aware front-half verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the retry chain should stay artifact-backed instead of hiding steps behind one black-box command
-2. refreshed freeze outputs must stay explicit instead of overwriting the original blocked evidence
-3. the lane should preserve reviewability instead of collapsing retry orchestration into silent automation
+1. retry-aware front-half acceptance should stay opt-in until the evidence story is clearer
+2. retry integration must preserve the initial blocked freeze evidence instead of overwriting it
+3. the lane should strengthen realistic-input evidence without turning front-half acceptance into hidden healing

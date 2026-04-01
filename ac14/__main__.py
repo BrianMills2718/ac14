@@ -39,6 +39,7 @@ from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
 from ac14.freeze_decision import build_freeze_decision
+from ac14.freeze_retry import build_freeze_retry_artifact
 from ac14.front_half_acceptance import (
     DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
     DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
@@ -184,6 +185,20 @@ def main() -> int:
     refine_draft_plan_parser.add_argument("--output-dir", type=Path, required=True)
     refine_draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
     refine_draft_plan_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    )
+
+    retry_freeze_parser = subparsers.add_parser(
+        "retry-freeze",
+        help="Run one explicit refine -> materialize -> refreeze chain from blocked freeze input.",
+    )
+    retry_freeze_parser.add_argument("plan_artifact_path", type=Path)
+    retry_freeze_parser.add_argument("--freeze-decision", type=Path, required=True)
+    retry_freeze_parser.add_argument("--output-dir", type=Path, required=True)
+    retry_freeze_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
+    retry_freeze_parser.add_argument(
         "--max-budget",
         type=float,
         default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
@@ -495,6 +510,14 @@ def main() -> int:
         )
     if args.command == "refine-draft-blueprint-plan":
         return _refine_draft_blueprint_plan(
+            args.plan_artifact_path,
+            args.freeze_decision,
+            args.output_dir,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "retry-freeze":
+        return _retry_freeze(
             args.plan_artifact_path,
             args.freeze_decision,
             args.output_dir,
@@ -876,6 +899,26 @@ def _refine_draft_blueprint_plan(
         max_budget=max_budget,
     )
     print(json.dumps(plan.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _retry_freeze(
+    plan_artifact_path: Path,
+    freeze_decision_path: Path,
+    output_dir: Path,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print one explicit freeze-retry artifact."""
+
+    artifact = build_freeze_retry_artifact(
+        plan_artifact_path=plan_artifact_path,
+        freeze_decision_path=freeze_decision_path,
+        output_dir=output_dir,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0
 
 

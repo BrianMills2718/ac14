@@ -312,6 +312,17 @@ and refinement round while letting later phases rematerialize from the updated
 plan instead of editing the bundle directly.
 **Date resolved:** 2026-04-01
 
+### U-033: The first explicit retry still required manual multi-command orchestration.
+**Status:** Resolved
+**Context:** AC14 could refine a blocked draft plan, but operators still had to
+manually run materialization and freeze again.
+**Why it matters:** The first retry chain should stay explicit and artifact-backed
+instead of depending on remembered command sequencing.
+**Resolution:** AC14 now persists one retry-chain artifact that runs refine ->
+materialize -> refreeze and records every intermediate path plus the refreshed
+freeze result.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains
