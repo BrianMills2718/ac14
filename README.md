@@ -72,6 +72,7 @@ AC14 now supports:
 - sharing structured-input loading between discovery and realistic-input acceptance so the final gate now supports record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs
 - defining explicit realistic-input manifests for shipped examples so the clean default and alternate profiles are named instead of implied by file precedence
 - exposing explicit realistic-input profile selection on suite/operator surfaces while preserving the clean default path when no profile is specified
+- proving one explicit suite-level `messy` profile lane across `reference`, `deterministic`, and bounded fixture-backed `llm`, with explicit `missing_profile` states for the other shipped examples
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - proving the shipped support-ticket messy CSV asset through that same final gate in `reference` and `deterministic` modes, plus the non-LLM realistic mode-comparison surface
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
@@ -104,7 +105,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
-- suite-level alternate-profile proof in bounded `llm` mode that keeps the clean default path explicit
+- explicit multi-artifact discovery and primary-candidate selection before blueprint planning
 - broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate

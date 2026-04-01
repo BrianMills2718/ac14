@@ -2870,3 +2870,57 @@ def test_cli_acceptance_review_realistic_suite_supports_profile_selection(tmp_pa
     payload = json.loads(result.stdout)
     assert payload["realistic_input_profile"] == "messy"
     assert payload["mode_summaries"]["reference"]["missing_profile_examples"] == payload["example_count"] - 1
+
+
+def test_cli_acceptance_review_realistic_suite_supports_messy_profile_llm_mode(tmp_path: Path) -> None:
+    """Realistic suite CLI should support the explicit messy profile in bounded llm mode."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Explicit messy-profile llm runs remain reviewable where present.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_blueprint_aware_llm_codegen_fixture(
+        tmp_path / "blueprint_aware_llm_codegen_fixture.json",
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review-realistic-suite",
+            "--output-dir",
+            str(tmp_path / "realistic_suite_acceptance_messy_llm"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--modes",
+            "reference",
+            "deterministic",
+            "llm",
+            "--realistic-input-profile",
+            "messy",
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["realistic_input_profile"] == "messy"
+    assert payload["mode_summaries"]["llm"]["accepted_examples"] == 1
+    assert payload["mode_summaries"]["llm"]["missing_profile_examples"] == payload["example_count"] - 1

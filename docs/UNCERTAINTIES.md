@@ -442,12 +442,25 @@ default profile when the flag is omitted.
 **Date resolved:** 2026-04-01
 
 ### U-042: The explicit messy-profile suite proof is still incomplete in bounded `llm` mode.
-**Status:** Open
+**Status:** Resolved
 **Context:** AC14 can now request the explicit `messy` profile across suite and
 operator surfaces, but the suite-level alternate-profile proof has not yet been
 completed across the bounded fixture-backed `llm` lane.
 **Why it matters:** The next honest step is one reviewable non-deterministic
 suite proof on the alternate profile, not another policy-only lane.
+**Resolution:** AC14 now proves the explicit `messy` profile across
+`reference`, `deterministic`, and bounded fixture-backed `llm` in the
+realistic-input suite artifact while preserving explicit `missing_profile`
+states for the other shipped examples.
+**Date resolved:** 2026-04-01
+
+### U-043: Discovery is still centered on one input file at a time.
+**Status:** Open
+**Context:** AC14 can inspect one input file well, but real blueprint derivation
+often requires looking across a directory of related structured files and local
+context artifacts before choosing the primary planning input.
+**Why it matters:** The front half remains weaker than the thesis if discovery
+cannot review a bounded multi-artifact input set explicitly.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

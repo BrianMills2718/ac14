@@ -40,24 +40,41 @@ Detailed uncertainty tracking now lives in:
   - Success criteria: front-half and final-gate realistic-input surfaces no longer diverge on default selection
 
 - [ ] Phase 3: explicit messy-profile suite proof
-  - [ ] prove one front-half suite lane on the `messy` profile
-  - [ ] prove one realistic-input suite lane on the `messy` profile across bounded modes
-  - [ ] keep clean default proof unchanged and record `missing_profile` explicitly
+  - [x] prove one front-half suite lane on the `messy` profile
+  - [x] prove one realistic-input suite lane on the `messy` profile across bounded modes
+  - [x] keep clean default proof unchanged and record `missing_profile` explicitly
   - Success criteria: alternate realistic-input profile behavior is explicit at the suite level without silently redefining defaults
 
 - [ ] Phase 4: verification and lock
-  - [ ] run targeted profile-policy tests
-  - [ ] run full `python -m pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect Plans #29-#31
+  - [x] run targeted profile-policy tests
+  - [x] run full `python -m pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect Plans #29-#31
   - Success criteria: verification passes and the docs match the active numbered plans
+
+## Next Active Lane
+
+- [ ] Phase 1: multi-artifact discovery contract
+  - [ ] allow discovery to accept an input directory as one reviewable unit
+  - [ ] inventory supported structured candidates and supporting local context files explicitly
+  - Success criteria: discovery can ingest a directory without hiding which files mattered
+
+- [ ] Phase 2: explicit primary-candidate persistence
+  - [ ] choose one primary structured candidate deterministically
+  - [ ] persist the chosen primary candidate and alternatives in the discovery artifact
+  - Success criteria: multi-artifact discovery stays explicit about what became the planning input
+
+- [ ] Phase 3: operator parity and lock
+  - [ ] expose the same directory-discovery story through CLI and Make
+  - [ ] run targeted verification, then full verification, then lock the docs
+  - Success criteria: directory-based discovery is reviewable and the docs match Plan #32
 
 ## Current Open Uncertainties
 
-- suite/default behavior for alternate realistic-input profiles is not yet explicit
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- the bounded `llm` slice of the explicit messy-profile suite proof is not yet landed
+- discovery is still centered on one input file at a time
+- multi-artifact discovery must not hide which structured file became primary
 
 ## Latest Verified Results
 
@@ -66,9 +83,13 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/30_profile_aware_realistic_input_parity.md`
-- the current active lane is:
   - `docs/plans/31_messy_profile_suite_proof.md`
+- the current active lane is:
+  - `docs/plans/32_multi_artifact_discovery_inputs.md`
+- targeted messy-profile suite verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_messy_profile_llm_mode tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_messy_profile_llm_mode tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_messy_profile_llm_mode` passed with `3 passed`
+  - `python -m mypy tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 - targeted profile-aware parity verification passed:
   - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_supports_realistic_input_profile_selection tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_profile_selection tests/test_make_targets.py::test_make_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_profile_selection` passed with `6 passed`
   - `python -m mypy ac14/acceptance.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed

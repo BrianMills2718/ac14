@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #31: Messy-Profile Suite Proof](/home/brian/projects/ac14/docs/plans/31_messy_profile_suite_proof.md)
+- [Plan #32: Multi-Artifact Discovery Inputs](/home/brian/projects/ac14/docs/plans/32_multi_artifact_discovery_inputs.md)
 
 Plan #28 closed the first bounded messy-input `llm` final-gate lane. The active
 24-hour chain is now:
@@ -41,30 +41,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #31:
+Required in Plan #32:
 
-1. one explicit front-half suite lane on the `messy` profile
-2. one realistic-input suite lane on the same `messy` profile across bounded modes
-3. explicit included-versus-missing-profile accounting without changing the clean default proof path
+1. directory-based discovery support with explicit candidate inventory
+2. one explicit primary structured candidate plus explicit alternatives
+3. CLI and Make parity for directory-based discovery
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#31.
+#32.
 
-### Phase 1: front-half messy-profile suite proof
+### Phase 1: directory discovery contract
 
-- verify the explicit `messy` profile through the front-half suite artifact
-- keep missing-profile states reviewable and keep the clean default path unchanged
+- allow discovery to accept an input directory as one reviewable unit
+- inventory supported structured candidates and supporting context files explicitly
 
-### Phase 2: realistic-input messy-profile suite proof
+### Phase 2: explicit primary-candidate persistence
 
-- verify the same explicit `messy` profile through the realistic-input suite artifact
-- extend the proof across bounded modes, including fixture-backed `llm`
+- choose one primary structured candidate deterministically
+- persist the chosen primary candidate and the alternatives in the discovery artifact
 
 ### Phase 3: verification and lock
 
-- run targeted messy-profile suite verification
+- run targeted multi-artifact discovery verification
 - run full verification and lock the docs
 
 ## Known Uncertainties
@@ -75,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first alternate-profile suite proof should stay bounded and reviewable instead of pretending broad breadth
-2. the `llm` part of the messy-profile suite proof must stay fixture-backed and separate from live readiness
-3. the clean default path should remain the default proof story even after the alternate-profile suite proof exists
+1. multi-artifact discovery should not silently turn into hidden multi-file orchestration
+2. primary-candidate choice must stay explicit and reviewable
+3. discovery breadth should strengthen the front half without weakening packet/freeze explicitness

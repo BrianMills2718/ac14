@@ -239,6 +239,12 @@ silently falling back, which keeps the clean default proof path separate from
 alternate-profile experiments.
 
 ### 2026-04-01 — codex — best-practice
+The first honest alternate-profile breadth proof is not to replace the default
+path; it is to run one explicit bounded suite lane and make absence visible.
+AC14 now proves the `messy` profile across the realistic-input suite in
+bounded `llm` mode while recording `missing_profile` for the other examples.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

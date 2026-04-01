@@ -1,10 +1,10 @@
 # Plan #31: Messy-Profile Suite Proof
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 30
-**Blocks:** None
+**Blocks:** 32
 
 ---
 
@@ -100,10 +100,24 @@ explicitly where absent.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can run one explicit suite-level `messy` profile lane on the front-half surface.
-- [ ] AC14 can run one explicit suite-level `messy` profile lane on the realistic-input final-gate surface across bounded modes.
-- [ ] The suite artifacts record `included` versus `missing_profile` explicitly and preserve the clean default path as the default proof story.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can run one explicit suite-level `messy` profile lane on the front-half surface.
+- [x] AC14 can run one explicit suite-level `messy` profile lane on the realistic-input final-gate surface across bounded modes.
+- [x] The suite artifacts record `included` versus `missing_profile` explicitly and preserve the clean default path as the default proof story.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted messy-profile suite verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_messy_profile_llm_mode tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_messy_profile_llm_mode tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_messy_profile_llm_mode`
+  - `python -m mypy tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now has an explicit suite-level `messy` profile proof that keeps the clean
+default path unchanged, records `missing_profile` explicitly for the examples
+that do not ship that profile, and extends the realistic-input suite proof
+across `reference`, `deterministic`, and bounded fixture-backed `llm`.
 
 ---
 
