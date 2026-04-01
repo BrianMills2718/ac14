@@ -71,6 +71,7 @@ AC14 now supports:
 - proving the same retry-aware front-half story on the shipped messy CSV asset without inventing a new artifact type
 - sharing structured-input loading between discovery and realistic-input acceptance so the final gate now supports record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
+- proving the shipped support-ticket messy CSV asset through that same final gate in `reference` and `deterministic` modes, plus the non-LLM realistic mode-comparison surface
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review
 - persisting one per-blueprint realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
@@ -101,6 +102,7 @@ AC14 is still incomplete on:
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
 - explicit messy-input full-system acceptance beyond the cleaner JSON slice
+- bounded messy-input `llm` proof on the same final-gate asset
 - broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate

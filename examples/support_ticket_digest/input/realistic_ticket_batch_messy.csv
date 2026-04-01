@@ -1,4 +1,4 @@
-ticket_id,body,channel,priority_hint,customer_tier,auth_method,notes
-SUP-20421,"SSO login fails after certificate rotation, only for legacy IdP users",email,high,enterprise,saml,"opened by TAM; customer says outage started after midnight"
-SUP-20422,"Bulk user import times out after 300 users",web,,midmarket,,"csv attached in prior thread; reproduces only on weekend runs"
-SUP-20423,"Billing renewal webhook retries forever after card update",api,urgent,enterprise,oauth,"customer mentioned duplicate invoices and timezone mismatch"
+ticket_id,submitted_at,customer_id,subject,body,tags,channel,priority_hint,customer_tier,auth_method,notes
+SUP-20421,2026-04-01T00:11:00Z,cust-7781,"SSO login fails for legacy IdP users after certificate rotation","SSO login fails after certificate rotation, only for legacy IdP users","[""sso"", ""certificate"", ""legacy-idp""]",email,high,enterprise,saml,"opened by TAM; customer says outage started after midnight"
+SUP-20422,2026-04-01T00:24:00Z,,"Bulk user import times out after 300 users on weekend runs","Bulk user import times out after 300 users","[""import"", ""timeout"", ""csv""]",web,,midmarket,,"csv attached in prior thread; reproduces only on weekend runs"
+SUP-20423,2026-04-01T00:37:00Z,cust-5520,"Billing renewal webhook retries forever after card update","Billing renewal webhook retries forever after card update","[""billing"", ""renewal"", ""webhook""]",api,urgent,enterprise,oauth,"customer mentioned duplicate invoices and timezone mismatch"

@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #27: Messy-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/27_messy_input_full_system_acceptance.md)
+- [Plan #28: Messy-Input LLM Comparison](/home/brian/projects/ac14/docs/plans/28_messy_input_llm_comparison.md)
 
 Plan #25 closed the first retry-aware messy-input front-half lane. The active
 24-hour chain is now:
@@ -18,9 +18,9 @@ Plan #25 closed the first retry-aware messy-input front-half lane. The active
 2. messy-input full-system acceptance in non-LLM modes
 3. bounded messy-input `llm` comparison
 
-Plan #26 closed the structured-loading blocker. The immediate active gap is now
-that the messy CSV asset still has no explicit full-system realistic-input
-acceptance proof even though the final gate can now load it.
+Plan #27 closed the non-LLM messy-input final-gate proof. The immediate active
+gap is now that the bounded `llm` realistic-input lane still has no explicit
+proof on the same messy CSV asset.
 
 ## Progress Update
 
@@ -40,32 +40,32 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #27:
+Required in Plan #28:
 
-1. one explicit messy-input full-system acceptance lane in `reference` mode
-2. one explicit messy-input full-system acceptance lane in `deterministic` mode
-3. one messy-input realistic mode-comparison artifact across the non-LLM modes
+1. one bounded messy-input `llm` realistic-input acceptance lane
+2. one messy-input realistic mode-comparison artifact across `reference`, `deterministic`, and `llm`
+3. explicit separation between fixture-backed `llm` breadth and live readiness
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#27.
+#28.
 
-### Phase 1: messy-input final-gate scope design
+### Phase 1: bounded messy-input `llm` scope design
 
-- reuse the shipped support-ticket CSV asset as the next full-system proof target
-- keep the first messy-input final-gate lane within `reference` and `deterministic`
+- reuse the same shipped support-ticket CSV asset as the next bounded `llm` proof target
+- keep the first messy-input `llm` lane fixture-backed and clearly separate from live readiness
 
-### Phase 2: messy-input non-LLM acceptance implementation
+### Phase 2: bounded messy-input `llm` implementation
 
-- prove the messy CSV asset through `acceptance-review`
-- prove the same asset through the realistic mode-comparison surface for `reference` and `deterministic`
+- prove the messy CSV asset through `acceptance-review` in `llm` mode
+- prove the same asset through the realistic mode-comparison surface for `reference`, `deterministic`, and `llm`
 
 ### Phase 3: Verification And Lock
 
-- targeted messy-input full-system verification
+- targeted messy-input `llm` verification
 - full local verification
-- doc lock, then advance immediately to Plan #28 in the same 24-hour chain
+- doc lock and clean commit
 
 ## Known Uncertainties
 
@@ -75,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first full-system messy-input lane should stay within existing semantic-acceptance rules instead of inventing a new execution model
-2. bounded messy-input `llm` proof must remain clearly separate from live readiness
-3. suite defaults should not silently switch from the clean JSON input to the messy CSV asset
+1. bounded messy-input `llm` proof must remain clearly separate from live readiness
+2. suite defaults should not silently switch from the clean JSON input to the messy CSV asset
+3. the messy CSV asset should remain schema-sufficient instead of relying on hidden runtime normalization

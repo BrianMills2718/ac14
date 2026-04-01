@@ -2363,6 +2363,54 @@ def test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_
     assert (tmp_path / "acceptance_realistic_deterministic" / "acceptance_report.json").exists()
 
 
+def test_cli_acceptance_review_with_messy_input_csv_runs_end_to_end(tmp_path: Path) -> None:
+    """Acceptance-review command should support the shipped messy CSV asset in non-LLM modes."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Messy CSV outputs remain reviewable in bounded non-LLM modes.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "acceptance_realistic_messy"),
+            "--mode",
+            "deterministic",
+            "--realistic-input",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv"),
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert len(payload["scenario_results"]) == 1
+    assert payload["scenario_results"][0]["realistic_input_path"].endswith("realistic_ticket_batch_messy.csv")
+    assert payload["scenario_results"][0]["execution_error"] is None
+    assert (tmp_path / "acceptance_realistic_messy" / "acceptance_report.json").exists()
+
+
 def test_cli_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end(
     tmp_path: Path,
 ) -> None:
@@ -2413,6 +2461,61 @@ def test_cli_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end(
     assert payload["scenario_results"][0]["execution_error"] is None
     assert payload["scenario_results"][0]["review"]["overall_verdict"] == "accept"
     assert (tmp_path / "acceptance_realistic_llm" / "acceptance_report.json").exists()
+
+
+def test_cli_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Realistic-input comparison command should support the shipped messy CSV asset in non-LLM modes."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Messy CSV outputs remain comparable across non-LLM modes.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review-realistic-compare",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "realistic_compare_messy_non_llm"),
+            "--modes",
+            "reference",
+            "deterministic",
+            "--realistic-input",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv"),
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["realistic_input_path"].endswith("realistic_ticket_batch_messy.csv")
+    assert payload["verdicts_by_mode"] == {
+        "reference": "accept",
+        "deterministic": "accept",
+    }
+    assert (
+        tmp_path / "realistic_compare_messy_non_llm" / "realistic_mode_comparison_report.json"
+    ).exists()
 
 
 def test_cli_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -> None:

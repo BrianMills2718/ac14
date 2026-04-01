@@ -45,3 +45,16 @@ def test_load_structured_input_records_fails_loud_on_text(tmp_path: Path) -> Non
         load_structured_input_records(input_path)
 
     assert detect_input_format(input_path) == "text"
+
+
+def test_load_structured_input_records_decodes_json_like_csv_cells(tmp_path: Path) -> None:
+    """CSV loading should preserve list-valued fields encoded as JSON strings."""
+
+    input_path = tmp_path / "records.csv"
+    input_path.write_text(
+        'ticket_id,tags\nSUP-1,"[""billing"", ""renewal""]"\n',
+    )
+
+    payload = load_structured_input_records(input_path)
+
+    assert payload == [{"ticket_id": "SUP-1", "tags": ["billing", "renewal"]}]

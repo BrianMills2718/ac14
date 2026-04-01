@@ -213,6 +213,13 @@ structured-input loader between discovery and acceptance, so record-bearing
 semantic acceptance.
 
 ### 2026-04-01 — codex — best-practice
+The first honest messy-input final-gate proof should keep the input artifact
+messy but still schema-sufficient. AC14 now proves the support-ticket CSV
+asset through `reference` and `deterministic` final acceptance by keeping the
+required source fields explicit and decoding JSON-like CSV cells for list
+fields, rather than inventing hidden runtime normalization.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

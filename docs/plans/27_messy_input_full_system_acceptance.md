@@ -1,6 +1,6 @@
 # Plan #27: Messy-Input Full-System Acceptance
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 26
@@ -54,6 +54,9 @@ claims about end-to-end semantic acceptance on realistic inputs.
 - `tests/test_acceptance.py` (modify)
 - `tests/test_cli.py` (modify)
 - `tests/test_make_targets.py` (modify)
+- `ac14/structured_inputs.py` (modify)
+- `tests/test_structured_inputs.py` (modify)
+- `examples/support_ticket_digest/input/realistic_ticket_batch_messy.csv` (modify)
 - `docs/plans/CLAUDE.md` (modify)
 - `docs/TODO.md` (modify)
 - `docs/AC14_NEXT_24_HOURS.md` (modify)
@@ -100,10 +103,26 @@ claims about end-to-end semantic acceptance on realistic inputs.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can run full-system realistic-input acceptance on the shipped messy CSV asset in `reference` and `deterministic` modes.
-- [ ] The realistic mode-comparison artifact supports the same messy CSV asset across the non-LLM modes.
-- [ ] CLI and Make surfaces preserve the same messy-input final-gate story.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can run full-system realistic-input acceptance on the shipped messy CSV asset in `reference` and `deterministic` modes.
+- [x] The realistic mode-comparison artifact supports the same messy CSV asset across the non-LLM modes.
+- [x] CLI and Make surfaces preserve the same messy-input final-gate story.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted messy-input non-LLM verification passed:
+  - `python -m pytest -q tests/test_structured_inputs.py::test_load_structured_input_records_decodes_json_like_csv_cells tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_reference_mode tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_deterministic_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_messy_input_csv_non_llm_modes tests/test_cli.py::test_cli_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end`
+  - `python -m mypy ac14/structured_inputs.py tests/test_structured_inputs.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/structured_inputs.py tests/test_structured_inputs.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now proves the shipped messy CSV asset through the full-system realistic
+final gate in `reference` and `deterministic` modes, and the realistic
+mode-comparison surface supports the same asset across those non-LLM modes.
+The key implementation choice was to keep the input artifact messy but still
+schema-sufficient, while decoding JSON-like CSV cells explicitly instead of
+hiding missing required fields behind runtime heuristics.
 
 ---
 

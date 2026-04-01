@@ -388,6 +388,18 @@ evidence.
 **Why it matters:** AC14 should broaden non-deterministic validation honestly
 without letting fixture-backed `llm` evidence drift into live-readiness claims.
 
+### U-038: The first messy-input final-gate proof could have hidden runtime normalization.
+**Status:** Resolved
+**Context:** Once the final gate started consuming the shipped messy CSV asset,
+the easiest workaround would have been to invent implicit runtime normalization
+for missing required fields.
+**Why it matters:** Hidden runtime normalization would blur whether the input
+artifact is actually executable against the frozen blueprint contract.
+**Resolution:** AC14 now keeps the messy CSV artifact schema-sufficient for the
+frozen source schema and decodes JSON-like CSV cells explicitly, rather than
+hiding missing required fields behind runtime heuristics.
+**Date resolved:** 2026-04-01
+
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred
 **Context:** Current breadth accounting relies on workflow signatures and light

@@ -1938,6 +1938,45 @@ def test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end
     assert (output_dir / "acceptance_report.json").exists()
 
 
+def test_make_acceptance_review_with_messy_input_csv_runs_end_to_end(tmp_path: Path) -> None:
+    """Make acceptance-review target should support the shipped messy CSV asset in non-LLM modes."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Messy CSV outputs remain reviewable in bounded non-LLM modes.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+
+    output_dir = tmp_path / "acceptance_realistic_messy"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+            "GENERATOR=deterministic",
+            f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch_messy.csv'}",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "acceptance_report.json").exists()
+
+
 def test_make_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -> None:
     """Make realistic suite acceptance target should persist one aggregate artifact."""
 
@@ -2047,6 +2086,47 @@ def test_make_acceptance_review_realistic_compare_runs_end_to_end(tmp_path: Path
             f"OUTPUT={output_dir}",
             f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch.json'}",
             "MODES=reference deterministic llm",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "realistic_mode_comparison_report.json").exists()
+
+
+def test_make_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Make realistic-input comparison should support the shipped messy CSV asset in non-LLM modes."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Messy CSV outputs remain comparable across non-LLM modes.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+
+    output_dir = tmp_path / "realistic_compare_messy_non_llm"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review-realistic-compare",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+            "MODES=reference deterministic",
+            f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch_messy.csv'}",
             "RECORD_INDEX=0",
         ],
         cwd=REPO_ROOT,

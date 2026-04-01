@@ -42,7 +42,17 @@ def load_input(path: Path, input_format: InputFormat | None = None) -> object:
         ]
     if normalized_format == "csv":
         with path.open(newline="") as handle:
-            return list(csv.DictReader(handle))
+            rows: list[dict[str, Any]] = []
+            for row in csv.DictReader(handle):
+                if None in row:
+                    raise ValueError("csv structured input row has more columns than the header")
+                rows.append(
+                    {
+                        cast(str, key): _coerce_csv_cell(value)
+                        for key, value in row.items()
+                    },
+                )
+            return rows
     if normalized_format == "yaml":
         return yaml.safe_load(path.read_text())
     return path.read_text().splitlines()
@@ -77,3 +87,25 @@ def discover_structured_input_candidates(input_dir: Path) -> list[Path]:
     for pattern in patterns:
         candidates.extend(sorted(input_dir.glob(pattern)))
     return candidates
+
+
+def _coerce_csv_cell(value: str | None) -> Any:
+    """Decode JSON-like CSV cell payloads while leaving ordinary scalars alone."""
+
+    if value is None:
+        return ""
+    stripped = value.strip()
+    if not stripped:
+        return ""
+    if (
+        stripped.startswith("[")
+        and stripped.endswith("]")
+    ) or (
+        stripped.startswith("{")
+        and stripped.endswith("}")
+    ):
+        try:
+            return json.loads(stripped)
+        except json.JSONDecodeError:
+            return value
+    return value

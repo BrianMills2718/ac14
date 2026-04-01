@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: messy-input final-gate scope design
-  - [ ] pre-make the non-LLM messy-input proof boundary on the shipped support-ticket CSV asset
-  - [ ] keep the first lane aligned with existing semantic-acceptance and mode-comparison artifacts
-  - Success criteria: the messy-input full-system lane is explicit enough to implement without changing the execution model
+- [ ] Phase 1: bounded messy-input `llm` scope design
+  - [ ] pre-make the fixture-backed `llm` proof boundary on the shipped support-ticket CSV asset
+  - [ ] keep the lane aligned with the existing realistic mode-comparison artifact
+  - Success criteria: the messy-input `llm` lane is explicit enough to implement without implying live readiness
 
-- [ ] Phase 2: messy-input non-LLM acceptance implementation
-  - [ ] prove `acceptance-review` on the shipped messy CSV asset in `reference` mode
-  - [ ] prove `acceptance-review` and realistic mode comparison on the same asset in `deterministic` mode
-  - Success criteria: the messy-input final gate is explicit across the non-LLM surfaces
+- [ ] Phase 2: bounded messy-input `llm` implementation
+  - [ ] prove `acceptance-review` on the shipped messy CSV asset in `llm` mode
+  - [ ] prove realistic mode comparison on the same asset across `reference`, `deterministic`, and `llm`
+  - Success criteria: the messy-input final gate is explicit across the bounded `llm` surfaces
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted messy-input full-system tests
+  - [ ] run targeted messy-input `llm` tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match Plan #27
+  - Success criteria: verification passes and the docs match Plan #28
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- structured realistic-input loading now exists, but the shipped messy CSV asset still has no explicit full-system acceptance proof
+- messy-input non-LLM full-system proof now exists, but bounded `llm` final acceptance is still only proven on the cleaner JSON slice
 
 ## Latest Verified Results
 
@@ -58,9 +58,13 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/26_structured_realistic_input_loading.md`
-- the current active lane is:
   - `docs/plans/27_messy_input_full_system_acceptance.md`
+- the current active lane is:
+  - `docs/plans/28_messy_input_llm_comparison.md`
+- targeted messy-input non-LLM verification passed:
+  - `python -m pytest -q tests/test_structured_inputs.py::test_load_structured_input_records_decodes_json_like_csv_cells tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_reference_mode tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_deterministic_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_messy_input_csv_non_llm_modes tests/test_cli.py::test_cli_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end` passed with `8 passed`
+  - `python -m mypy ac14/structured_inputs.py tests/test_structured_inputs.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/structured_inputs.py tests/test_structured_inputs.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 - targeted structured-input loading verification passed:
   - `python -m pytest -q tests/test_structured_inputs.py tests/test_acceptance.py::test_discover_realistic_input_path_supports_structured_non_json_inputs` passed with `6 passed`
   - `python -m mypy ac14/structured_inputs.py ac14/discovery.py ac14/acceptance.py tests/test_structured_inputs.py tests/test_acceptance.py` passed
