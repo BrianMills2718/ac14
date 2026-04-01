@@ -9,6 +9,10 @@ The active implementation contract is:
 
 This file is the running checklist and short verification ledger for that plan.
 
+Detailed uncertainty tracking now lives in:
+
+- [UNCERTAINTIES.md](/home/brian/projects/ac14/docs/UNCERTAINTIES.md)
+
 ## Short-Term Active Lane
 
 - [x] Phase 0: establish numbered planning surfaces
@@ -36,26 +40,11 @@ This file is the running checklist and short verification ledger for that plan.
   - [ ] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
-## Logged Uncertainties
+## Current Open Uncertainties
 
-- the generated component logic is still semantic-responsibility-specific rather than general synthesis
-- realistic-input acceptance will still be synthetic-but-plausible until the pre-freeze discovery layer exists
-- proof breadth is broader than one workflow slice now, but it is still narrow overall
-- live LLM acceptance may be too expensive for the default gate and may remain optional outside targeted runs
-- discovery will start with local input inspection and environment/dependency planning before broader doc/repo retrieval is implemented
-- the next bridge will produce draft planning artifacts, not claim that blueprint freeze is solved
-- the next bridge will materialize draft bundles and readiness reports, not claim those drafts are frozen
-- the next bridge will decide and promote only when approval is explicit; it still does not broaden proof breadth
-- the new remediation loop will guide direct draft-bundle editing first; automated rewrite loops are still deferred
-- proof breadth will still be approximate because the current metric is based on workflow signatures rather than a richer benchmark taxonomy
-- the next bridge will start with local project docs and will not yet claim GitHub/web/context-server retrieval
-- the next bridge after local project docs should persist external retrieval artifacts rather than hiding them inside prompts
-- the next bridge after shared retrieval should recommend dependency actions without pretending package installation is already automated
-- the next bridge after dependency planning should feed those decisions into draft planning rather than leaving them as disconnected advisory artifacts
-- the next bridge after dependency-aware planning should probe explicit recommendations without becoming a broad automatic package manager
-- the current biggest risk is planning-artifact drift: the implementation has moved farther than the original bootstrap notebook
-- dependency execution probing still needs a clearer result-state model before implementation starts
-- the amount of acceptable environment mutation in the first probe lane remains intentionally narrow
+- the dependency execution-probe result model is still open
+- the acceptable amount of environment mutation in the first probe lane is still open
+- the exact post-probe environment observations to persist are still open
 
 ## Latest Verified Results
 
@@ -63,6 +52,8 @@ This file is the running checklist and short verification ledger for that plan.
   - `docs/plans/CLAUDE.md`
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
+- dedicated uncertainty tracking now exists:
+  - `docs/UNCERTAINTIES.md`
 - detailed implementation reality and broader risk framing now live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 - planning-artifact resynchronization verification passed:
   - notebook JSON parsed successfully for `notebooks/01_ac14_execution_status_journey.ipynb`

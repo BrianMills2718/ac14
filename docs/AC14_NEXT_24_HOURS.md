@@ -69,6 +69,12 @@ write scope, tests, and acceptance criteria live in Plan #1.
 
 ## Known Uncertainties
 
+The detailed uncertainty ledger now lives in:
+
+- [UNCERTAINTIES.md](/home/brian/projects/ac14/docs/UNCERTAINTIES.md)
+
+Current lane-specific uncertainties:
+
 1. the first execution bridge should probe explicit recommendations, not attempt broad automatic environment mutation
 2. install probes may need a dry-run or no-op mode for deterministic tests and cautious operation
 3. environment deltas should be explicit artifacts so follow-on planning can inspect what changed

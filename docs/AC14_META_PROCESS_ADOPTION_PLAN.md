@@ -1,7 +1,7 @@
 # AC14 Meta-Process Adoption Plan
 
 Last updated: 2026-03-31
-Status: Proposed migration plan
+Status: Active migration plan
 
 ## Purpose
 
@@ -18,6 +18,24 @@ failure modes that have hurt prior AC attempts:
 3. uncertainty getting lost across sessions
 4. notebooks becoming decorative instead of operational
 5. local execution lanes silently redefining the vision
+
+## Progress Update
+
+Completed:
+
+1. Phase 1: planning surfaces
+   - `docs/plans/CLAUDE.md`
+   - `docs/plans/TEMPLATE.md`
+   - `docs/plans/01_dependency_execution_probing.md`
+2. Phase 2: uncertainty split
+   - `docs/UNCERTAINTIES.md`
+   - reduced uncertainty burden in `TODO.md`
+
+Next:
+
+1. Phase 3: notebook tightening
+2. Phase 4: light enforcement
+3. Phase 5: control-surface cleanup
 
 ## Decision
 

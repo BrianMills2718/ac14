@@ -39,8 +39,9 @@ Do not broaden scope before that works.
 ## Execution Discipline
 
 - Continue through planned milestones without pausing for permission.
-- If there is uncertainty, document it and choose the smallest
-  thesis-preserving option.
+- If there is uncertainty, document the lane-specific part in the active plan
+  and the durable/project-level part in `docs/UNCERTAINTIES.md`, then choose
+  the smallest thesis-preserving option.
 - Commit every verified increment.
 - Do not add fallbacks to hide design mistakes.
 

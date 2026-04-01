@@ -25,9 +25,10 @@ Interpret AC14 in this order:
 3. [AC14_ANTI_DRIFT_DOCTRINE.md](/home/brian/projects/ac14/docs/AC14_ANTI_DRIFT_DOCTRINE.md)
 4. `docs/plans/CLAUDE.md`
 5. active numbered plan in `docs/plans/`
-6. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
-7. [AC14_NEXT_24_HOURS.md](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
-8. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
+6. [UNCERTAINTIES.md](/home/brian/projects/ac14/docs/UNCERTAINTIES.md)
+7. [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
+8. [AC14_NEXT_24_HOURS.md](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
+9. [TODO.md](/home/brian/projects/ac14/docs/TODO.md)
 
 The AC12 bootstrap artifacts remain historically important, but AC14-native
 control docs plus numbered plans are the active execution surface.

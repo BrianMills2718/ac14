@@ -16,9 +16,11 @@ tool/runtime integration in the first pass.
 
 - [Roadmap](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
 - [Anti-Drift Doctrine](/home/brian/projects/ac14/docs/AC14_ANTI_DRIFT_DOCTRINE.md)
+- [Uncertainties](/home/brian/projects/ac14/docs/UNCERTAINTIES.md)
 - [Implementation Status](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 - [Next 24 Hours](/home/brian/projects/ac14/docs/AC14_NEXT_24_HOURS.md)
 - [TODO](/home/brian/projects/ac14/docs/TODO.md)
+- [Plans Index](/home/brian/projects/ac14/docs/plans/CLAUDE.md)
 - [Execution Notebook](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
 
 ## What Works Today

@@ -32,6 +32,7 @@ without turning AC14 into a silent package-management side channel.
 - `docs/AC14_IMPLEMENTATION_STATUS.md` - explicit statement that dependency execution/install verification is still missing
 - `docs/AC14_ANTI_DRIFT_DOCTRINE.md` - front-half scope and validation philosophy
 - `docs/AC14_NEXT_24_HOURS.md` - tactical summary of the current lane
+- `docs/UNCERTAINTIES.md` - dedicated uncertainty tracker
 - `docs/TODO.md` - active checklist and known uncertainties
 - `ac14/dependency_planning.py` - current advisory dependency planning artifact
 - `ac14/blueprint_planning.py` - current dependency-aware planning handoff
