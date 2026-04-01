@@ -5,24 +5,65 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 from collections.abc import Callable
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from types import ModuleType
 
 from pydantic import BaseModel, Field
 
 from ac14.codegen_context import CodegenContext, build_codegen_context
-from ac14.llm_codegen import (
-    DEFAULT_LLM_MAX_BUDGET,
-    DEFAULT_LLM_MODEL,
-    agenerate_component_module_with_llm,
-    generate_component_module_with_llm,
-)
 from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.runtime import RuntimeComponent
 
 GeneratorKind = Literal["deterministic", "llm"]
+DEFAULT_LLM_MODEL = "gemini/gemini-2.5-flash-lite"
+DEFAULT_LLM_MAX_BUDGET = 0.50
+
+if TYPE_CHECKING:
+    from ac14.llm_codegen import GeneratedModuleResponse
+
+
+def generate_component_module_with_llm(
+    context: CodegenContext,
+    *,
+    model: str = DEFAULT_LLM_MODEL,
+    trace_id: str,
+    max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+    task: str = "ac14_generate_component",
+) -> GeneratedModuleResponse:
+    """Lazily import the LLM codegen helper so non-LLM paths avoid import-time dependency failures."""
+
+    from ac14.llm_codegen import generate_component_module_with_llm as _generate_component_module_with_llm
+
+    return _generate_component_module_with_llm(
+        context,
+        model=model,
+        trace_id=trace_id,
+        max_budget=max_budget,
+        task=task,
+    )
+
+
+async def agenerate_component_module_with_llm(
+    context: CodegenContext,
+    *,
+    model: str = DEFAULT_LLM_MODEL,
+    trace_id: str,
+    max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+    task: str = "ac14_generate_component",
+) -> GeneratedModuleResponse:
+    """Lazily import the async LLM codegen helper for callers already in an event loop."""
+
+    from ac14.llm_codegen import agenerate_component_module_with_llm as _agenerate_component_module_with_llm
+
+    return await _agenerate_component_module_with_llm(
+        context,
+        model=model,
+        trace_id=trace_id,
+        max_budget=max_budget,
+        task=task,
+    )
 
 class GeneratedPackage(BaseModel):
     """Record of files emitted for a generated component package."""

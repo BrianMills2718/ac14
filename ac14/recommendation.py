@@ -49,6 +49,12 @@ class DefaultGeneratorRecommendation(BaseModel):
     live_readiness_artifact_path: str = Field(
         description="Persisted live-readiness artifact used by this recommendation.",
     )
+    live_readiness_suite_status: Literal["ready", "blocked", "skipped"] = Field(
+        description="Suite-level live realistic-input readiness verdict for the LLM lane.",
+    )
+    live_readiness_suite_artifact_path: str = Field(
+        description="Persisted suite live-readiness artifact used by this recommendation.",
+    )
     suite_comparison_report_path: str = Field(
         description="Persisted suite comparison report used by this recommendation.",
     )
@@ -66,6 +72,15 @@ class DefaultGeneratorRecommendation(BaseModel):
     )
     suite_default_gate_unsupported_examples: int = Field(
         description="Suite examples whose current generator mode does not support the default realistic-input gate.",
+    )
+    suite_live_ready_examples: int = Field(
+        description="Suite examples that cleared live realistic-input readiness.",
+    )
+    suite_live_blocked_examples: int = Field(
+        description="Suite examples blocked during live realistic-input readiness.",
+    )
+    suite_live_skipped_examples: int = Field(
+        description="Suite examples skipped during live realistic-input readiness.",
     )
     reasons: list[str] = Field(description="Human-readable reasons for the recommendation.")
 
@@ -98,6 +113,47 @@ class LlmLiveReadinessArtifact(BaseModel):
     )
     live_execution_enabled: bool = Field(
         description="Whether the operator explicitly enabled a live readiness attempt.",
+    )
+
+
+class LlmLiveReadinessSuiteExample(BaseModel):
+    """Per-example live-readiness result for suite-level LLM readiness."""
+
+    example_id: str = Field(description="Shipped example identifier.")
+    blueprint_dir: str = Field(description="Blueprint directory used for this readiness result.")
+    realistic_input_path: str | None = Field(
+        default=None,
+        description="Realistic-input artifact used for this example when available.",
+    )
+    status: Literal["ready", "blocked", "skipped"] = Field(
+        description="Per-example live-readiness result.",
+    )
+    reason: str = Field(description="Concise explanation for this example result.")
+    acceptance_report_path: str | None = Field(
+        default=None,
+        description="Nested acceptance report path when a live run was attempted successfully.",
+    )
+
+
+class LlmLiveReadinessSuiteArtifact(BaseModel):
+    """Persisted suite-level realistic-input live-readiness artifact for the LLM lane."""
+
+    overall_status: Literal["ready", "blocked", "skipped"] = Field(
+        description="Aggregate live-readiness verdict across the shipped suite.",
+    )
+    reason: str = Field(description="Concise explanation for the aggregate readiness status.")
+    example_count: int = Field(description="Number of shipped examples considered in the suite artifact.")
+    ready_examples: int = Field(description="Number of examples with ready live-readiness status.")
+    blocked_examples: int = Field(description="Number of examples with blocked live-readiness status.")
+    skipped_examples: int = Field(description="Number of examples with skipped live-readiness status.")
+    provider_env_vars: list[str] = Field(
+        description="Live provider environment variables detected for the readiness check.",
+    )
+    live_execution_enabled: bool = Field(
+        description="Whether the operator explicitly enabled live suite readiness probing.",
+    )
+    examples: list[LlmLiveReadinessSuiteExample] = Field(
+        description="Per-example live-readiness results across the shipped suite.",
     )
 
 
@@ -146,6 +202,12 @@ def build_default_generator_recommendation(
         llm_model=llm_model,
         llm_max_budget=llm_max_budget,
     )
+    live_readiness_suite = build_llm_live_readiness_suite_artifact(
+        output_dir=destination / "live_llm_readiness_suite",
+        examples_root=examples_root,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+    )
 
     proof_breadth_count = _proof_breadth_count(examples_root)
     reasons: list[str] = []
@@ -156,6 +218,7 @@ def build_default_generator_recommendation(
         suite_semantic,
         proof_breadth_count,
         live_readiness,
+        live_readiness_suite,
         reasons,
     )
     recommendation = DefaultGeneratorRecommendation(
@@ -166,6 +229,10 @@ def build_default_generator_recommendation(
         live_readiness_status=live_readiness.status,
         live_readiness_artifact_path=str(
             destination / "live_llm_readiness" / "live_llm_readiness.json"
+        ),
+        live_readiness_suite_status=live_readiness_suite.overall_status,
+        live_readiness_suite_artifact_path=str(
+            destination / "live_llm_readiness_suite" / "live_llm_readiness_suite.json"
         ),
         suite_comparison_report_path=str(
             destination / "suite_comparison" / "suite_comparison_report.json"
@@ -179,6 +246,9 @@ def build_default_generator_recommendation(
         suite_default_gate_included_examples=suite_proof.realistic_input_gate_included_examples,
         suite_default_gate_missing_examples=suite_proof.realistic_input_gate_missing_examples,
         suite_default_gate_unsupported_examples=suite_proof.realistic_input_gate_unsupported_examples,
+        suite_live_ready_examples=live_readiness_suite.ready_examples,
+        suite_live_blocked_examples=live_readiness_suite.blocked_examples,
+        suite_live_skipped_examples=live_readiness_suite.skipped_examples,
         reasons=reasons,
     )
     (destination / "default_generator_recommendation.json").write_text(
@@ -265,6 +335,112 @@ def build_llm_live_readiness_artifact(
     return artifact
 
 
+def build_llm_live_readiness_suite_artifact(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    llm_model: str = "gemini/gemini-2.5-flash-lite",
+    llm_max_budget: float = 0.50,
+) -> LlmLiveReadinessSuiteArtifact:
+    """Persist suite-level live-readiness results across shipped examples."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    examples = discover_shipped_blueprints(examples_root)
+    live_execution_enabled = _live_readiness_enabled()
+    provider_env_vars = _provider_env_vars() if live_execution_enabled else []
+
+    if not live_execution_enabled:
+        suite_artifact = LlmLiveReadinessSuiteArtifact(
+            overall_status="skipped",
+            reason=(
+                "Live LLM suite readiness was not explicitly enabled; "
+                "set AC14_ENABLE_LIVE_LLM_READINESS=1 to attempt live suite runs."
+            ),
+            example_count=len(examples),
+            ready_examples=0,
+            blocked_examples=0,
+            skipped_examples=len(examples),
+            provider_env_vars=[],
+            live_execution_enabled=False,
+            examples=[
+                _build_skipped_suite_example(
+                    example,
+                    reason=(
+                        "Live LLM suite readiness was not explicitly enabled; "
+                        "set AC14_ENABLE_LIVE_LLM_READINESS=1 to attempt live suite runs."
+                    ),
+                )
+                for example in examples
+            ],
+        )
+        _persist_live_readiness_suite_artifact(destination, suite_artifact)
+        return suite_artifact
+
+    if not provider_env_vars:
+        suite_artifact = LlmLiveReadinessSuiteArtifact(
+            overall_status="skipped",
+            reason="No live LLM provider key is available in the current environment.",
+            example_count=len(examples),
+            ready_examples=0,
+            blocked_examples=0,
+            skipped_examples=len(examples),
+            provider_env_vars=[],
+            live_execution_enabled=True,
+            examples=[
+                _build_skipped_suite_example(
+                    example,
+                    reason="No live LLM provider key is available in the current environment.",
+                )
+                for example in examples
+            ],
+        )
+        _persist_live_readiness_suite_artifact(destination, suite_artifact)
+        return suite_artifact
+
+    results: list[LlmLiveReadinessSuiteExample] = []
+    for example in examples:
+        results.append(
+            _build_live_readiness_suite_example(
+                destination=destination,
+                example=example,
+                llm_model=llm_model,
+                llm_max_budget=llm_max_budget,
+            ),
+        )
+
+    ready_examples = sum(1 for result in results if result.status == "ready")
+    blocked_examples = sum(1 for result in results if result.status == "blocked")
+    skipped_examples = sum(1 for result in results if result.status == "skipped")
+    overall_status: Literal["ready", "blocked", "skipped"]
+    if ready_examples == len(results) and blocked_examples == 0 and skipped_examples == 0:
+        overall_status = "ready"
+        reason = "Live realistic-input LLM acceptance completed successfully across the shipped suite."
+    elif blocked_examples == 0 and ready_examples == 0:
+        overall_status = "skipped"
+        reason = "Live realistic-input LLM acceptance was skipped across the shipped suite."
+    else:
+        overall_status = "blocked"
+        reason = (
+            "Live realistic-input LLM acceptance did not clear cleanly across the shipped suite: "
+            f"{ready_examples} ready, {blocked_examples} blocked, {skipped_examples} skipped."
+        )
+
+    suite_artifact = LlmLiveReadinessSuiteArtifact(
+        overall_status=overall_status,
+        reason=reason,
+        example_count=len(results),
+        ready_examples=ready_examples,
+        blocked_examples=blocked_examples,
+        skipped_examples=skipped_examples,
+        provider_env_vars=provider_env_vars,
+        live_execution_enabled=True,
+        examples=results,
+    )
+    _persist_live_readiness_suite_artifact(destination, suite_artifact)
+    return suite_artifact
+
+
 def _proof_breadth_count(examples_root: Path | str | None) -> int:
     """Return the number of distinct workflow signatures in the shipped suite."""
 
@@ -291,6 +467,7 @@ def _llm_promotion_ready(
     suite_semantic: SuiteSemanticComparisonReport,
     proof_breadth_count: int,
     live_readiness: LlmLiveReadinessArtifact,
+    live_readiness_suite: LlmLiveReadinessSuiteArtifact,
     reasons: list[str],
 ) -> bool:
     """Evaluate whether current evidence is strong enough to promote the LLM generator."""
@@ -301,6 +478,10 @@ def _llm_promotion_ready(
         reasons.append(
             "Live LLM readiness remains "
             f"{live_readiness.status}: {live_readiness.reason}"
+        )
+        reasons.append(
+            "Suite live LLM readiness remains "
+            f"{live_readiness_suite.overall_status}: {live_readiness_suite.reason}"
         )
         reasons.append("Deterministic remains the default control lane.")
         return False
@@ -322,6 +503,11 @@ def _llm_promotion_ready(
             "Live LLM readiness is "
             f"{live_readiness.status}: {live_readiness.reason}"
         )
+    if live_readiness_suite.overall_status != "ready":
+        reasons.append(
+            "Suite live LLM readiness is "
+            f"{live_readiness_suite.overall_status}: {live_readiness_suite.reason}"
+        )
     if suite_proof.realistic_input_gate_included_examples != suite_proof.example_count:
         reasons.append(
             "Suite default-gate coverage is incomplete: "
@@ -335,6 +521,7 @@ def _llm_promotion_ready(
         and (llm_semantic.failing_reference_examples or 0) == 0
         and proof_breadth_count > 1
         and live_readiness.status == "ready"
+        and live_readiness_suite.overall_status == "ready"
         and suite_proof.realistic_input_gate_included_examples == suite_proof.example_count
     )
     if promotion_ready:
@@ -390,6 +577,86 @@ def _persist_live_readiness_artifact(
 
     (destination / "live_llm_readiness.json").write_text(
         json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+
+
+def _persist_live_readiness_suite_artifact(
+    destination: Path,
+    artifact: LlmLiveReadinessSuiteArtifact,
+) -> None:
+    """Persist the suite-level live-readiness artifact to stable JSON."""
+
+    (destination / "live_llm_readiness_suite.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+
+
+def _build_skipped_suite_example(
+    example: ShippedBlueprintExample,
+    *,
+    reason: str,
+) -> LlmLiveReadinessSuiteExample:
+    """Build one skipped suite example result without running live acceptance."""
+
+    realistic_input_path = _resolve_realistic_input_path(Path(example.blueprint_dir))
+    return LlmLiveReadinessSuiteExample(
+        example_id=example.example_id,
+        blueprint_dir=example.blueprint_dir,
+        realistic_input_path=str(realistic_input_path) if realistic_input_path else None,
+        status="skipped",
+        reason=reason if realistic_input_path else "No realistic-input artifact is available for this blueprint.",
+    )
+
+
+def _build_live_readiness_suite_example(
+    *,
+    destination: Path,
+    example: ShippedBlueprintExample,
+    llm_model: str,
+    llm_max_budget: float,
+) -> LlmLiveReadinessSuiteExample:
+    """Build one per-example suite live-readiness result."""
+
+    realistic_input_path = _resolve_realistic_input_path(Path(example.blueprint_dir))
+    if realistic_input_path is None:
+        return LlmLiveReadinessSuiteExample(
+            example_id=example.example_id,
+            blueprint_dir=example.blueprint_dir,
+            status="skipped",
+            reason="No realistic-input artifact is available for this blueprint.",
+        )
+
+    example_destination = destination / example.example_id
+    try:
+        with _temporary_env_without_fixture():
+            build_acceptance_report(
+                blueprint_dir=example.blueprint_dir,
+                output_dir=example_destination / "acceptance",
+                mode="llm",
+                realistic_input_path=realistic_input_path,
+                realistic_input_record_index=0,
+                model=llm_model,
+                max_budget=llm_max_budget,
+            )
+    except Exception as exc:
+        return LlmLiveReadinessSuiteExample(
+            example_id=example.example_id,
+            blueprint_dir=example.blueprint_dir,
+            realistic_input_path=str(realistic_input_path),
+            status="blocked",
+            reason=(
+                "Live realistic-input LLM acceptance failed during suite readiness probing: "
+                f"{exc.__class__.__name__}: {exc}"
+            ),
+        )
+
+    return LlmLiveReadinessSuiteExample(
+        example_id=example.example_id,
+        blueprint_dir=example.blueprint_dir,
+        realistic_input_path=str(realistic_input_path),
+        status="ready",
+        reason="Live realistic-input LLM acceptance completed successfully for this blueprint.",
+        acceptance_report_path=str(example_destination / "acceptance" / "acceptance_report.json"),
     )
 
 

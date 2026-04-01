@@ -11,6 +11,7 @@ from ac14.recommendation import (
     LlmLiveReadinessArtifact,
     build_default_generator_recommendation,
     build_llm_live_readiness_artifact,
+    build_llm_live_readiness_suite_artifact,
 )
 
 
@@ -77,12 +78,18 @@ def test_build_default_generator_recommendation_keeps_deterministic_default(
     assert recommendation.llm_promotion_ready is False
     assert recommendation.proof_breadth_count >= 2
     assert recommendation.live_readiness_status == "skipped"
+    assert recommendation.live_readiness_suite_status == "skipped"
     assert recommendation.suite_proof_report_path.endswith("suite_proof_report.json")
+    assert recommendation.live_readiness_suite_artifact_path.endswith("live_llm_readiness_suite.json")
     assert recommendation.suite_default_gate_included_examples >= 2
     assert recommendation.suite_default_gate_missing_examples == 0
     assert recommendation.suite_default_gate_unsupported_examples == 0
+    assert recommendation.suite_live_ready_examples == 0
+    assert recommendation.suite_live_blocked_examples == 0
+    assert recommendation.suite_live_skipped_examples >= 2
     assert recommendation.live_readiness_artifact_path.endswith("live_llm_readiness.json")
     assert any("Suite default-gate coverage is" in reason for reason in recommendation.reasons)
+    assert any("Suite live LLM readiness remains skipped" in reason for reason in recommendation.reasons)
 
 
 def test_build_llm_live_readiness_artifact_skips_without_live_keys(
@@ -112,3 +119,35 @@ def test_build_llm_live_readiness_artifact_skips_without_live_keys(
     assert artifact.status == "skipped"
     assert payload["status"] == "skipped"
     assert payload["provider_env_vars"] == []
+
+
+def test_build_llm_live_readiness_suite_artifact_skips_without_live_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Suite live-readiness artifact should persist explicit skipped results without keys."""
+
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AC14_ENABLE_LIVE_LLM_READINESS",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    artifact = build_llm_live_readiness_suite_artifact(
+        output_dir=tmp_path / "live_readiness_suite",
+        examples_root=EXAMPLES_ROOT,
+    )
+
+    artifact_path = tmp_path / "live_readiness_suite" / "live_llm_readiness_suite.json"
+    assert artifact_path.exists()
+    payload = json.loads(artifact_path.read_text())
+    assert artifact.overall_status == "skipped"
+    assert artifact.example_count >= 2
+    assert artifact.ready_examples == 0
+    assert artifact.blocked_examples == 0
+    assert artifact.skipped_examples == artifact.example_count
+    assert payload["overall_status"] == "skipped"
+    assert len(payload["examples"]) == artifact.example_count

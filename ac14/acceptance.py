@@ -22,13 +22,27 @@ from ac14.recomposition import (
 )
 from ac14.reference_components import build_reference_component_builders_for_blueprint
 from ac14.runtime import run_blueprint_once
-from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
 DEFAULT_ACCEPTANCE_MODEL = "gemini/gemini-2.5-flash-lite"
 DEFAULT_ACCEPTANCE_MAX_BUDGET = 0.50
 ACCEPTANCE_PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "review_acceptance.yaml"
 AcceptanceMode = Literal["reference", "deterministic", "llm"]
+
+async def acall_llm_structured(*args: Any, **kwargs: Any) -> Any:
+    """Lazily import llm_client structured calls so fixture-backed paths avoid import-time dependency failures."""
+
+    from llm_client import acall_llm_structured as _acall_llm_structured  # type: ignore[import-not-found]
+
+    return await _acall_llm_structured(*args, **kwargs)
+
+
+def render_prompt(*args: Any, **kwargs: Any) -> Any:
+    """Lazily import llm_client prompt rendering so fixture-backed paths avoid import-time dependency failures."""
+
+    from llm_client import render_prompt as _render_prompt
+
+    return _render_prompt(*args, **kwargs)
 
 
 class RequirementAssessment(BaseModel):
@@ -533,22 +547,28 @@ async def _review_acceptance_scenario(
     if fixture_path:
         return AcceptanceReviewResponse.model_validate_json(Path(fixture_path).read_text())
 
-    messages = render_prompt(
+    messages = cast(
+        list[Any],
+        render_prompt(
         ACCEPTANCE_PROMPT_PATH,
         blueprint_metadata=blueprint.metadata.model_dump(mode="json"),
         scenario=scenario.model_dump(mode="json"),
         realistic_input_payload=realistic_input_payload,
         outputs_by_component=outputs_by_component,
+        ),
     )
-    response, _meta = await acall_llm_structured(
+    response, _meta = cast(
+        tuple[AcceptanceReviewResponse, object],
+        await acall_llm_structured(
         model,
         messages,
         response_model=AcceptanceReviewResponse,
         task="ac14_review_acceptance",
         trace_id=trace_id,
         max_budget=max_budget,
+        ),
     )
-    return cast(AcceptanceReviewResponse, response)
+    return response
 
 
 async def _execute_mode_for_acceptance(

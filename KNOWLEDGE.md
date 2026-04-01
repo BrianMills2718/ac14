@@ -174,4 +174,8 @@ realistic-input breadth exists. The next honest artifact is a suite-level live
 readiness report that stays operator-gated and keeps per-example `ready` /
 `blocked` / `skipped` results explicit.
 
+### 2026-04-01 — codex — best-practice
+Once suite-level live readiness exists, recommendation should consume it
+directly instead of relying only on the bounded one-example live probe.
+
 ---

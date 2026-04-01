@@ -217,6 +217,29 @@ suite-level default-gate counts, and includes explicit reasons when default-gate
 coverage is incomplete.
 **Date resolved:** 2026-04-01
 
+### U-025: Live readiness was still only a one-example artifact.
+**Status:** Resolved
+**Context:** AC14 had an explicit operator-gated live-readiness artifact for
+realistic-input `llm` acceptance, but it only probed one shipped example.
+**Why it matters:** Broader live/default readiness evidence should not rely on
+one example once suite-level realistic-input breadth exists elsewhere.
+**Resolution:** AC14 now persists a suite-level live-readiness artifact with
+per-example and aggregate `ready`, `blocked`, and `skipped` results while
+keeping live execution operator-explicit.
+**Date resolved:** 2026-04-01
+
+### U-026: Recommendation logic was not consuming the suite live-readiness artifact.
+**Status:** Resolved
+**Context:** AC14 had both the bounded one-example live-readiness artifact and
+the broader suite-level live-readiness artifact, but recommendation still
+looked only at the smaller probe.
+**Why it matters:** Recommendation should reflect the broader explicit
+live-readiness evidence once it exists.
+**Resolution:** Recommendation now persists suite live-readiness status, suite
+live artifact path, suite ready/blocked/skipped counts, and explicit reasons
+when suite live readiness is not ready.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: suite live-readiness artifact
-  - [ ] add one suite-level live-readiness artifact with explicit per-example statuses
-  - [ ] persist aggregate ready/blocked/skipped counts and paths
-  - Success criteria: suite live readiness is reviewable without being reduced to a one-example probe
+- [ ] Phase 1: freeze-semantic artifact design
+  - [ ] define the freeze-semantic review artifact shape
+  - [ ] decide where it attaches in the draft/freeze chain
+  - Success criteria: the next front-half lane is explicit and reviewable
 
-- [ ] Phase 2: boundary preservation
-  - [ ] keep live execution explicitly gated
-  - [ ] keep suite live readiness separate from fixture-backed breadth and recommendation promotion policy
-  - Success criteria: the live-readiness story broadens without silently upgrading promotion claims
+- [ ] Phase 2: freeze-semantic integration
+  - [ ] connect semantic review to freeze quality
+  - [ ] keep programmatic readiness and semantic review complementary
+  - Success criteria: front-half semantic review strengthens freeze without replacing structural checks
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted suite live-readiness tests
+  - [ ] run targeted freeze-semantic tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the suite live-readiness lane
+  - Success criteria: verification passes and the docs match the freeze-semantic lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- realistic-input default-gate evidence now feeds recommendation, but live-readiness evidence is still only a one-example artifact
-- broader live/default evidence is still narrow even after the new explicit boundary artifact
+- recommendation now consumes suite live-readiness evidence, but front-half semantic/business-logic review is still weaker than final acceptance
+- draft/freeze quality still lacks one directly attached semantic review artifact
 
 ## Latest Verified Results
 
@@ -146,6 +146,22 @@ Detailed uncertainty tracking now lives in:
   - `python -m ruff check ac14/recommendation.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `139 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted suite live-readiness verification passed:
+  - `python -m pytest -q tests/test_recommendation.py tests/test_cli.py::test_cli_live_llm_readiness_reports_skipped_without_keys tests/test_cli.py::test_cli_live_llm_readiness_suite_reports_skipped_without_keys tests/test_make_targets.py::test_make_help_lists_proof_targets tests/test_make_targets.py::test_make_live_llm_readiness_reports_skipped_without_keys tests/test_make_targets.py::test_make_live_llm_readiness_suite_reports_skipped_without_keys` passed with `8 passed`
+  - `python -m mypy ac14/recommendation.py ac14/__main__.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/recommendation.py ac14/__main__.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `142 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted recommendation suite-live verification passed:
+  - `python -m pytest -q tests/test_recommendation.py tests/test_cli.py::test_cli_recommend_default_generator_deterministic_only tests/test_make_targets.py::test_make_recommend_default_generator_deterministic_only` passed with `5 passed`
+  - `python -m mypy ac14/recommendation.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/recommendation.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `142 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
 

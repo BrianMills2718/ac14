@@ -80,6 +80,8 @@ AC14 now supports:
 - carrying realistic-input full-system acceptance into the default deterministic proof/evidence bundle for shipped examples, while keeping missing realistic-input artifacts explicit
 - carrying realistic-input full-system acceptance into the default suite proof/evidence story for shipped examples, while keeping missing and unsupported suite gate states explicit
 - making default-generator recommendation consume suite-level realistic-input default-gate evidence instead of reasoning only from structural suite comparison and semantic comparison
+- persisting a suite-level live-readiness artifact for realistic-input `llm` acceptance with explicit per-example and aggregate `ready`, `blocked`, and `skipped` results
+- making default-generator recommendation consume both the bounded one-example live-readiness artifact and the broader suite-level live-readiness artifact
 
 ## What Is Still Missing
 
@@ -89,7 +91,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- broader live/default readiness evidence beyond the current one-example operator-gated boundary artifact
+- a directly attached semantic review artifact for draft/freeze quality
 - first-class tool/runtime nodes in the blueprint model
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
@@ -122,6 +124,7 @@ make acceptance-review-suite OUTPUT=.ac14_out/suite_acceptance GENERATOR=determi
 make acceptance-review-realistic-suite OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0
 make acceptance-review-realistic-compare INPUT=examples/support_ticket_digest/blueprint REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0
 AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness OUTPUT=.ac14_out/live_llm_readiness
+AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness-suite OUTPUT=.ac14_out/live_llm_readiness_suite
 make packet-sufficiency INPUT=examples/support_ticket_digest/blueprint OUTPUT=.ac14_out/packet_sufficiency
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

@@ -246,6 +246,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "acceptance-review-realistic-compare" in result.stdout
     assert "recommend-default-generator" in result.stdout
     assert "live-llm-readiness" in result.stdout
+    assert "live-llm-readiness-suite" in result.stdout
 
 
 def test_make_packet_sufficiency_runs_end_to_end(tmp_path: Path) -> None:
@@ -913,8 +914,12 @@ def test_make_recommend_default_generator_deterministic_only(tmp_path: Path) -> 
     assert recommendation_path.exists()
     payload = json.loads(recommendation_path.read_text())
     assert payload["live_readiness_status"] == "skipped"
+    assert payload["live_readiness_suite_status"] == "skipped"
     assert payload["suite_default_gate_missing_examples"] == 0
     assert payload["suite_default_gate_unsupported_examples"] == 0
+    assert payload["suite_live_ready_examples"] == 0
+    assert payload["suite_live_blocked_examples"] == 0
+    assert payload["suite_live_skipped_examples"] >= 2
 
 
 def test_make_live_llm_readiness_reports_skipped_without_keys(
@@ -948,6 +953,40 @@ def test_make_live_llm_readiness_reports_skipped_without_keys(
     assert result.returncode == 0, result.stderr
     payload = json.loads((output_dir / "live_llm_readiness.json").read_text())
     assert payload["status"] == "skipped"
+
+
+def test_make_live_llm_readiness_suite_reports_skipped_without_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Make suite live-readiness target should persist explicit skipped artifacts without keys."""
+
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AC14_ENABLE_LIVE_LLM_READINESS",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    output_dir = tmp_path / "live_readiness_suite"
+    result = subprocess.run(
+        [
+            "make",
+            "live-llm-readiness-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "live_llm_readiness_suite.json").read_text())
+    assert payload["overall_status"] == "skipped"
+    assert payload["example_count"] >= 2
 
 
 def test_make_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:

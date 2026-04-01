@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #14: Live LLM Suite Readiness](/home/brian/projects/ac14/docs/plans/14_live_llm_suite_readiness.md)
+- [Plan #16: Freeze Semantic Review Gate](/home/brian/projects/ac14/docs/plans/16_freeze_semantic_review_gate.md)
 
-Plan #13 closed the recommendation/default-gate gap. The next honest gap is
-live-readiness breadth: AC14 should stop relying on a one-example live
-readiness artifact when the suite-level readiness story is still missing.
+Plan #15 closed the recommendation suite-live gap. The next honest gap is the
+front half: AC14 still lacks a first-class semantic review artifact attached
+directly to draft/freeze quality.
 
 ## Progress Update
 
@@ -27,36 +27,36 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Completed in Plan #13:
+Completed in Plan #15:
 
-1. recommendation/default-generator artifacts now consume suite-level realistic-input default-gate evidence
-2. recommendation reasons now fail loud when default-gate coverage is missing or unsupported
-3. status/docs now stop presenting recommendation/default-generator logic as independent from the default suite proof story
+1. recommendation now consumes the suite-level live-readiness artifact explicitly
+2. recommendation reasons now fail loud when suite live readiness is not ready
+3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #14:
+Required in Plan #16:
 
-1. suite-level live-readiness artifact with explicit per-example and aggregate statuses
-2. explicit operator gating and explicit separation from fixture-backed breadth
-3. status/docs that stop presenting one-example live readiness as broad readiness evidence
+1. explicit freeze-semantic review artifact
+2. direct connection from that artifact to draft/freeze quality
+3. status/docs that stop treating front-half semantic review as only a side artifact
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#14.
+#16.
 
-### Phase 1: suite live-readiness artifact
+### Phase 1: freeze-semantic artifact design
 
-- add one suite-level live-readiness artifact with explicit per-example statuses
-- persist aggregate ready/blocked/skipped counts and paths
+- decide the freeze-semantic review artifact shape and where it attaches
+- keep the front-half chain explicit and reviewable
 
-### Phase 2: boundary preservation
+### Phase 2: freeze-semantic integration
 
-- keep live execution explicitly gated
-- keep suite live readiness separate from fixture-backed breadth and recommendation promotion policy
+- connect the artifact to draft/freeze quality rather than leaving it as side review
+- keep programmatic readiness and semantic review complementary
 
 ### Phase 3: Verification And Lock
 
-- targeted suite live-readiness verification
+- targeted freeze-semantic verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. suite live readiness should broaden evidence without silently upgrading recommendation policy
-2. live execution should remain operator-explicit even when suite breadth is added
-3. the lane should preserve explicit per-example results instead of stopping at the first failure
+1. the semantic gate should strengthen freeze decisions without turning them into a vague LLM-only review
+2. the lane should preserve explicit programmatic readiness alongside semantic review
+3. the artifact should be attached to freeze quality rather than float as a disconnected side review

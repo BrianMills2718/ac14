@@ -48,6 +48,7 @@ from ac14.packet_sufficiency import build_packet_sufficiency_report
 from ac14.recommendation import (
     build_default_generator_recommendation,
     build_llm_live_readiness_artifact,
+    build_llm_live_readiness_suite_artifact,
 )
 from ac14.semantic_comparison import ComparisonMode, build_semantic_comparison_report
 from ac14.semantic_suite import build_suite_semantic_comparison_report
@@ -365,6 +366,15 @@ def main() -> int:
     live_readiness_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     live_readiness_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    live_readiness_suite_parser = subparsers.add_parser(
+        "live-llm-readiness-suite",
+        help="Build one persisted realistic-input suite live-readiness artifact for the LLM lane.",
+    )
+    live_readiness_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    live_readiness_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    live_readiness_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    live_readiness_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -568,6 +578,13 @@ def main() -> int:
         )
     if args.command == "live-llm-readiness":
         return _live_llm_readiness(
+            args.output_dir,
+            args.examples_root,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "live-llm-readiness-suite":
+        return _live_llm_readiness_suite(
             args.output_dir,
             args.examples_root,
             args.model,
@@ -1101,6 +1118,24 @@ def _live_llm_readiness(
     """Build and print a persisted live-readiness artifact for the LLM lane."""
 
     artifact = build_llm_live_readiness_artifact(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _live_llm_readiness_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a persisted suite-level live-readiness artifact for the LLM lane."""
+
+    artifact = build_llm_live_readiness_suite_artifact(
         output_dir=output_dir,
         examples_root=examples_root,
         llm_model=model,

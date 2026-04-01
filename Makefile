@@ -28,7 +28,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -128,3 +128,6 @@ recommend-default-generator: ## Recommend the current default generator (OUTPUT=
 
 live-llm-readiness: ## Build one persisted realistic-input live-readiness artifact for the LLM lane (OUTPUT=.ac14_out/live_llm_readiness)
 	$(PYTHON) -m ac14 live-llm-readiness --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+live-llm-readiness-suite: ## Build one persisted realistic-input suite live-readiness artifact for the LLM lane (OUTPUT=.ac14_out/live_llm_readiness_suite)
+	$(PYTHON) -m ac14 live-llm-readiness-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

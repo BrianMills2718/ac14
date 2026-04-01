@@ -24,7 +24,9 @@ current executable lane.
 | 11 | [Realistic-Input Default Gate](11_realistic_input_default_gate.md) | High | Complete | - |
 | 12 | [Realistic-Input Suite Default Gate](12_realistic_input_suite_default_gate.md) | High | Complete | - |
 | 13 | [Recommendation Default-Gate Awareness](13_recommendation_default_gate_awareness.md) | High | Complete | - |
-| 14 | [Live LLM Suite Readiness](14_live_llm_suite_readiness.md) | High | In Progress | - |
+| 14 | [Live LLM Suite Readiness](14_live_llm_suite_readiness.md) | High | Complete | - |
+| 15 | [Recommendation Live Suite Awareness](15_recommendation_live_suite_awareness.md) | High | Complete | - |
+| 16 | [Freeze Semantic Review Gate](16_freeze_semantic_review_gate.md) | High | In Progress | - |
 
 ## Status Key
 

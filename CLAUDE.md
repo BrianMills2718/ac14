@@ -97,8 +97,8 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after recommendation/default-generator awareness of the
-default-gate evidence is suite-level live LLM readiness.
+The current focus after recommendation awareness of broader live evidence is a
+front-half freeze semantic review gate.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -116,9 +116,9 @@ default-gate evidence is suite-level live LLM readiness.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
-- next, strengthen the live-readiness story by broadening from one example to
-  an explicit suite-level readiness artifact without conflating live evidence
-  with fixture-backed breadth
+- next, strengthen the front half by attaching a semantic review artifact
+  directly to draft/freeze quality instead of leaving business-logic review only
+  to later acceptance surfaces
 
 ## Continuation Rule
 

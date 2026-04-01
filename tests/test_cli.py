@@ -1247,9 +1247,13 @@ def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> N
     payload = json.loads(result.stdout)
     assert payload["recommended_default"] == "deterministic"
     assert payload["live_readiness_status"] == "skipped"
-    assert payload["suite_default_gate_included_examples"] == payload["proof_breadth_count"] or payload["suite_default_gate_included_examples"] >= 2
+    assert payload["live_readiness_suite_status"] == "skipped"
+    assert payload["suite_default_gate_included_examples"] >= 2
     assert payload["suite_default_gate_missing_examples"] == 0
     assert payload["suite_default_gate_unsupported_examples"] == 0
+    assert payload["suite_live_ready_examples"] == 0
+    assert payload["suite_live_blocked_examples"] == 0
+    assert payload["suite_live_skipped_examples"] >= 2
 
 
 def test_cli_live_llm_readiness_reports_skipped_without_keys(
@@ -1287,6 +1291,44 @@ def test_cli_live_llm_readiness_reports_skipped_without_keys(
     payload = json.loads(result.stdout)
     assert payload["status"] == "skipped"
     assert (tmp_path / "live_readiness" / "live_llm_readiness.json").exists()
+
+
+def test_cli_live_llm_readiness_suite_reports_skipped_without_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Suite live-readiness command should persist explicit skipped artifacts without keys."""
+
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AC14_ENABLE_LIVE_LLM_READINESS",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "live-llm-readiness-suite",
+            "--output-dir",
+            str(tmp_path / "live_readiness_suite"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["overall_status"] == "skipped"
+    assert payload["example_count"] >= 2
+    assert (tmp_path / "live_readiness_suite" / "live_llm_readiness_suite.json").exists()
 
 
 def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
