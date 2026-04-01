@@ -457,3 +457,53 @@ def test_build_front_half_acceptance_report_supports_messy_input_artifact(
     assert discovery_payload["input_inspection"]["input_format"] == "csv"
     assert artifact.review.freeze_verdict == "promising_but_blocked"
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
+
+
+def test_build_front_half_acceptance_report_supports_retry_freeze_on_messy_input(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Retry-aware front-half acceptance should stay explicit on the messy CSV asset."""
+
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_report(
+        input_path=REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv",
+        output_dir=tmp_path / "front_half_csv",
+        requirements=["preserve support ticket meaning", "keep packets bounded"],
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+        retry_blocked_freeze=True,
+        max_budget=0.1,
+        retry_max_budget=0.1,
+    )
+
+    discovery_payload = json.loads(Path(artifact.artifact_paths.discovery_artifact_path).read_text())
+    assert discovery_payload["input_inspection"]["input_format"] == "csv"
+    assert artifact.freeze_approved is False
+    assert artifact.retry_freeze_attempted is True
+    assert artifact.retry_freeze_approved is False
+    assert artifact.final_freeze_approved is False
+    assert artifact.artifact_paths.retry_freeze_artifact_path is not None
+    assert Path(artifact.artifact_paths.retry_freeze_artifact_path).exists()
+    assert artifact.review.freeze_verdict == "promising_but_blocked"
+    assert artifact.artifact_paths.freeze_semantic_review_path is not None

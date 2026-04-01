@@ -9,11 +9,18 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #25: Messy-Input Retry Proof](/home/brian/projects/ac14/docs/plans/25_messy_input_retry_proof.md)
+- [Plan #26: Structured Realistic-Input Loading](/home/brian/projects/ac14/docs/plans/26_structured_realistic_input_loading.md)
 
-Plan #24 closed the first retry-aware front-half suite breadth lane. The
-current active gap is proving that the same retry-aware front-half story stays
-explicit on the messy CSV slice.
+Plan #25 closed the first retry-aware messy-input front-half lane. The active
+24-hour chain is now:
+
+1. shared structured-input loading for realistic-input acceptance
+2. messy-input full-system acceptance in non-LLM modes
+3. bounded messy-input `llm` comparison
+
+The immediate active gap is that full-system realistic-input acceptance still
+assumes top-level JSON lists even though the front half already supports
+multiple structured formats.
 
 ## Progress Update
 
@@ -33,32 +40,32 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #25:
+Required in Plan #26:
 
-1. one retry-aware front-half proof on the messy CSV asset
-2. explicit persisted discovery, initial freeze, retry, and final review paths
-3. stronger retry-aware evidence on messier input than the clean shipped JSON slice
+1. one shared structured-input loading surface for discovery and acceptance
+2. realistic-input acceptance support for structured non-JSON inputs
+3. default realistic-input discovery that can consider non-JSON structured artifacts
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
 #25.
 
-### Phase 1: messy-input retry scope design
+### Phase 1: structured-input loading design
 
-- choose the messy CSV asset as the next retry-aware proof target
-- pre-make how discovery, initial freeze, retry, and final review stay explicit
+- pre-make the shared structured-input contract
+- keep acceptance broad enough for `json`, `jsonl`, `csv`, and `yaml`, but fail loud on text
 
-### Phase 2: messy-input retry implementation
+### Phase 2: shared loading implementation
 
-- run retry-aware front-half acceptance on the messy CSV asset
-- keep every stage explicit in the resulting artifact
+- extract shared structured-input loading from discovery
+- consume it from realistic-input acceptance and broaden default input discovery
 
 ### Phase 3: Verification And Lock
 
-- targeted messy-input retry verification
+- targeted structured-input verification
 - full local verification
-- doc lock and clean commit
+- doc lock, then advance immediately to Plans #27 and #28 in the same 24-hour chain
 
 ## Known Uncertainties
 
@@ -68,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the messy-input retry proof should reuse the current artifact model instead of inventing a new one
-2. retry-aware messy-input proof must preserve every stage explicitly instead of compressing the story into one verdict
-3. the lane should strengthen messy-input evidence without turning the retry path into hidden healing
+1. structured-input support should be shared rather than duplicated between discovery and acceptance
+2. the first full-system messy-input lane should stay within existing semantic-acceptance rules instead of inventing a new execution model
+3. bounded messy-input `llm` proof must remain clearly separate from live readiness

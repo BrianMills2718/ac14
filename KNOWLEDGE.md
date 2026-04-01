@@ -199,6 +199,13 @@ under the support-ticket example so discovery-through-freeze can be tested on a
 messier artifact without scope sprawl.
 
 ### 2026-04-01 — codex — best-practice
+Retry-aware messy-input proof also does not need a new artifact type. AC14 now
+reuses the existing front-half acceptance artifact on the support-ticket CSV
+asset and keeps the initial blocked freeze, the retry-chain artifact, and the
+final semantic review explicit instead of collapsing them into one success
+claim.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

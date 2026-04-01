@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: messy-input retry scope design
-  - [ ] pre-make the messy CSV retry lane on the existing artifact instead of inventing a new artifact type
-  - [ ] pre-make how discovery, initial freeze, retry, and final review all stay explicit
-  - Success criteria: the messy-input retry lane is explicit enough to implement without changing the artifact model unnecessarily
+- [ ] Phase 1: structured-input loading design
+  - [ ] pre-make one shared structured-input contract for discovery and acceptance
+  - [ ] pre-make the supported realistic-input formats and fail-loud boundary
+  - Success criteria: the loading lane is explicit enough to implement without duplicating discovery-only helpers
 
-- [ ] Phase 2: messy-input retry implementation
-  - [ ] run retry-aware front-half acceptance on the existing messy CSV asset
-  - [ ] preserve discovery, initial freeze, retry, and final review paths in the resulting artifact
-  - Success criteria: the messy-input front-half proof includes one bounded retry without hiding any step
+- [ ] Phase 2: structured-input loading implementation
+  - [ ] extract shared structured-input loading from discovery
+  - [ ] reuse it from realistic-input acceptance and broaden default realistic-input discovery beyond `.json`
+  - Success criteria: realistic-input acceptance can load structured non-JSON inputs without weakening the semantic-acceptance contract
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted messy-input retry tests
+  - [ ] run targeted structured-input loading tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the messy-input retry lane
+  - Success criteria: verification passes and the docs match Plan #26
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- retry-aware suite breadth now exists, but the retry story is still only proven on the cleaner shipped inputs rather than the messy CSV slice
+- retry-aware messy-input front-half proof now exists, but full-system realistic-input acceptance still assumes top-level JSON lists
 
 ## Latest Verified Results
 
@@ -58,11 +58,13 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/03_meta_process_dependency_probe_policy.md`
+  - `docs/plans/25_messy_input_retry_proof.md`
 - the current active lane is:
-  - `docs/plans/13_recommendation_default_gate_awareness.md`
-- the most recently completed lane before this one was:
-  - `docs/plans/05_realistic_input_full_system_acceptance.md`
+  - `docs/plans/26_structured_realistic_input_loading.md`
+- targeted messy-input retry verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_retry_freeze_on_messy_input tests/test_cli.py::test_cli_front_half_acceptance_supports_retry_freeze_on_messy_input tests/test_make_targets.py::test_make_front_half_acceptance_supports_retry_freeze_on_messy_input` passed with `3 passed`
+  - `python -m mypy ac14/front_half_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/front_half_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 - targeted realistic-input full-system acceptance verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_artifact tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_runs_end_to_end` passed with `3 passed`
 - targeted deterministic realistic-input acceptance verification passed:
@@ -228,6 +230,9 @@ Detailed uncertainty tracking now lives in:
 - [ ] prove one messier-input front-half lane without hiding ambiguity in prompts
 - [ ] turn dependency blockers into one explicit remediation lane instead of only diagnosis
 - [ ] prove retry-aware front-half acceptance on the messy CSV slice
+- [ ] remove JSON-only realistic-input assumptions from the final semantic gate
+- [ ] prove messy-input full-system acceptance in non-LLM modes
+- [ ] prove one bounded messy-input `llm` comparison lane without implying live readiness
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

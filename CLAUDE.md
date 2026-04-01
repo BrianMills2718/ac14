@@ -96,11 +96,14 @@ process failure. The required behavior is:
 - keep going until the active plan is finished or a real contradiction appears
 - keep the 24-hour sequence explicit in numbered plans, TODO, and
   `AC14_NEXT_24_HOURS.md` rather than only in conversation
+- for the active chain, do not stop after one green checkpoint if the next
+  numbered plan is already clear and thesis-preserving; update the plan docs
+  and continue immediately
 
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-proving retry-aware front-half behavior on the messy CSV slice.
+to carry that realism all the way into the full-system acceptance surface.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -133,6 +136,13 @@ proving retry-aware front-half behavior on the messy CSV slice.
   collapsing everything into one aggregate claim
 - once retry-aware suite breadth exists, prove the same retry-aware path on the
   messy CSV slice before making bigger generality claims
+- once retry-aware messy-input front-half proof exists, remove the JSON-only
+  assumption from realistic-input final acceptance before making stronger
+  messy-input claims
+- after structured realistic-input loading is shared, prove messy-input
+  full-system acceptance in `reference` and `deterministic` modes
+- only after the non-LLM messy-input final gate is explicit should AC14 add one
+  bounded messy-input `llm` comparison lane
 
 ## Continuation Rule
 

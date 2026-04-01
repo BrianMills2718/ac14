@@ -1,6 +1,6 @@
 # Plan #25: Messy-Input Retry Proof
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -38,14 +38,14 @@ shipped JSON assets.
 ## Open Questions
 
 ### Q1: Should the messy-input retry proof be a new artifact type?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The next lane should prove retry-aware behavior without multiplying artifact types unnecessarily.
-**Default:** No. Reuse the existing front-half acceptance artifact.
+**Decision:** No. Reuse the existing front-half acceptance artifact.
 
 ### Q2: What should count as success?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The messy-input retry lane is about explicitness and boundedness, not necessarily about passing freeze.
-**Default:** Success is preserving explicit discovery, initial freeze, retry artifact, and final review on the messy CSV asset.
+**Decision:** Success is preserving explicit discovery, initial freeze, retry artifact, and final review on the messy CSV asset.
 
 ---
 
@@ -96,10 +96,24 @@ shipped JSON assets.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can run retry-aware front-half acceptance on the messy CSV artifact.
-- [ ] The resulting artifact preserves discovery, initial freeze, retry, and final review paths explicitly.
-- [ ] The lane stays explicit and does not claim success just because a retry happened.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can run retry-aware front-half acceptance on the messy CSV artifact.
+- [x] The resulting artifact preserves discovery, initial freeze, retry, and final review paths explicitly.
+- [x] The lane stays explicit and does not claim success just because a retry happened.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted messy-input retry verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_retry_freeze_on_messy_input tests/test_cli.py::test_cli_front_half_acceptance_supports_retry_freeze_on_messy_input tests/test_make_targets.py::test_make_front_half_acceptance_supports_retry_freeze_on_messy_input`
+  - `python -m mypy ac14/front_half_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/front_half_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now proves that the retry-aware front-half chain stays explicit on the
+messy CSV slice: the artifact preserves discovery, the initial blocked freeze,
+the retry-chain artifact, and the final semantic front-half review without
+inventing a new artifact type or conflating retry with success.
 
 ---
 

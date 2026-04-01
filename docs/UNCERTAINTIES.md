@@ -346,6 +346,15 @@ that aggregates retry-attempted and retry-approved counts while preserving
 per-example retry artifact paths.
 **Date resolved:** 2026-04-01
 
+### U-036: Realistic-input final acceptance still assumed top-level JSON lists.
+**Status:** Investigating
+**Context:** Front-half discovery already supports multiple structured input
+formats, but full-system realistic-input acceptance still only loads top-level
+JSON lists and only auto-discovers `.json` input files.
+**Why it matters:** The final semantic gate cannot honestly claim messy-input
+coverage while it silently excludes the same structured formats the front half
+already supports.
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains
@@ -365,6 +374,14 @@ operator cost.
 **Context:** Direct draft-bundle editing exists, but automated rewrite loops are
 not yet proven.
 **Why it matters:** Future automation could help or could add noisy churn.
+
+### U-037: The messy-input final gate is still unproven in bounded `llm` mode.
+**Status:** Deferred
+**Context:** Bounded realistic-input `llm` acceptance exists on the cleaner
+JSON slice, but the messy CSV asset still has no explicit `llm` final-gate
+evidence.
+**Why it matters:** AC14 should broaden non-deterministic validation honestly
+without letting fixture-backed `llm` evidence drift into live-readiness claims.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

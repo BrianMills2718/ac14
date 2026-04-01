@@ -91,13 +91,14 @@ Implemented:
 18. one explicit retry-chain artifact that runs refine -> materialize -> refreeze and preserves every intermediate path instead of leaving the first retry as manual command orchestration
 19. one opt-in retry-aware realistic-input front-half acceptance path that preserves both the initial freeze decision and the retry artifact instead of replacing blocked freeze evidence
 20. one opt-in retry-aware front-half suite breadth path that aggregates retry-attempted and retry-approved counts while preserving per-example retry artifact paths
-21. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
-22. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
-23. one bounded realistic-input full-system acceptance slice in `llm` mode
-24. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
-25. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
-26. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
-27. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
+21. one explicit retry-aware messy-input front-half proof on the support-ticket CSV asset, preserving discovery, the initial blocked freeze, the retry-chain artifact, and the final semantic front-half review without inventing a new artifact type
+22. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
+23. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
+24. one bounded realistic-input full-system acceptance slice in `llm` mode
+25. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
+26. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
+27. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
+28. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -146,7 +147,8 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, and one bounded front-half retry breadth lane
+3. non-JSON structured realistic-input loading at the final gate
+4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, and one bounded messy-input retry proof
 
 ### Generality
 
@@ -164,11 +166,12 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. broad automatic dependency installation and post-install verification as a normal lane
-2. real shared-tool execution inside blueprinted components
-3. first-class runtime tool nodes or retrieval nodes in the blueprint model
-4. broad automatic NL-to-blueprint derivation from messy real inputs
-5. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
+1. non-JSON structured realistic-input loading at the final semantic gate
+2. broad automatic dependency installation and post-install verification as a normal lane
+3. real shared-tool execution inside blueprinted components
+4. first-class runtime tool nodes or retrieval nodes in the blueprint model
+5. broad automatic NL-to-blueprint derivation from messy real inputs
+6. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
 
 ## Current Risks
 
