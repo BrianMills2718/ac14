@@ -1,7 +1,7 @@
 # AC14 Next 24 Hours
 
 Status: In Progress
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 
 ## Purpose
 
@@ -9,12 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #9: Live LLM Readiness Boundary](/home/brian/projects/ac14/docs/plans/09_live_llm_readiness_boundary.md)
+- [Plan #10: Packet Sufficiency Evidence](/home/brian/projects/ac14/docs/plans/10_packet_sufficiency_evidence.md)
 
-Plan #8 closed the fixture-backed suite-level `llm` breadth gap. The next
-honest gap is the readiness boundary: AC14 should stop leaving it implicit
-whether a result comes from fixture-backed proof breadth or from live `llm`
-evidence.
+Plan #9 closed the explicit live-readiness boundary gap. The next honest gap is
+packet sufficiency evidence: AC14 should stop leaving it implicit whether a
+packet merely exists or is structurally sufficient for bounded local
+generation.
 
 ## Progress Update
 
@@ -28,30 +28,30 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Required in Plan #9:
+Required in Plan #10:
 
-1. one persisted realistic-input live-readiness artifact for `llm` acceptance
-2. explicit `ready` / `blocked` / `skipped` semantics
-3. recommendation and status surfaces that distinguish fixture-backed breadth from live readiness
+1. one persisted packet-sufficiency artifact for a shipped blueprint
+2. explicit structural sufficiency reporting without overclaiming semantic sufficiency
+3. operator surfaces and status docs that distinguish packet existence from packet sufficiency
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#9.
+#10.
 
-### Phase 1: persisted live-readiness artifact
+### Phase 1: packet sufficiency artifact
 
-- add one explicit realistic-input live-readiness artifact for `llm` acceptance
-- use explicit states such as `ready`, `blocked`, and `skipped`
+- add one explicit packet-sufficiency artifact for a shipped blueprint
+- keep the artifact structural and bounded
 
-### Phase 2: recommendation boundary
+### Phase 2: operator surface
 
-- feed live-readiness state into recommendation/status surfaces
-- keep fixture-backed breadth and live readiness explicit and separate
+- expose a clean CLI surface
+- expose a clean Make surface
 
 ### Phase 3: Verification And Lock
 
-- any widened CLI and Make surfaces
+- targeted packet-sufficiency verification
 - full local verification
 - doc lock and clean commit
 
@@ -63,6 +63,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. live provider keys may be absent, so the artifact must support honest `skipped` outcomes
-2. the project should remain conservative even if fixture-backed breadth is strong but live evidence is absent
-3. recommendation logic may need a sharper separation between proof breadth and live readiness than it has today
+1. the new artifact must not quietly smuggle whole-blueprint context back into local packet claims
+2. the first lane should stay structural and avoid pretending it proves full semantic sufficiency
+3. packet sufficiency should remain separate from broader proof/recommendation artifacts

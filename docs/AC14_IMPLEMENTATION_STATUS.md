@@ -1,6 +1,6 @@
 # AC14 Implementation Status
 
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 Status: Canonical implementation-reality document
 
 ## Purpose
@@ -85,6 +85,7 @@ Implemented:
 14. one bounded realistic-input full-system acceptance slice in `llm` mode
 15. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
 16. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
+17. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -122,11 +123,12 @@ Implemented:
 6. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
 7. one bounded realistic-input `llm` acceptance slice plus a per-blueprint realistic-input mode-comparison artifact
 8. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode
+9. one explicit operator-gated live-readiness artifact that keeps fixture-backed breadth distinct from actual live-readiness evidence
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
-2. live/default readiness boundaries for `llm` acceptance
+2. broader live/default readiness evidence beyond the new explicit boundary artifact
 3. final realistic-input full-system acceptance as the default gate
 4. strategy/value review during draft and freeze phases
 
@@ -190,8 +192,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 92-95%
-2. long-term general coding agent vision: 42-46%
+1. first proof slice: 93-96%
+2. long-term general coding agent vision: 43-47%
 
 The remaining work is not mainly “more code.” It is:
 

@@ -1,14 +1,18 @@
-"""Evidence-backed default-generator recommendation for AC14."""
+"""Evidence-backed live-readiness and default-generator recommendation for AC14."""
 
 from __future__ import annotations
 
 import json
+import os
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator, Literal
 
 from pydantic import BaseModel, Field
 
+from ac14.acceptance import build_acceptance_report
 from ac14.generated_codegen import GeneratorKind
-from ac14.examples import discover_shipped_blueprints
+from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
 from ac14.semantic_comparison import ComparisonMode
 from ac14.semantic_suite import (
     SuiteModeSemanticAggregate,
@@ -37,6 +41,12 @@ class DefaultGeneratorRecommendation(BaseModel):
     proof_breadth_count: int = Field(
         description="Distinct workflow-signature slices across the shipped suite.",
     )
+    live_readiness_status: Literal["ready", "blocked", "skipped"] = Field(
+        description="Live realistic-input readiness verdict for the LLM lane.",
+    )
+    live_readiness_artifact_path: str = Field(
+        description="Persisted live-readiness artifact used by this recommendation.",
+    )
     suite_comparison_report_path: str = Field(
         description="Persisted suite comparison report used by this recommendation.",
     )
@@ -44,6 +54,37 @@ class DefaultGeneratorRecommendation(BaseModel):
         description="Persisted suite semantic comparison report used by this recommendation.",
     )
     reasons: list[str] = Field(description="Human-readable reasons for the recommendation.")
+
+
+class LlmLiveReadinessArtifact(BaseModel):
+    """Persisted realistic-input live-readiness artifact for the LLM lane."""
+
+    status: Literal["ready", "blocked", "skipped"] = Field(
+        description="Whether live realistic-input LLM acceptance is ready, blocked, or skipped.",
+    )
+    reason: str = Field(description="Concise explanation for the current readiness status.")
+    example_id: str | None = Field(
+        default=None,
+        description="Shipped example used for the live-readiness check when one was attempted.",
+    )
+    blueprint_dir: str | None = Field(
+        default=None,
+        description="Blueprint directory used for the live-readiness check when one was attempted.",
+    )
+    realistic_input_path: str | None = Field(
+        default=None,
+        description="Realistic-input path used for the live-readiness check when one was attempted.",
+    )
+    acceptance_report_path: str | None = Field(
+        default=None,
+        description="Persisted nested acceptance report path when a live run was attempted.",
+    )
+    provider_env_vars: list[str] = Field(
+        description="Live provider environment variables detected for the readiness check.",
+    )
+    live_execution_enabled: bool = Field(
+        description="Whether the operator explicitly enabled a live readiness attempt.",
+    )
 
 
 def build_default_generator_recommendation(
@@ -77,6 +118,12 @@ def build_default_generator_recommendation(
         llm_model=llm_model,
         llm_max_budget=llm_max_budget,
     )
+    live_readiness = build_llm_live_readiness_artifact(
+        output_dir=destination / "live_llm_readiness",
+        examples_root=examples_root,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+    )
 
     proof_breadth_count = _proof_breadth_count(examples_root)
     reasons: list[str] = []
@@ -85,6 +132,7 @@ def build_default_generator_recommendation(
         suite_comparison,
         suite_semantic,
         proof_breadth_count,
+        live_readiness,
         reasons,
     )
     recommendation = DefaultGeneratorRecommendation(
@@ -92,6 +140,10 @@ def build_default_generator_recommendation(
         llm_promotion_ready=llm_promotion_ready,
         evaluated_generators=selected_generators,
         proof_breadth_count=proof_breadth_count,
+        live_readiness_status=live_readiness.status,
+        live_readiness_artifact_path=str(
+            destination / "live_llm_readiness" / "live_llm_readiness.json"
+        ),
         suite_comparison_report_path=str(
             destination / "suite_comparison" / "suite_comparison_report.json"
         ),
@@ -104,6 +156,84 @@ def build_default_generator_recommendation(
         json.dumps(recommendation.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return recommendation
+
+
+def build_llm_live_readiness_artifact(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    llm_model: str = "gemini/gemini-2.5-flash-lite",
+    llm_max_budget: float = 0.50,
+) -> LlmLiveReadinessArtifact:
+    """Persist one realistic-input live-readiness artifact for the LLM lane."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    if not _live_readiness_enabled():
+        artifact = LlmLiveReadinessArtifact(
+            status="skipped",
+            reason=(
+                "Live LLM readiness was not explicitly enabled; "
+                "set AC14_ENABLE_LIVE_LLM_READINESS=1 to attempt a live run."
+            ),
+            provider_env_vars=[],
+            live_execution_enabled=False,
+        )
+        _persist_live_readiness_artifact(destination, artifact)
+        return artifact
+
+    provider_env_vars = _provider_env_vars()
+    if not provider_env_vars:
+        artifact = LlmLiveReadinessArtifact(
+            status="skipped",
+            reason="No live LLM provider key is available in the current environment.",
+            provider_env_vars=[],
+            live_execution_enabled=True,
+        )
+        _persist_live_readiness_artifact(destination, artifact)
+        return artifact
+
+    example = _select_live_readiness_example(examples_root)
+    realistic_input_path = _resolve_realistic_input_path(Path(example.blueprint_dir))
+    try:
+        with _temporary_env_without_fixture():
+            build_acceptance_report(
+                blueprint_dir=example.blueprint_dir,
+                output_dir=destination / "acceptance",
+                mode="llm",
+                realistic_input_path=realistic_input_path,
+                realistic_input_record_index=0,
+                model=llm_model,
+                max_budget=llm_max_budget,
+            )
+    except Exception as exc:
+        artifact = LlmLiveReadinessArtifact(
+            status="blocked",
+            reason=(
+                "Live realistic-input LLM acceptance failed during readiness probing: "
+                f"{exc.__class__.__name__}: {exc}"
+            ),
+            example_id=example.example_id,
+            blueprint_dir=example.blueprint_dir,
+            realistic_input_path=str(realistic_input_path),
+            provider_env_vars=provider_env_vars,
+            live_execution_enabled=True,
+        )
+        _persist_live_readiness_artifact(destination, artifact)
+        return artifact
+
+    artifact = LlmLiveReadinessArtifact(
+        status="ready",
+        reason="Live realistic-input LLM acceptance completed successfully.",
+        example_id=example.example_id,
+        blueprint_dir=example.blueprint_dir,
+        realistic_input_path=str(realistic_input_path),
+        acceptance_report_path=str(destination / "acceptance" / "acceptance_report.json"),
+        provider_env_vars=provider_env_vars,
+        live_execution_enabled=True,
+    )
+    _persist_live_readiness_artifact(destination, artifact)
+    return artifact
 
 
 def _proof_breadth_count(examples_root: Path | str | None) -> int:
@@ -130,12 +260,17 @@ def _llm_promotion_ready(
     suite_comparison: SuiteComparisonReport,
     suite_semantic: SuiteSemanticComparisonReport,
     proof_breadth_count: int,
+    live_readiness: LlmLiveReadinessArtifact,
     reasons: list[str],
 ) -> bool:
     """Evaluate whether current evidence is strong enough to promote the LLM generator."""
 
     if "llm" not in selected_generators:
         reasons.append("LLM generator was not evaluated in this recommendation run.")
+        reasons.append(
+            "Live LLM readiness remains "
+            f"{live_readiness.status}: {live_readiness.reason}"
+        )
         reasons.append("Deterministic remains the default control lane.")
         return False
 
@@ -150,12 +285,18 @@ def _llm_promotion_ready(
         reasons.append("LLM generator diverges from the reference lane on the shipped suite.")
     if proof_breadth_count <= 1:
         reasons.append("The shipped suite still covers only one proof-breadth slice.")
+    if live_readiness.status != "ready":
+        reasons.append(
+            "Live LLM readiness is "
+            f"{live_readiness.status}: {live_readiness.reason}"
+        )
 
     promotion_ready = (
         llm_comparison.failed_examples == 0
         and llm_semantic.failing_expected_examples == 0
         and (llm_semantic.failing_reference_examples or 0) == 0
         and proof_breadth_count > 1
+        and live_readiness.status == "ready"
     )
     if promotion_ready:
         reasons.append("LLM generator satisfies the current promotion criteria.")
@@ -186,3 +327,68 @@ def _suite_mode_aggregate(
         if aggregate.mode == mode:
             return aggregate
     raise ValueError(f"missing suite semantic aggregate for mode {mode!r}")
+
+
+def _persist_live_readiness_artifact(
+    destination: Path,
+    artifact: LlmLiveReadinessArtifact,
+) -> None:
+    """Write one persisted live-readiness artifact to disk."""
+
+    (destination / "live_llm_readiness.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+
+
+def _provider_env_vars() -> list[str]:
+    """Return the detected live provider environment variables."""
+
+    return [
+        name
+        for name in [
+            "GEMINI_API_KEY",
+            "GOOGLE_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+        ]
+        if os.environ.get(name)
+    ]
+
+
+def _live_readiness_enabled() -> bool:
+    """Return true when the operator explicitly enables live readiness attempts."""
+
+    return os.environ.get("AC14_ENABLE_LIVE_LLM_READINESS") == "1"
+
+
+def _select_live_readiness_example(
+    examples_root: Path | str | None,
+) -> ShippedBlueprintExample:
+    """Return the first shipped example with a realistic-input artifact."""
+
+    for example in discover_shipped_blueprints(examples_root):
+        blueprint_dir = Path(example.blueprint_dir)
+        if any((blueprint_dir.parent / "input").glob("*.json")):
+            return example
+    raise ValueError("no shipped example with a realistic-input artifact is available")
+
+
+def _resolve_realistic_input_path(blueprint_dir: Path) -> Path:
+    """Return the single realistic-input JSON path for one shipped example."""
+
+    candidates = sorted((blueprint_dir.parent / "input").glob("*.json"))
+    if not candidates:
+        raise ValueError(f"no realistic-input JSON files found for {blueprint_dir}")
+    return candidates[0]
+
+
+@contextmanager
+def _temporary_env_without_fixture() -> Iterator[None]:
+    """Temporarily disable fixture-backed LLM generation during live readiness."""
+
+    fixture_value = os.environ.pop("AC14_LLM_CODEGEN_FIXTURE", None)
+    try:
+        yield
+    finally:
+        if fixture_value is not None:
+            os.environ["AC14_LLM_CODEGEN_FIXTURE"] = fixture_value

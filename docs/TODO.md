@@ -1,7 +1,7 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 
 The most recently completed implementation contracts are:
 
@@ -13,6 +13,7 @@ The most recently completed implementation contracts are:
 - [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
 - [Plan #7: Realistic-Input LLM Acceptance](/home/brian/projects/ac14/docs/plans/07_realistic_input_llm_acceptance.md)
 - [Plan #8: LLM Realistic-Input Breadth](/home/brian/projects/ac14/docs/plans/08_llm_realistic_input_breadth.md)
+- [Plan #9: Live LLM Readiness Boundary](/home/brian/projects/ac14/docs/plans/09_live_llm_readiness_boundary.md)
 
 This file is the running checklist and short verification ledger for the active
 plan.
@@ -23,30 +24,30 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: persisted live-readiness artifact
-  - [ ] add one explicit realistic-input live-readiness artifact for `llm` acceptance
-  - [ ] use explicit statuses such as `ready`, `blocked`, or `skipped`
-  - Success criteria: live-readiness state is persisted instead of inferred from missing or manual runs
+- [ ] Phase 1: packet sufficiency artifact
+  - [ ] define one persisted packet-sufficiency artifact for a shipped blueprint
+  - [ ] keep the artifact structural and bounded instead of overclaiming semantic sufficiency
+  - Success criteria: AC14 can persist packet-sufficiency evidence instead of implying it from packet existence alone
 
-- [ ] Phase 2: recommendation boundary
-  - [ ] feed live-readiness state into recommendation/status surfaces
-  - [ ] keep fixture-backed breadth and live readiness explicit and separate
-  - Success criteria: recommendation logic cannot silently treat fixture-backed breadth as live readiness
+- [ ] Phase 2: operator surface
+  - [ ] expose a clean CLI surface
+  - [ ] expose a clean Make surface
+  - [ ] keep packet-sufficiency evidence separate from broader proof or recommendation artifacts
+  - Success criteria: one operator can generate the packet-sufficiency artifact without custom glue
 
-- [ ] Phase 3: operator surface and lock
-  - [ ] expose any widened CLI and Make surfaces cleanly
-  - [ ] run targeted live-readiness tests
+- [ ] Phase 3: verification and lock
+  - [ ] run targeted packet-sufficiency tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the live-readiness lane
+  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the new artifact
+  - Success criteria: verification passes and the docs match the packet-sufficiency lane
 
 ## Current Open Uncertainties
 
-- fixture-backed suite-level `llm` breadth now exists, but live/default readiness is still unproven
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- live/default recommendation boundaries are still too implicit after the new fixture-backed `llm` breadth lane
+- packet existence is now proven, but packet sufficiency is still too implicit
+- broader live/default evidence is still narrow even after the new explicit boundary artifact
 
 ## Latest Verified Results
 
@@ -57,7 +58,7 @@ Detailed uncertainty tracking now lives in:
 - the most recently completed lane before this one was:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
 - the current active lane is:
-  - `docs/plans/06_realistic_input_acceptance_breadth.md`
+  - `docs/plans/10_packet_sufficiency_evidence.md`
 - the most recently completed lane before this one was:
   - `docs/plans/05_realistic_input_full_system_acceptance.md`
 - targeted realistic-input full-system acceptance verification passed:
@@ -103,6 +104,14 @@ Detailed uncertainty tracking now lives in:
   - `python -m ruff check ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `132 passed`
+    - `python -m mypy ac14 tests` passed on `60` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted live-readiness boundary verification passed:
+  - `python -m pytest -q tests/test_recommendation.py tests/test_cli.py::test_cli_recommend_default_generator_deterministic_only tests/test_cli.py::test_cli_live_llm_readiness_reports_skipped_without_keys tests/test_make_targets.py::test_make_recommend_default_generator_deterministic_only tests/test_make_targets.py::test_make_live_llm_readiness_reports_skipped_without_keys` passed with `6 passed`
+  - `python -m mypy ac14/recommendation.py ac14/__main__.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/recommendation.py ac14/__main__.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `135 passed`
     - `python -m mypy ac14 tests` passed on `60` source files
     - `python -m ruff check ac14 tests` passed
 

@@ -1,7 +1,7 @@
 # AC14 Implementation Plans
 
 Status: Canonical numbered-plan index
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 
 Use numbered plans for implementation work that changes AC14's code or active
 control surfaces. The roadmap defines direction; numbered plans define the
@@ -19,7 +19,8 @@ current executable lane.
 | 6 | [Realistic-Input Acceptance Breadth](06_realistic_input_acceptance_breadth.md) | High | Complete | - |
 | 7 | [Realistic-Input LLM Acceptance](07_realistic_input_llm_acceptance.md) | High | Complete | - |
 | 8 | [LLM Realistic-Input Breadth](08_llm_realistic_input_breadth.md) | High | Complete | - |
-| 9 | [Live LLM Readiness Boundary](09_live_llm_readiness_boundary.md) | High | In Progress | - |
+| 9 | [Live LLM Readiness Boundary](09_live_llm_readiness_boundary.md) | High | Complete | - |
+| 10 | [Packet Sufficiency Evidence](10_packet_sufficiency_evidence.md) | High | In Progress | - |
 
 ## Status Key
 

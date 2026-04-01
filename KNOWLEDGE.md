@@ -142,4 +142,11 @@ IDs with different embedded deterministic state. The right fix was carrying
 `blueprint_id` through packets/codegen contexts and resolving fixtures by
 `blueprint_id + component_id`.
 
+### 2026-04-01 — codex — best-practice
+Live-readiness evidence should be operator-explicit, not inferred from ambient
+credentials. AC14 now requires `AC14_ENABLE_LIVE_LLM_READINESS=1` before it
+attempts a real live-readiness run, persists an explicit `ready` / `blocked` /
+`skipped` artifact, and keeps that evidence separate from fixture-backed `llm`
+breadth in recommendation/status surfaces.
+
 ---

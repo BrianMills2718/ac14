@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from ac14.blueprint_planning import (
     DraftBlueprintPlanArtifact,
     PlannedComponent,
@@ -1153,6 +1155,16 @@ def test_cli_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
 def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> None:
     """Recommendation command should keep deterministic as the default in the local lane."""
 
+    env = os.environ.copy()
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AC14_ENABLE_LIVE_LLM_READINESS",
+    ]:
+        env.pop(key, None)
+
     result = subprocess.run(
         [
             sys.executable,
@@ -1172,10 +1184,49 @@ def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> N
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["recommended_default"] == "deterministic"
+    assert payload["live_readiness_status"] == "skipped"
+
+
+def test_cli_live_llm_readiness_reports_skipped_without_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Live-readiness command should persist an explicit skipped artifact without keys."""
+
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AC14_ENABLE_LIVE_LLM_READINESS",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "live-llm-readiness",
+            "--output-dir",
+            str(tmp_path / "live_readiness"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "skipped"
+    assert (tmp_path / "live_readiness" / "live_llm_readiness.json").exists()
 
 
 def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:

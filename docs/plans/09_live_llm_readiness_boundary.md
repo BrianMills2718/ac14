@@ -1,6 +1,6 @@
 # Plan #9: Live LLM Readiness Boundary
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -115,11 +115,11 @@ evidence, and the docs explain the boundary plainly.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can persist one realistic-input live-readiness artifact for `llm` acceptance.
-- [ ] Missing live keys produce an explicit `skipped` artifact rather than an implicit no-op.
-- [ ] Recommendation/status surfaces distinguish fixture-backed breadth from live evidence.
-- [ ] CLI and Make expose the readiness surface without manual glue.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can persist one realistic-input live-readiness artifact for `llm` acceptance.
+- [x] Missing live keys produce an explicit `skipped` artifact rather than an implicit no-op.
+- [x] Recommendation/status surfaces distinguish fixture-backed breadth from live evidence.
+- [x] CLI and Make expose the readiness surface without manual glue.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 
@@ -129,3 +129,6 @@ evidence, and the docs explain the boundary plainly.
   the same as live default readiness.
 - The goal is not to force live calls in every environment. The goal is to make
   the boundary explicit and reviewable.
+- AC14 now also requires `AC14_ENABLE_LIVE_LLM_READINESS=1` before attempting a
+  live-readiness run so ambient credentials cannot silently turn a skipped lane
+  into a live one.

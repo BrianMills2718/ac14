@@ -1,7 +1,7 @@
 # AC14 Uncertainties
 
 Status: Canonical uncertainty tracker
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 
 Use this file to track open, investigating, resolved, deferred, and blocked
 uncertainties that matter to AC14's architecture, proof slice, or active
@@ -144,11 +144,28 @@ acceptance artifact now exists across shipped examples.
 **Date resolved:** 2026-03-31
 
 ### U-019: Fixture-backed `llm` breadth is still not the same as live readiness.
-**Status:** Deferred
+**Status:** Resolved
 **Context:** AC14 now has suite-level fixture-backed `llm` breadth, but that is
 not yet equivalent to live/default readiness.
 **Why it matters:** Recommendation and status surfaces need to stay conservative
 until live evidence is explicit and reviewable.
+**Resolution:** AC14 now persists a dedicated live-readiness artifact for
+realistic-input `llm` acceptance, recommendation/status surfaces consume that
+artifact explicitly, and live runs require `AC14_ENABLE_LIVE_LLM_READINESS=1`
+so ambient credentials cannot silently upgrade the readiness story.
+**Date resolved:** 2026-04-01
+
+### U-020: Ambient credentials can blur “live readiness” intent.
+**Status:** Resolved
+**Context:** `llm_client`-level auth loading can make a process capable of live
+LLM calls even when the shell environment does not obviously expose provider
+keys.
+**Why it matters:** The readiness boundary should reflect explicit operator
+intent, not accidental ambient auth.
+**Resolution:** AC14 now requires `AC14_ENABLE_LIVE_LLM_READINESS=1` before it
+attempts a live readiness run; otherwise it records an explicit `skipped`
+artifact instead of inferring permission from ambient process state.
+**Date resolved:** 2026-04-01
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

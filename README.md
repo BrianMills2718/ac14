@@ -75,6 +75,7 @@ AC14 now supports:
 - building semantic comparison artifacts across reference and generated modes
 - building requirements-aware semantic-acceptance artifacts against actual system outputs
 - producing an evidence-backed default-generator recommendation that reasons about proof breadth
+- persisting an explicit live-readiness artifact for realistic-input `llm` acceptance that stays separate from fixture-backed breadth and requires `AC14_ENABLE_LIVE_LLM_READINESS=1` before a real live attempt
 
 ## What Is Still Missing
 
@@ -84,7 +85,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- explicit live/default readiness evidence for realistic-input `llm` acceptance
+- broader live/default readiness evidence beyond the new explicit operator-gated boundary artifact
 - realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 
@@ -117,5 +118,6 @@ make semantic-compare-suite OUTPUT=.ac14_out/suite_semantic MODES="reference det
 make acceptance-review-suite OUTPUT=.ac14_out/suite_acceptance GENERATOR=deterministic
 make acceptance-review-realistic-suite OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0
 make acceptance-review-realistic-compare INPUT=examples/support_ticket_digest/blueprint REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0
+AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness OUTPUT=.ac14_out/live_llm_readiness
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

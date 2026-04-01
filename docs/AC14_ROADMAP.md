@@ -1,6 +1,6 @@
 # AC14 Roadmap
 
-Last updated: 2026-03-31
+Last updated: 2026-04-01
 Status: Active roadmap
 
 ## Purpose
@@ -59,10 +59,10 @@ Prove that blueprint-driven decomposition is real, not just well-instrumented.
 
 Remaining emphasis:
 
-1. explicit live-readiness boundaries after closing fixture-backed suite-level `llm` breadth
-2. cleaner packet sufficiency and recomposition evidence
-3. slightly broader proof breadth
-4. realistic-input final gates that combine programmatic and LLM review
+1. cleaner packet sufficiency and recomposition evidence
+2. slightly broader proof breadth
+3. realistic-input final gates that combine programmatic and LLM review
+4. operator-reviewed live/default readiness evidence beyond the new explicit boundary artifact
 
 Exit criteria:
 
@@ -156,7 +156,7 @@ Failure signs:
 In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
-2. finish the remaining proof-slice infrastructure, especially explicit live-readiness boundaries for `llm`
+2. finish the remaining proof-slice infrastructure, especially packet sufficiency and recomposition evidence
 3. strengthen the front half before making stronger generality claims
 4. broaden proof breadth before expanding scope claims
 

@@ -89,12 +89,14 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after fixture-backed suite-level `llm` breadth is the live
-readiness boundary.
+The current focus after the live-readiness boundary is packet sufficiency
+evidence.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
   or live-readiness story
+- keep live readiness operator-explicit; require
+  `AC14_ENABLE_LIVE_LLM_READINESS=1` before attempting a live readiness run
 - persist explicit live-readiness artifacts that can say `ready`, `blocked`, or
   `skipped`
 - keep realistic-input final acceptance tied to actual blueprint execution
@@ -106,6 +108,8 @@ readiness boundary.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
+- next, strengthen packet sufficiency evidence without smuggling whole-blueprint
+  assumptions back into local coder contexts
 
 ## Continuation Rule
 

@@ -44,7 +44,10 @@ from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
-from ac14.recommendation import build_default_generator_recommendation
+from ac14.recommendation import (
+    build_default_generator_recommendation,
+    build_llm_live_readiness_artifact,
+)
 from ac14.semantic_comparison import ComparisonMode, build_semantic_comparison_report
 from ac14.semantic_suite import build_suite_semantic_comparison_report
 from ac14.suite import build_suite_comparison_report, build_suite_proof_report
@@ -345,6 +348,15 @@ def main() -> int:
     recommend_default_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     recommend_default_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    live_readiness_parser = subparsers.add_parser(
+        "live-llm-readiness",
+        help="Build one persisted realistic-input live-readiness artifact for the LLM lane.",
+    )
+    live_readiness_parser.add_argument("--output-dir", type=Path, required=True)
+    live_readiness_parser.add_argument("--examples-root", type=Path, default=None)
+    live_readiness_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    live_readiness_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -541,6 +553,13 @@ def main() -> int:
             args.examples_root,
             [cast(GeneratorKind, generator) for generator in args.generators],
             args.fresh_run_trials,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "live-llm-readiness":
+        return _live_llm_readiness(
+            args.output_dir,
+            args.examples_root,
             args.model,
             args.max_budget,
         )
@@ -1052,6 +1071,24 @@ def _recommend_default_generator(
         llm_max_budget=max_budget,
     )
     print(json.dumps(recommendation.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _live_llm_readiness(
+    output_dir: Path,
+    examples_root: Path | None,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a persisted live-readiness artifact for the LLM lane."""
+
+    artifact = build_llm_live_readiness_artifact(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        llm_model=model,
+        llm_max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0
 
 
