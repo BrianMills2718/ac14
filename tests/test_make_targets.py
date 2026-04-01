@@ -992,3 +992,50 @@ def test_make_acceptance_review_with_realistic_input_runs_end_to_end(tmp_path: P
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "acceptance_report.json").exists()
+
+
+def test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Make acceptance-review target should support deterministic realistic-input execution."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "summary": "Deterministic realistic-input outputs are reviewable and structurally coherent.",
+                "concerns": ["Customer context may be absent for unseen IDs."],
+                "requirement_assessments": [
+                    {
+                        "requirement": "The system should escalate a billing renewal failure affecting a known enterprise customer.",
+                        "verdict": "partially_satisfied",
+                        "rationale": "The digest path executed, but enterprise context was not recovered from the unseen customer ID.",
+                    }
+                ],
+            },
+            indent=2,
+        )
+    )
+
+    output_dir = tmp_path / "acceptance_realistic_deterministic"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+            "GENERATOR=deterministic",
+            f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch.json'}",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "acceptance_report.json").exists()

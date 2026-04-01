@@ -134,8 +134,6 @@ async def abuild_acceptance_report(
         if realistic_input_path is not None
         else None
     )
-    if realistic_input_record is not None and mode != "reference":
-        raise ValueError("realistic-input acceptance currently supports reference mode only")
     if realistic_input_record is None:
         scenario_executions = await _execute_mode_for_acceptance(
             blueprint=blueprint,
@@ -508,7 +506,7 @@ def _seed_realistic_runtime_state(
     implementations: dict[str, Any],
     realistic_input_record: dict[str, Any],
 ) -> None:
-    """Seed reference runtime state for unseen realistic-input identifiers."""
+    """Seed runtime state for unseen realistic-input identifiers."""
 
     ticket_id = realistic_input_record.get("ticket_id")
     opened_at = realistic_input_record.get("opened_at") or realistic_input_record.get("submitted_at")
@@ -517,6 +515,11 @@ def _seed_realistic_runtime_state(
             generated_at_by_ticket_id = getattr(implementation, "_generated_at_by_ticket_id", None)
             if isinstance(generated_at_by_ticket_id, dict):
                 generated_at_by_ticket_id.setdefault(ticket_id, opened_at)
+            module_ticket_map = getattr(type(implementation).execute, "__globals__", {}).get(
+                "GENERATED_AT_BY_TICKET_ID",
+            )
+            if isinstance(module_ticket_map, dict):
+                module_ticket_map.setdefault(ticket_id, opened_at)
 
     alert_id = realistic_input_record.get("alert_id")
     observed_at = realistic_input_record.get("observed_at") or realistic_input_record.get("opened_at")
@@ -525,6 +528,11 @@ def _seed_realistic_runtime_state(
             generated_at_by_alert_id = getattr(implementation, "_generated_at_by_alert_id", None)
             if isinstance(generated_at_by_alert_id, dict):
                 generated_at_by_alert_id.setdefault(alert_id, observed_at)
+            module_alert_map = getattr(type(implementation).execute, "__globals__", {}).get(
+                "GENERATED_AT_BY_ALERT_ID",
+            )
+            if isinstance(module_alert_map, dict):
+                module_alert_map.setdefault(alert_id, observed_at)
 
 
 def _example_verdict(report: AcceptanceReport) -> Literal["accept", "concern", "reject"]:

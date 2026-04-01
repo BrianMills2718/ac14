@@ -19,9 +19,9 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: deterministic realistic-input acceptance
-  - [ ] support deterministic realistic-input full-system acceptance on the support-ticket slice
-  - [ ] resolve generated-state assumptions explicitly rather than hiding them
+- [x] Phase 1: deterministic realistic-input acceptance
+  - [x] support deterministic realistic-input full-system acceptance on the support-ticket slice
+  - [x] resolve generated-state assumptions explicitly rather than hiding them
   - Success criteria: support-ticket realistic input passes in `deterministic` mode with persisted outputs and review
 
 - [ ] Phase 2: second shipped realistic-input slice
@@ -63,6 +63,8 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/05_realistic_input_full_system_acceptance.md`
 - targeted realistic-input full-system acceptance verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_artifact tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_runs_end_to_end` passed with `3 passed`
+- targeted deterministic realistic-input acceptance verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_deterministic_mode tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end` passed with `3 passed`
 - targeted realistic-input front-half acceptance verification passed:
   - `python -m pytest -q tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `3 passed`
 - targeted dependency-probe integration verification passed:

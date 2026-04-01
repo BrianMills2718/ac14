@@ -109,3 +109,32 @@ def test_build_acceptance_report_supports_realistic_input_artifact(
     assert result.outputs_by_component is not None
     assert result.review is not None
     assert fake_call.await_count == 1
+
+
+def test_build_acceptance_report_supports_realistic_input_deterministic_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Acceptance report should support realistic inputs in deterministic mode."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+    realistic_input_path = REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"
+
+    report = build_acceptance_report(
+        blueprint_dir=EXAMPLE_DIR,
+        output_dir=tmp_path / "acceptance_realistic_deterministic",
+        mode="deterministic",
+        realistic_input_path=realistic_input_path,
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert len(report.scenario_results) == 1
+    result = report.scenario_results[0]
+    assert result.realistic_input is True
+    assert result.realistic_input_path == str(realistic_input_path)
+    assert result.outputs_by_component is not None
+    assert result.execution_error is None
+    assert result.review is not None
+    assert fake_call.await_count == 1
