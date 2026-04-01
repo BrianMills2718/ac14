@@ -20,7 +20,7 @@ from ac14.dependency_execution import build_dependency_execution_artifact
 from ac14.dependency_planning import abuild_dependency_plan
 from ac14.discovery import DiscoveryArtifact, build_discovery_artifact
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
-from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
+from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints, resolve_realistic_input_path
 from ac14.freeze_decision import FreezeDecisionArtifact, build_freeze_decision
 from ac14.freeze_retry import FreezeRetryArtifact, abuild_freeze_retry_artifact
 from ac14.loader import load_blueprint_dir
@@ -691,6 +691,8 @@ def _discover_realistic_input_path(example: ShippedBlueprintExample | object) ->
         if isinstance(example, ShippedBlueprintExample)
         else ShippedBlueprintExample.model_validate(example)
     )
+    if typed_example.realistic_input_policy is not None:
+        return resolve_realistic_input_path(typed_example)
     example_dir = Path(typed_example.blueprint_dir).parent
     input_dir = example_dir / "input"
     if not input_dir.is_dir():

@@ -70,6 +70,7 @@ AC14 now supports:
 - optionally carrying that retry-aware front-half evidence across the shipped suite while preserving per-example retry artifact paths
 - proving the same retry-aware front-half story on the shipped messy CSV asset without inventing a new artifact type
 - sharing structured-input loading between discovery and realistic-input acceptance so the final gate now supports record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs
+- defining explicit realistic-input manifests for shipped examples so the clean default and alternate profiles are named instead of implied by file precedence
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - proving the shipped support-ticket messy CSV asset through that same final gate in `reference` and `deterministic` modes, plus the non-LLM realistic mode-comparison surface
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
@@ -102,7 +103,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
-- explicit realistic-input selection and alternate-profile policy when one shipped example has more than one candidate input artifact
+- explicit profile selection across operator and suite surfaces when alternate realistic-input inputs exist
 - suite-level alternate-profile proof that keeps the clean default path explicit
 - broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation

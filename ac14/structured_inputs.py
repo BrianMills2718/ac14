@@ -9,6 +9,8 @@ from typing import Any, Literal, cast
 
 import yaml  # type: ignore[import-untyped]
 
+from ac14.examples import REALISTIC_INPUT_MANIFEST_NAME
+
 
 InputFormat = Literal["json", "jsonl", "csv", "yaml", "text"]
 
@@ -85,7 +87,13 @@ def discover_structured_input_candidates(input_dir: Path) -> list[Path]:
     patterns = ("*.json", "*.jsonl", "*.csv", "*.yaml", "*.yml")
     candidates: list[Path] = []
     for pattern in patterns:
-        candidates.extend(sorted(input_dir.glob(pattern)))
+        candidates.extend(
+            sorted(
+                candidate
+                for candidate in input_dir.glob(pattern)
+                if candidate.name != REALISTIC_INPUT_MANIFEST_NAME
+            ),
+        )
     return candidates
 
 

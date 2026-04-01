@@ -227,6 +227,12 @@ through the final gate in bounded `llm` mode and keeps that lane separate from
 live readiness.
 
 ### 2026-04-01 — codex — best-practice
+Once one shipped example has both clean and messy realistic-input artifacts,
+file-extension precedence stops being an honest policy. AC14 now gives shipped
+examples explicit realistic-input manifests and a shared resolver so both
+acceptance surfaces use the same named default.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

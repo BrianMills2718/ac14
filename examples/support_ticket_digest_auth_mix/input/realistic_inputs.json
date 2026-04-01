@@ -1,0 +1,6 @@
+{
+  "default_profile": "default",
+  "profiles": {
+    "default": "realistic_auth_ticket_batch.json"
+  }
+}

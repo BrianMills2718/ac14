@@ -406,13 +406,17 @@ hiding missing required fields behind runtime heuristics.
 **Date resolved:** 2026-04-01
 
 ### U-039: Realistic-input selection is still implicit and inconsistent across surfaces.
-**Status:** Open
+**Status:** Resolved
 **Context:** The support-ticket example now ships both a clean JSON realistic
 input and a messy CSV realistic input. `acceptance.py` can discover structured
 candidates, while `front_half_acceptance.py` still defaults to `.json` only.
 **Why it matters:** Hidden selection precedence and cross-surface drift make the
 proof story ambiguous once one example ships more than one realistic-input
 artifact.
+**Resolution:** AC14 now gives shipped examples explicit realistic-input
+manifests with named defaults and named alternate profiles, and both
+acceptance surfaces use the shared resolver for shipped-example defaults.
+**Date resolved:** 2026-04-01
 
 ### U-040: Alternate realistic-input profile behavior is not yet explicit at suite level.
 **Status:** Open
@@ -421,6 +425,13 @@ surfaces still need to say whether a requested alternate profile is included or
 missing for each shipped example.
 **Why it matters:** Suite breadth should not silently fall back to the default
 profile or silently skip examples when an alternate profile is absent.
+
+### U-041: Operator surfaces do not yet expose realistic-input profile selection explicitly.
+**Status:** Open
+**Context:** The manifest and shared resolver now exist, but CLI and Make
+surfaces still assume the implicit default profile.
+**Why it matters:** Alternate realistic-input profiles should be operable and
+reviewable without changing code or silently redefining the clean default path.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

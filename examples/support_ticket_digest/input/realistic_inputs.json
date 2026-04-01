@@ -1,0 +1,7 @@
+{
+  "default_profile": "default",
+  "profiles": {
+    "default": "realistic_ticket_batch.json",
+    "messy": "realistic_ticket_batch_messy.csv"
+  }
+}

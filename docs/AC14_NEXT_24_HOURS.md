@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #29: Explicit Realistic-Input Policy](/home/brian/projects/ac14/docs/plans/29_explicit_realistic_input_policy.md)
+- [Plan #30: Profile-Aware Realistic-Input Parity](/home/brian/projects/ac14/docs/plans/30_profile_aware_realistic_input_parity.md)
 
 Plan #28 closed the first bounded messy-input `llm` final-gate lane. The active
 24-hour chain is now:
@@ -41,26 +41,26 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #29:
+Required in Plan #30:
 
-1. explicit realistic-input manifests for shipped examples
-2. one shared resolver with named default and alternate profiles
-3. fail-loud behavior for invalid profile selection
+1. front-half and final-gate realistic-input surfaces consume the same shared resolver
+2. suite/default surfaces persist selected-profile or missing-profile state explicitly
+3. CLI and Make surfaces expose profile selection without silently changing the clean default path
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#29 through Plan #31.
+#30 through Plan #31.
 
-### Phase 1: explicit realistic-input policy
+### Phase 1: profile-aware cross-surface parity
 
-- define a small manifest format for shipped example input directories
-- make the default realistic-input choice explicit instead of relying on hidden precedence
-
-### Phase 2: cross-surface profile parity
-
-- make front-half and final-gate realistic-input resolution consume the same profile-aware resolver
+- thread optional realistic-input profile selection through front-half and final-gate execution
 - persist selected-profile or missing-profile state explicitly in suite artifacts
+
+### Phase 2: operator-surface parity
+
+- add the same profile-selection surface to CLI and Make targets
+- keep the clean default proof path unchanged when no profile is specified
 
 ### Phase 3: messy-profile suite proof
 
@@ -75,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. realistic-input selection should not remain hidden extension precedence once examples ship more than one candidate artifact
-2. front-half and final-gate defaults should stay aligned instead of drifting by format support
-3. suite/profile behavior should stay explicit about `missing_profile` rather than silently falling back
+1. suite/profile behavior should stay explicit about `missing_profile` rather than silently falling back
+2. operator surfaces should not silently change the clean default path while adding profile selection
+3. the first alternate-profile suite proof should stay bounded and reviewable instead of pretending broad breadth

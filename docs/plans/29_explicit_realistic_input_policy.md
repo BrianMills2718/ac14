@@ -1,6 +1,6 @@
 # Plan #29: Explicit Realistic-Input Policy
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 28
@@ -96,10 +96,24 @@ example ships both a clean JSON asset and a messy CSV asset.
 
 ## Acceptance Criteria
 
-- [ ] Shipped examples declare explicit realistic-input profiles with a named default.
-- [ ] AC14 has one shared realistic-input resolver instead of hidden extension precedence for shipped examples.
-- [ ] Invalid profile references fail loud.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] Shipped examples declare explicit realistic-input profiles with a named default.
+- [x] AC14 has one shared realistic-input resolver instead of hidden extension precedence for shipped examples.
+- [x] Invalid profile references fail loud.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted realistic-input policy verification passed:
+  - `python -m pytest -q tests/test_examples.py tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_inputs tests/test_acceptance.py::test_discover_realistic_input_path_supports_structured_non_json_inputs tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_runs_for_shipped_examples`
+  - `python -m mypy ac14/examples.py ac14/structured_inputs.py ac14/acceptance.py ac14/front_half_acceptance.py tests/test_examples.py tests/test_acceptance.py tests/test_front_half_acceptance.py`
+  - `python -m ruff check ac14/examples.py ac14/structured_inputs.py ac14/acceptance.py ac14/front_half_acceptance.py tests/test_examples.py tests/test_acceptance.py tests/test_front_half_acceptance.py`
+
+## Outcome
+
+AC14 now gives every shipped example an explicit realistic-input manifest with
+named profiles and a named default. The shared resolver is now the source of
+truth for default realistic-input selection, and both acceptance surfaces use
+it for shipped examples instead of relying on hidden file precedence.
 
 ---
 
