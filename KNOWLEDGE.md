@@ -162,4 +162,10 @@ the default deterministic proof/evidence bundle, includes realistic-input
 acceptance when shipped input exists, and records explicit `missing` or
 `unsupported` states instead of silently skipping the gate.
 
+### 2026-04-01 — codex — best-practice
+Once realistic-input final acceptance is part of the suite default proof story,
+recommendation/default-generator logic should consume that evidence directly
+instead of reasoning only from structural suite comparison and semantic
+comparison artifacts.
+
 ---

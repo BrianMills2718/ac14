@@ -88,6 +88,7 @@ Implemented:
 15. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
 16. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
 17. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
+18. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -126,12 +127,13 @@ Implemented:
 7. one bounded realistic-input `llm` acceptance slice plus a per-blueprint realistic-input mode-comparison artifact
 8. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode
 9. one explicit operator-gated live-readiness artifact that keeps fixture-backed breadth distinct from actual live-readiness evidence
+10. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with aggregate included/missing/unsupported counts
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. broader live/default readiness evidence beyond the new explicit boundary artifact
-3. final realistic-input full-system acceptance as the default suite-level proof/evidence gate
+3. recommendation/default-generator logic consuming the new suite-level realistic-input default-gate evidence
 4. strategy/value review during draft and freeze phases
 
 ### Generality
@@ -194,8 +196,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 95-97%
-2. long-term general coding agent vision: 45-49%
+1. first proof slice: 96-98%
+2. long-term general coding agent vision: 46-50%
 
 The remaining work is not mainly “more code.” It is:
 

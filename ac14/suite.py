@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -25,6 +26,15 @@ class SuiteExampleProofSummary(BaseModel):
     recomposition_passed: bool = Field(description="Whether recomposition scenarios passed.")
     fresh_run_passed_trials: int = Field(description="Number of passing fresh-run trials.")
     fresh_run_failed_trials: int = Field(description="Number of failing fresh-run trials.")
+    realistic_input_gate_status: Literal["included", "missing", "unsupported"] = Field(
+        description="Whether realistic-input final-gate acceptance was included for this example.",
+    )
+    realistic_input_gate_path: str = Field(
+        description="Persisted realistic-input final-gate artifact path for this example.",
+    )
+    realistic_input_gate_reason: str = Field(
+        description="Concise explanation for the realistic-input gate status.",
+    )
 
 
 class SuiteProofReport(BaseModel):
@@ -33,6 +43,15 @@ class SuiteProofReport(BaseModel):
     example_count: int = Field(description="Number of shipped examples in the suite.")
     passed_examples: int = Field(description="Number of examples with a fully passing proof run.")
     failed_examples: int = Field(description="Number of examples with any failing proof check.")
+    realistic_input_gate_included_examples: int = Field(
+        description="Examples whose default proof bundle included realistic-input final-gate acceptance.",
+    )
+    realistic_input_gate_missing_examples: int = Field(
+        description="Examples missing a realistic-input artifact in the default suite proof story.",
+    )
+    realistic_input_gate_unsupported_examples: int = Field(
+        description="Examples where the current generator mode does not support the default realistic-input gate.",
+    )
     examples: list[SuiteExampleProofSummary] = Field(description="Per-example proof summaries.")
 
 
@@ -97,6 +116,7 @@ def build_suite_proof_report(
         packet_test_report = json.loads(Path(manifest.packet_test_report_path).read_text())
         recomposition_report = json.loads(Path(manifest.recomposition_report_path).read_text())
         fresh_run_summary = json.loads(Path(manifest.fresh_run_summary_path).read_text())
+        realistic_input_gate = json.loads(Path(manifest.realistic_input_gate_path).read_text())
         summaries.append(
             SuiteExampleProofSummary(
                 example_id=example.example_id,
@@ -108,6 +128,9 @@ def build_suite_proof_report(
                 recomposition_passed=recomposition_report["passed"],
                 fresh_run_passed_trials=fresh_run_summary["passed_trials"],
                 fresh_run_failed_trials=fresh_run_summary["failed_trials"],
+                realistic_input_gate_status=realistic_input_gate["status"],
+                realistic_input_gate_path=manifest.realistic_input_gate_path,
+                realistic_input_gate_reason=realistic_input_gate["reason"],
             ),
         )
 
@@ -115,6 +138,15 @@ def build_suite_proof_report(
         example_count=len(summaries),
         passed_examples=sum(1 for summary in summaries if _proof_summary_passed(summary)),
         failed_examples=sum(1 for summary in summaries if not _proof_summary_passed(summary)),
+        realistic_input_gate_included_examples=sum(
+            1 for summary in summaries if summary.realistic_input_gate_status == "included"
+        ),
+        realistic_input_gate_missing_examples=sum(
+            1 for summary in summaries if summary.realistic_input_gate_status == "missing"
+        ),
+        realistic_input_gate_unsupported_examples=sum(
+            1 for summary in summaries if summary.realistic_input_gate_status == "unsupported"
+        ),
         examples=summaries,
     )
     (destination / "suite_proof_report.json").write_text(

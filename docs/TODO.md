@@ -14,6 +14,9 @@ The most recently completed implementation contracts are:
 - [Plan #7: Realistic-Input LLM Acceptance](/home/brian/projects/ac14/docs/plans/07_realistic_input_llm_acceptance.md)
 - [Plan #8: LLM Realistic-Input Breadth](/home/brian/projects/ac14/docs/plans/08_llm_realistic_input_breadth.md)
 - [Plan #9: Live LLM Readiness Boundary](/home/brian/projects/ac14/docs/plans/09_live_llm_readiness_boundary.md)
+- [Plan #10: Packet Sufficiency Evidence](/home/brian/projects/ac14/docs/plans/10_packet_sufficiency_evidence.md)
+- [Plan #11: Realistic-Input Default Gate](/home/brian/projects/ac14/docs/plans/11_realistic_input_default_gate.md)
+- [Plan #12: Realistic-Input Suite Default Gate](/home/brian/projects/ac14/docs/plans/12_realistic_input_suite_default_gate.md)
 
 This file is the running checklist and short verification ledger for the active
 plan.
@@ -24,28 +27,28 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: suite-level default realistic-input gate
-  - [ ] carry realistic-input acceptance into the default suite proof/evidence story
-  - [ ] keep missing realistic-input artifacts explicit in suite evidence
-  - Success criteria: suite proof/evidence includes realistic-input acceptance whenever shipped realistic-input artifacts exist
+- [ ] Phase 1: recommendation default-gate inputs
+  - [ ] feed suite-level realistic-input gate coverage into recommendation artifacts
+  - [ ] persist explicit suite default-gate counts and paths in recommendation output
+  - Success criteria: recommendation artifacts carry reviewable default-gate coverage instead of ignoring it
 
-- [ ] Phase 2: artifact integration
-  - [ ] reuse existing realistic-input acceptance artifacts where possible
-  - [ ] keep suite-level final-gate evidence connected to the broader suite proof story
-  - Success criteria: the suite proof story is stronger without adding a disconnected parallel artifact
+- [ ] Phase 2: recommendation policy integration
+  - [ ] fail loud in recommendation reasons when default-gate coverage is missing or unsupported
+  - [ ] keep live-readiness and default-gate evidence separate in the recommendation story
+  - Success criteria: recommendation output is more honest without creating a second proof runner
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted suite default-gate tests
+  - [ ] run targeted recommendation/default-gate tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the suite default-gate lane
+  - Success criteria: verification passes and the docs match the recommendation default-gate lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- realistic-input acceptance is now part of the default single-example proof/evidence gate, but not yet the default suite-level proof story
+- realistic-input default-gate evidence now exists at single-example and suite level, but recommendation/readiness logic does not yet consume it
 - broader live/default evidence is still narrow even after the new explicit boundary artifact
 
 ## Latest Verified Results
@@ -57,7 +60,7 @@ Detailed uncertainty tracking now lives in:
 - the most recently completed lane before this one was:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
 - the current active lane is:
-  - `docs/plans/10_packet_sufficiency_evidence.md`
+  - `docs/plans/13_recommendation_default_gate_awareness.md`
 - the most recently completed lane before this one was:
   - `docs/plans/05_realistic_input_full_system_acceptance.md`
 - targeted realistic-input full-system acceptance verification passed:
@@ -125,6 +128,14 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_evidence_bundle.py tests/test_cli.py::test_cli_prove_example tests/test_make_targets.py::test_make_prove_example_runs_end_to_end` passed with `4 passed`
   - `python -m mypy ac14/evidence_bundle.py tests/test_evidence_bundle.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/evidence_bundle.py tests/test_evidence_bundle.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `139 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted realistic-input suite default-gate verification passed:
+  - `python -m pytest -q tests/test_suite.py::test_build_suite_proof_report_for_deterministic_generator tests/test_cli.py::test_cli_prove_suite tests/test_make_targets.py::test_make_prove_suite_runs_end_to_end` passed with `3 passed`
+  - `python -m mypy ac14/suite.py tests/test_suite.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/suite.py tests/test_suite.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `139 passed`
     - `python -m mypy ac14 tests` passed on `61` source files

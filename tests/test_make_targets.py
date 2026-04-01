@@ -811,6 +811,10 @@ def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:
     """Make suite proof target should build aggregate suite artifacts."""
 
     output_dir = tmp_path / "suite_proof"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             "make",
@@ -823,9 +827,11 @@ def test_make_prove_suite_runs_end_to_end(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
-    assert (output_dir / "suite_proof_report.json").exists()
+    payload = json.loads((output_dir / "suite_proof_report.json").read_text())
+    assert payload["realistic_input_gate_included_examples"] == payload["example_count"]
 
 
 def test_make_compare_suite_deterministic_only(tmp_path: Path) -> None:

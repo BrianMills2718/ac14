@@ -9,11 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #12: Realistic-Input Suite Default Gate](/home/brian/projects/ac14/docs/plans/12_realistic_input_suite_default_gate.md)
+- [Plan #13: Recommendation Default-Gate Awareness](/home/brian/projects/ac14/docs/plans/13_recommendation_default_gate_awareness.md)
 
-Plan #11 closed the single-example default-gate gap. The next honest gap is the
-suite proof story: AC14 should stop treating realistic-input acceptance as a
-side artifact outside the default suite evidence path.
+Plan #12 closed the suite-level default-gate gap. The next honest gap is the
+default-generator/readiness story: AC14 should stop making recommendation
+judgments without consuming the realistic-input default-gate evidence that now
+exists at the suite level.
 
 ## Progress Update
 
@@ -27,30 +28,36 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Required in Plan #12:
+Completed in Plan #12:
 
 1. realistic-input acceptance carried into the default suite proof/evidence story
 2. explicit handling for shipped examples that lack realistic-input artifacts
 3. status/docs that stop presenting suite realistic-input acceptance as only a side artifact
 
+Required in Plan #13:
+
+1. recommendation/default-generator evidence should consume suite-level realistic-input gate coverage
+2. recommendation reasons should fail loud when default-gate coverage is missing or unsupported
+3. live-readiness should remain separate from default-gate coverage instead of being conflated with it
+
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#12.
+#13.
 
-### Phase 1: suite-level default realistic-input gate
+### Phase 1: suite default-gate recommendation inputs
 
-- carry realistic-input acceptance into the default suite proof/evidence story
-- keep missing realistic-input artifacts explicit
+- thread suite-level realistic-input gate coverage into the recommendation artifact
+- persist explicit counts and paths so the recommendation surface is reviewable
 
-### Phase 2: artifact integration
+### Phase 2: recommendation policy integration
 
-- reuse existing realistic-input acceptance artifacts where possible
-- keep suite-level final-gate evidence connected to the broader suite proof story
+- make recommendation reasons fail loud when default-gate coverage is missing
+- keep live-readiness and default-gate evidence as separate categories
 
 ### Phase 3: Verification And Lock
 
-- targeted suite default-gate verification
+- targeted recommendation/default-gate verification
 - full local verification
 - doc lock and clean commit
 
@@ -62,6 +69,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the suite-level gate should strengthen the proof story instead of adding a disconnected side artifact
-2. shipped examples without realistic-input artifacts must remain explicit in suite evidence
-3. the lane should keep structural proof and semantic acceptance complementary rather than replacing one with the other
+1. recommendation should consume realistic-input default-gate evidence without duplicating the suite proof artifact chain
+2. live-readiness and realistic-input default-gate coverage should stay distinct in the recommendation story
+3. the lane should strengthen default-generator evidence without turning recommendation into a second proof runner

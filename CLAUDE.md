@@ -61,6 +61,12 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
 - if a phase uncovers a new uncertainty, record it in the plan/TODO and keep moving
 - if one path is blocked, switch to the next thesis-preserving subphase instead of waiting
 - do not leave the repo in a half-landed state at the end of a work block; verify and commit
+- for the active 24-hour lane, define every phase explicitly and keep the plan
+  unambiguous enough that another agent could continue without rereading chat
+- when one numbered plan completes, immediately define the next numbered plan
+  before continuing implementation
+- the expected behavior is to keep running through the active 24-hour sequence
+  until every planned lane is complete or a real contradiction appears
 
 The default failure mode here is waiting too early. Avoid that.
 
@@ -86,11 +92,13 @@ process failure. The required behavior is:
 - execute them in order
 - log uncertainties without stopping
 - keep going until the active plan is finished or a real contradiction appears
+- keep the 24-hour sequence explicit in numbered plans, TODO, and
+  `AC14_NEXT_24_HOURS.md` rather than only in conversation
 
 ## Active Proof Expansion Rule
 
-The current focus after single-example realistic-input default-gate integration
-is suite-level realistic-input default-gate integration.
+The current focus after suite-level realistic-input default-gate integration is
+recommendation/default-generator awareness of that default-gate evidence.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -108,9 +116,9 @@ is suite-level realistic-input default-gate integration.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
-- next, strengthen the suite proof story by carrying realistic-input final
-  acceptance into the default suite evidence path instead of leaving it as a
-  side artifact
+- next, strengthen the recommendation/default-generator story by consuming the
+  suite-level realistic-input default-gate evidence instead of making readiness
+  judgments without it
 
 ## Continuation Rule
 

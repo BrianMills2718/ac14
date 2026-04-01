@@ -193,6 +193,17 @@ acceptance when shipped input exists, and records explicit `missing` or
 `unsupported` states instead of silently skipping the final gate.
 **Date resolved:** 2026-04-01
 
+### U-023: Realistic-input suite acceptance was still outside the default suite proof path.
+**Status:** Resolved
+**Context:** AC14 had suite-level realistic-input acceptance artifacts, but the
+default suite proof story still ended at structural and recomposition evidence.
+**Why it matters:** The suite proof story should carry final-gate realistic-input
+acceptance explicitly instead of leaving it as a side artifact.
+**Resolution:** AC14 now persists realistic-input final-gate status per shipped
+example in the default suite proof report, with aggregate `included`,
+`missing`, and `unsupported` counts across the suite.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

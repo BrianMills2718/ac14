@@ -1078,6 +1078,10 @@ def test_cli_list_examples() -> None:
 def test_cli_prove_suite(tmp_path: Path) -> None:
     """Suite proof command should build an aggregate proof artifact."""
 
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -1095,10 +1099,12 @@ def test_cli_prove_suite(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["example_count"] >= 2
+    assert payload["realistic_input_gate_included_examples"] == payload["example_count"]
 
 
 def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
