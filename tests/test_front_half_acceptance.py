@@ -584,6 +584,51 @@ def test_build_front_half_acceptance_report_supports_input_directory(
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
 
 
+def test_build_front_half_acceptance_report_preserves_directory_context_summaries(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half acceptance should preserve directory-context summaries."""
+
+    input_dir = _write_input_directory_bundle(tmp_path / "input_bundle")
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_report(
+        input_path=input_dir,
+        output_dir=tmp_path / "front_half_directory_summaries",
+        requirements=["preserve support ticket meaning", "keep packets bounded"],
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+        max_budget=0.1,
+    )
+
+    discovery_payload = json.loads(Path(artifact.artifact_paths.discovery_artifact_path).read_text())
+    inspection = discovery_payload["input_inspection"]
+    alternate_summary = inspection["structured_candidate_summaries"][0]
+    context_summary = inspection["supporting_context_summaries"][0]
+    assert alternate_summary["path"] == str(input_dir / "tickets_archive.csv")
+    assert alternate_summary["input_format"] == "csv"
+    assert any(field["path"] == "ticket_id" for field in alternate_summary["field_summaries"])
+    assert context_summary["path"] == str(input_dir / "notes.md")
+    assert context_summary["title"] == "Intake notes"
+    assert "latest support batch" in context_summary["preview"].lower()
+
+
 def test_build_front_half_acceptance_report_supports_retry_freeze_on_messy_input(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

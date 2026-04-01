@@ -479,12 +479,49 @@ without hiding which structured candidate became primary.
 **Date resolved:** 2026-04-01
 
 ### U-045: Directory discovery still persists only paths for alternate candidates and supporting context.
-**Status:** Open
+**Status:** Resolved
 **Context:** AC14 now inventories alternate structured candidates and supporting
 local context files explicitly, but the persisted discovery artifact still
 provides only their file paths.
 **Why it matters:** Planning remains weaker than it should be if the surrounding
 directory context cannot be reviewed in a compact bounded summary.
+**Resolution:** Directory discovery now persists bounded summaries for
+alternate structured candidates and supporting local context files while
+preserving one explicit primary structured planning input.
+**Date resolved:** 2026-04-01
+
+### U-046: The new directory summaries are not yet proven through the front-half chain.
+**Status:** Resolved
+**Context:** AC14 now persists bounded directory summaries at raw discovery,
+but the front-half acceptance proof has not yet shown that those summary fields
+survive discovery-through-freeze on a directory input bundle.
+**Why it matters:** Summary enrichment remains weaker than the thesis if it is
+only proven at `discover-input` and not in the front-half artifact chain.
+**Resolution:** Front-half acceptance now preserves both alternate structured
+candidate summaries and supporting-context summaries on a directory input, and
+CLI plus Make preserve the same propagated summary story.
+**Date resolved:** 2026-04-01
+
+### U-047: Directory discovery still does not compare primary and alternate structured candidates explicitly.
+**Status:** Resolved
+**Context:** AC14 can now inventory and summarize alternate structured
+candidates, but it still leaves schema drift between the primary and alternate
+candidates implicit.
+**Why it matters:** The front half remains weaker than it should be if schema
+divergence across related input artifacts is not surfaced before freeze.
+**Resolution:** Directory discovery now compares primary and alternate
+structured candidates and persists bounded schema-divergence concerns when the
+field shapes differ materially.
+**Date resolved:** 2026-04-01
+
+### U-048: The new directory schema-divergence concerns are not yet proven through the front-half chain.
+**Status:** Open
+**Context:** AC14 now persists bounded directory schema-divergence concerns at
+raw discovery time, but the front-half acceptance proof has not yet shown that
+those concerns survive discovery-through-freeze on a directory input bundle.
+**Why it matters:** Schema-divergence detection remains weaker than the thesis
+if it is only proven at `discover-input` and not in the broader front-half
+artifact chain.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

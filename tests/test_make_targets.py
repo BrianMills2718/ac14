@@ -632,6 +632,86 @@ def test_make_discover_input_supports_input_directory(tmp_path: Path) -> None:
     assert payload["input_inspection"]["primary_input_path"].endswith("tickets.json")
 
 
+def test_make_discover_input_persists_directory_context_summaries(tmp_path: Path) -> None:
+    """Make discovery should persist bounded summaries for alternate directory context."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {"ticket_id": "SUP-1", "status": "open"},
+                {"ticket_id": "SUP-2", "status": "closed"},
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text("ticket_id,status\nSUP-3,pending\n")
+    (input_dir / "notes.md").write_text("# Notes\n\nKeep the source schema truthful.\n")
+
+    output_dir = tmp_path / "discovery"
+    result = subprocess.run(
+        [
+            "make",
+            "discover-input",
+            f"INPUT={input_dir}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "discovery_artifact.json").read_text())
+    alternate_summary = payload["input_inspection"]["structured_candidate_summaries"][0]
+    context_summary = payload["input_inspection"]["supporting_context_summaries"][0]
+    assert alternate_summary["path"] == str(input_dir / "tickets_archive.csv")
+    assert alternate_summary["input_format"] == "csv"
+    assert context_summary["path"] == str(input_dir / "notes.md")
+    assert "Keep the source schema truthful." in context_summary["preview"]
+
+
+def test_make_discover_input_persists_directory_schema_divergence_concerns(tmp_path: Path) -> None:
+    """Make discovery should preserve bounded schema-divergence concerns."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {"ticket_id": "SUP-1", "status": "open"},
+                {"ticket_id": "SUP-2", "status": "closed"},
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text(
+        "ticket_id,status,archive_reason\nSUP-3,pending,duplicate\n",
+    )
+
+    output_dir = tmp_path / "discovery"
+    result = subprocess.run(
+        [
+            "make",
+            "discover-input",
+            f"INPUT={input_dir}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "discovery_artifact.json").read_text())
+    assert any(
+        "tickets_archive.csv exposes fields absent from primary candidate tickets.json: archive_reason"
+        in concern
+        for concern in payload["input_inspection"]["concerns"]
+    )
+
+
 def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
     """Make environment target should persist an environment inventory artifact."""
 
@@ -1769,6 +1849,67 @@ def test_make_front_half_acceptance_supports_input_directory(tmp_path: Path) -> 
         str(input_dir / "tickets_archive.csv"),
     ]
     assert (output_dir / "front_half_acceptance_report.json").exists()
+
+
+def test_make_front_half_acceptance_preserves_directory_context_summaries(tmp_path: Path) -> None:
+    """Make front-half target should preserve directory-context summaries."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir(parents=True, exist_ok=True)
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {
+                    "ticket_id": "SUP-10421",
+                    "body": "SSO login fails after certificate rotation.",
+                    "channel": "email",
+                }
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text(
+        "ticket_id,body,channel\n"
+        "SUP-09999,Archived backlog item,email\n",
+    )
+    (input_dir / "notes.md").write_text("# Notes\n\nLatest support batch.\n")
+
+    dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
+    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    review_fixture = _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")
+
+    output_dir = tmp_path / "front_half_directory_summaries"
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(dependency_fixture)
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(review_fixture)
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "front-half-acceptance",
+            f"REALISTIC_INPUT={input_dir}",
+            f"OUTPUT={output_dir}",
+            "REQUIREMENTS=preserve support ticket meaning keep packets bounded",
+            "PACKAGES=pydantic",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    discovery_payload = json.loads((output_dir / "discovery" / "discovery_artifact.json").read_text())
+    inspection = discovery_payload["input_inspection"]
+    alternate_summary = inspection["structured_candidate_summaries"][0]
+    context_summary = inspection["supporting_context_summaries"][0]
+    assert alternate_summary["path"] == str(input_dir / "tickets_archive.csv")
+    assert alternate_summary["input_format"] == "csv"
+    assert context_summary["path"] == str(input_dir / "notes.md")
+    assert "latest support batch" in context_summary["preview"].lower()
 
 
 def test_make_front_half_acceptance_supports_retry_freeze(tmp_path: Path) -> None:

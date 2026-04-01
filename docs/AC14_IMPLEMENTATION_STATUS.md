@@ -107,6 +107,9 @@ Implemented:
 34. one explicit suite-level `messy` profile proof across `reference`, `deterministic`, and bounded fixture-backed `llm`, while preserving the clean default path and explicit `missing_profile` states
 35. one explicit bounded directory-input discovery lane that inventories supported structured candidates plus supporting local context files, chooses one deterministic primary structured candidate, and persists both the chosen primary candidate and the alternatives explicitly
 36. one explicit bounded directory-input front-half proof lane, including CLI and Make parity, that preserves the directory input path plus the chosen primary candidate through discovery, draft planning, and freeze review artifacts
+37. bounded summaries for alternate structured candidates and supporting local context files during directory discovery, including CLI and Make parity, while preserving one explicit primary structured planning input
+38. one explicit bounded front-half propagation proof showing that those new directory summaries survive the discovery-through-freeze chain, including CLI and Make parity
+39. explicit bounded schema-divergence concerns between primary and alternate structured candidates during directory discovery, including CLI and Make parity
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -126,7 +129,7 @@ It is good at:
 
 It is not yet strong at:
 
-1. bounded summaries for alternate structured candidates and supporting local context files
+1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
 
@@ -174,7 +177,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. bounded directory-context summaries for alternate structured candidates and supporting files
+1. directory schema-divergence propagation through the front-half chain
 2. broad automatic dependency installation and post-install verification as a normal lane
 3. real shared-tool execution inside blueprinted components
 4. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -220,7 +223,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. first proof slice: 99%
-2. long-term general coding agent vision: 64-68%
+2. long-term general coding agent vision: 67-71%
 
 The remaining work is not mainly “more code.” It is:
 

@@ -1,6 +1,6 @@
 # Plan #34: Directory Context Summaries
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 33
@@ -99,10 +99,10 @@ bounded content summary of the surrounding input set instead of only filenames.
 
 ## Acceptance Criteria
 
-- [ ] Directory discovery persists bounded summaries for alternate structured candidates.
-- [ ] Directory discovery persists bounded summaries for supporting local context files.
-- [ ] CLI and Make discovery surfaces preserve the same explicit compact-summary story.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] Directory discovery persists bounded summaries for alternate structured candidates.
+- [x] Directory discovery persists bounded summaries for supporting local context files.
+- [x] CLI and Make discovery surfaces preserve the same explicit compact-summary story.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 
@@ -111,3 +111,25 @@ bounded content summary of the surrounding input set instead of only filenames.
 This plan strengthens the front half without changing the core single-primary
 planning rule. One structured candidate remains primary; the rest become
 bounded context, not hidden orchestration.
+
+## Outcome
+
+Implemented and verified:
+
+1. directory discovery now persists bounded summaries for alternate structured
+   candidates
+2. directory discovery now persists bounded summaries for supporting local
+   context files
+3. CLI and Make discovery surfaces preserve the same compact-summary story
+
+## Verification
+
+- `python -m pytest -q tests/test_discovery.py::test_build_discovery_artifact_persists_directory_context_summaries tests/test_cli.py::test_cli_discover_input_persists_directory_context_summaries tests/test_make_targets.py::test_make_discover_input_persists_directory_context_summaries`
+  passed with `3 passed`
+- `python -m mypy ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py`
+  passed
+- `python -m ruff check ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py`
+  passed
+- `python -m pytest -q` passed with `206 passed`
+- `python -m mypy ac14 tests` passed on `65` source files
+- `python -m ruff check ac14 tests` passed

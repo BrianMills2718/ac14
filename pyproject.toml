@@ -9,6 +9,7 @@ description = "Decomposition-first coding agent prototype"
 requires-python = ">=3.11"
 dependencies = [
     "llm_client",
+    "open-web-retrieval",
     "pydantic>=2.0",
     "pyyaml>=6.0",
 ]

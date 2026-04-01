@@ -44,7 +44,10 @@ current executable lane.
 | 31 | [Messy-Profile Suite Proof](31_messy_profile_suite_proof.md) | High | Complete | 30 |
 | 32 | [Multi-Artifact Discovery Inputs](32_multi_artifact_discovery_inputs.md) | High | Complete | 31 |
 | 33 | [Directory Front-Half Acceptance Proof](33_directory_front_half_acceptance_proof.md) | High | Complete | 32 |
-| 34 | [Directory Context Summaries](34_directory_context_summaries.md) | High | In Progress | 33 |
+| 34 | [Directory Context Summaries](34_directory_context_summaries.md) | High | Complete | 33 |
+| 35 | [Directory Summary Front-Half Proof](35_directory_summary_front_half_proof.md) | High | Complete | 34 |
+| 36 | [Directory Schema Divergence Concerns](36_directory_schema_divergence_concerns.md) | High | Complete | 35 |
+| 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | In Progress | 36 |
 
 ## Status Key
 

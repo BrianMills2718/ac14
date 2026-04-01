@@ -9,16 +9,16 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #34: Directory Context Summaries](/home/brian/projects/ac14/docs/plans/34_directory_context_summaries.md)
+- [Plan #37: Directory Divergence Front-Half Proof](/home/brian/projects/ac14/docs/plans/37_directory_divergence_front_half_proof.md)
 
-Plan #33 closed the bounded directory-input front-half proof lane. The active 24-hour
+Plan #36 closed the raw discovery divergence lane. The active 24-hour
 chain is now:
 
-1. keep one explicit primary structured planning input
-2. add bounded summaries for alternate structured candidates and supporting
-   local context files
-3. keep CLI and Make parity so directory discovery stays reviewable instead of
-   hiding content in prompts
+1. prove that the new directory schema-divergence concerns survive the
+   front-half chain
+2. keep one explicit primary structured planning input while preserving the new
+   divergence evidence
+3. keep CLI and Make parity so the propagation proof is reviewable
 
 ## Progress Update
 
@@ -32,33 +32,35 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Completed in Plan #33:
+Completed in Plan #36:
 
-1. front-half acceptance now has one bounded directory-input proof lane
-2. that lane preserves the directory input path plus explicit primary and
-   alternate structured candidates inside the persisted discovery artifact
-3. CLI and Make front-half surfaces preserve the same story
+1. directory discovery now compares the primary structured candidate against
+   alternate structured candidates explicitly
+2. directory discovery now persists bounded schema-divergence concerns instead
+   of leaving shape drift implicit
+3. CLI and Make discovery surfaces preserve the same divergence concerns
 
-Required in Plan #34:
+Required in Plan #37:
 
-1. bounded summaries for alternate structured candidates
-2. bounded summaries for supporting local context files
-3. CLI and Make parity for the same compact-summary story
+1. one front-half proof that preserves the new divergence concerns
+2. CLI and Make parity for the same divergence propagation story
+3. no duplicate schema-truth surface outside the discovery artifact
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#34.
+#37.
 
-### Phase 1: alternate structured-candidate summaries
+### Phase 1: direct front-half divergence proof
 
-- persist bounded summaries for alternate structured candidates
-- keep one explicit primary structured planning input
+- prove that directory-input front-half acceptance preserves the new
+  schema-divergence concerns
+- keep the divergence evidence inside the persisted discovery artifact
 
-### Phase 2: supporting-context summaries
+### Phase 2: operator parity
 
-- persist bounded summaries for supporting local context files
-- keep the summaries compact and explicitly truncated if needed
+- prove the same divergence story through CLI
+- prove the same divergence story through Make
 
 ### Phase 3: verification and lock
 
@@ -73,9 +75,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. alternate-candidate summaries must stay bounded and must not silently turn
-   into multi-file planning
-2. supporting-context summaries should help planning without recreating the
-   context-bloat problem
-3. one primary structured planning input must remain explicit even when the
-   surrounding directory gets richer summaries
+1. divergence propagation must not create a second conflicting truth surface
+2. one explicit primary structured planning input must remain visible
+3. the front-half proof should stay on the standard path, not broaden into
+   retry-aware proof yet

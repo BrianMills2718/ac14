@@ -55,15 +55,15 @@ Detailed uncertainty tracking now lives in:
 
 ## Next Active Lane
 
-- [ ] Phase 1: alternate structured-candidate summaries
-  - [ ] persist bounded summaries for alternate structured candidates in directory discovery
-  - [ ] keep one explicit primary structured planning input
-  - Success criteria: directory discovery carries more than filenames without collapsing into multi-file planning
+- [ ] Phase 1: direct front-half divergence proof
+  - [ ] prove that directory-input front-half acceptance preserves the new schema-divergence concerns
+  - [ ] keep the divergence evidence inside the persisted discovery artifact
+  - Success criteria: divergence concerns survive the discovery-through-freeze chain without duplicating the schema truth surface
 
-- [ ] Phase 2: supporting-context summaries
-  - [ ] persist bounded summaries for supporting local context files
-  - [ ] keep the summary payload compact and explicitly truncated when needed
-  - Success criteria: directory discovery carries compact reviewable supporting context rather than path-only references
+- [ ] Phase 2: operator parity
+  - [ ] preserve the same directory schema-divergence story through CLI
+  - [ ] preserve the same directory schema-divergence story through Make
+  - Success criteria: direct, CLI, and Make front-half surfaces preserve the same divergence evidence
 
 - [ ] Phase 3: verification and lock
   - [ ] run targeted verification for directory-input front-half acceptance
@@ -76,8 +76,8 @@ Detailed uncertainty tracking now lives in:
 ## Current Open Uncertainties
 
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- alternate-candidate and supporting-context directory summaries are not yet persisted
-- directory enrichment must not turn into hidden multi-file planning
+- directory schema-divergence concerns are not yet proven through the front-half chain
+- divergence propagation must not create a second schema truth surface
 
 ## Latest Verified Results
 
@@ -103,6 +103,30 @@ Detailed uncertainty tracking now lives in:
   - `python -m ruff check tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `203 passed`
+    - `python -m mypy ac14 tests` passed on `65` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted directory-context summary verification passed:
+  - `python -m pytest -q tests/test_discovery.py::test_build_discovery_artifact_persists_directory_context_summaries tests/test_cli.py::test_cli_discover_input_persists_directory_context_summaries tests/test_make_targets.py::test_make_discover_input_persists_directory_context_summaries` passed with `3 passed`
+  - `python -m mypy ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `206 passed`
+    - `python -m mypy ac14 tests` passed on `65` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted directory-summary front-half verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_preserves_directory_context_summaries tests/test_cli.py::test_cli_front_half_acceptance_preserves_directory_context_summaries tests/test_make_targets.py::test_make_front_half_acceptance_preserves_directory_context_summaries` passed with `3 passed`
+  - `python -m mypy ac14 tests` passed on `65` source files
+  - `python -m ruff check tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `209 passed`
+    - `python -m mypy ac14 tests` passed on `65` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted directory schema-divergence verification passed:
+  - `python -m pytest -q tests/test_discovery.py::test_build_discovery_artifact_persists_directory_schema_divergence_concerns tests/test_cli.py::test_cli_discover_input_persists_directory_schema_divergence_concerns tests/test_make_targets.py::test_make_discover_input_persists_directory_schema_divergence_concerns` passed with `3 passed`
+  - `python -m mypy ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `212 passed`
     - `python -m mypy ac14 tests` passed on `65` source files
     - `python -m ruff check ac14 tests` passed
 - targeted messy-profile suite verification passed:

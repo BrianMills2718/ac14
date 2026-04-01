@@ -48,6 +48,9 @@ AC14 now supports:
 - loading and validating the six-file blueprint bundle
 - inspecting local inputs before blueprint freeze and persisting discovery artifacts with inferred field summaries and open concerns
 - accepting one bounded input directory as a reviewable discovery surface, inventorying explicit structured candidates plus supporting local context files, and persisting one deterministic primary structured candidate plus explicit alternatives
+- persisting bounded summaries for alternate structured candidates and supporting local context files in that same directory-discovery surface while keeping one explicit primary structured planning input
+- proving that those new directory summaries survive the full front-half discovery-through-freeze chain instead of remaining only a raw discovery feature
+- surfacing explicit bounded schema-divergence concerns when alternate structured candidates expose fields that differ from the primary structured planning input
 - recording environment and dependency inventory before generation begins
 - recording local project-document context before blueprint freeze so README, CLAUDE, and docs become explicit planning inputs
 - retrieving and persisting reviewable external documentation and repository-search artifacts before blueprint freeze
@@ -107,7 +110,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
-- bounded summaries for alternate structured candidates and supporting local context files in directory discovery
+- explicit front-half proof that the new directory schema-divergence concerns survive the discovery-through-freeze chain
 - broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate

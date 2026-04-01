@@ -33,6 +33,30 @@ class InferredFieldSummary(BaseModel):
     sample_values: list[str] = Field(description="Compact sample values for reviewer context.")
 
 
+class StructuredCandidateSummary(BaseModel):
+    """Bounded summary of one alternate structured candidate beside the primary input."""
+
+    path: str = Field(description="Path to the structured candidate.")
+    input_format: InputFormat = Field(description="Detected format for the candidate.")
+    root_kind: RootKind = Field(description="Observed top-level structural kind.")
+    sample_count: int = Field(description="Number of samples inspected from the candidate.")
+    truncated: bool = Field(description="Whether the inspected candidate samples were truncated.")
+    field_summaries: list[InferredFieldSummary] = Field(
+        description="Flattened field summaries inferred from the candidate samples.",
+    )
+    concerns: list[str] = Field(description="Concerns raised while inspecting the candidate.")
+
+
+class SupportingContextSummary(BaseModel):
+    """Bounded summary of one supporting local context file beside a directory input."""
+
+    path: str = Field(description="Path to the supporting local context file.")
+    title: str = Field(description="Best-effort title for reviewer context.")
+    line_count: int = Field(description="Line count for rough file size context.")
+    preview: str = Field(description="Compact preview of the supporting file.")
+    truncated: bool = Field(description="Whether the preview was truncated.")
+
+
 class InputInspection(BaseModel):
     """Persisted summary of a local input inspected before blueprint freeze."""
 
@@ -52,6 +76,14 @@ class InputInspection(BaseModel):
     supporting_context_paths: list[str] = Field(
         default_factory=list,
         description="Local supporting context files discovered alongside the primary input.",
+    )
+    structured_candidate_summaries: list[StructuredCandidateSummary] = Field(
+        default_factory=list,
+        description="Bounded summaries for alternate structured candidates beside the primary input.",
+    )
+    supporting_context_summaries: list[SupportingContextSummary] = Field(
+        default_factory=list,
+        description="Bounded summaries for supporting local context files beside the primary input.",
     )
     sample_records: list[object] = Field(description="Compact input samples for reviewer context.")
     field_summaries: list[InferredFieldSummary] = Field(
@@ -235,6 +267,8 @@ def inspect_input_path(input_path: Path | str, *, max_samples: int = 5) -> Input
         truncated=truncated,
         structured_candidate_paths=[str(path)] if input_format != "text" else [],
         supporting_context_paths=[],
+        structured_candidate_summaries=[],
+        supporting_context_summaries=[],
         sample_records=sample_records,
         field_summaries=field_summaries,
         concerns=concerns,
@@ -261,6 +295,19 @@ def _inspect_input_directory(path: Path, *, max_samples: int) -> InputInspection
         truncated=truncated,
         max_samples=max_samples,
     )
+    alternate_candidates = structured_candidates[1:]
+    supporting_context_candidates = _supporting_context_candidates(path)
+    alternate_summaries = [
+        _summarize_structured_candidate(candidate, max_samples=max_samples)
+        for candidate in alternate_candidates
+    ]
+    concerns.extend(
+        _build_directory_schema_divergence_concerns(
+            primary_candidate=primary_candidate,
+            primary_field_summaries=field_summaries,
+            alternate_summaries=alternate_summaries,
+        ),
+    )
     if len(structured_candidates) > 1:
         concerns.append(
             "directory discovery selected primary structured candidate "
@@ -274,7 +321,12 @@ def _inspect_input_directory(path: Path, *, max_samples: int) -> InputInspection
         sample_count=len(sample_records),
         truncated=truncated,
         structured_candidate_paths=[str(candidate) for candidate in structured_candidates],
-        supporting_context_paths=[str(candidate) for candidate in _supporting_context_candidates(path)],
+        supporting_context_paths=[str(candidate) for candidate in supporting_context_candidates],
+        structured_candidate_summaries=alternate_summaries,
+        supporting_context_summaries=[
+            _summarize_supporting_context_file(candidate)
+            for candidate in supporting_context_candidates
+        ],
         sample_records=sample_records,
         field_summaries=field_summaries,
         concerns=_dedupe_preserve_order(concerns),
@@ -441,6 +493,87 @@ def _supporting_context_candidates(input_dir: Path) -> list[Path]:
     for pattern in patterns:
         candidates.extend(sorted(path for path in input_dir.glob(pattern) if path.is_file()))
     return candidates
+
+
+def _summarize_structured_candidate(path: Path, *, max_samples: int) -> StructuredCandidateSummary:
+    """Build a bounded summary for one alternate structured candidate."""
+
+    input_format = detect_input_format(path)
+    root_value = load_input(path, input_format)
+    root_kind, sample_records, truncated = _extract_samples(root_value, input_format, max_samples)
+    field_summaries = _infer_field_summaries(sample_records, root_kind)
+    concerns = _build_input_concerns(
+        root_kind=root_kind,
+        sample_count=len(sample_records),
+        field_summaries=field_summaries,
+        truncated=truncated,
+        max_samples=max_samples,
+    )
+    return StructuredCandidateSummary(
+        path=str(path),
+        input_format=input_format,
+        root_kind=root_kind,
+        sample_count=len(sample_records),
+        truncated=truncated,
+        field_summaries=field_summaries,
+        concerns=concerns,
+    )
+
+
+def _summarize_supporting_context_file(path: Path, *, max_preview_chars: int = 240) -> SupportingContextSummary:
+    """Build a bounded summary for one supporting local context file."""
+
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    lines = text.splitlines()
+    preview_lines = [
+        line.strip()
+        for line in lines
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    preview_source = " ".join(preview_lines[:3])
+    preview = (
+        preview_source
+        if len(preview_source) <= max_preview_chars
+        else preview_source[: max_preview_chars - 3] + "..."
+    )
+    return SupportingContextSummary(
+        path=str(path),
+        title=_document_title(lines, fallback=path.stem.replace("_", " ").title()),
+        line_count=len(lines),
+        preview=preview,
+        truncated=len(preview_source) > len(preview),
+    )
+
+
+def _build_directory_schema_divergence_concerns(
+    *,
+    primary_candidate: Path,
+    primary_field_summaries: list[InferredFieldSummary],
+    alternate_summaries: list[StructuredCandidateSummary],
+    max_fields: int = 5,
+) -> list[str]:
+    """Build bounded schema-divergence concerns for alternate structured candidates."""
+
+    primary_paths = {field.path for field in primary_field_summaries}
+    concerns: list[str] = []
+    for summary in alternate_summaries:
+        alternate_name = Path(summary.path).name
+        alternate_paths = {field.path for field in summary.field_summaries}
+        extra_paths = sorted(alternate_paths - primary_paths)
+        missing_paths = sorted(primary_paths - alternate_paths)
+        if extra_paths:
+            concerns.append(
+                "alternate structured candidate "
+                f"{alternate_name} exposes fields absent from primary candidate "
+                f"{primary_candidate.name}: {_format_field_list(extra_paths, max_fields=max_fields)}",
+            )
+        if missing_paths:
+            concerns.append(
+                f"primary candidate {primary_candidate.name} exposes fields absent from "
+                f"alternate structured candidate {alternate_name}: "
+                f"{_format_field_list(missing_paths, max_fields=max_fields)}",
+            )
+    return concerns
 
 
 def _extract_samples(
@@ -658,6 +791,16 @@ def _document_preview(lines: list[str]) -> str:
         return ""
     preview = " ".join(preview_lines[:3])
     return preview if len(preview) <= 200 else preview[:197] + "..."
+
+
+def _format_field_list(paths: list[str], *, max_fields: int) -> str:
+    """Render a bounded field-path list for persisted discovery concerns."""
+
+    if len(paths) <= max_fields:
+        return ", ".join(paths)
+    visible = ", ".join(paths[:max_fields])
+    remaining = len(paths) - max_fields
+    return f"{visible} (+{remaining} more)"
 
 
 def _installed_package_version(package_name: str) -> str | None:

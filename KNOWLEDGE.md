@@ -252,6 +252,26 @@ next honest gap is bounded summaries for alternate candidates and supporting
 context rather than only their file paths.
 
 ### 2026-04-01 — codex — best-practice
+Once directory discovery grows bounded summaries, the next honest proof is
+propagation rather than more raw discovery features. The summaries now exist at
+`discover-input`; the next gap is proving that the same summary fields survive
+the front-half discovery-through-freeze chain without creating a second truth
+surface.
+
+### 2026-04-01 — codex — integration-issue
+AC14's retrieval surface depended on `open_web_retrieval`, but the repo had not
+declared that shared dependency explicitly and the current editable install was
+pointing at a stale worktree. The correct fix was to add
+`open-web-retrieval` to `pyproject.toml` and repoint the editable install to
+the canonical shared repo, not to weaken mypy or the retrieval import path.
+
+### 2026-04-01 — codex — best-practice
+Once directory summaries exist, the next honest schema-inference step is
+bounded divergence evidence, not hidden multi-file schema merging. AC14 now
+persists explicit concerns when alternate structured candidates expose fields
+that are absent from the primary structured planning input.
+
+### 2026-04-01 — codex — best-practice
 The first honest alternate-profile breadth proof is not to replace the default
 path; it is to run one explicit bounded suite lane and make absence visible.
 AC14 now proves the `messy` profile across the realistic-input suite in

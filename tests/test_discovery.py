@@ -129,6 +129,76 @@ def test_build_discovery_artifact_supports_input_directory_with_primary_candidat
     assert any("selected primary structured candidate tickets.json" in concern for concern in inspection.concerns)
 
 
+def test_build_discovery_artifact_persists_directory_context_summaries(tmp_path: Path) -> None:
+    """Discovery should persist bounded summaries for alternate directory context."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {"ticket_id": "SUP-1", "status": "open"},
+                {"ticket_id": "SUP-2", "status": "closed"},
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text("ticket_id,status\nSUP-3,pending\n")
+    (input_dir / "notes.md").write_text("# Notes\n\nKeep the source schema truthful.\n")
+
+    artifact = build_discovery_artifact(
+        input_path=input_dir,
+        output_dir=tmp_path / "discovery",
+        project_root=REPO_ROOT,
+        max_samples=5,
+    )
+
+    inspection = artifact.input_inspection
+    assert len(inspection.structured_candidate_summaries) == 1
+    alternate_summary = inspection.structured_candidate_summaries[0]
+    assert alternate_summary.path == str(input_dir / "tickets_archive.csv")
+    assert alternate_summary.input_format == "csv"
+    assert alternate_summary.root_kind == "record_stream"
+    assert any(field.path == "ticket_id" for field in alternate_summary.field_summaries)
+    assert len(inspection.supporting_context_summaries) == 1
+    context_summary = inspection.supporting_context_summaries[0]
+    assert context_summary.path == str(input_dir / "notes.md")
+    assert context_summary.title == "Notes"
+    assert "Keep the source schema truthful." in context_summary.preview
+
+
+def test_build_discovery_artifact_persists_directory_schema_divergence_concerns(tmp_path: Path) -> None:
+    """Discovery should surface bounded schema-divergence concerns across directory candidates."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {"ticket_id": "SUP-1", "status": "open"},
+                {"ticket_id": "SUP-2", "status": "closed"},
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text(
+        "ticket_id,status,archive_reason\nSUP-3,pending,duplicate\n",
+    )
+
+    artifact = build_discovery_artifact(
+        input_path=input_dir,
+        output_dir=tmp_path / "discovery",
+        project_root=REPO_ROOT,
+        max_samples=5,
+    )
+
+    assert any(
+        "tickets_archive.csv exposes fields absent from primary candidate tickets.json: archive_reason"
+        in concern
+        for concern in artifact.input_inspection.concerns
+    )
+
+
 def test_build_discovery_artifact_loads_external_retrieval_summaries(tmp_path: Path) -> None:
     """Discovery should summarize persisted external retrieval artifacts when provided."""
 
