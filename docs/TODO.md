@@ -27,29 +27,30 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: freeze-semantic artifact design
-  - [ ] define the freeze-semantic review artifact shape
-  - [ ] decide where it attaches in the draft/freeze chain
-  - Success criteria: the next front-half lane is explicit and reviewable
+- [ ] Phase 1: front-half suite artifact design
+  - [ ] pre-make suite requirement sourcing for every shipped realistic-input example
+  - [ ] pre-make suite aggregate semantics for review verdicts and freeze approval
+  - Success criteria: the suite lane is explicit enough to implement without hidden policy decisions
 
-- [ ] Phase 2: freeze-semantic integration
-  - [ ] connect semantic review to freeze quality
-  - [ ] keep programmatic readiness and semantic review complementary
-  - Success criteria: front-half semantic review strengthens freeze without replacing structural checks
+- [ ] Phase 2: front-half suite implementation
+  - [ ] persist one suite-level front-half acceptance artifact across shipped examples
+  - [ ] keep per-example artifact paths and missing realistic-input coverage explicit
+  - [ ] expose the suite artifact through CLI and Make
+  - Success criteria: front-half breadth is explicit across the shipped realistic-input suite
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted freeze-semantic tests
+  - [ ] run targeted front-half-suite tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the freeze-semantic lane
+  - Success criteria: verification passes and the docs match the front-half-suite lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- recommendation now consumes suite live-readiness evidence, but front-half semantic/business-logic review is still weaker than final acceptance
-- draft/freeze quality still lacks one directly attached semantic review artifact
+- recommendation now consumes suite live-readiness evidence, but front-half breadth is still weaker than back-half breadth
+- front-half semantic review now exists per example, but not yet as a suite-level breadth artifact
 
 ## Latest Verified Results
 
@@ -164,10 +165,19 @@ Detailed uncertainty tracking now lives in:
     - `python -m pytest -q` passed with `142 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
+- targeted freeze-semantic verification passed:
+  - `python -m pytest -q tests/test_freeze_decision.py tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `6 passed`
+  - `python -m mypy ac14/freeze_decision.py ac14/front_half_acceptance.py tests/test_freeze_decision.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/freeze_decision.py ac14/front_half_acceptance.py tests/test_freeze_decision.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `142 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps
 
 - [ ] connect broader proof breadth to less hard-coded deterministic generation
+- [ ] broaden front-half acceptance into an explicit suite-level breadth artifact
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven

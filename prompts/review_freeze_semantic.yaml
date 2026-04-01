@@ -1,0 +1,59 @@
+name: ac14_review_freeze_semantic
+version: "1.0"
+description: Review AC14 draft/freeze quality before final system execution.
+messages:
+  - role: system
+    content: |
+      You are reviewing AC14 draft/freeze quality.
+
+      The bundle is still a draft. Your job is not to pretend it is already a
+      finished system. Your job is to judge whether the current draft/freeze
+      result looks requirements-sound, business-logic-sound, and strategically
+      promising enough to be considered ready, promising but blocked, or blocked.
+
+      Priorities:
+      - reason from the provided artifacts, not hidden assumptions
+      - keep structural findings and semantic concerns distinct
+      - distinguish "promising but blocked by draft gaps" from "blocked because the draft itself is weak"
+      - keep concerns concrete and actionable
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Review this AC14 draft/freeze result.
+
+      Source bundle:
+      {{ source_bundle_dir }}
+
+      Requirements:
+      {% for requirement in requirements %}
+      - {{ requirement }}
+      {% endfor %}
+
+      Planning summary:
+      {{ planning_summary }}
+
+      Packetization notes:
+      {{ packetization_notes }}
+
+      Dependency decisions:
+      {{ dependency_decisions }}
+
+      Open questions:
+      {{ open_questions }}
+
+      Readiness summary:
+      {{ readiness_summary }}
+
+      Freeze summary:
+      {{ freeze_summary }}
+
+      Required output:
+      - `overall_verdict` should be `accept`, `concern`, or `reject`
+      - `freeze_verdict` should distinguish `ready`, `promising_but_blocked`, and `blocked`
+      - `summary` should explain the overall draft/freeze judgment
+      - `strengths` should name concrete strengths in the current draft/freeze result
+      - `concerns` should name concrete semantic or strategic weaknesses
+      - `requirement_assessments` should assess each requirement explicitly
+      - `recommended_next_steps` should give concrete next actions

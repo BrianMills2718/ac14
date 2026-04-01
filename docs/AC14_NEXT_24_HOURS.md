@@ -7,13 +7,14 @@ Last updated: 2026-04-01
 
 This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contract for the current lane is:
+The authoritative implementation contracts for the current sequence are:
 
 - [Plan #16: Freeze Semantic Review Gate](/home/brian/projects/ac14/docs/plans/16_freeze_semantic_review_gate.md)
+- [Plan #17: Front-Half Suite Breadth](/home/brian/projects/ac14/docs/plans/17_front_half_suite_breadth.md)
 
-Plan #15 closed the recommendation suite-live gap. The next honest gap is the
-front half: AC14 still lacks a first-class semantic review artifact attached
-directly to draft/freeze quality.
+Plan #15 closed the recommendation suite-live gap. Plan #16 closed the missing
+directly attached freeze-semantic artifact. The next honest gap is front-half
+breadth across the shipped realistic-input examples.
 
 ## Progress Update
 
@@ -33,30 +34,43 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #16:
+Completed in Plan #16:
 
 1. explicit freeze-semantic review artifact
 2. direct connection from that artifact to draft/freeze quality
 3. status/docs that stop treating front-half semantic review as only a side artifact
 
+Required in Plan #17:
+
+1. suite-level front-half acceptance artifact across shipped realistic-input examples
+2. explicit per-example paths and aggregate review/freeze counts
+3. explicit handling for missing realistic-input coverage instead of silent skipping
+
 ## Tactical Phase Summary
 
-Detailed references, write scope, tests, and acceptance criteria live in Plan
-#16.
+Detailed references, write scope, tests, and acceptance criteria live in Plans
+#16 and #17.
 
-### Phase 1: freeze-semantic artifact design
+### Phase 1: Close Plan #16
 
-- decide the freeze-semantic review artifact shape and where it attaches
-- keep the front-half chain explicit and reviewable
+- run full local verification
+- lock docs and commit the freeze-semantic lane cleanly
 
-### Phase 2: freeze-semantic integration
+### Phase 2: Plan #17 design decisions
 
-- connect the artifact to draft/freeze quality rather than leaving it as side review
-- keep programmatic readiness and semantic review complementary
+- pre-make suite requirement sourcing
+- pre-make suite aggregate semantics
+- keep the front-half suite lane explicit and reviewable
 
-### Phase 3: Verification And Lock
+### Phase 3: Plan #17 implementation
 
-- targeted freeze-semantic verification
+- persist one suite-level front-half breadth artifact
+- expose it through CLI and Make
+- keep missing realistic-input coverage explicit
+
+### Phase 4: Verification And Lock
+
+- targeted front-half-suite verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +82,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the semantic gate should strengthen freeze decisions without turning them into a vague LLM-only review
-2. the lane should preserve explicit programmatic readiness alongside semantic review
-3. the artifact should be attached to freeze quality rather than float as a disconnected side review
+1. the front-half suite lane should reuse explicit requirements instead of inventing hidden ones
+2. the suite aggregate should keep semantic verdicts and freeze approval distinct
+3. missing realistic-input coverage should be explicit in the suite artifact rather than silently skipped

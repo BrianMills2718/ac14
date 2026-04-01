@@ -67,6 +67,8 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
   before continuing implementation
 - the expected behavior is to keep running through the active 24-hour sequence
   until every planned lane is complete or a real contradiction appears
+- for the active 24-hour chain, keep at least one next numbered plan explicit
+  at all times so continuation does not depend on chat memory
 
 The default failure mode here is waiting too early. Avoid that.
 
@@ -97,8 +99,8 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after recommendation awareness of broader live evidence is a
-front-half freeze semantic review gate.
+The current focus after landing the freeze-semantic review gate is front-half
+breadth across the shipped realistic-input suite.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -116,9 +118,10 @@ front-half freeze semantic review gate.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
-- next, strengthen the front half by attaching a semantic review artifact
-  directly to draft/freeze quality instead of leaving business-logic review only
-  to later acceptance surfaces
+- keep the directly attached freeze-semantic review artifact in the front-half
+  chain and broaden that chain across shipped realistic-input examples
+- do not let front-half breadth silently skip missing realistic-input coverage;
+  missing coverage should be explicit in the suite artifact
 
 ## Continuation Rule
 

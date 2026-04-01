@@ -240,6 +240,17 @@ live artifact path, suite ready/blocked/skipped counts, and explicit reasons
 when suite live readiness is not ready.
 **Date resolved:** 2026-04-01
 
+### U-027: Draft/freeze quality still lacked one directly attached semantic review artifact.
+**Status:** Resolved
+**Context:** AC14 had stronger semantic review at front-half acceptance and
+final acceptance than directly at freeze time.
+**Why it matters:** Business-logic review should become visible before final
+execution, not only after a full system run.
+**Resolution:** `decide-freeze` now persists `freeze_semantic_review.json` for
+draft bundles with readiness evidence, publishes its path on the freeze
+decision artifact, and front-half acceptance carries that path forward.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

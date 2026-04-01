@@ -81,14 +81,15 @@ Implemented:
 8. draft bundle materialization with shared `meta-process` dependency-probe policy consumption
 9. freeze readiness that now blocks on unresolved dependency probes
 10. explicit freeze decision and remediation planning
-11. persisted realistic-input front-half acceptance from discovery through freeze decision plus structured semantic review
-12. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
-13. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
-14. one bounded realistic-input full-system acceptance slice in `llm` mode
-15. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
-16. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
-17. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
-18. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
+11. persisted directly attached freeze-semantic review artifacts for draft/freeze quality whenever `decide-freeze` evaluates a draft bundle with readiness evidence
+12. persisted realistic-input front-half acceptance from discovery through freeze decision plus structured semantic review
+13. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
+14. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
+15. one bounded realistic-input full-system acceptance slice in `llm` mode
+16. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
+17. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode across shipped examples
+18. one explicit operator-gated live-readiness artifact for realistic-input `llm` acceptance with `ready`, `blocked`, and `skipped` states
+19. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -131,12 +132,13 @@ Implemented:
 11. default-generator recommendation now consumes suite-level realistic-input default-gate evidence instead of reasoning only from structural suite comparison and semantic comparison
 12. suite-level live-readiness artifact now persists per-example and aggregate `ready` / `blocked` / `skipped` results for realistic-input `llm` acceptance while remaining operator-gated
 13. default-generator recommendation now consumes both the bounded one-example live-readiness artifact and the broader suite-level live-readiness artifact
+14. draft/freeze quality now carries a directly attached semantic review artifact instead of leaving front-half business-logic review only to later acceptance surfaces
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
-2. strategy/value review during draft and freeze phases
-3. a directly attached semantic review artifact for freeze quality
+2. strategy/value review during draft and freeze phases beyond the single-example freeze artifact
+3. front-half semantic breadth across the shipped realistic-input suite
 
 ### Generality
 
@@ -198,8 +200,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 97-99%
-2. long-term general coding agent vision: 49-53%
+1. first proof slice: 98-99%
+2. long-term general coding agent vision: 50-54%
 
 The remaining work is not mainly “more code.” It is:
 

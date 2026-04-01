@@ -1,20 +1,51 @@
-"""Explicit freeze decisions and promotion for AC14 bundles."""
+"""Explicit freeze decisions and promotion for AC14 bundles.
+
+This module keeps structural freeze decisions and semantic freeze review
+artifacts adjacent so front-half quality can be evaluated before final
+system execution.
+"""
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
 import shutil
 from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field
 import yaml  # type: ignore[import-untyped]
 
+from ac14.blueprint_planning import DraftBlueprintPlanArtifact
 from ac14.draft_authoring import FreezeReadinessReport
 from ac14.loader import REQUIRED_FILES, load_blueprint_dir
 from ac14.models import ValidationFinding
 from ac14.validation import validate_blueprint
+
+FREEZE_SEMANTIC_REVIEW_PROMPT_PATH = (
+    Path(__file__).resolve().parents[1] / "prompts" / "review_freeze_semantic.yaml"
+)
+DEFAULT_FREEZE_SEMANTIC_MODEL = "gemini/gemini-2.5-flash-lite"
+DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET = 0.50
+
+
+async def acall_llm_structured(*args: Any, **kwargs: Any) -> Any:
+    """Lazily import llm_client structured calls for freeze-semantic review."""
+
+    from llm_client import acall_llm_structured as _acall_llm_structured  # type: ignore[import-not-found]
+
+    return await _acall_llm_structured(*args, **kwargs)
+
+
+def render_prompt(*args: Any, **kwargs: Any) -> Any:
+    """Lazily import llm_client prompt rendering for freeze-semantic review."""
+
+    from llm_client import render_prompt as _render_prompt
+
+    return _render_prompt(*args, **kwargs)
 
 
 class FreezeDecisionArtifact(BaseModel):
@@ -33,6 +64,10 @@ class FreezeDecisionArtifact(BaseModel):
     promoted_bundle_dir: str | None = Field(
         default=None,
         description="Promoted frozen bundle directory when approval succeeds.",
+    )
+    semantic_review_path: str | None = Field(
+        default=None,
+        description="Path to the persisted freeze-semantic review artifact when one was built.",
     )
     remediation_plan_path: str = Field(
         description="Path to the persisted remediation plan for this decision.",
@@ -91,6 +126,51 @@ class FreezeRemediationPlan(BaseModel):
     )
 
 
+class FreezeSemanticRequirementAssessment(BaseModel):
+    """Assessment of one requirement against the draft/freeze result."""
+
+    requirement: str = Field(description="Requirement text under review.")
+    verdict: Literal["satisfied", "partially_satisfied", "not_satisfied", "concern"] = Field(
+        description="Assessment verdict for this requirement.",
+    )
+    rationale: str = Field(description="Concise reason for the verdict.")
+
+
+class FreezeSemanticReviewResponse(BaseModel):
+    """Structured semantic review of draft/freeze quality."""
+
+    overall_verdict: Literal["accept", "concern", "reject"] = Field(
+        description="Overall verdict for the draft/freeze result.",
+    )
+    freeze_verdict: Literal["ready", "promising_but_blocked", "blocked"] = Field(
+        description="Whether the draft looks ready, promising but blocked, or blocked outright.",
+    )
+    summary: str = Field(description="Short semantic review summary.")
+    strengths: list[str] = Field(description="Concrete strengths in the current draft/freeze result.")
+    concerns: list[str] = Field(description="Concrete weaknesses or risks in the current draft/freeze result.")
+    requirement_assessments: list[FreezeSemanticRequirementAssessment] = Field(
+        description="Per-requirement assessments.",
+    )
+    recommended_next_steps: list[str] = Field(
+        description="Concrete next steps to improve the draft/freeze result.",
+    )
+
+
+class FreezeSemanticReviewArtifact(BaseModel):
+    """Persisted semantic review attached directly to a freeze decision."""
+
+    source_bundle_dir: str = Field(description="Bundle directory reviewed semantically.")
+    readiness_report_path: str = Field(description="Readiness report used for the semantic review.")
+    upstream_plan_path: str = Field(description="Draft planning artifact used for the semantic review.")
+    freeze_approved: bool = Field(description="Whether the draft bundle was structurally approved for freeze.")
+    blocking_finding_codes: list[str] = Field(
+        description="Blocking finding codes visible at freeze time.",
+    )
+    review: FreezeSemanticReviewResponse = Field(
+        description="Structured semantic review of the draft/freeze result.",
+    )
+
+
 def build_freeze_decision(
     bundle_dir: Path | str,
     output_dir: Path | str,
@@ -146,6 +226,26 @@ def build_freeze_decision(
         json.dumps(remediation_plan.model_dump(mode="json"), indent=2, sort_keys=True),
     )
 
+    semantic_review_path: str | None = None
+    if readiness_report_path is not None:
+        upstream_plan_path = _read_upstream_plan_path(source_dir)
+        if upstream_plan_path is None:
+            raise ValueError(
+                "freeze semantic review requires an upstream planning artifact path in metadata.yaml",
+            )
+        if readiness_path is None:
+            raise ValueError("freeze semantic review requires a readiness report path")
+        build_freeze_semantic_review(
+            source_bundle_dir=source_dir,
+            readiness_report_path=readiness_path,
+            upstream_plan_path=Path(upstream_plan_path),
+            output_dir=destination,
+            freeze_approved=approved,
+            findings=findings,
+            remediation_plan=remediation_plan,
+        )
+        semantic_review_path = str(destination / "freeze_semantic_review.json")
+
     decision = FreezeDecisionArtifact(
         source_bundle_dir=str(source_dir),
         readiness_report_path=str(readiness_path) if readiness_report_path is not None else None,
@@ -153,12 +253,58 @@ def build_freeze_decision(
         decision_summary=decision_summary,
         findings=findings,
         promoted_bundle_dir=promoted_bundle_dir,
+        semantic_review_path=semantic_review_path,
         remediation_plan_path=str(remediation_path),
     )
     (destination / "freeze_decision.json").write_text(
         json.dumps(decision.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return decision
+
+
+def build_freeze_semantic_review(
+    *,
+    source_bundle_dir: Path | str,
+    readiness_report_path: Path | str,
+    upstream_plan_path: Path | str,
+    output_dir: Path | str,
+    freeze_approved: bool,
+    findings: list[ValidationFinding],
+    remediation_plan: FreezeRemediationPlan,
+) -> FreezeSemanticReviewArtifact:
+    """Persist a semantic review artifact attached directly to the freeze decision."""
+
+    source_dir = Path(source_bundle_dir)
+    readiness_path = Path(readiness_report_path)
+    plan_path = Path(upstream_plan_path)
+    destination = Path(output_dir)
+
+    review = _review_freeze_semantic_quality(
+        source_bundle_dir=source_dir,
+        readiness_report_path=readiness_path,
+        upstream_plan_path=plan_path,
+        freeze_approved=freeze_approved,
+        findings=findings,
+        remediation_plan=remediation_plan,
+    )
+    artifact = FreezeSemanticReviewArtifact(
+        source_bundle_dir=str(source_dir),
+        readiness_report_path=str(readiness_path),
+        upstream_plan_path=str(plan_path),
+        freeze_approved=freeze_approved,
+        blocking_finding_codes=sorted(
+            {
+                finding.code
+                for finding in findings
+                if finding.code.startswith("E-")
+            },
+        ),
+        review=review,
+    )
+    (destination / "freeze_semantic_review.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return artifact
 
 
 def build_freeze_remediation_plan(
@@ -475,3 +621,83 @@ def _dedupe(values: Iterable[str]) -> list[str]:
         if value not in unique:
             unique.append(value)
     return unique
+
+
+def _review_freeze_semantic_quality(
+    *,
+    source_bundle_dir: Path,
+    readiness_report_path: Path,
+    upstream_plan_path: Path,
+    freeze_approved: bool,
+    findings: list[ValidationFinding],
+    remediation_plan: FreezeRemediationPlan,
+) -> FreezeSemanticReviewResponse:
+    """Run one semantic review over draft/freeze quality."""
+
+    fixture_path = os.environ.get("AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE")
+    if fixture_path:
+        return FreezeSemanticReviewResponse.model_validate_json(Path(fixture_path).read_text())
+
+    plan = DraftBlueprintPlanArtifact.model_validate_json(upstream_plan_path.read_text())
+    readiness_report = FreezeReadinessReport.model_validate_json(readiness_report_path.read_text())
+    messages = render_prompt(
+        FREEZE_SEMANTIC_REVIEW_PROMPT_PATH,
+        source_bundle_dir=str(source_bundle_dir),
+        requirements=plan.requirements,
+        planning_summary=plan.planning_summary,
+        packetization_notes=plan.packetization_notes,
+        dependency_decisions=plan.dependency_decisions,
+        open_questions=[
+            {
+                "question": question.question,
+                "why_it_matters": question.why_it_matters,
+            }
+            for question in plan.open_questions
+        ],
+        readiness_summary={
+            "ready": readiness_report.ready,
+            "validation_passed": readiness_report.validation_passed,
+            "findings": [
+                {
+                    "code": finding.code,
+                    "path": finding.path,
+                    "message": finding.message,
+                }
+                for finding in readiness_report.findings
+            ],
+        },
+        freeze_summary={
+            "freeze_approved": freeze_approved,
+            "blocking_finding_codes": sorted(
+                {
+                    finding.code
+                    for finding in findings
+                    if finding.code.startswith("E-")
+                },
+            ),
+            "remediation_summary": remediation_plan.summary,
+            "remediation_tasks": [
+                {
+                    "title": task.title,
+                    "summary": task.summary,
+                    "target_files": task.target_files,
+                    "authoring_actions": task.authoring_actions,
+                }
+                for task in remediation_plan.tasks
+            ],
+        },
+    )
+    response, _meta = cast(
+        tuple[FreezeSemanticReviewResponse, object],
+        asyncio.run(
+            acall_llm_structured(
+                DEFAULT_FREEZE_SEMANTIC_MODEL,
+                messages,
+                response_model=FreezeSemanticReviewResponse,
+                task="ac14_freeze_semantic_review",
+                trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}",
+                max_budget=DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
+            ),
+        ),
+    )
+    return response

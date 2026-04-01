@@ -1,6 +1,6 @@
 # Plan #16: Freeze Semantic Review Gate
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -42,14 +42,40 @@ final realistic-input acceptance.
 ## Open Questions
 
 ### Q1: Should the freeze semantic review be part of `decide-freeze` or a separate artifact consumed by it?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The lane should strengthen freeze decisions without turning
 freeze into a monolith.
+**Resolution:** The semantic review is persisted as its own
+`freeze_semantic_review.json` artifact, but `decide-freeze` owns building it and
+publishes its path directly on the freeze decision artifact.
 
 ### Q2: Should the semantic gate run by default or remain operator-configurable at first?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The lane needs a clean balance between stronger front-half
 review and proof-slice cost/control.
+**Resolution:** The semantic review now runs by default whenever `decide-freeze`
+is evaluating a draft bundle with a readiness report. Already-frozen shipped
+bundles still skip it.
+
+---
+
+## Files Affected
+
+- `prompts/review_freeze_semantic.yaml` (create)
+- `ac14/freeze_decision.py` (modify)
+- `ac14/front_half_acceptance.py` (modify)
+- `tests/test_freeze_decision.py` (modify)
+- `tests/test_front_half_acceptance.py` (modify)
+- `tests/test_cli.py` (modify)
+- `tests/test_make_targets.py` (modify)
+- `CLAUDE.md` (modify)
+- `docs/plans/CLAUDE.md` (modify)
+- `docs/TODO.md` (modify)
+- `docs/AC14_NEXT_24_HOURS.md` (modify)
+- `docs/AC14_IMPLEMENTATION_STATUS.md` (modify)
+- `docs/UNCERTAINTIES.md` (modify)
+- `README.md` (modify)
+- `KNOWLEDGE.md` (modify)
 
 ---
 
@@ -63,8 +89,28 @@ review and proof-slice cost/control.
 
 ---
 
+## Required Tests
+
+### New Tests
+
+| Test File | Test Function | What It Verifies |
+|-----------|---------------|------------------|
+| `tests/test_freeze_decision.py` | `test_build_freeze_decision_blocks_draft_bundle` | Draft freeze now persists the attached semantic review artifact |
+| `tests/test_front_half_acceptance.py` | `test_build_front_half_acceptance_report_runs_pipeline` | Front-half artifact now carries the freeze-semantic artifact path |
+
+### Existing Tests
+
+| Test Pattern | Why |
+|--------------|-----|
+| `python -m pytest -q tests/test_freeze_decision.py tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` | Targeted freeze-semantic integration checks |
+| `python -m mypy ac14 tests` | Keep the lane type-clean |
+| `python -m ruff check ac14 tests` | Keep the lane lint-clean |
+| `python -m pytest -q` | Full regression verification |
+
+---
+
 ## Acceptance Criteria
 
-- [ ] AC14 persists one explicit freeze-semantic review artifact.
-- [ ] The artifact is connected to the freeze decision surface rather than floating as a side review.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 persists one explicit freeze-semantic review artifact.
+- [x] The artifact is connected to the freeze decision surface rather than floating as a side review.
+- [x] Full local verification passes and the docs match the lane.

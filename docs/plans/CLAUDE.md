@@ -26,7 +26,8 @@ current executable lane.
 | 13 | [Recommendation Default-Gate Awareness](13_recommendation_default_gate_awareness.md) | High | Complete | - |
 | 14 | [Live LLM Suite Readiness](14_live_llm_suite_readiness.md) | High | Complete | - |
 | 15 | [Recommendation Live Suite Awareness](15_recommendation_live_suite_awareness.md) | High | Complete | - |
-| 16 | [Freeze Semantic Review Gate](16_freeze_semantic_review_gate.md) | High | In Progress | - |
+| 16 | [Freeze Semantic Review Gate](16_freeze_semantic_review_gate.md) | High | Complete | - |
+| 17 | [Front-Half Suite Breadth](17_front_half_suite_breadth.md) | High | In Progress | - |
 
 ## Status Key
 

@@ -178,4 +178,11 @@ readiness report that stays operator-gated and keeps per-example `ready` /
 Once suite-level live readiness exists, recommendation should consume it
 directly instead of relying only on the bounded one-example live probe.
 
+### 2026-04-01 — codex — best-practice
+Front-half business-logic review should attach directly to freeze quality, not
+float only as a later acceptance artifact. AC14 now persists
+`freeze_semantic_review.json` whenever `decide-freeze` evaluates a draft bundle
+with readiness evidence, and front-half acceptance now carries that path
+forward explicitly.
+
 ---

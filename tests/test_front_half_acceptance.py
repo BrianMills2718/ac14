@@ -166,6 +166,45 @@ def _write_front_half_review_fixture(path: Path) -> Path:
     return path
 
 
+def _write_freeze_semantic_review_fixture(path: Path) -> Path:
+    """Persist a deterministic freeze-semantic review fixture."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "freeze_verdict": "promising_but_blocked",
+                "summary": "The draft looks strategically plausible, but concrete draft gaps still block freeze.",
+                "strengths": [
+                    "Discovery preserved realistic ticket structure and downstream-relevant fields.",
+                    "The packetization still keeps the first implementation slice narrow.",
+                ],
+                "concerns": [
+                    "Fixture coverage and invariants are still incomplete at freeze time.",
+                ],
+                "requirement_assessments": [
+                    {
+                        "requirement": "preserve support ticket meaning",
+                        "verdict": "satisfied",
+                        "rationale": "The draft schema retains the core ticket content.",
+                    },
+                    {
+                        "requirement": "keep packets bounded",
+                        "verdict": "satisfied",
+                        "rationale": "The current source packet stays focused on normalization.",
+                    },
+                ],
+                "recommended_next_steps": [
+                    "Add concrete fixtures and invariants before retrying freeze.",
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+    )
+    return path
+
+
 def test_build_front_half_acceptance_report_runs_pipeline(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -202,6 +241,10 @@ def test_build_front_half_acceptance_report_runs_pipeline(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
         str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
     )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
 
     artifact = build_front_half_acceptance_report(
         input_path=input_path,
@@ -218,6 +261,8 @@ def test_build_front_half_acceptance_report_runs_pipeline(
     assert Path(artifact.artifact_paths.draft_blueprint_plan_path).exists()
     assert Path(artifact.artifact_paths.freeze_readiness_report_path).exists()
     assert Path(artifact.artifact_paths.freeze_decision_path).exists()
+    assert artifact.artifact_paths.freeze_semantic_review_path is not None
+    assert Path(artifact.artifact_paths.freeze_semantic_review_path).exists()
     assert artifact.freeze_approved is False
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in artifact.blocking_finding_codes
     assert artifact.review.freeze_verdict == "promising_but_blocked"

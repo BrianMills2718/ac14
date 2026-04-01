@@ -73,6 +73,10 @@ class FrontHalfArtifactPaths(BaseModel):
         description="Path to the persisted freeze-readiness report.",
     )
     freeze_decision_path: str = Field(description="Path to the persisted freeze decision artifact.")
+    freeze_semantic_review_path: str | None = Field(
+        default=None,
+        description="Path to the persisted freeze-semantic review artifact when one was built.",
+    )
 
 
 class FrontHalfAcceptanceArtifact(BaseModel):
@@ -195,6 +199,7 @@ async def abuild_front_half_acceptance_report(
             draft_bundle_dir=draft_bundle_manifest.draft_bundle_dir,
             freeze_readiness_report_path=draft_bundle_manifest.freeze_readiness_report_path,
             freeze_decision_path=str(freeze_decision_path),
+            freeze_semantic_review_path=freeze_decision.semantic_review_path,
         ),
         freeze_approved=freeze_decision.approved,
         blocking_finding_codes=sorted(

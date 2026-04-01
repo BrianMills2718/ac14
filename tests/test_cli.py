@@ -211,6 +211,45 @@ def _write_acceptance_review_fixture(path: Path) -> Path:
     return path
 
 
+def _write_freeze_semantic_review_fixture(path: Path) -> Path:
+    """Persist one deterministic freeze-semantic review fixture for subprocess tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "freeze_verdict": "promising_but_blocked",
+                "summary": "The draft is strategically plausible, but draft-quality blockers still prevent freeze.",
+                "strengths": [
+                    "The planning summary preserves the realistic ticket intent.",
+                    "The first packet stays bounded and implementable.",
+                ],
+                "concerns": [
+                    "Fixture coverage and concrete invariants remain incomplete.",
+                ],
+                "requirement_assessments": [
+                    {
+                        "requirement": "preserve support ticket meaning",
+                        "verdict": "satisfied",
+                        "rationale": "The discovered fields still preserve the ticket meaning.",
+                    },
+                    {
+                        "requirement": "keep packets bounded",
+                        "verdict": "satisfied",
+                        "rationale": "The source packet remains narrowly scoped.",
+                    },
+                ],
+                "recommended_next_steps": [
+                    "Add concrete fixtures and invariants before retrying freeze.",
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
 def test_cli_verify_blueprint() -> None:
     """Blueprint verification command should exit cleanly for the shipped example."""
 
@@ -1466,6 +1505,9 @@ def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(dependency_fixture)
     env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)
     env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(review_fixture)
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -1498,7 +1540,9 @@ def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["freeze_approved"] is False
     assert payload["review"]["freeze_verdict"] == "promising_but_blocked"
+    assert payload["artifact_paths"]["freeze_semantic_review_path"] is not None
     assert (tmp_path / "front_half" / "front_half_acceptance_report.json").exists()
+    assert (tmp_path / "front_half" / "freeze_decision" / "freeze_semantic_review.json").exists()
 
 
 def test_cli_acceptance_review_with_realistic_input_runs_end_to_end(tmp_path: Path) -> None:

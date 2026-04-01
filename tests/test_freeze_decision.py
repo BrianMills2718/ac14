@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from ac14.blueprint_planning import (
     DraftBlueprintPlanArtifact,
     PlannedComponent,
@@ -90,10 +92,58 @@ def _write_plan_artifact(path: Path) -> Path:
     return path
 
 
-def test_build_freeze_decision_blocks_draft_bundle(tmp_path: Path) -> None:
+def _write_freeze_semantic_review_fixture(path: Path) -> Path:
+    """Persist a deterministic freeze-semantic review fixture."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "freeze_verdict": "promising_but_blocked",
+                "summary": "The draft is strategically plausible, but still blocked by concrete draft quality gaps.",
+                "strengths": [
+                    "The planning artifact preserves the core requirements.",
+                    "The draft packetization remains bounded and locally implementable.",
+                ],
+                "concerns": [
+                    "The draft still lacks fixture coverage and concrete invariants.",
+                    "An unresolved schema-shape question remains before freeze.",
+                ],
+                "requirement_assessments": [
+                    {
+                        "requirement": "normalize discovered ticket input",
+                        "verdict": "satisfied",
+                        "rationale": "The source component and schema preserve the normalization goal.",
+                    },
+                    {
+                        "requirement": "keep packets bounded",
+                        "verdict": "satisfied",
+                        "rationale": "The proposed packet scope is still narrow and local.",
+                    },
+                ],
+                "recommended_next_steps": [
+                    "Add concrete fixtures and invariants before retrying freeze.",
+                    "Resolve the remaining schema question before promotion.",
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+    )
+    return path
+
+
+def test_build_freeze_decision_blocks_draft_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     """Draft bundles with readiness blockers should produce blocked worklists."""
 
     plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
     manifest = materialize_draft_blueprint_bundle(
         plan_artifact_path=plan_path,
         output_dir=tmp_path / "draft_bundle",
@@ -111,6 +161,9 @@ def test_build_freeze_decision_blocks_draft_bundle(tmp_path: Path) -> None:
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
     assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
     assert (tmp_path / "freeze_decision" / "freeze_decision.json").exists()
+    assert decision.semantic_review_path is not None
+    semantic_review_payload = json.loads(Path(decision.semantic_review_path).read_text())
+    assert semantic_review_payload["review"]["freeze_verdict"] == "promising_but_blocked"
     remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
     assert remediation_payload["blocked"] is True
     assert remediation_payload["task_count"] >= 2
@@ -137,15 +190,23 @@ def test_build_freeze_decision_promotes_ready_bundle(tmp_path: Path) -> None:
     promoted_dir = Path(decision.promoted_bundle_dir)
     assert (promoted_dir / "metadata.yaml").exists()
     assert (promoted_dir / "schemas.yaml").exists()
+    assert decision.semantic_review_path is None
     remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
     assert remediation_payload["blocked"] is False
     assert remediation_payload["task_count"] == 0
 
 
-def test_build_freeze_decision_groups_dependency_probe_blockers(tmp_path: Path) -> None:
+def test_build_freeze_decision_groups_dependency_probe_blockers(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     """Dependency probe blockers should become a dedicated remediation task bucket."""
 
     plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
     artifact = DraftBlueprintPlanArtifact.model_validate_json(plan_path.read_text())
     artifact.blocked_dependency_probes = [
         "install rich: install probe blocked because environment mutation is disabled",
