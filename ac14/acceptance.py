@@ -10,7 +10,7 @@ from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field
 
-from ac14.examples import discover_shipped_blueprints
+from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package, load_generated_component_builders
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint, Scenario
@@ -99,6 +99,31 @@ class SuiteAcceptanceReport(BaseModel):
     concern_examples: int = Field(description="Examples with any concern verdicts.")
     rejected_examples: int = Field(description="Examples with any reject or execution failure.")
     reports: dict[str, str] = Field(description="Per-example persisted report paths.")
+
+
+class RealisticSuiteModeSummary(BaseModel):
+    """Aggregate realistic-input acceptance summary for one execution mode."""
+
+    mode: AcceptanceMode = Field(description="Execution mode reviewed across the suite.")
+    example_count: int = Field(description="Number of shipped examples reviewed in this mode.")
+    accepted_examples: int = Field(description="Examples with only accept verdicts.")
+    concern_examples: int = Field(description="Examples with any concern verdicts.")
+    rejected_examples: int = Field(description="Examples with any reject or execution failure.")
+    reports: dict[str, str] = Field(description="Per-example persisted report paths for this mode.")
+
+
+class RealisticSuiteAcceptanceReport(BaseModel):
+    """Persisted realistic-input acceptance artifact across shipped examples and modes."""
+
+    modes: list[AcceptanceMode] = Field(description="Execution modes reviewed across the suite.")
+    example_count: int = Field(description="Number of shipped examples covered by the suite.")
+    record_index: int = Field(description="Realistic-input record index used for every example.")
+    realistic_input_paths: dict[str, str] = Field(
+        description="Persisted realistic-input paths keyed by shipped example identifier.",
+    )
+    mode_summaries: dict[str, RealisticSuiteModeSummary] = Field(
+        description="Per-mode realistic-input acceptance summaries.",
+    )
 
 
 async def abuild_acceptance_report(
@@ -317,6 +342,97 @@ def build_suite_acceptance_report(
     )
 
 
+async def abuild_realistic_suite_acceptance_report(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    modes: list[AcceptanceMode] | None = None,
+    realistic_input_record_index: int = 0,
+    model: str = DEFAULT_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
+) -> RealisticSuiteAcceptanceReport:
+    """Build persisted realistic-input acceptance artifacts across shipped examples and modes."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    shipped_examples = discover_shipped_blueprints(examples_root)
+    selected_modes = modes or ["reference", "deterministic"]
+    realistic_input_paths = {
+        example.example_id: str(_discover_realistic_input_path(example))
+        for example in shipped_examples
+    }
+
+    mode_summaries: dict[str, RealisticSuiteModeSummary] = {}
+    for mode in selected_modes:
+        reports: dict[str, str] = {}
+        accepted_examples = 0
+        concern_examples = 0
+        rejected_examples = 0
+        for example in shipped_examples:
+            report = await abuild_acceptance_report(
+                blueprint_dir=example.blueprint_dir,
+                output_dir=destination / mode / example.example_id,
+                mode=mode,
+                realistic_input_path=realistic_input_paths[example.example_id],
+                realistic_input_record_index=realistic_input_record_index,
+                model=model,
+                max_budget=max_budget,
+            )
+            reports[example.example_id] = str(
+                destination / mode / example.example_id / "acceptance_report.json",
+            )
+            example_verdict = _example_verdict(report)
+            if example_verdict == "accept":
+                accepted_examples += 1
+            elif example_verdict == "concern":
+                concern_examples += 1
+            else:
+                rejected_examples += 1
+        mode_summaries[mode] = RealisticSuiteModeSummary(
+            mode=mode,
+            example_count=len(reports),
+            accepted_examples=accepted_examples,
+            concern_examples=concern_examples,
+            rejected_examples=rejected_examples,
+            reports=reports,
+        )
+
+    suite_report = RealisticSuiteAcceptanceReport(
+        modes=selected_modes,
+        example_count=len(shipped_examples),
+        record_index=realistic_input_record_index,
+        realistic_input_paths=realistic_input_paths,
+        mode_summaries=mode_summaries,
+    )
+    (destination / "realistic_suite_acceptance_report.json").write_text(
+        json.dumps(suite_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return suite_report
+
+
+def build_realistic_suite_acceptance_report(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    modes: list[AcceptanceMode] | None = None,
+    realistic_input_record_index: int = 0,
+    model: str = DEFAULT_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
+) -> RealisticSuiteAcceptanceReport:
+    """Synchronous wrapper for realistic-input suite acceptance review."""
+
+    return asyncio.run(
+        abuild_realistic_suite_acceptance_report(
+            output_dir=output_dir,
+            examples_root=examples_root,
+            modes=modes,
+            realistic_input_record_index=realistic_input_record_index,
+            model=model,
+            max_budget=max_budget,
+        ),
+    )
+
+
 async def _review_acceptance_scenario(
     *,
     blueprint: FrozenBlueprint,
@@ -488,6 +604,26 @@ def _load_realistic_input_record(
     if not isinstance(record, dict):
         raise ValueError("realistic-input acceptance currently requires object records")
     return cast(dict[str, Any], record)
+
+
+def _discover_realistic_input_path(example: ShippedBlueprintExample | object) -> Path:
+    """Return the default realistic-input artifact for one shipped example."""
+
+    typed_example = (
+        example
+        if isinstance(example, ShippedBlueprintExample)
+        else ShippedBlueprintExample.model_validate(example)
+    )
+    example_dir = Path(typed_example.blueprint_dir).parent
+    input_dir = example_dir / "input"
+    if not input_dir.is_dir():
+        raise ValueError(f"no input directory found for shipped example {typed_example.example_id}")
+    candidates = sorted(input_dir.glob("*.json"))
+    if not candidates:
+        raise ValueError(
+            f"no realistic-input json artifact found for shipped example {typed_example.example_id}",
+        )
+    return candidates[0]
 
 
 def _source_components(blueprint: FrozenBlueprint) -> list[str]:

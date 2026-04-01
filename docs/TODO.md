@@ -29,9 +29,9 @@ Detailed uncertainty tracking now lives in:
   - [x] prove realistic-input acceptance on that slice
   - Success criteria: realistic-input acceptance is no longer proved on only one workflow
 
-- [ ] Phase 3: suite-level realistic-input acceptance
-  - [ ] persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes
-  - [ ] keep the suite artifact explicit about what modes are and are not covered
+- [x] Phase 3: suite-level realistic-input acceptance
+  - [x] persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes
+  - [x] keep the suite artifact explicit about what modes are and are not covered
   - Success criteria: proof breadth for realistic-input final acceptance is reviewable in one persisted artifact
 
 - [ ] Phase 4: operator surface and lock
@@ -67,6 +67,8 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_deterministic_mode tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end` passed with `3 passed`
 - targeted incident realistic-input acceptance verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_incident_realistic_input` passed with `1 passed`
+- targeted realistic-input suite acceptance verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_inputs tests/test_cli.py::test_cli_acceptance_review_realistic_suite_help tests/test_cli.py::test_cli_acceptance_review_realistic_suite_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_runs_end_to_end tests/test_make_targets.py::test_make_help_lists_proof_targets` passed with `5 passed`
 - targeted realistic-input front-half acceptance verification passed:
   - `python -m pytest -q tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `3 passed`
 - targeted dependency-probe integration verification passed:

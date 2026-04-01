@@ -1045,6 +1045,21 @@ def test_cli_acceptance_review_suite_help() -> None:
     assert "--examples-root" in result.stdout
 
 
+def test_cli_acceptance_review_realistic_suite_help() -> None:
+    """Realistic suite acceptance help should expose mode breadth controls."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "acceptance-review-realistic-suite", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--modes" in result.stdout
+    assert "--record-index" in result.stdout
+
+
 def test_cli_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
     """Suite semantic comparison command should build aggregate semantic artifacts."""
 
@@ -1377,3 +1392,52 @@ def test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_
     assert payload["scenario_results"][0]["execution_error"] is None
     assert payload["scenario_results"][0]["review"]["overall_verdict"] == "concern"
     assert (tmp_path / "acceptance_realistic_deterministic" / "acceptance_report.json").exists()
+
+
+def test_cli_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -> None:
+    """Realistic suite acceptance command should persist one aggregate artifact."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Outputs remain reasonable across realistic-input slices.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review-realistic-suite",
+            "--output-dir",
+            str(tmp_path / "realistic_suite_acceptance"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--modes",
+            "reference",
+            "deterministic",
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["example_count"] >= 2
+    assert set(payload["mode_summaries"]) == {"reference", "deterministic"}
+    assert (
+        tmp_path / "realistic_suite_acceptance" / "realistic_suite_acceptance_report.json"
+    ).exists()

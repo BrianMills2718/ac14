@@ -173,6 +173,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "compare-suite" in result.stdout
     assert "semantic-compare-suite" in result.stdout
     assert "acceptance-review-suite" in result.stdout
+    assert "acceptance-review-realistic-suite" in result.stdout
     assert "recommend-default-generator" in result.stdout
 
 
@@ -1039,3 +1040,40 @@ def test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "acceptance_report.json").exists()
+
+
+def test_make_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -> None:
+    """Make realistic suite acceptance target should persist one aggregate artifact."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Outputs remain reasonable across realistic-input slices.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    output_dir = tmp_path / "realistic_suite_acceptance"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review-realistic-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "MODES=reference deterministic",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "realistic_suite_acceptance_report.json").exists()

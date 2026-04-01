@@ -10,6 +10,7 @@ from typing import cast
 from ac14.acceptance import (
     AcceptanceMode,
     build_acceptance_report,
+    build_realistic_suite_acceptance_report,
     build_suite_acceptance_report,
 )
 from ac14.blueprint_planning import (
@@ -294,6 +295,22 @@ def main() -> int:
     acceptance_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     acceptance_suite_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    realistic_acceptance_suite_parser = subparsers.add_parser(
+        "acceptance-review-realistic-suite",
+        help="Build persisted realistic-input acceptance reports across shipped examples and modes.",
+    )
+    realistic_acceptance_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    realistic_acceptance_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    realistic_acceptance_suite_parser.add_argument(
+        "--modes",
+        nargs="+",
+        choices=["reference", "deterministic", "llm"],
+        default=["reference", "deterministic"],
+    )
+    realistic_acceptance_suite_parser.add_argument("--record-index", type=int, default=0)
+    realistic_acceptance_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    realistic_acceptance_suite_parser.add_argument("--max-budget", type=float, default=0.50)
+
     recommend_default_parser = subparsers.add_parser(
         "recommend-default-generator",
         help="Build an evidence-backed default-generator recommendation.",
@@ -478,6 +495,15 @@ def main() -> int:
             args.output_dir,
             args.examples_root,
             cast(AcceptanceMode, args.mode),
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "acceptance-review-realistic-suite":
+        return _acceptance_review_realistic_suite(
+            args.output_dir,
+            args.examples_root,
+            [cast(AcceptanceMode, mode) for mode in args.modes],
+            args.record_index,
             args.model,
             args.max_budget,
         )
@@ -849,6 +875,28 @@ def _acceptance_review_suite(
         output_dir=output_dir,
         examples_root=examples_root,
         mode=mode,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _acceptance_review_realistic_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    modes: list[AcceptanceMode],
+    record_index: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build realistic-input acceptance reports across shipped examples and modes."""
+
+    report = build_realistic_suite_acceptance_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
+        modes=modes,
+        realistic_input_record_index=record_index,
         model=model,
         max_budget=max_budget,
     )

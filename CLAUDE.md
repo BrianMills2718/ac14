@@ -79,6 +79,14 @@ Treat the active numbered plan as a mandatory execution contract:
 - do not leave the TODO ledger stale while continuing implementation
 - if a lane spans the full work block, keep iterating until every phase is either complete or blocked by a real contradiction to the thesis
 
+Treat waiting for further permission before the active plan is complete as a
+process failure. The required behavior is:
+
+- define the next phases clearly
+- execute them in order
+- log uncertainties without stopping
+- keep going until the active plan is finished or a real contradiction appears
+
 ## Active Proof Expansion Rule
 
 The current focus after realistic-input full-system acceptance is realistic-input

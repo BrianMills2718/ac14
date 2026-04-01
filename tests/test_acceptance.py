@@ -10,6 +10,7 @@ import pytest
 from ac14.acceptance import (
     AcceptanceReviewResponse,
     build_acceptance_report,
+    build_realistic_suite_acceptance_report,
     build_suite_acceptance_report,
 )
 
@@ -170,3 +171,28 @@ def test_build_acceptance_report_supports_incident_realistic_input(
     assert result.execution_error is None
     assert result.review is not None
     assert fake_call.await_count == 1
+
+
+def test_build_realistic_suite_acceptance_report_supports_realistic_inputs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Realistic suite acceptance should persist one artifact across shipped examples and modes."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+
+    report = build_realistic_suite_acceptance_report(
+        output_dir=tmp_path / "realistic_suite_acceptance",
+        examples_root=EXAMPLES_ROOT,
+        modes=["reference", "deterministic"],
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert report.example_count >= 2
+    assert set(report.modes) == {"reference", "deterministic"}
+    assert set(report.mode_summaries) == {"reference", "deterministic"}
+    assert report.mode_summaries["reference"].accepted_examples == report.example_count
+    assert report.mode_summaries["deterministic"].accepted_examples == report.example_count
+    assert (tmp_path / "realistic_suite_acceptance" / "realistic_suite_acceptance_report.json").exists()

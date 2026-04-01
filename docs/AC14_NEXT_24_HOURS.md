@@ -64,10 +64,14 @@ write scope, tests, and acceptance criteria live in Plan #6.
 
 ### Phase 3: suite-level acceptance
 
+Status: Complete
+
 - persist one suite-level realistic-input acceptance artifact
 - keep supported modes explicit and reviewable
 
 ### Phase 4: Verification And Lock
+
+Status: Current
 
 - any widened CLI and Make surfaces
 - full local verification
