@@ -16,6 +16,12 @@ from ac14.blueprint_planning import (
     PlannedSchemaField,
     PlanningQuestion,
 )
+from ac14.dependency_planning import (
+    DependencyEvidence,
+    DependencyPlanningArtifact,
+    DependencyQuestion,
+    DependencyRecommendation,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -84,6 +90,58 @@ def _write_plan_artifact(path: Path) -> Path:
     return path
 
 
+def _write_dependency_plan_artifact(path: Path) -> Path:
+    """Persist a deterministic dependency-planning artifact for Make probe tests."""
+
+    artifact = DependencyPlanningArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["preserve typed schema contracts"],
+        carried_forward_concerns=[],
+        planning_summary="Reuse pydantic and block installation by default.",
+        recommendations=[
+            DependencyRecommendation(
+                package_name="pydantic",
+                action="reuse",
+                capability_need="Typed schema contracts for blueprint models.",
+                justification="Already installed and used throughout AC14.",
+                already_installed=True,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="pydantic",
+                        detail="pydantic is already installed in the current environment.",
+                    ),
+                ],
+            ),
+            DependencyRecommendation(
+                package_name="ac14-missing-lib",
+                action="install",
+                capability_need="Demonstrate explicit install probing for a missing package.",
+                justification="The package is missing and needs an explicit recommendation.",
+                already_installed=False,
+                install_command="pip install ac14-missing-lib",
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="ac14-missing-lib",
+                        detail="The package is missing from the current environment.",
+                    ),
+                ],
+            ),
+        ],
+        standard_library_notes=[],
+        open_questions=[
+            DependencyQuestion(
+                question="Should install probes default to review-only mode?",
+                why_it_matters="It changes the default environment-mutation policy.",
+            ),
+        ],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
+
+
 def test_make_help_lists_proof_targets() -> None:
     """Make help should expose the proof-surface targets."""
 
@@ -101,6 +159,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "inspect-project-context" in result.stdout
     assert "retrieve-context" in result.stdout
     assert "plan-dependencies" in result.stdout
+    assert "probe-dependencies" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
@@ -178,6 +237,27 @@ def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "environment_inventory.json").exists()
+
+
+def test_make_probe_dependencies_runs_end_to_end(tmp_path: Path) -> None:
+    """Make dependency probe target should persist a reviewable artifact."""
+
+    dependency_plan_path = _write_dependency_plan_artifact(tmp_path / "dependency_plan.json")
+    output_dir = tmp_path / "dependency_probe"
+    result = subprocess.run(
+        [
+            "make",
+            "probe-dependencies",
+            f"DEPENDENCY_PLAN={dependency_plan_path}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "dependency_execution_artifact.json").exists()
 
 
 def test_make_inspect_project_context_runs_end_to_end(tmp_path: Path) -> None:

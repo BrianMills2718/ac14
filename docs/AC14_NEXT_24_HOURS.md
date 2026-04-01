@@ -1,13 +1,13 @@
 # AC14 Next 24 Hours
 
-Status: Active
+Status: Complete
 Last updated: 2026-03-31
 
 ## Purpose
 
 This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contract for the current lane is:
+The authoritative implementation contract for this completed lane is:
 
 - [Plan #1: Dependency Execution Probing](/home/brian/projects/ac14/docs/plans/01_dependency_execution_probing.md)
 
@@ -21,6 +21,8 @@ The immediate goal of Plan #1 is a dependency execution bridge:
 1. define a persisted execution-probe artifact for dependency recommendations
 2. execute reviewable reuse/install probes without hidden side effects
 3. record post-probe environment state and blocking failures explicitly
+
+This lane is now complete.
 
 ## Progress Update
 
@@ -75,6 +77,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first execution bridge should probe explicit recommendations, not attempt broad automatic environment mutation
-2. install probes may need a dry-run or no-op mode for deterministic tests and cautious operation
-3. environment deltas should be explicit artifacts so follow-on planning can inspect what changed
+1. the first execution bridge now probes explicit recommendations but still defaults to `check_only` rather than broad mutation
+2. install probes may still want a later review-only dry-run mode in addition to explicit mutation allowance
+3. broader automation should not outrun the current explicit operator-invoked probe model

@@ -11,7 +11,7 @@ current executable lane.
 
 | # | Name | Priority | Status | Blocks |
 |---|------|----------|--------|--------|
-| 1 | [Dependency Execution Probing](01_dependency_execution_probing.md) | High | Planned | - |
+| 1 | [Dependency Execution Probing](01_dependency_execution_probing.md) | High | Complete | - |
 
 ## Status Key
 

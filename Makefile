@@ -21,10 +21,11 @@ RETRIEVAL_ARTIFACTS ?=
 DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 DEPENDENCY_PLAN ?=
+ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -61,6 +62,9 @@ retrieve-context: ## Persist reviewable external documentation/repository retrie
 
 plan-dependencies: ## Build an evidence-backed dependency plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/dependency_plan REQUIREMENTS="...")
 	$(PYTHON) -m ac14 plan-dependencies "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+probe-dependencies: ## Probe dependency recommendations (DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json OUTPUT=.ac14_out/dependency_probe ALLOW_INSTALL=1 to permit installs)
+	$(PYTHON) -m ac14 probe-dependencies "$(DEPENDENCY_PLAN)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,)
 
 draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json)
 	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

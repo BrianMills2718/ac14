@@ -18,6 +18,7 @@ from ac14.blueprint_planning import (
     build_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
+from ac14.dependency_execution import build_dependency_execution_artifact
 from ac14.dependency_planning import (
     DEFAULT_DEPENDENCY_PLAN_MAX_BUDGET,
     DEFAULT_DEPENDENCY_PLAN_MODEL,
@@ -115,6 +116,15 @@ def main() -> int:
         type=float,
         default=DEFAULT_DEPENDENCY_PLAN_MAX_BUDGET,
     )
+
+    dependency_probe_parser = subparsers.add_parser(
+        "probe-dependencies",
+        help="Probe dependency recommendations and persist explicit execution results.",
+    )
+    dependency_probe_parser.add_argument("dependency_plan_path", type=Path)
+    dependency_probe_parser.add_argument("--output-dir", type=Path, required=True)
+    dependency_probe_parser.add_argument("--allow-install", action="store_true")
+    dependency_probe_parser.add_argument("--project-root", type=Path, default=Path.cwd())
 
     draft_plan_parser = subparsers.add_parser(
         "draft-blueprint-plan",
@@ -325,6 +335,13 @@ def main() -> int:
             cast(list[str], args.requirements),
             args.model,
             args.max_budget,
+        )
+    if args.command == "probe-dependencies":
+        return _probe_dependencies(
+            args.dependency_plan_path,
+            args.output_dir,
+            args.allow_install,
+            args.project_root,
         )
     if args.command == "draft-blueprint-plan":
         return _draft_blueprint_plan(
@@ -565,6 +582,24 @@ def _plan_dependencies(
         max_budget=max_budget,
     )
     print(json.dumps(plan.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _probe_dependencies(
+    dependency_plan_path: Path,
+    output_dir: Path,
+    allow_install: bool,
+    project_root: Path,
+) -> int:
+    """Build and print a persisted dependency execution-probe artifact."""
+
+    artifact = build_dependency_execution_artifact(
+        dependency_plan_path=dependency_plan_path,
+        output_dir=output_dir,
+        allow_install=allow_install,
+        project_root=project_root,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0
 
 

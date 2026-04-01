@@ -1,6 +1,6 @@
 # Plan #1: Dependency Execution Probing
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -44,19 +44,25 @@ without turning AC14 into a silent package-management side channel.
 ## Open Questions
 
 ### Q1: What should the probe result state model be?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The artifact needs explicit reviewable states such as
 `confirmed`, `blocked`, or `skipped` rather than implicit shell success/failure.
+**Resolution:** The persisted probe artifact now uses `confirmed`, `blocked`,
+and `skipped` as explicit result states.
 
 ### Q2: How much environment mutation is acceptable in the first lane?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** AC14 should probe recommendations without quietly turning
 into a broad automatic installer.
+**Resolution:** The default execution mode is `check_only`; install actions are
+blocked unless the operator explicitly enables `--allow-install`.
 
 ### Q3: What post-probe environment observations should be persisted?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The follow-on planning and freeze surfaces need explicit
 environment deltas, not just command output.
+**Resolution:** Each result persists before/after snapshots, command exit code,
+compact observations, and cross-cutting environment observations.
 
 ---
 
@@ -69,6 +75,7 @@ environment deltas, not just command output.
 - `tests/test_dependency_execution.py` (create)
 - `tests/test_cli.py` (modify)
 - `tests/test_make_targets.py` (modify)
+- `docs/AC14_IMPLEMENTATION_STATUS.md` (modify)
 - `docs/TODO.md` (modify)
 - `docs/AC14_NEXT_24_HOURS.md` (modify)
 - `README.md` (modify)
@@ -112,11 +119,11 @@ environment deltas, not just command output.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can persist a dependency execution-probe artifact with explicit result states.
-- [ ] Probe behavior is reviewable and fail loud.
-- [ ] CLI and Make expose the probing lane without manual glue code.
-- [ ] Full local verification passes.
-- [ ] Tactical docs reflect the implemented state honestly.
+- [x] AC14 can persist a dependency execution-probe artifact with explicit result states.
+- [x] Probe behavior is reviewable and fail loud.
+- [x] CLI and Make expose the probing lane without manual glue code.
+- [x] Full local verification passes.
+- [x] Tactical docs reflect the implemented state honestly.
 
 ---
 

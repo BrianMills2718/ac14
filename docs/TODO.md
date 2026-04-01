@@ -22,29 +22,28 @@ Detailed uncertainty tracking now lives in:
   - [x] convert the active lane into Plan #1
   - Success criteria: roadmap, active plan, and TODO no longer compete as parallel authorities
 
-- [ ] Phase 1: add dependency execution probes
-  - [ ] define a persisted dependency execution-probe artifact
-  - [ ] keep probe results explicit with states such as confirmed, blocked, or skipped
-  - [ ] record post-probe environment observations rather than only shell output
+- [x] Phase 1: add dependency execution probes
+  - [x] define a persisted dependency execution-probe artifact
+  - [x] keep probe results explicit with states such as confirmed, blocked, or skipped
+  - [x] record post-probe environment observations rather than only shell output
   - Success criteria: AC14 can test dependency recommendations without hiding side effects
 
-- [ ] Phase 2: connect dependency execution into operator surfaces
-  - [ ] expose the probing bridge through CLI and Make
-  - [ ] add deterministic tests for artifact persistence and fail-loud probe behavior
+- [x] Phase 2: connect dependency execution into operator surfaces
+  - [x] expose the probing bridge through CLI and Make
+  - [x] add deterministic tests for artifact persistence and fail-loud probe behavior
   - Success criteria: operators can run dependency probes without manual glue code and the behavior is tested
 
-- [ ] Phase 3: verify and lock the lane
-  - [ ] run full `pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
+- [x] Phase 3: verify and lock the lane
+  - [x] run full `pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO, plan, README, and KNOWLEDGE to reflect actual final state
   - Success criteria: local verification passes and the control docs match the implemented lane
 
 ## Current Open Uncertainties
 
-- the dependency execution-probe result model is still open
-- the acceptable amount of environment mutation in the first probe lane is still open
-- the exact post-probe environment observations to persist are still open
+- full dependency execution verification is now implemented narrowly, but broader install automation remains deferred
+- the next decision is whether dependency probes should remain manual/operator-invoked or feed later automation lanes
 
 ## Latest Verified Results
 
@@ -62,6 +61,14 @@ Detailed uncertainty tracking now lives in:
   - `meta-process.yaml`
   - `hooks/commit-msg`
   - `scripts/setup_hooks.sh`
+- targeted dependency execution verification passed:
+  - `pytest -q tests/test_dependency_execution.py tests/test_cli.py tests/test_make_targets.py -x` passed with `43 passed`
+  - `python -m mypy ac14 tests` passed on `56` source files
+  - `python -m ruff check ac14 tests` passed
+- full verification passed:
+  - `python -m pytest -q` passed with `97 passed`
+  - `python -m mypy ac14 tests` passed on `56` source files
+  - `python -m ruff check ac14 tests` passed
 - current implementation reality and broader historical verification context live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 
 ## Longer-Term Next Steps

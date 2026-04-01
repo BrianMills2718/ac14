@@ -86,4 +86,10 @@ execution/alignment notebook plus a blunt implementation-status document so the
 story artifact can stay synchronized with the code instead of relying only on
 the older bootstrap notebook in `ac12`.
 
+### 2026-03-31 — codex — best-practice
+Dependency execution should stay explicit and reviewable. AC14 now persists a
+dependency execution artifact with `confirmed` / `blocked` / `skipped` results,
+before/after package snapshots, and narrow default behavior that blocks install
+mutation unless the operator explicitly enables it.
+
 ---

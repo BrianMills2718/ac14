@@ -44,6 +44,7 @@ AC14 now supports:
 - recording local project-document context before blueprint freeze so README, CLAUDE, and docs become explicit planning inputs
 - retrieving and persisting reviewable external documentation and repository-search artifacts before blueprint freeze
 - building an evidence-backed advisory dependency and library plan before blueprint freeze
+- probing dependency-plan recommendations through an explicit persisted execution artifact with narrow default mutation rules
 - turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - carrying dependency-plan provenance and unresolved dependency questions into draft planning and freeze readiness
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
@@ -67,7 +68,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
-- explicit dependency execution/install verification
+- broad automatic dependency execution/install verification
 - richer first-class semantic/business-logic review at every major gate
 - first-class tool/runtime nodes in the blueprint model
 
@@ -83,6 +84,7 @@ make inspect-environment OUTPUT=.ac14_out/environment PACKAGES="pydantic"
 make inspect-project-context OUTPUT=.ac14_out/project_context
 make retrieve-context OUTPUT=.ac14_out/retrieval WEB_QUERY="incident response playbook" REPO_QUERY="packet compiler" REPOS="example/ac14"
 make plan-dependencies DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/dependency_plan REQUIREMENTS="preserve typed schema contracts avoid unnecessary dependencies"
+make probe-dependencies DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json OUTPUT=.ac14_out/dependency_probe
 make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="bounded decomposition preserve semantics"
 make materialize-draft-bundle PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle
 make decide-freeze INPUT=.ac14_out/draft_bundle OUTPUT=.ac14_out/freeze READINESS=.ac14_out/draft_bundle/freeze_readiness_report.json

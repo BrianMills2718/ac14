@@ -74,10 +74,11 @@ Implemented:
 3. local project-document inventory
 4. persisted external documentation and repository retrieval artifacts
 5. advisory dependency and library planning
-6. dependency-aware draft blueprint planning
-7. draft bundle materialization
-8. freeze readiness
-9. explicit freeze decision and remediation planning
+6. explicit dependency execution probes for dependency-plan recommendations
+7. dependency-aware draft blueprint planning
+8. draft bundle materialization
+9. freeze readiness
+10. explicit freeze decision and remediation planning
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -133,7 +134,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. automatic dependency installation and post-install verification as a normal lane
+1. broad automatic dependency installation and post-install verification as a normal lane
 2. real shared-tool execution inside blueprinted components
 3. first-class runtime tool nodes or retrieval nodes in the blueprint model
 4. broad automatic NL-to-blueprint derivation from messy real inputs

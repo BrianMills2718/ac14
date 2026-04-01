@@ -17,6 +17,12 @@ from ac14.blueprint_planning import (
     PlannedSchemaField,
     PlanningQuestion,
 )
+from ac14.dependency_planning import (
+    DependencyEvidence,
+    DependencyPlanningArtifact,
+    DependencyQuestion,
+    DependencyRecommendation,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -78,6 +84,58 @@ def _write_plan_artifact(path: Path) -> Path:
             PlanningQuestion(
                 question="Should tags be preserved as a field in RawTicket?",
                 why_it_matters="It changes schema shape before freeze.",
+            ),
+        ],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
+
+
+def _write_dependency_plan_artifact(path: Path) -> Path:
+    """Persist a deterministic dependency-planning artifact for CLI probe tests."""
+
+    artifact = DependencyPlanningArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["preserve typed schema contracts"],
+        carried_forward_concerns=[],
+        planning_summary="Reuse pydantic and block installation by default.",
+        recommendations=[
+            DependencyRecommendation(
+                package_name="pydantic",
+                action="reuse",
+                capability_need="Typed schema contracts for blueprint models.",
+                justification="Already installed and used throughout AC14.",
+                already_installed=True,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="pydantic",
+                        detail="pydantic is already installed in the current environment.",
+                    ),
+                ],
+            ),
+            DependencyRecommendation(
+                package_name="ac14-missing-lib",
+                action="install",
+                capability_need="Demonstrate explicit install probing for a missing package.",
+                justification="The package is missing and needs an explicit recommendation.",
+                already_installed=False,
+                install_command="pip install ac14-missing-lib",
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="ac14-missing-lib",
+                        detail="The package is missing from the current environment.",
+                    ),
+                ],
+            ),
+        ],
+        standard_library_notes=[],
+        open_questions=[
+            DependencyQuestion(
+                question="Should install probes default to review-only mode?",
+                why_it_matters="It changes the default environment-mutation policy.",
             ),
         ],
     )
@@ -180,6 +238,35 @@ def test_cli_inspect_environment(tmp_path: Path) -> None:
     dependency_names = {status["package_name"] for status in payload["dependency_statuses"]}
     assert "pydantic" in dependency_names
     assert (tmp_path / "environment" / "environment_inventory.json").exists()
+
+
+def test_cli_probe_dependencies(tmp_path: Path) -> None:
+    """Dependency execution probe command should persist a reviewable artifact."""
+
+    dependency_plan_path = _write_dependency_plan_artifact(tmp_path / "dependency_plan.json")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "probe-dependencies",
+            str(dependency_plan_path),
+            "--output-dir",
+            str(tmp_path / "dependency_probe"),
+            "--project-root",
+            str(REPO_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["execution_mode"] == "check_only"
+    package_names = {entry["package_name"] for entry in payload["results"]}
+    assert {"pydantic", "ac14-missing-lib"} <= package_names
+    assert (tmp_path / "dependency_probe" / "dependency_execution_artifact.json").exists()
 
 
 def test_cli_inspect_project_context(tmp_path: Path) -> None:
