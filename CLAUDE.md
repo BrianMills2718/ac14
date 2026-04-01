@@ -99,6 +99,8 @@ process failure. The required behavior is:
 - for the active chain, do not stop after one green checkpoint if the next
   numbered plan is already clear and thesis-preserving; update the plan docs
   and continue immediately
+- keep the next 24-hour chain explicit as a sequence of numbered plans with
+  unambiguous success criteria; do not rely on chat memory for continuation
 
 ## Active Proof Expansion Rule
 
@@ -143,6 +145,13 @@ to carry that realism all the way into the full-system acceptance surface.
   full-system acceptance in `reference` and `deterministic` modes
 - only after the non-LLM messy-input final gate is explicit should AC14 add one
   bounded messy-input `llm` comparison lane
+- once one bounded messy-input `llm` lane exists, make realistic-input
+  selection explicit instead of relying on hidden file-extension precedence
+- keep front-half and final-gate realistic-input defaults aligned; do not let
+  one surface stay JSON-only while the other supports structured candidates
+- once explicit realistic-input selection exists, make suite/profile behavior
+  explicit too; preserve the clean default proof path while allowing reviewable
+  alternate profiles such as messy-input variants
 
 ## Continuation Rule
 

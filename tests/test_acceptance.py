@@ -344,6 +344,38 @@ def test_build_acceptance_report_supports_realistic_input_llm_mode(
     assert fake_call.await_count == 1
 
 
+def test_build_acceptance_report_supports_messy_input_csv_llm_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Acceptance report should support the shipped messy CSV asset in bounded llm mode."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+    monkeypatch.setenv("AC14_LLM_CODEGEN_FIXTURE", str(_write_llm_codegen_fixture(tmp_path, EXAMPLE_DIR)))
+    realistic_input_path = (
+        REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv"
+    )
+
+    report = build_acceptance_report(
+        blueprint_dir=EXAMPLE_DIR,
+        output_dir=tmp_path / "acceptance_realistic_messy_llm",
+        mode="llm",
+        realistic_input_path=realistic_input_path,
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert len(report.scenario_results) == 1
+    result = report.scenario_results[0]
+    assert result.realistic_input is True
+    assert result.realistic_input_path == str(realistic_input_path)
+    assert result.outputs_by_component is not None
+    assert result.execution_error is None
+    assert result.review is not None
+    assert fake_call.await_count == 1
+
+
 def test_build_realistic_mode_comparison_report_supports_llm(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -371,6 +403,38 @@ def test_build_realistic_mode_comparison_report_supports_llm(
         "llm": "accept",
     }
     assert (tmp_path / "realistic_mode_compare" / "realistic_mode_comparison_report.json").exists()
+
+
+def test_build_realistic_mode_comparison_report_supports_messy_input_csv_llm_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Realistic-input comparison should support the messy CSV asset across all bounded modes."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+    monkeypatch.setenv("AC14_LLM_CODEGEN_FIXTURE", str(_write_llm_codegen_fixture(tmp_path, EXAMPLE_DIR)))
+    realistic_input_path = (
+        REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv"
+    )
+
+    report = build_realistic_mode_comparison_report(
+        blueprint_dir=EXAMPLE_DIR,
+        output_dir=tmp_path / "realistic_mode_compare_messy_llm",
+        modes=["reference", "deterministic", "llm"],
+        realistic_input_path=realistic_input_path,
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert report.realistic_input_path == str(realistic_input_path)
+    assert report.modes == ["reference", "deterministic", "llm"]
+    assert report.verdicts_by_mode == {
+        "reference": "accept",
+        "deterministic": "accept",
+        "llm": "accept",
+    }
+    assert (tmp_path / "realistic_mode_compare_messy_llm" / "realistic_mode_comparison_report.json").exists()
 
 
 def test_build_realistic_mode_comparison_report_supports_messy_input_csv_non_llm_modes(

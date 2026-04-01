@@ -9,18 +9,19 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #28: Messy-Input LLM Comparison](/home/brian/projects/ac14/docs/plans/28_messy_input_llm_comparison.md)
+- [Plan #29: Explicit Realistic-Input Policy](/home/brian/projects/ac14/docs/plans/29_explicit_realistic_input_policy.md)
 
-Plan #25 closed the first retry-aware messy-input front-half lane. The active
+Plan #28 closed the first bounded messy-input `llm` final-gate lane. The active
 24-hour chain is now:
 
-1. shared structured-input loading for realistic-input acceptance
-2. messy-input full-system acceptance in non-LLM modes
-3. bounded messy-input `llm` comparison
+1. explicit per-example realistic-input policy with a named default and named alternate profiles
+2. profile-aware parity across front-half, final-gate, and suite/default realistic-input surfaces
+3. one explicit suite-level `messy` profile proof that preserves the clean default path
 
-Plan #27 closed the non-LLM messy-input final-gate proof. The immediate active
-gap is now that the bounded `llm` realistic-input lane still has no explicit
-proof on the same messy CSV asset.
+Plan #28 closed the bounded messy-input `llm` final-gate proof. The immediate
+active gap is now that realistic-input choice is still implicit and inconsistent
+across surfaces once one shipped example has both a clean JSON input and a
+messy CSV input.
 
 ## Progress Update
 
@@ -40,32 +41,31 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #28:
+Required in Plan #29:
 
-1. one bounded messy-input `llm` realistic-input acceptance lane
-2. one messy-input realistic mode-comparison artifact across `reference`, `deterministic`, and `llm`
-3. explicit separation between fixture-backed `llm` breadth and live readiness
+1. explicit realistic-input manifests for shipped examples
+2. one shared resolver with named default and alternate profiles
+3. fail-loud behavior for invalid profile selection
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#28.
+#29 through Plan #31.
 
-### Phase 1: bounded messy-input `llm` scope design
+### Phase 1: explicit realistic-input policy
 
-- reuse the same shipped support-ticket CSV asset as the next bounded `llm` proof target
-- keep the first messy-input `llm` lane fixture-backed and clearly separate from live readiness
+- define a small manifest format for shipped example input directories
+- make the default realistic-input choice explicit instead of relying on hidden precedence
 
-### Phase 2: bounded messy-input `llm` implementation
+### Phase 2: cross-surface profile parity
 
-- prove the messy CSV asset through `acceptance-review` in `llm` mode
-- prove the same asset through the realistic mode-comparison surface for `reference`, `deterministic`, and `llm`
+- make front-half and final-gate realistic-input resolution consume the same profile-aware resolver
+- persist selected-profile or missing-profile state explicitly in suite artifacts
 
-### Phase 3: Verification And Lock
+### Phase 3: messy-profile suite proof
 
-- targeted messy-input `llm` verification
-- full local verification
-- doc lock and clean commit
+- prove one explicit suite-level `messy` profile lane without silently redefining the clean default proof path
+- keep missing-profile states reviewable rather than silently falling back
 
 ## Known Uncertainties
 
@@ -75,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. bounded messy-input `llm` proof must remain clearly separate from live readiness
-2. suite defaults should not silently switch from the clean JSON input to the messy CSV asset
-3. the messy CSV asset should remain schema-sufficient instead of relying on hidden runtime normalization
+1. realistic-input selection should not remain hidden extension precedence once examples ship more than one candidate artifact
+2. front-half and final-gate defaults should stay aligned instead of drifting by format support
+3. suite/profile behavior should stay explicit about `missing_profile` rather than silently falling back

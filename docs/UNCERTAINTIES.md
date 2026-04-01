@@ -381,12 +381,17 @@ not yet proven.
 **Why it matters:** Future automation could help or could add noisy churn.
 
 ### U-037: The messy-input final gate is still unproven in bounded `llm` mode.
-**Status:** Deferred
+**Status:** Resolved
 **Context:** Bounded realistic-input `llm` acceptance exists on the cleaner
 JSON slice, but the messy CSV asset still has no explicit `llm` final-gate
 evidence.
 **Why it matters:** AC14 should broaden non-deterministic validation honestly
 without letting fixture-backed `llm` evidence drift into live-readiness claims.
+**Resolution:** AC14 now proves one bounded fixture-backed messy-input `llm`
+acceptance lane on the support-ticket CSV asset and persists a matching
+realistic mode-comparison artifact across `reference`, `deterministic`, and
+`llm`.
+**Date resolved:** 2026-04-01
 
 ### U-038: The first messy-input final-gate proof could have hidden runtime normalization.
 **Status:** Resolved
@@ -399,6 +404,23 @@ artifact is actually executable against the frozen blueprint contract.
 frozen source schema and decodes JSON-like CSV cells explicitly, rather than
 hiding missing required fields behind runtime heuristics.
 **Date resolved:** 2026-04-01
+
+### U-039: Realistic-input selection is still implicit and inconsistent across surfaces.
+**Status:** Open
+**Context:** The support-ticket example now ships both a clean JSON realistic
+input and a messy CSV realistic input. `acceptance.py` can discover structured
+candidates, while `front_half_acceptance.py` still defaults to `.json` only.
+**Why it matters:** Hidden selection precedence and cross-surface drift make the
+proof story ambiguous once one example ships more than one realistic-input
+artifact.
+
+### U-040: Alternate realistic-input profile behavior is not yet explicit at suite level.
+**Status:** Open
+**Context:** Once realistic-input selection becomes explicit per example, suite
+surfaces still need to say whether a requested alternate profile is included or
+missing for each shipped example.
+**Why it matters:** Suite breadth should not silently fall back to the default
+profile or silently skip examples when an alternate profile is absent.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

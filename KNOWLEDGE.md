@@ -220,6 +220,13 @@ required source fields explicit and decoding JSON-like CSV cells for list
 fields, rather than inventing hidden runtime normalization.
 
 ### 2026-04-01 — codex — best-practice
+Once the non-LLM messy-input final gate is explicit, the next honest
+non-deterministic step is one bounded fixture-backed `llm` proof on the same
+asset, not a vague breadth claim. AC14 now proves the support-ticket CSV asset
+through the final gate in bounded `llm` mode and keeps that lane separate from
+live readiness.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

@@ -27,29 +27,37 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: bounded messy-input `llm` scope design
-  - [ ] pre-make the fixture-backed `llm` proof boundary on the shipped support-ticket CSV asset
-  - [ ] keep the lane aligned with the existing realistic mode-comparison artifact
-  - Success criteria: the messy-input `llm` lane is explicit enough to implement without implying live readiness
+- [ ] Phase 1: explicit realistic-input policy
+  - [ ] add shipped-example manifests with named default and alternate realistic-input profiles
+  - [ ] add one shared realistic-input resolver for shipped examples
+  - [ ] fail loud on invalid profile selection
+  - Success criteria: implicit extension precedence is removed from shipped-example policy
 
-- [ ] Phase 2: bounded messy-input `llm` implementation
-  - [ ] prove `acceptance-review` on the shipped messy CSV asset in `llm` mode
-  - [ ] prove realistic mode comparison on the same asset across `reference`, `deterministic`, and `llm`
-  - Success criteria: the messy-input final gate is explicit across the bounded `llm` surfaces
+- [ ] Phase 2: profile-aware cross-surface parity
+  - [ ] make front-half acceptance consume the shared profile-aware resolver
+  - [ ] make final-gate acceptance consume the same resolver
+  - [ ] thread optional profile selection through suite/default surfaces with explicit artifact state
+  - Success criteria: front-half and final-gate realistic-input surfaces no longer diverge on default selection
 
-- [ ] Phase 3: verification and lock
-  - [ ] run targeted messy-input `llm` tests
+- [ ] Phase 3: explicit messy-profile suite proof
+  - [ ] prove one front-half suite lane on the `messy` profile
+  - [ ] prove one realistic-input suite lane on the `messy` profile across bounded modes
+  - [ ] keep clean default proof unchanged and record `missing_profile` explicitly
+  - Success criteria: alternate realistic-input profile behavior is explicit at the suite level without silently redefining defaults
+
+- [ ] Phase 4: verification and lock
+  - [ ] run targeted profile-policy tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match Plan #28
+  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect Plans #29-#31
+  - Success criteria: verification passes and the docs match the active numbered plans
 
 ## Current Open Uncertainties
 
-- realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
+- realistic-input selection is still implicit and inconsistent across front-half and final-gate surfaces
+- suite/default behavior for alternate realistic-input profiles is not yet explicit
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- messy-input non-LLM full-system proof now exists, but bounded `llm` final acceptance is still only proven on the cleaner JSON slice
 
 ## Latest Verified Results
 
@@ -58,9 +66,13 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/27_messy_input_full_system_acceptance.md`
-- the current active lane is:
   - `docs/plans/28_messy_input_llm_comparison.md`
+- the current active lane is:
+  - `docs/plans/29_explicit_realistic_input_policy.md`
+- targeted messy-input `llm` verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_llm_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_messy_input_csv_llm_mode tests/test_cli.py::test_cli_acceptance_review_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_with_messy_input_csv_llm_mode_runs_end_to_end` passed with `6 passed`
+  - `python -m mypy tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 - targeted messy-input non-LLM verification passed:
   - `python -m pytest -q tests/test_structured_inputs.py::test_load_structured_input_records_decodes_json_like_csv_cells tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_reference_mode tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_deterministic_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_messy_input_csv_non_llm_modes tests/test_cli.py::test_cli_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_messy_input_csv_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_to_end` passed with `8 passed`
   - `python -m mypy ac14/structured_inputs.py tests/test_structured_inputs.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
@@ -240,7 +252,9 @@ Detailed uncertainty tracking now lives in:
 - [ ] prove retry-aware front-half acceptance on the messy CSV slice
 - [ ] remove JSON-only realistic-input assumptions from the final semantic gate
 - [ ] prove messy-input full-system acceptance in non-LLM modes
-- [ ] prove one bounded messy-input `llm` comparison lane without implying live readiness
+- [ ] replace implicit realistic-input precedence with explicit per-example selection policy
+- [ ] make front-half and final-gate realistic-input defaults consume the same profile-aware resolver
+- [ ] prove one explicit suite-level `messy` profile lane without silently changing the clean default proof path
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

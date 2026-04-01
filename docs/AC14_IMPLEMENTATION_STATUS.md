@@ -101,6 +101,7 @@ Implemented:
 28. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with `included`, `missing`, and `unsupported` states per example
 29. one shared structured-input loading surface between discovery and realistic-input acceptance, so the final gate now supports record-bearing `json`, `jsonl`, `csv`, and `yaml` inputs instead of only top-level JSON lists
 30. one explicit messy-input realistic-input final-gate proof on the support-ticket CSV asset in `reference` and `deterministic` modes, plus a matching non-LLM realistic mode-comparison artifact
+31. one bounded fixture-backed messy-input realistic-input final-gate proof on the same support-ticket CSV asset in `llm` mode, plus a matching realistic mode-comparison artifact across `reference`, `deterministic`, and `llm`
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -149,8 +150,8 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. bounded messy-input `llm` proof beyond the cleaner JSON slice
-4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, one bounded messy-input retry proof, and one bounded messy-input non-LLM final-gate proof
+3. explicit realistic-input selection policy across shipped examples once more than one candidate input artifact exists
+4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, one bounded messy-input retry proof, one bounded messy-input non-LLM final-gate proof, and one bounded messy-input `llm` final-gate proof
 
 ### Generality
 
@@ -168,7 +169,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. bounded messy-input `llm` acceptance at the final semantic gate
+1. explicit realistic-input selection and profile policy across shipped examples and surfaces
 2. broad automatic dependency installation and post-install verification as a normal lane
 3. real shared-tool execution inside blueprinted components
 4. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -213,8 +214,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 98-99%
-2. long-term general coding agent vision: 58-62%
+1. first proof slice: 99%
+2. long-term general coding agent vision: 60-64%
 
 The remaining work is not mainly “more code.” It is:
 

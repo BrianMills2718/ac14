@@ -2057,6 +2057,49 @@ def test_make_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end(
     assert (output_dir / "acceptance_report.json").exists()
 
 
+def test_make_acceptance_review_with_messy_input_csv_llm_mode_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Make acceptance-review target should support bounded llm execution on the shipped messy CSV asset."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed llm outputs remain reviewable on the messy CSV asset.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_llm_codegen_fixture(tmp_path / "llm_codegen_fixture.json", EXAMPLE_DIR)
+
+    output_dir = tmp_path / "acceptance_realistic_messy_llm"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+            "GENERATOR=llm",
+            f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch_messy.csv'}",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "acceptance_report.json").exists()
+
+
 def test_make_acceptance_review_realistic_compare_runs_end_to_end(tmp_path: Path) -> None:
     """Make realistic-input comparison target should persist one per-blueprint artifact."""
 
@@ -2126,6 +2169,49 @@ def test_make_acceptance_review_realistic_compare_with_messy_input_csv_runs_end_
             f"INPUT={EXAMPLE_DIR}",
             f"OUTPUT={output_dir}",
             "MODES=reference deterministic",
+            f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch_messy.csv'}",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (output_dir / "realistic_mode_comparison_report.json").exists()
+
+
+def test_make_acceptance_review_realistic_compare_with_messy_input_csv_llm_mode_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Make realistic-input comparison should support bounded llm on the shipped messy CSV asset."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Messy CSV outputs remain comparable across all bounded modes.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_llm_codegen_fixture(tmp_path / "llm_codegen_fixture.json", EXAMPLE_DIR)
+
+    output_dir = tmp_path / "realistic_compare_messy_llm"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review-realistic-compare",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+            "MODES=reference deterministic llm",
             f"REALISTIC_INPUT={REPO_ROOT / 'examples' / 'support_ticket_digest' / 'input' / 'realistic_ticket_batch_messy.csv'}",
             "RECORD_INDEX=0",
         ],

@@ -1,10 +1,10 @@
 # Plan #28: Messy-Input LLM Comparison
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 27
-**Blocks:** None
+**Blocks:** 29
 
 ---
 
@@ -99,10 +99,25 @@ messy-input `llm` comparison lane.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can run bounded `llm` realistic-input acceptance on the shipped messy CSV asset.
-- [ ] The realistic mode-comparison artifact supports `reference`, `deterministic`, and `llm` on the same messy CSV asset.
-- [ ] CLI and Make surfaces preserve the same bounded messy-input `llm` story without implying live readiness.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can run bounded `llm` realistic-input acceptance on the shipped messy CSV asset.
+- [x] The realistic mode-comparison artifact supports `reference`, `deterministic`, and `llm` on the same messy CSV asset.
+- [x] CLI and Make surfaces preserve the same bounded messy-input `llm` story without implying live readiness.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted messy-input `llm` verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_messy_input_csv_llm_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_messy_input_csv_llm_mode tests/test_cli.py::test_cli_acceptance_review_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_messy_input_csv_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_with_messy_input_csv_llm_mode_runs_end_to_end`
+  - `python -m mypy tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now proves one bounded fixture-backed messy-input `llm` final-gate lane on
+the shipped support-ticket CSV asset and extends the realistic
+mode-comparison artifact to compare `reference`, `deterministic`, and `llm` on
+that same messy input. This keeps the non-deterministic validation story
+honest without upgrading fixture-backed breadth into live-readiness claims.
 
 ---
 
