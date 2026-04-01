@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
 from ac14.codegen_context import CodegenContext, build_codegen_context
+from ac14.generated_codegen import emit_generated_package
 from ac14.llm_codegen import (
     GeneratedModuleResponse,
     PROMPT_PATH,
@@ -128,3 +130,38 @@ def test_llm_codegen_fails_loud_on_missing_build_component(
                 max_budget=0.1,
             ),
         )
+
+
+def test_generate_component_module_with_llm_uses_fixture_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Fixture-backed LLM codegen should return deterministic module code without a live call."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    packet_bundle = compile_packets(blueprint)
+    deterministic_package = emit_generated_package(
+        packet_bundle,
+        tmp_path / "deterministic_generated",
+        generator_kind="deterministic",
+    )
+    fixture_payload = {
+        component_id: {
+            "module_code": Path(module_path).read_text(),
+            "implementation_notes": ["fixture-backed llm codegen"],
+        }
+        for component_id, module_path in deterministic_package.module_paths.items()
+    }
+    fixture_path = tmp_path / "llm_codegen_fixture.json"
+    fixture_path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
+
+    monkeypatch.setenv("AC14_LLM_CODEGEN_FIXTURE", str(fixture_path))
+
+    response = generate_component_module_with_llm(
+        _digest_assembler_context(),
+        trace_id="test/llm_codegen/fixture_env",
+        max_budget=0.1,
+    )
+
+    assert "class GeneratedComponent" in response.module_code
+    assert response.implementation_notes == ["fixture-backed llm codegen"]

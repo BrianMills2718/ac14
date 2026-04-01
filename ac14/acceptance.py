@@ -11,7 +11,7 @@ from typing import Any, Literal, cast
 from pydantic import BaseModel, Field
 
 from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
-from ac14.generated_codegen import emit_generated_package, load_generated_component_builders
+from ac14.generated_codegen import aemit_generated_package, load_generated_component_builders
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint, Scenario
 from ac14.packets import compile_packets
@@ -124,6 +124,19 @@ class RealisticSuiteAcceptanceReport(BaseModel):
     mode_summaries: dict[str, RealisticSuiteModeSummary] = Field(
         description="Per-mode realistic-input acceptance summaries.",
     )
+
+
+class RealisticModeComparisonReport(BaseModel):
+    """Persisted realistic-input acceptance comparison for one blueprint and multiple modes."""
+
+    blueprint_dir: str = Field(description="Blueprint directory used for comparison.")
+    realistic_input_path: str = Field(description="Path to the realistic input artifact used for comparison.")
+    record_index: int = Field(description="Realistic-input record index used for every mode.")
+    modes: list[AcceptanceMode] = Field(description="Execution modes compared for this blueprint.")
+    verdicts_by_mode: dict[str, Literal["accept", "concern", "reject"]] = Field(
+        description="Overall acceptance verdict keyed by execution mode.",
+    )
+    reports: dict[str, str] = Field(description="Per-mode persisted acceptance report paths.")
 
 
 async def abuild_acceptance_report(
@@ -433,6 +446,77 @@ def build_realistic_suite_acceptance_report(
     )
 
 
+async def abuild_realistic_mode_comparison_report(
+    blueprint_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    modes: list[AcceptanceMode] | None = None,
+    realistic_input_path: Path | str,
+    realistic_input_record_index: int = 0,
+    model: str = DEFAULT_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
+) -> RealisticModeComparisonReport:
+    """Build persisted realistic-input acceptance reports across modes for one blueprint."""
+
+    blueprint_path = Path(blueprint_dir)
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    selected_modes = modes or ["reference", "deterministic", "llm"]
+
+    verdicts_by_mode: dict[str, Literal["accept", "concern", "reject"]] = {}
+    reports: dict[str, str] = {}
+    for mode in selected_modes:
+        report = await abuild_acceptance_report(
+            blueprint_dir=blueprint_path,
+            output_dir=destination / mode,
+            mode=mode,
+            realistic_input_path=realistic_input_path,
+            realistic_input_record_index=realistic_input_record_index,
+            model=model,
+            max_budget=max_budget,
+        )
+        verdicts_by_mode[mode] = _example_verdict(report)
+        reports[mode] = str(destination / mode / "acceptance_report.json")
+
+    comparison_report = RealisticModeComparisonReport(
+        blueprint_dir=str(blueprint_path),
+        realistic_input_path=str(Path(realistic_input_path)),
+        record_index=realistic_input_record_index,
+        modes=selected_modes,
+        verdicts_by_mode=verdicts_by_mode,
+        reports=reports,
+    )
+    (destination / "realistic_mode_comparison_report.json").write_text(
+        json.dumps(comparison_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return comparison_report
+
+
+def build_realistic_mode_comparison_report(
+    blueprint_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    modes: list[AcceptanceMode] | None = None,
+    realistic_input_path: Path | str,
+    realistic_input_record_index: int = 0,
+    model: str = DEFAULT_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
+) -> RealisticModeComparisonReport:
+    """Synchronous wrapper for realistic-input acceptance comparison."""
+
+    return asyncio.run(
+        abuild_realistic_mode_comparison_report(
+            blueprint_dir=blueprint_dir,
+            output_dir=output_dir,
+            modes=modes,
+            realistic_input_path=realistic_input_path,
+            realistic_input_record_index=realistic_input_record_index,
+            model=model,
+            max_budget=max_budget,
+        ),
+    )
+
+
 async def _review_acceptance_scenario(
     *,
     blueprint: FrozenBlueprint,
@@ -477,7 +561,7 @@ async def _execute_mode_for_acceptance(
 ) -> dict[str, RecompositionScenarioExecution]:
     """Execute one mode and return runnable scenario outputs keyed by scenario id."""
 
-    builders = _builders_for_mode(
+    builders = await _builders_for_mode(
         blueprint=blueprint,
         mode=mode,
         output_dir=output_dir,
@@ -526,7 +610,7 @@ async def _execute_mode_for_realistic_input_acceptance(
             "realistic-input acceptance currently requires exactly one source input port",
         )
     source_port_name = source_component.input_ports[0].name
-    builders = _builders_for_mode(
+    builders = await _builders_for_mode(
         blueprint=blueprint,
         mode=mode,
         output_dir=output_dir,
@@ -563,7 +647,7 @@ async def _execute_mode_for_realistic_input_acceptance(
         }
 
 
-def _builders_for_mode(
+async def _builders_for_mode(
     *,
     blueprint: FrozenBlueprint,
     mode: AcceptanceMode,
@@ -576,7 +660,7 @@ def _builders_for_mode(
     if mode == "reference":
         return build_reference_component_builders_for_blueprint(blueprint)
     packet_bundle = compile_packets(blueprint)
-    generated_package = emit_generated_package(
+    generated_package = await aemit_generated_package(
         packet_bundle,
         output_dir / "generated",
         generator_kind="deterministic" if mode == "deterministic" else "llm",

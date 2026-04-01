@@ -12,7 +12,12 @@ from types import ModuleType
 from pydantic import BaseModel, Field
 
 from ac14.codegen_context import CodegenContext, build_codegen_context
-from ac14.llm_codegen import DEFAULT_LLM_MAX_BUDGET, DEFAULT_LLM_MODEL, generate_component_module_with_llm
+from ac14.llm_codegen import (
+    DEFAULT_LLM_MAX_BUDGET,
+    DEFAULT_LLM_MODEL,
+    agenerate_component_module_with_llm,
+    generate_component_module_with_llm,
+)
 from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.runtime import RuntimeComponent
@@ -49,6 +54,43 @@ def emit_generated_package(
     for component_id, packet in packet_bundle.packets.items():
         context = build_codegen_context(packet, packet_cases[component_id])
         module_source = _render_module_source(
+            context,
+            generator_kind=generator_kind,
+            llm_model=llm_model,
+            llm_max_budget=llm_max_budget,
+            trace_id=f"{trace_id_prefix}/{component_id}",
+        )
+        module_path = destination / f"{component_id}.py"
+        module_path.write_text(module_source)
+        module_paths[component_id] = str(module_path)
+
+    return GeneratedPackage(
+        output_dir=str(destination),
+        generator_kind=generator_kind,
+        module_paths=module_paths,
+    )
+
+
+async def aemit_generated_package(
+    packet_bundle: PacketBundle,
+    output_dir: Path | str,
+    *,
+    generator_kind: GeneratorKind = "deterministic",
+    llm_model: str = DEFAULT_LLM_MODEL,
+    llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+    trace_id_prefix: str = "ac14/generated_codegen",
+) -> GeneratedPackage:
+    """Async package emission for callers already running inside an event loop."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "__init__.py").write_text('"""Generated AC14 components."""\n')
+
+    packet_cases = materialize_packet_test_cases(packet_bundle)
+    module_paths: dict[str, str] = {}
+    for component_id, packet in packet_bundle.packets.items():
+        context = build_codegen_context(packet, packet_cases[component_id])
+        module_source = await _arender_module_source(
             context,
             generator_kind=generator_kind,
             llm_model=llm_model,
@@ -134,6 +176,33 @@ def _render_module_source(
     raise ValueError(
         "unsupported semantic responsibility for generated proof-breadth slice: "
         f"{context.semantic_responsibility}"
+    )
+
+
+async def _arender_module_source(
+    context: CodegenContext,
+    *,
+    generator_kind: GeneratorKind,
+    llm_model: str,
+    llm_max_budget: float,
+    trace_id: str,
+) -> str:
+    """Async module rendering for callers already inside an event loop."""
+
+    if generator_kind == "llm":
+        response = await agenerate_component_module_with_llm(
+            context,
+            model=llm_model,
+            trace_id=trace_id,
+            max_budget=llm_max_budget,
+        )
+        return response.module_code
+    return _render_module_source(
+        context,
+        generator_kind=generator_kind,
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+        trace_id=trace_id,
     )
 
 

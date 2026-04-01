@@ -21,19 +21,19 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: fixture-backed llm realistic-input path
-  - [ ] add a deterministic fixture surface for LLM codegen in tests
-  - [ ] keep the `llm` realistic-input lane testable without live keys
+- [x] Phase 1: fixture-backed llm realistic-input path
+  - [x] add a deterministic fixture surface for LLM codegen in tests
+  - [x] keep the `llm` realistic-input lane testable without live keys
   - Success criteria: unit, CLI, and Make tests can exercise the `llm` realistic-input path deterministically
 
-- [ ] Phase 2: single-slice llm realistic-input acceptance
-  - [ ] support `llm` realistic-input full-system acceptance on the support-ticket slice
-  - [ ] keep execution outputs and final review persisted exactly as in the other modes
+- [x] Phase 2: single-slice llm realistic-input acceptance
+  - [x] support `llm` realistic-input full-system acceptance on the support-ticket slice
+  - [x] keep execution outputs and final review persisted exactly as in the other modes
   - Success criteria: support-ticket realistic input passes through `llm` mode with persisted outputs and semantic review
 
-- [ ] Phase 3: realistic-input mode comparison
-  - [ ] persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
-  - [ ] keep the artifact explicit about its one-blueprint scope
+- [x] Phase 3: realistic-input mode comparison
+  - [x] persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
+  - [x] keep the artifact explicit about its one-blueprint scope
   - Success criteria: one persisted artifact makes cross-mode realistic-input behavior reviewable in one place
 
 - [ ] Phase 4: operator surface and lock
@@ -100,6 +100,10 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q` passed with `120 passed`
   - `python -m mypy ac14 tests` passed on `60` source files
   - `python -m ruff check ac14 tests` passed
+- targeted realistic-input `llm` verification passed:
+  - `python -m pytest -q tests/test_llm_codegen.py::test_generate_component_module_with_llm_uses_fixture_env tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_llm_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_llm tests/test_cli.py::test_cli_acceptance_review_realistic_compare_help tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_runs_end_to_end tests/test_make_targets.py::test_make_help_lists_proof_targets tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_runs_end_to_end` passed with `9 passed`
+  - `python -m mypy ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 
 ## Longer-Term Next Steps
 

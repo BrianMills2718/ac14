@@ -23,6 +23,9 @@ from ac14.dependency_planning import (
     DependencyQuestion,
     DependencyRecommendation,
 )
+from ac14.generated_codegen import emit_generated_package
+from ac14.loader import load_blueprint_dir
+from ac14.packets import compile_packets
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -140,6 +143,27 @@ def _write_dependency_plan_artifact(path: Path) -> Path:
         ],
     )
     path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
+
+
+def _write_llm_codegen_fixture(path: Path, blueprint_dir: Path) -> Path:
+    """Persist fixture-backed LLM codegen responses using deterministic module code."""
+
+    blueprint = load_blueprint_dir(blueprint_dir)
+    packet_bundle = compile_packets(blueprint)
+    deterministic_package = emit_generated_package(
+        packet_bundle,
+        path.parent / f"{blueprint.metadata.blueprint_id}_deterministic_generated",
+        generator_kind="deterministic",
+    )
+    fixture_payload = {
+        component_id: {
+            "module_code": Path(module_path).read_text(),
+            "implementation_notes": ["fixture-backed llm codegen"],
+        }
+        for component_id, module_path in deterministic_package.module_paths.items()
+    }
+    path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
     return path
 
 
@@ -1060,6 +1084,21 @@ def test_cli_acceptance_review_realistic_suite_help() -> None:
     assert "--record-index" in result.stdout
 
 
+def test_cli_acceptance_review_realistic_compare_help() -> None:
+    """Realistic-input comparison help should expose the one-blueprint compare command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "acceptance-review-realistic-compare", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--realistic-input" in result.stdout
+    assert "--modes" in result.stdout
+
+
 def test_cli_semantic_compare_suite_deterministic_only(tmp_path: Path) -> None:
     """Suite semantic comparison command should build aggregate semantic artifacts."""
 
@@ -1394,6 +1433,58 @@ def test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_
     assert (tmp_path / "acceptance_realistic_deterministic" / "acceptance_report.json").exists()
 
 
+def test_cli_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end(
+    tmp_path: Path,
+) -> None:
+    """Acceptance-review command should support llm realistic-input execution with fixture-backed codegen."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed llm outputs remain reviewable on realistic input.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_llm_codegen_fixture(tmp_path / "llm_codegen_fixture.json", EXAMPLE_DIR)
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "acceptance_realistic_llm"),
+            "--mode",
+            "llm",
+            "--realistic-input",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"),
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert len(payload["scenario_results"]) == 1
+    assert payload["scenario_results"][0]["execution_error"] is None
+    assert payload["scenario_results"][0]["review"]["overall_verdict"] == "accept"
+    assert (tmp_path / "acceptance_realistic_llm" / "acceptance_report.json").exists()
+
+
 def test_cli_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -> None:
     """Realistic suite acceptance command should persist one aggregate artifact."""
 
@@ -1441,3 +1532,57 @@ def test_cli_acceptance_review_realistic_suite_runs_end_to_end(tmp_path: Path) -
     assert (
         tmp_path / "realistic_suite_acceptance" / "realistic_suite_acceptance_report.json"
     ).exists()
+
+
+def test_cli_acceptance_review_realistic_compare_runs_end_to_end(tmp_path: Path) -> None:
+    """Realistic-input comparison command should persist one per-blueprint artifact."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "All compared modes remain reviewable on realistic input.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_llm_codegen_fixture(tmp_path / "llm_codegen_fixture.json", EXAMPLE_DIR)
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review-realistic-compare",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "realistic_compare"),
+            "--realistic-input",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"),
+            "--modes",
+            "reference",
+            "deterministic",
+            "llm",
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["verdicts_by_mode"] == {
+        "reference": "accept",
+        "deterministic": "accept",
+        "llm": "accept",
+    }
+    assert (tmp_path / "realistic_compare" / "realistic_mode_comparison_report.json").exists()

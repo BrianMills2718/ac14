@@ -41,20 +41,28 @@ Detailed references, write scope, tests, and acceptance criteria live in Plan
 
 ### Phase 1: fixture-backed llm realistic-input path
 
+Status: Complete
+
 - add a deterministic fixture surface for LLM codegen in tests
 - keep `llm` realistic-input execution testable without live provider keys
 
 ### Phase 2: single-slice llm realistic-input acceptance
+
+Status: Complete
 
 - prove realistic-input full-system acceptance in `llm` mode on the support-ticket slice
 - persist actual outputs and final semantic review exactly as in other modes
 
 ### Phase 3: realistic-input mode comparison
 
+Status: Complete
+
 - persist one comparison artifact across `reference`, `deterministic`, and `llm`
 - keep the artifact explicit about its one-blueprint scope
 
 ### Phase 4: Verification And Lock
+
+Status: Current
 
 - any widened CLI and Make surfaces
 - full local verification

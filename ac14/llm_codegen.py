@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import json
+import os
 from pathlib import Path
 from typing import cast
 
@@ -42,6 +44,15 @@ async def agenerate_component_module_with_llm(
     task: str = "ac14_generate_component",
 ) -> GeneratedModuleResponse:
     """Generate one component module from a codegen context using llm_client."""
+
+    fixture_path = os.environ.get("AC14_LLM_CODEGEN_FIXTURE")
+    if fixture_path:
+        response = _load_fixture_response(
+            fixture_path=Path(fixture_path),
+            component_id=context.component_id,
+        )
+        _validate_generated_module(response.module_code, component_id=context.component_id)
+        return response
 
     messages = render_prompt(
         PROMPT_PATH,
@@ -103,3 +114,21 @@ def _validate_generated_module(module_code: str, *, component_id: str) -> None:
         raise ValueError(
             f"generated module for {component_id} is missing build_component function",
         )
+
+
+def _load_fixture_response(
+    *,
+    fixture_path: Path,
+    component_id: str,
+) -> GeneratedModuleResponse:
+    """Load one deterministic LLM-codegen fixture response for a component."""
+
+    payload = json.loads(fixture_path.read_text())
+    if not isinstance(payload, dict):
+        raise ValueError("AC14_LLM_CODEGEN_FIXTURE must point to a JSON object")
+    if "module_code" in payload:
+        return GeneratedModuleResponse.model_validate(payload)
+    component_payload = payload.get(component_id)
+    if component_payload is None:
+        raise ValueError(f"AC14_LLM_CODEGEN_FIXTURE has no entry for component {component_id}")
+    return GeneratedModuleResponse.model_validate(component_payload)

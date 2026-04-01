@@ -28,7 +28,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite recommend-default-generator
+.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -116,6 +116,9 @@ acceptance-review-suite: ## Run requirements-aware acceptance review across ship
 
 acceptance-review-realistic-suite: ## Run realistic-input acceptance review across shipped examples (OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0)
 	$(PYTHON) -m ac14 acceptance-review-realistic-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --modes $(MODES) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+acceptance-review-realistic-compare: ## Compare realistic-input acceptance across modes for one blueprint (INPUT=... REALISTIC_INPUT=... OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0)
+	$(PYTHON) -m ac14 acceptance-review-realistic-compare "$(INPUT)" --output-dir "$(OUTPUT)" --realistic-input "$(REALISTIC_INPUT)" --modes $(MODES) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 recommend-default-generator: ## Recommend the current default generator (OUTPUT=.ac14_out/recommend GENERATORS="deterministic")
 	$(PYTHON) -m ac14 recommend-default-generator --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --generators $(GENERATORS) --fresh-run-trials "$(TRIALS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
