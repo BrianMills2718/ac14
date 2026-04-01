@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #20: Remediation Hand-Off Automation](/home/brian/projects/ac14/docs/plans/20_remediation_handoff_automation.md)
+- [Plan #21: Freeze Remediation Plan Refinement](/home/brian/projects/ac14/docs/plans/21_freeze_remediation_plan_refinement.md)
 
-Plan #19 closed the first narrow dependency-remediation lane. The current
-active gap is reducing the manual path hand-off from remediation artifacts back
-into later front-half phases.
+Plan #20 closed the first narrow remediation hand-off lane into draft planning.
+The current active gap is replacing the first manual blocked-freeze retry step
+with an explicit refined planning artifact.
 
 ## Progress Update
 
@@ -33,30 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #20:
+Required in Plan #21:
 
-1. direct remediation-artifact consumption in later front-half phases
-2. explicit persisted provenance for the chosen dependency execution artifact
-3. less manual path plumbing between remediation and the rest of the chain
+1. explicit refinement of the draft planning artifact from blocked freeze input
+2. explicit persisted provenance from blocked freeze/remediation back into the refined plan
+3. less manual bundle editing in the first retry step
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#20.
+#21.
 
-### Phase 1: hand-off scope design
+### Phase 1: refinement-loop scope design
 
-- choose which downstream surfaces accept remediation artifacts first
-- pre-make how remediation provenance stays explicit
+- choose the first retry target and keep it plan-first
+- pre-make how refinement provenance stays explicit
 
-### Phase 2: hand-off implementation
+### Phase 2: refinement implementation
 
-- let later front-half phases consume remediation artifacts directly
-- keep the selected dependency execution artifact explicit in downstream outputs
+- emit a refined draft planning artifact from blocked freeze/remediation input
+- keep the selected remediation/freeze provenance explicit in the refined output
 
 ### Phase 3: Verification And Lock
 
-- targeted hand-off verification
+- targeted refinement verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. automation should reduce manual path plumbing without hiding provenance
-2. the first consumer surfaces should be chosen narrowly
-3. the lane should preserve reviewability instead of creating implicit dependency state
+1. the first retry loop should stay plan-first instead of mutating bundles in place
+2. refinement provenance must stay explicit instead of becoming another hidden prompt path
+3. the lane should preserve reviewability instead of collapsing manual remediation into silent automation

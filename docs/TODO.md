@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: remediation hand-off scope design
-  - [ ] pre-make which surfaces accept remediation artifacts first
-  - [ ] pre-make how the chosen dependency execution artifact stays explicit downstream
-  - Success criteria: the hand-off lane is explicit enough to implement without hidden provenance loss
+- [ ] Phase 1: refinement-loop scope design
+  - [ ] pre-make the first retry target as the draft planning artifact, not the bundle
+  - [ ] pre-make how refinement provenance stays explicit from blocked freeze back into the new plan
+  - Success criteria: the retry loop is explicit enough to implement without hidden in-place mutation
 
-- [ ] Phase 2: remediation hand-off implementation
-  - [ ] let draft planning and/or front-half acceptance consume remediation artifacts directly
-  - [ ] keep the chosen dependency execution artifact explicit in downstream outputs
-  - Success criteria: remediation no longer requires manual path extraction between phases
+- [ ] Phase 2: refinement implementation
+  - [ ] let AC14 emit a refined draft planning artifact from blocked freeze/remediation input
+  - [ ] preserve the original draft-plan, freeze-decision, and remediation-plan provenance in the refined artifact
+  - Success criteria: blocked freeze no longer forces the first retry step to be manual bundle editing
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted remediation-hand-off tests
+  - [ ] run targeted refinement tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the remediation-hand-off lane
+  - Success criteria: verification passes and the docs match the refinement lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- dependency remediation now exists, but downstream phases still need a cleaner direct hand-off from remediation artifacts
+- dependency remediation now flows into draft planning, but blocked freeze still defaults to manual bundle-edit retries
 
 ## Latest Verified Results
 
@@ -196,6 +196,10 @@ Detailed uncertainty tracking now lives in:
     - `python -m pytest -q` passed with `149 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
+- targeted remediation hand-off verification passed:
+  - `python -m pytest -q tests/test_blueprint_planning.py::test_build_draft_blueprint_plan_accepts_dependency_remediation_artifact tests/test_cli.py::test_cli_draft_blueprint_plan_accepts_dependency_remediation_artifact tests/test_make_targets.py::test_make_draft_blueprint_plan_accepts_dependency_remediation_artifact` passed with `3 passed`
+  - `python -m mypy ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py` passed
 
 ## Longer-Term Next Steps
 
@@ -203,7 +207,7 @@ Detailed uncertainty tracking now lives in:
 - [ ] broaden front-half acceptance into an explicit suite-level breadth artifact
 - [ ] prove one messier-input front-half lane without hiding ambiguity in prompts
 - [ ] turn dependency blockers into one explicit remediation lane instead of only diagnosis
-- [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
+- [ ] connect remediation tasks to automated draft-refinement loops now that remediation hand-off reaches draft planning
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

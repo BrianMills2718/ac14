@@ -166,6 +166,7 @@ def main() -> int:
     draft_plan_parser.add_argument("--requirements", nargs="+", required=True)
     draft_plan_parser.add_argument("--dependency-plan", type=Path, default=None)
     draft_plan_parser.add_argument("--dependency-execution", type=Path, default=None)
+    draft_plan_parser.add_argument("--dependency-remediation", type=Path, default=None)
     draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
     draft_plan_parser.add_argument(
         "--max-budget",
@@ -473,6 +474,7 @@ def main() -> int:
             cast(list[str], args.requirements),
             args.dependency_plan,
             args.dependency_execution,
+            args.dependency_remediation,
             args.model,
             args.max_budget,
         )
@@ -814,6 +816,7 @@ def _draft_blueprint_plan(
     requirements: list[str],
     dependency_plan_path: Path | None,
     dependency_execution_artifact_path: Path | None,
+    dependency_remediation_artifact_path: Path | None,
     model: str,
     max_budget: float,
 ) -> int:
@@ -825,6 +828,7 @@ def _draft_blueprint_plan(
         requirements=requirements,
         dependency_plan_path=dependency_plan_path,
         dependency_execution_artifact_path=dependency_execution_artifact_path,
+        dependency_remediation_artifact_path=dependency_remediation_artifact_path,
         model=model,
         max_budget=max_budget,
     )

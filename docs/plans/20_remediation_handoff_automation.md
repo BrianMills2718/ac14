@@ -1,6 +1,6 @@
 # Plan #20: Remediation Hand-Off Automation
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -39,25 +39,30 @@ itself.
 ## Open Questions
 
 ### Q1: Which surfaces should accept remediation artifacts first?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The first automation step should reduce friction without
 spreading a half-finished contract everywhere.
+**Decision:** Draft blueprint planning is the first consumer. It already sits
+at the boundary where dependency-plan provenance and dependency execution
+evidence are explicit, so it can accept remediation artifacts without creating
+hidden state.
 
 ### Q2: Should remediation hand-off stay explicit in the persisted artifacts?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** Automation should not hide which dependency execution
 artifact actually drove the later phases.
+**Decision:** Yes. The persisted draft planning artifact now records both the
+selected dependency execution artifact path and the remediation artifact path
+when remediation drove the selection.
 
 ---
 
 ## Files Affected
 
 - `ac14/blueprint_planning.py` (modify)
-- `ac14/front_half_acceptance.py` (modify)
 - `ac14/__main__.py` (modify)
 - `Makefile` (modify)
 - `tests/test_blueprint_planning.py` (modify)
-- `tests/test_front_half_acceptance.py` (modify)
 - `tests/test_cli.py` (modify)
 - `tests/test_make_targets.py` (modify)
 - `docs/plans/CLAUDE.md` (modify)
@@ -74,8 +79,9 @@ artifact actually drove the later phases.
 
 ### Steps
 
-1. Pre-make which surfaces accept remediation artifacts first and how the hand-off stays explicit.
-2. Implement the first remediation-artifact consumers in draft planning and/or front-half acceptance.
+1. Pre-make draft planning as the first remediation-artifact consumer and keep
+   provenance explicit.
+2. Implement remediation-artifact consumption in draft planning, CLI, and Make.
 3. Run targeted verification, then full verification, then lock the docs.
 
 ---
@@ -87,7 +93,8 @@ artifact actually drove the later phases.
 | Test File | Test Function | What It Verifies |
 |-----------|---------------|------------------|
 | `tests/test_blueprint_planning.py` | `test_build_draft_blueprint_plan_accepts_dependency_remediation_artifact` | Draft planning can consume a remediation artifact without losing explicit provenance |
-| `tests/test_front_half_acceptance.py` | `test_build_front_half_acceptance_report_accepts_dependency_remediation_artifact` | Front-half acceptance can consume remediation results directly |
+| `tests/test_cli.py` | `test_cli_draft_blueprint_plan_accepts_dependency_remediation_artifact` | CLI draft planning can consume a remediation artifact directly |
+| `tests/test_make_targets.py` | `test_make_draft_blueprint_plan_accepts_dependency_remediation_artifact` | Make-driven draft planning can consume a remediation artifact directly |
 
 ### Existing Tests
 
@@ -101,9 +108,22 @@ artifact actually drove the later phases.
 
 ## Acceptance Criteria
 
-- [ ] AC14 lets later front-half stages consume remediation artifacts directly.
-- [ ] The persisted artifacts still make the chosen dependency execution path explicit.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 lets draft planning consume remediation artifacts directly.
+- [x] The persisted artifacts still make the chosen dependency execution path explicit.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted remediation-hand-off verification passed:
+  - `python -m pytest -q tests/test_blueprint_planning.py::test_build_draft_blueprint_plan_accepts_dependency_remediation_artifact tests/test_cli.py::test_cli_draft_blueprint_plan_accepts_dependency_remediation_artifact tests/test_make_targets.py::test_make_draft_blueprint_plan_accepts_dependency_remediation_artifact`
+  - `python -m mypy ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/blueprint_planning.py ac14/__main__.py tests/test_blueprint_planning.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+Draft planning now accepts a remediation artifact directly, preserves the
+original remediation artifact path, preserves the final dependency execution
+artifact path, and fails loud if those two sources disagree.
 
 ---
 

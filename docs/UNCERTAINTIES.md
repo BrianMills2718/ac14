@@ -286,6 +286,19 @@ that reruns previously blocked install probes, records the delta, and points to
 a fresh dependency execution artifact for downstream reuse.
 **Date resolved:** 2026-04-01
 
+### U-031: Dependency remediation still required manual execution-path extraction before draft planning.
+**Status:** Resolved
+**Context:** AC14 could rerun blocked dependency probes and produce a fresh
+dependency execution artifact, but operators still had to manually thread that
+path back into later front-half work.
+**Why it matters:** Remediation should reduce hand-off friction without hiding
+which execution evidence actually drove the next planning step.
+**Resolution:** Draft planning now accepts a remediation artifact directly,
+selects the remediated dependency execution artifact from it, persists both
+paths explicitly, and fails loud if direct execution-path input disagrees with
+the remediation artifact.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

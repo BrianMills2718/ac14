@@ -30,7 +30,8 @@ current executable lane.
 | 17 | [Front-Half Suite Breadth](17_front_half_suite_breadth.md) | High | Complete | - |
 | 18 | [Messy-Input Front-Half Proof](18_messy_input_front_half_proof.md) | High | Complete | - |
 | 19 | [Controlled Dependency Remediation](19_controlled_dependency_remediation.md) | High | Complete | - |
-| 20 | [Remediation Hand-Off Automation](20_remediation_handoff_automation.md) | High | In Progress | - |
+| 20 | [Remediation Hand-Off Automation](20_remediation_handoff_automation.md) | High | Complete | - |
+| 21 | [Freeze Remediation Plan Refinement](21_freeze_remediation_plan_refinement.md) | High | Planned | - |
 
 ## Status Key
 

@@ -20,6 +20,7 @@ from ac14.blueprint_planning import (
 from ac14.dependency_execution import (
     DependencyExecutionArtifact,
     DependencyExecutionResult,
+    DependencyRemediationArtifact,
     DependencySnapshot,
 )
 from ac14.dependency_planning import (
@@ -408,3 +409,116 @@ def test_build_draft_blueprint_plan_rejects_mismatched_dependency_execution(
             dependency_plan_path=dependency_plan_path,
             dependency_execution_artifact_path=mismatched_execution_path,
         )
+
+
+def test_build_draft_blueprint_plan_accepts_dependency_remediation_artifact(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Planning should accept remediation artifacts and preserve execution provenance."""
+
+    input_path = tmp_path / "sample.json"
+    input_path.write_text('[{"ticket_id": "T-1", "body": "Login is broken"}]')
+    build_discovery_artifact(
+        input_path=input_path,
+        output_dir=tmp_path / "discovery",
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+    )
+    discovery_artifact_path = tmp_path / "discovery" / "discovery_artifact.json"
+    dependency_plan_path = tmp_path / "dependency_plan.json"
+    dependency_plan_path.write_text(
+        DependencyPlanningArtifact(
+            discovery_artifact_path=str(discovery_artifact_path),
+            requirements=["reuse installed schema tooling"],
+            carried_forward_concerns=[],
+            planning_summary="Reuse pydantic for typed schema contracts.",
+            recommendations=[],
+            standard_library_notes=[],
+            open_questions=[],
+        ).model_dump_json(indent=2),
+    )
+    dependency_execution_path = tmp_path / "dependency_execution_artifact.json"
+    dependency_execution_path.write_text(
+        DependencyExecutionArtifact(
+            dependency_plan_path=str(dependency_plan_path),
+            execution_mode="allow_install",
+            planning_summary="Reuse pydantic for typed schema contracts.",
+            carried_forward_questions=[],
+            results=[],
+            environment_observations=["all dependency probes are confirmed after remediation"],
+        ).model_dump_json(indent=2),
+    )
+    remediation_path = tmp_path / "dependency_remediation_artifact.json"
+    remediation_path.write_text(
+        DependencyRemediationArtifact(
+            prior_dependency_execution_artifact_path=str(tmp_path / "prior_dependency_execution_artifact.json"),
+            remediated_dependency_execution_artifact_path=str(dependency_execution_path),
+            attempted_packages=[],
+            newly_confirmed_packages=[],
+            still_blocked_packages=[],
+            summary="no blocked install probes required remediation",
+        ).model_dump_json(indent=2),
+    )
+
+    fake_response = DraftBlueprintPlanResponse(
+        planning_summary="Use a source parser and one sink to keep packets bounded.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="RawTicket",
+                kind="record",
+                description="Normalized raw ticket shape.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="ticket_id",
+                        field_type="str",
+                        description="Stable ticket identifier.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="ticket_ingest",
+                semantic_responsibility="ingest_ticket",
+                purpose="Normalize the discovered ticket input into a source schema.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="raw_ticket",
+                        schema_name="RawTicket",
+                        description="Normalized ticket payload.",
+                    ),
+                ],
+                packet_focus=["normalize incoming fields", "preserve ticket identity"],
+                dependency_notes=["no external libraries required"],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="happy_path",
+                kind="semantic_acceptance",
+                description="Review one realistic ticket end to end.",
+                requirement_focus=["normalize ticket input", "preserve meaning"],
+            ),
+        ],
+        packetization_notes=["Keep the source component packet focused on normalization only."],
+        dependency_decisions=["Stay within the current environment for the first slice."],
+        open_questions=[],
+    )
+    fake_call = AsyncMock(return_value=(fake_response, object()))
+    monkeypatch.setattr("ac14.blueprint_planning.acall_llm_structured", fake_call)
+
+    plan = build_draft_blueprint_plan(
+        discovery_artifact_path=discovery_artifact_path,
+        output_dir=tmp_path / "plan",
+        requirements=["normalize discovered ticket input", "keep packets bounded"],
+        dependency_plan_path=dependency_plan_path,
+        dependency_remediation_artifact_path=remediation_path,
+        max_budget=0.1,
+    )
+
+    assert plan.dependency_remediation_artifact_path == str(remediation_path)
+    assert plan.dependency_execution_artifact_path == str(dependency_execution_path)
+    assert plan.dependency_remediation_summary == "no blocked install probes required remediation"

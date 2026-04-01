@@ -10,7 +10,10 @@ from typing import Literal, cast
 
 from pydantic import BaseModel, Field
 
-from ac14.dependency_execution import DependencyExecutionArtifact
+from ac14.dependency_execution import (
+    DependencyExecutionArtifact,
+    DependencyRemediationArtifact,
+)
 from ac14.dependency_planning import DependencyPlanningArtifact
 from ac14.discovery import DiscoveryArtifact
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
@@ -147,9 +150,17 @@ class DraftBlueprintPlanArtifact(BaseModel):
         default=None,
         description="Optional dependency execution artifact used as additional planning input.",
     )
+    dependency_remediation_artifact_path: str | None = Field(
+        default=None,
+        description="Optional dependency remediation artifact used to select the execution artifact.",
+    )
     dependency_execution_summary: str | None = Field(
         default=None,
         description="Compact summary of dependency probe results when one was provided.",
+    )
+    dependency_remediation_summary: str | None = Field(
+        default=None,
+        description="Compact summary of dependency remediation when one was provided.",
     )
     dependency_recommendations: list[str] = Field(
         default_factory=list,
@@ -192,6 +203,7 @@ async def abuild_draft_blueprint_plan(
     requirements: list[str],
     dependency_plan_path: Path | str | None = None,
     dependency_execution_artifact_path: Path | str | None = None,
+    dependency_remediation_artifact_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -205,11 +217,22 @@ async def abuild_draft_blueprint_plan(
     destination.mkdir(parents=True, exist_ok=True)
     artifact_path = Path(discovery_artifact_path)
     discovery_artifact = DiscoveryArtifact.model_validate_json(artifact_path.read_text())
+    dependency_remediation_artifact = (
+        DependencyRemediationArtifact.model_validate_json(
+            Path(dependency_remediation_artifact_path).read_text(),
+        )
+        if dependency_remediation_artifact_path is not None
+        else None
+    )
+    normalized_dependency_execution_path = _resolve_dependency_execution_artifact_path(
+        dependency_execution_artifact_path=dependency_execution_artifact_path,
+        dependency_remediation_artifact=dependency_remediation_artifact,
+    )
     dependency_execution_artifact = (
         DependencyExecutionArtifact.model_validate_json(
-            Path(dependency_execution_artifact_path).read_text(),
+            Path(normalized_dependency_execution_path).read_text(),
         )
-        if dependency_execution_artifact_path is not None
+        if normalized_dependency_execution_path is not None
         else None
     )
     normalized_dependency_plan_path = _resolve_dependency_plan_path(
@@ -239,6 +262,11 @@ async def abuild_draft_blueprint_plan(
                 if dependency_execution_artifact is not None
                 else None
             ),
+            dependency_remediation=(
+                dependency_remediation_artifact.model_dump(mode="json")
+                if dependency_remediation_artifact is not None
+                else None
+            ),
             requirements=requirements,
         )
         response, _meta = await acall_llm_structured(
@@ -264,13 +292,23 @@ async def abuild_draft_blueprint_plan(
             dependency_plan.planning_summary if dependency_plan is not None else None
         ),
         dependency_execution_artifact_path=(
-            str(Path(dependency_execution_artifact_path))
-            if dependency_execution_artifact_path is not None
+            str(Path(normalized_dependency_execution_path))
+            if normalized_dependency_execution_path is not None
+            else None
+        ),
+        dependency_remediation_artifact_path=(
+            str(Path(dependency_remediation_artifact_path))
+            if dependency_remediation_artifact_path is not None
             else None
         ),
         dependency_execution_summary=(
             _summarize_dependency_execution(dependency_execution_artifact)
             if dependency_execution_artifact is not None
+            else None
+        ),
+        dependency_remediation_summary=(
+            dependency_remediation_artifact.summary
+            if dependency_remediation_artifact is not None
             else None
         ),
         dependency_recommendations=(
@@ -332,6 +370,7 @@ def build_draft_blueprint_plan(
     requirements: list[str],
     dependency_plan_path: Path | str | None = None,
     dependency_execution_artifact_path: Path | str | None = None,
+    dependency_remediation_artifact_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -345,6 +384,7 @@ def build_draft_blueprint_plan(
             requirements=requirements,
             dependency_plan_path=dependency_plan_path,
             dependency_execution_artifact_path=dependency_execution_artifact_path,
+            dependency_remediation_artifact_path=dependency_remediation_artifact_path,
             model=model,
             max_budget=max_budget,
             task=task,
@@ -410,6 +450,30 @@ def _resolve_dependency_plan_path(
             "dependency execution artifact points at a different dependency plan than the one provided",
         )
     return explicit_path or execution_path
+
+
+def _resolve_dependency_execution_artifact_path(
+    *,
+    dependency_execution_artifact_path: Path | str | None,
+    dependency_remediation_artifact: DependencyRemediationArtifact | None,
+) -> Path | None:
+    """Return the authoritative dependency-execution artifact path for planning."""
+
+    explicit_path = (
+        Path(dependency_execution_artifact_path)
+        if dependency_execution_artifact_path is not None
+        else None
+    )
+    if dependency_remediation_artifact is None:
+        return explicit_path
+    remediation_path = Path(
+        dependency_remediation_artifact.remediated_dependency_execution_artifact_path,
+    )
+    if explicit_path is not None and explicit_path != remediation_path:
+        raise ValueError(
+            "dependency remediation artifact points at a different execution artifact than the one provided",
+        )
+    return explicit_path or remediation_path
 
 
 def _summarize_dependency_execution(artifact: DependencyExecutionArtifact) -> str:

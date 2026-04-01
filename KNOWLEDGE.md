@@ -204,4 +204,10 @@ the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact
 plus a fresh dependency execution artifact for downstream reuse.
 
+### 2026-04-01 — codex — best-practice
+The first remediation automation step should stay plan-first. AC14 now lets
+draft planning consume a remediation artifact directly, preserves both the
+remediation path and the selected dependency execution path, and fails loud
+when those two sources disagree.
+
 ---

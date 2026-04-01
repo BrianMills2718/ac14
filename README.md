@@ -63,6 +63,7 @@ AC14 now supports:
 - running a persisted suite-level front-half acceptance lane across shipped realistic-input examples, with separate review-vs-freeze aggregates and explicit freeze-semantic review paths
 - proving one explicit messy-input front-half lane on a reviewable CSV asset without changing the blueprint/runtime model
 - rerunning previously blocked install probes through one explicit dependency-remediation artifact that points to a fresh dependency execution artifact for downstream reuse
+- feeding a dependency-remediation artifact directly back into draft planning while keeping both the remediation path and the chosen dependency execution path explicit
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review
@@ -93,6 +94,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
+- broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
 - first-class tool/runtime nodes in the blueprint model

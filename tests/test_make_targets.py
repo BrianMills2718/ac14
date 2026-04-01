@@ -1056,6 +1056,113 @@ def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:
     assert (output_dir / "freeze_readiness_report.json").exists()
 
 
+def test_make_draft_blueprint_plan_accepts_dependency_remediation_artifact(tmp_path: Path) -> None:
+    """Make draft planning target should accept remediation artifacts directly."""
+
+    discovery_path = tmp_path / "discovery_artifact.json"
+    discovery_path.write_text(
+        json.dumps(
+            {
+                "input_inspection": {
+                    "input_path": str(tmp_path / "sample.json"),
+                    "input_format": "json",
+                    "root_kind": "list",
+                    "sample_count": 1,
+                    "truncated": False,
+                    "sample_records": [{"ticket_id": "T-1"}],
+                    "field_summaries": [],
+                    "concerns": [],
+                },
+                "environment_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "python_version": "3.12.0",
+                    "platform": "linux",
+                    "dependency_statuses": [],
+                    "concerns": [],
+                },
+                "project_context_inventory": {
+                    "project_root": str(REPO_ROOT),
+                    "document_count": 1,
+                    "truncated": False,
+                    "documents": [],
+                    "concerns": [],
+                },
+                "external_retrieval_summaries": [],
+                "open_concerns": [],
+            },
+            indent=2,
+        )
+    )
+    dependency_plan_path = _write_dependency_plan_without_install(tmp_path / "dependency_plan.json")
+    dependency_execution_path = tmp_path / "dependency_execution_artifact.json"
+    dependency_execution_path.write_text(
+        json.dumps(
+            {
+                "dependency_plan_path": str(dependency_plan_path),
+                "execution_mode": "allow_install",
+                "planning_summary": "Reuse pydantic and skip richer formatting for now.",
+                "carried_forward_questions": [],
+                "results": [],
+                "environment_observations": ["all dependency probes are confirmed after remediation"],
+            },
+            indent=2,
+        )
+    )
+    remediation_path = tmp_path / "dependency_remediation_artifact.json"
+    remediation_path.write_text(
+        json.dumps(
+            {
+                "prior_dependency_execution_artifact_path": str(tmp_path / "prior_dependency_execution_artifact.json"),
+                "remediated_dependency_execution_artifact_path": str(dependency_execution_path),
+                "attempted_packages": [],
+                "newly_confirmed_packages": [],
+                "still_blocked_packages": [],
+                "summary": "no blocked install probes required remediation",
+            },
+            indent=2,
+        )
+    )
+    fixture_path = tmp_path / "draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Use a source parser and one sink to keep packets bounded.",
+                "proposed_schemas": [],
+                "proposed_components": [],
+                "proposed_bindings": [],
+                "proposed_scenarios": [],
+                "packetization_notes": [],
+                "dependency_decisions": [],
+                "open_questions": [],
+            },
+            indent=2,
+        )
+    )
+    output_dir = tmp_path / "draft_plan"
+    env = os.environ.copy()
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
+    result = subprocess.run(
+        [
+            "make",
+            "draft-blueprint-plan",
+            f"DISCOVERY={discovery_path}",
+            f"DEPENDENCY_PLAN={dependency_plan_path}",
+            f"DEPENDENCY_REMEDIATION={remediation_path}",
+            f"OUTPUT={output_dir}",
+            "REQUIREMENTS=normalize discovered ticket input",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
+    assert payload["dependency_remediation_artifact_path"] == str(remediation_path)
+    assert payload["dependency_execution_artifact_path"] == str(dependency_execution_path)
+
+
 def test_make_decide_freeze_runs_end_to_end(tmp_path: Path) -> None:
     """Make freeze-decision target should persist decision and remediation artifacts."""
 

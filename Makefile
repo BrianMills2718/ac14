@@ -24,6 +24,7 @@ DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 DEPENDENCY_PLAN ?=
 DEPENDENCY_EXECUTION ?=
+DEPENDENCY_REMEDIATION ?=
 ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
@@ -75,8 +76,8 @@ probe-dependencies: ## Probe dependency recommendations (DEPENDENCY_PLAN=.ac14_o
 remediate-dependencies: ## Rerun blocked install probes from an execution artifact (INPUT=.ac14_out/dependency_probe/dependency_execution_artifact.json OUTPUT=.ac14_out/dependency_remediation)
 	$(PYTHON) -m ac14 remediate-dependencies "$(INPUT)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)"
 
-draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json)
-	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json DEPENDENCY_REMEDIATION=optional.json)
+	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) $(if $(DEPENDENCY_REMEDIATION),--dependency-remediation "$(DEPENDENCY_REMEDIATION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness report (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle)
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"

@@ -100,7 +100,7 @@ process failure. The required behavior is:
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-controlled dependency remediation.
+turning blocked freeze remediation into an explicit, reviewable refinement loop.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -122,6 +122,8 @@ controlled dependency remediation.
 - do not let remediation collapse into silent broad environment mutation
 - keep dependency remediation wired back into the front-half chain rather than
   leaving it as an isolated side command
+- keep the first blocked-freeze retry step plan-first; prefer refined planning
+  artifacts over in-place bundle mutation
 
 ## Continuation Rule
 
