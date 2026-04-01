@@ -30,6 +30,69 @@ project in this order:
 
 Lower layers must never silently redefine higher layers.
 
+## Glossary
+
+These are project terms, not casual shorthand.
+
+### General Coding Agent
+
+In AC14, this means a system that can tackle software-generation problems across
+more than one narrow workflow template by using decomposition, bounded local
+coding packets, recomposition, and validation.
+
+It does not mean “already universal across all languages, runtimes, and tool
+systems.”
+
+### Proof Slice
+
+The proof slice is the deliberately narrow subset of the full vision that AC14
+is trying to prove honestly right now.
+
+It is narrower than the long-term system and should not be mistaken for the
+full product definition.
+
+### Front Half
+
+The front half is everything before blueprint freeze becomes a stable
+implementation contract.
+
+In practice this includes:
+
+1. input inspection
+2. discovery
+3. retrieval
+4. dependency/library planning
+5. draft blueprint planning
+6. draft authoring
+7. freeze readiness and freeze decision
+
+### Back Half
+
+The back half is everything after blueprint freeze becomes the authoritative
+downstream contract.
+
+In practice this includes:
+
+1. packet compilation
+2. local tests
+3. component generation
+4. recomposition
+5. evidence-backed validation
+
+### Proof Breadth
+
+Proof breadth is an evaluation concept for how diverse the evidence set is.
+
+It refers to diversity across things like:
+
+1. workflow shapes
+2. component responsibility sets
+3. schema shapes
+4. state/update patterns
+5. failure modes
+
+It is not a core ontology inside the blueprint model itself.
+
 ## Long-Term Vision
 
 The long-term vision is:
