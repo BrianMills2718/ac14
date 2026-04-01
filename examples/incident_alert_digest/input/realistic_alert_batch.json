@@ -1,0 +1,24 @@
+[
+  {
+    "alert_id": "INC-2041",
+    "service_id": "S-1",
+    "title": "Checkout API returns HTTP 500 after canary deploy",
+    "body": "Starting at 02:14 UTC, the checkout API in prod-us-east is returning 500s for roughly 18 percent of requests after the checkout-service canary. Error rate is still rising and customer orders are failing.",
+    "environment": "production",
+    "channel": "pager",
+    "reported_severity": "critical",
+    "tags": ["production", "error", "deploy", "checkout"],
+    "observed_at": "2026-03-31T02:14:00Z"
+  },
+  {
+    "alert_id": "INC-2042",
+    "service_id": "S-2",
+    "title": "Latency spike in reporting jobs for eu-west",
+    "body": "P95 latency for reporting jobs in eu-west exceeded 2.4 seconds for 15 minutes. No customer errors yet, but dashboards show sustained queue growth.",
+    "environment": "production",
+    "channel": "slack",
+    "reported_severity": "high",
+    "tags": ["latency", "reporting", "eu-west"],
+    "observed_at": "2026-03-31T03:02:00Z"
+  }
+]

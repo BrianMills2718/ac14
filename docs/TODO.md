@@ -24,9 +24,9 @@ Detailed uncertainty tracking now lives in:
   - [x] resolve generated-state assumptions explicitly rather than hiding them
   - Success criteria: support-ticket realistic input passes in `deterministic` mode with persisted outputs and review
 
-- [ ] Phase 2: second shipped realistic-input slice
-  - [ ] add one realistic-input artifact for the incident slice
-  - [ ] prove realistic-input acceptance on that slice
+- [x] Phase 2: second shipped realistic-input slice
+  - [x] add one realistic-input artifact for the incident slice
+  - [x] prove realistic-input acceptance on that slice
   - Success criteria: realistic-input acceptance is no longer proved on only one workflow
 
 - [ ] Phase 3: suite-level realistic-input acceptance
@@ -65,6 +65,8 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_artifact tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_runs_end_to_end` passed with `3 passed`
 - targeted deterministic realistic-input acceptance verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_deterministic_mode tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_deterministic_mode_runs_end_to_end` passed with `3 passed`
+- targeted incident realistic-input acceptance verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_incident_realistic_input` passed with `1 passed`
 - targeted realistic-input front-half acceptance verification passed:
   - `python -m pytest -q tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `3 passed`
 - targeted dependency-probe integration verification passed:
