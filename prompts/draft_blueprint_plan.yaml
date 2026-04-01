@@ -19,7 +19,7 @@ messages:
 
   - role: user
     content: |
-      Build a draft blueprint planning artifact from this discovery artifact, optional dependency plan, and these requirements.
+      Build a draft blueprint planning artifact from this discovery artifact, optional dependency plan, optional dependency execution artifact, and these requirements.
 
       Requirements:
       {% for requirement in requirements %}
@@ -32,6 +32,9 @@ messages:
       Dependency plan:
       {{ dependency_plan }}
 
+      Dependency execution artifact:
+      {{ dependency_execution }}
+
       Required output:
       - `planning_summary` should summarize the proposed decomposition and fit
       - `proposed_schemas` should define the minimum truthful schema surface
@@ -40,4 +43,5 @@ messages:
       - `proposed_scenarios` should include full_recomposition, negative, or semantic_acceptance scenarios when relevant
       - `packetization_notes` should explain how packets stay bounded and what each packet must emphasize
       - `dependency_decisions` should mention important library or environment choices, especially when the dependency plan already recommends reuse, install, investigate, or avoid
+      - if dependency execution already confirmed or blocked a package, keep that evidence consistent with the proposed draft plan
       - `open_questions` should be concrete uncertainties that must be resolved before blueprint freeze

@@ -10,6 +10,7 @@ from typing import Literal, cast
 
 from pydantic import BaseModel, Field
 
+from ac14.dependency_execution import DependencyExecutionArtifact
 from ac14.dependency_planning import DependencyPlanningArtifact
 from ac14.discovery import DiscoveryArtifact
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
@@ -142,9 +143,29 @@ class DraftBlueprintPlanArtifact(BaseModel):
         default=None,
         description="Summary of the dependency-planning artifact when one was provided.",
     )
+    dependency_execution_artifact_path: str | None = Field(
+        default=None,
+        description="Optional dependency execution artifact used as additional planning input.",
+    )
+    dependency_execution_summary: str | None = Field(
+        default=None,
+        description="Compact summary of dependency probe results when one was provided.",
+    )
     dependency_recommendations: list[str] = Field(
         default_factory=list,
         description="Compact advisory dependency actions carried into draft planning.",
+    )
+    confirmed_dependency_probes: list[str] = Field(
+        default_factory=list,
+        description="Probe results that confirmed dependency availability before freeze.",
+    )
+    blocked_dependency_probes: list[str] = Field(
+        default_factory=list,
+        description="Probe results that still block dependency decisions before freeze.",
+    )
+    dependency_probe_observations: list[str] = Field(
+        default_factory=list,
+        description="Cross-cutting observations carried forward from dependency execution.",
     )
     dependency_open_questions: list[PlanningQuestion] = Field(
         default_factory=list,
@@ -170,6 +191,7 @@ async def abuild_draft_blueprint_plan(
     *,
     requirements: list[str],
     dependency_plan_path: Path | str | None = None,
+    dependency_execution_artifact_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -183,9 +205,20 @@ async def abuild_draft_blueprint_plan(
     destination.mkdir(parents=True, exist_ok=True)
     artifact_path = Path(discovery_artifact_path)
     discovery_artifact = DiscoveryArtifact.model_validate_json(artifact_path.read_text())
+    dependency_execution_artifact = (
+        DependencyExecutionArtifact.model_validate_json(
+            Path(dependency_execution_artifact_path).read_text(),
+        )
+        if dependency_execution_artifact_path is not None
+        else None
+    )
+    normalized_dependency_plan_path = _resolve_dependency_plan_path(
+        dependency_plan_path=dependency_plan_path,
+        dependency_execution_artifact=dependency_execution_artifact,
+    )
     dependency_plan = (
-        DependencyPlanningArtifact.model_validate_json(Path(dependency_plan_path).read_text())
-        if dependency_plan_path is not None
+        DependencyPlanningArtifact.model_validate_json(normalized_dependency_plan_path.read_text())
+        if normalized_dependency_plan_path is not None
         else None
     )
 
@@ -199,6 +232,11 @@ async def abuild_draft_blueprint_plan(
             dependency_plan=(
                 dependency_plan.model_dump(mode="json")
                 if dependency_plan is not None
+                else None
+            ),
+            dependency_execution=(
+                dependency_execution_artifact.model_dump(mode="json")
+                if dependency_execution_artifact is not None
                 else None
             ),
             requirements=requirements,
@@ -217,9 +255,23 @@ async def abuild_draft_blueprint_plan(
         discovery_artifact_path=str(artifact_path),
         requirements=requirements,
         discovery_open_concerns=discovery_artifact.open_concerns,
-        dependency_plan_path=str(dependency_plan_path) if dependency_plan_path is not None else None,
+        dependency_plan_path=(
+            str(normalized_dependency_plan_path)
+            if normalized_dependency_plan_path is not None
+            else None
+        ),
         dependency_plan_summary=(
             dependency_plan.planning_summary if dependency_plan is not None else None
+        ),
+        dependency_execution_artifact_path=(
+            str(Path(dependency_execution_artifact_path))
+            if dependency_execution_artifact_path is not None
+            else None
+        ),
+        dependency_execution_summary=(
+            _summarize_dependency_execution(dependency_execution_artifact)
+            if dependency_execution_artifact is not None
+            else None
         ),
         dependency_recommendations=(
             [
@@ -230,6 +282,21 @@ async def abuild_draft_blueprint_plan(
                 for recommendation in dependency_plan.recommendations
             ]
             if dependency_plan is not None
+            else []
+        ),
+        confirmed_dependency_probes=(
+            _confirmed_dependency_probe_summaries(dependency_execution_artifact)
+            if dependency_execution_artifact is not None
+            else []
+        ),
+        blocked_dependency_probes=(
+            _blocked_dependency_probe_summaries(dependency_execution_artifact)
+            if dependency_execution_artifact is not None
+            else []
+        ),
+        dependency_probe_observations=(
+            dependency_execution_artifact.environment_observations
+            if dependency_execution_artifact is not None
             else []
         ),
         dependency_open_questions=(
@@ -264,6 +331,7 @@ def build_draft_blueprint_plan(
     *,
     requirements: list[str],
     dependency_plan_path: Path | str | None = None,
+    dependency_execution_artifact_path: Path | str | None = None,
     model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
     max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     task: str = "ac14_draft_blueprint_plan",
@@ -276,6 +344,7 @@ def build_draft_blueprint_plan(
             output_dir=output_dir,
             requirements=requirements,
             dependency_plan_path=dependency_plan_path,
+            dependency_execution_artifact_path=dependency_execution_artifact_path,
             model=model,
             max_budget=max_budget,
             task=task,
@@ -323,3 +392,57 @@ def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:
             raise ValueError(
                 f"draft blueprint plan binding references unknown to_port {binding.to_port!r}",
             )
+
+
+def _resolve_dependency_plan_path(
+    *,
+    dependency_plan_path: Path | str | None,
+    dependency_execution_artifact: DependencyExecutionArtifact | None,
+) -> Path | None:
+    """Return the authoritative dependency-plan path for this planning run."""
+
+    explicit_path = Path(dependency_plan_path) if dependency_plan_path is not None else None
+    if dependency_execution_artifact is None:
+        return explicit_path
+    execution_path = Path(dependency_execution_artifact.dependency_plan_path)
+    if explicit_path is not None and explicit_path != execution_path:
+        raise ValueError(
+            "dependency execution artifact points at a different dependency plan than the one provided",
+        )
+    return explicit_path or execution_path
+
+
+def _summarize_dependency_execution(artifact: DependencyExecutionArtifact) -> str:
+    """Return a compact summary of dependency execution results."""
+
+    confirmed = sum(1 for result in artifact.results if result.result == "confirmed")
+    blocked = sum(1 for result in artifact.results if result.result == "blocked")
+    skipped = sum(1 for result in artifact.results if result.result == "skipped")
+    return (
+        f"{artifact.execution_mode} dependency probes: "
+        f"{confirmed} confirmed, {blocked} blocked, {skipped} skipped"
+    )
+
+
+def _confirmed_dependency_probe_summaries(
+    artifact: DependencyExecutionArtifact,
+) -> list[str]:
+    """Return compact confirmed probe summaries for later planning stages."""
+
+    return [
+        f"{result.action} {result.package_name}: {result.summary}"
+        for result in artifact.results
+        if result.result == "confirmed"
+    ]
+
+
+def _blocked_dependency_probe_summaries(
+    artifact: DependencyExecutionArtifact,
+) -> list[str]:
+    """Return compact blocked probe summaries for later planning stages."""
+
+    return [
+        f"{result.action} {result.package_name}: {result.summary}"
+        for result in artifact.results
+        if result.result == "blocked"
+    ]

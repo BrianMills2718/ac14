@@ -5,22 +5,15 @@ Last updated: 2026-03-31
 
 ## Purpose
 
-This document is the tactical summary for the active numbered plan.
+This document is the tactical summary for the most recently completed numbered plan.
 
 The authoritative implementation contract for this completed lane is:
 
-- [Plan #1: Dependency Execution Probing](/home/brian/projects/ac14/docs/plans/01_dependency_execution_probing.md)
+- [Plan #2: Dependency Probe Integration](/home/brian/projects/ac14/docs/plans/02_dependency_probe_integration.md)
 
-The planning-artifact resynchronization lane is complete. AC14 now has an
-AC14-native canonical notebook and a blunt implementation-status document. The
-current lane asks whether advisory dependency decisions actually work in the
-current environment.
-
-The immediate goal of Plan #1 is a dependency execution bridge:
-
-1. define a persisted execution-probe artifact for dependency recommendations
-2. execute reviewable reuse/install probes without hidden side effects
-3. record post-probe environment state and blocking failures explicitly
+Plan #1 made dependency probing explicit and reviewable. Plan #2 made that
+evidence matter to the front half by carrying it into draft planning and using
+blocked probe results as real freeze blockers.
 
 This lane is now complete.
 
@@ -35,34 +28,36 @@ Completed before this lane:
 5. persisted external web/repository retrieval artifacts with discovery integration
 6. evidence-backed dependency and library planning artifacts
 7. dependency-aware draft planning with preserved dependency provenance
+8. explicit dependency execution probes for dependency-plan recommendations
 
-Required in Plan #1:
+Required in Plan #2:
 
-1. dependency execution-probe artifact
-2. CLI and Make surfaces for advisory execution probing
-3. deterministic tests and persisted outputs
+1. dependency execution evidence in draft planning artifacts
+2. blocked dependency probes as freeze blockers
+3. remediation tasks that surface dependency blockers explicitly
 
 ## Tactical Phase Summary
 
 This document mirrors the active plan at a higher level. Detailed references,
-write scope, tests, and acceptance criteria live in Plan #1.
+write scope, tests, and acceptance criteria live in Plan #2.
 
-### Phase 1: planning surfaces established
+### Phase 1: draft planning integration
 
-- `docs/plans/` exists
-- Plan #1 exists
-- tactical docs point back to the numbered plan
+- draft planning accepts an optional dependency execution artifact
+- confirmed and blocked probe summaries are persisted
+- mismatched dependency-plan references fail loud
 
-### Phase 2: dependency execution artifact
+### Phase 2: freeze blocker integration
 
-- persisted probe artifact
-- explicit probe result states
-- explicit post-probe environment observations
+- blocked dependency probes become explicit readiness findings
+- confirmed probe results remain informative context
+- freeze approval fails while dependency blockers remain
 
-### Phase 3: operator surface and tests
+### Phase 3: remediation and operator surface
 
-- CLI and Make probing bridge
-- deterministic tests for persistence and fail-loud behavior
+- remediation groups blocked dependency probes into actionable work
+- CLI and Make expose the integrated planning path
+- deterministic tests cover planning, authoring, freeze, CLI, and Make
 
 ### Phase 4: Verification And Lock
 
@@ -77,6 +72,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first execution bridge now probes explicit recommendations but still defaults to `check_only` rather than broad mutation
-2. install probes may still want a later review-only dry-run mode in addition to explicit mutation allowance
-3. broader automation should not outrun the current explicit operator-invoked probe model
+1. blocked probes now stop freeze, but broader install remediation remains deferred
+2. confirmed probe evidence should reduce repeated uncertainty without replacing the richer dependency-planning artifact
+3. broader automation should still not outrun the current explicit operator-invoked probe model

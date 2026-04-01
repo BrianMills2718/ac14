@@ -22,23 +22,42 @@ This file is not the active checklist. That remains in [TODO.md](/home/brian/pro
 ## Active Lane Uncertainties
 
 ### U-001: What should the dependency execution-probe result model be?
-**Status:** Open
+**Status:** Resolved
 **Context:** The active lane needs explicit result states such as `confirmed`,
 `blocked`, and `skipped` instead of implicit shell success or failure.
 **Why it matters:** The probe artifact must be reviewable and composable with
 later planning and freeze surfaces.
+**Resolution:** AC14 now persists explicit `confirmed`, `blocked`, and
+`skipped` probe states in the dependency execution artifact.
+**Date resolved:** 2026-03-31
 
 ### U-002: How much environment mutation is acceptable in the first probe lane?
-**Status:** Open
+**Status:** Resolved
 **Context:** AC14 should test approved dependency recommendations without
 quietly becoming a broad automatic installer.
 **Why it matters:** The first bridge must stay thesis-preserving and reviewable.
+**Resolution:** The first probe lane defaults to `check_only` and only attempts
+install commands when the operator explicitly enables `--allow-install`.
+**Date resolved:** 2026-03-31
 
 ### U-003: What post-probe environment observations should be persisted?
-**Status:** Open
+**Status:** Resolved
 **Context:** Command output alone is not enough for follow-on planning.
 **Why it matters:** Later phases need explicit environment deltas and blocking
 signals.
+**Resolution:** AC14 now persists compact before/after snapshots, command exit
+codes, per-probe observations, and cross-cutting environment observations.
+**Date resolved:** 2026-03-31
+
+### U-012: How should blocked dependency probes affect freeze?
+**Status:** Resolved
+**Context:** Probe artifacts only matter if blocked results can stop the front
+half from freezing a plan that depends on unavailable libraries.
+**Why it matters:** Otherwise dependency execution remains a disconnected side
+artifact.
+**Resolution:** Blocked dependency probes now become explicit freeze-readiness
+blockers and grouped freeze-remediation tasks.
+**Date resolved:** 2026-03-31
 
 ## Deferred Project Uncertainties
 

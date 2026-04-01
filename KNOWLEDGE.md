@@ -92,4 +92,11 @@ dependency execution artifact with `confirmed` / `blocked` / `skipped` results,
 before/after package snapshots, and narrow default behavior that blocks install
 mutation unless the operator explicitly enables it.
 
+### 2026-03-31 — codex — best-practice
+Dependency probe evidence should not stop at a side artifact. AC14 now carries
+confirmed and blocked probe summaries into draft planning, turns blocked probe
+results into explicit freeze-readiness blockers, and groups those blockers into
+freeze-remediation tasks so unavailable libraries cannot slip past freeze as
+mere warnings.
+
 ---

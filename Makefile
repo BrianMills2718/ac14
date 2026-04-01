@@ -21,6 +21,7 @@ RETRIEVAL_ARTIFACTS ?=
 DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 DEPENDENCY_PLAN ?=
+DEPENDENCY_EXECUTION ?=
 ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
@@ -66,8 +67,8 @@ plan-dependencies: ## Build an evidence-backed dependency plan (DISCOVERY=.ac14_
 probe-dependencies: ## Probe dependency recommendations (DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json OUTPUT=.ac14_out/dependency_probe ALLOW_INSTALL=1 to permit installs)
 	$(PYTHON) -m ac14 probe-dependencies "$(DEPENDENCY_PLAN)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,)
 
-draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json)
-	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json)
+	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness report (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle)
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"

@@ -29,6 +29,13 @@ def _write_plan_artifact(path: Path) -> Path:
         discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
         requirements=["normalize discovered ticket input", "keep packets bounded"],
         discovery_open_concerns=["field priority is sparse across samples"],
+        dependency_execution_artifact_path=str(path.parent / "dependency_execution_artifact.json"),
+        dependency_execution_summary="check_only dependency probes: 1 confirmed, 0 blocked, 0 skipped",
+        confirmed_dependency_probes=[
+            "reuse pydantic: reuse probe confirmed the package is already available",
+        ],
+        blocked_dependency_probes=[],
+        dependency_probe_observations=["install mutation was disabled for this run"],
         planning_summary="Use a single source component as the first draft bundle.",
         proposed_schemas=[
             PlannedSchema(
@@ -133,3 +140,39 @@ def test_build_freeze_decision_promotes_ready_bundle(tmp_path: Path) -> None:
     remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
     assert remediation_payload["blocked"] is False
     assert remediation_payload["task_count"] == 0
+
+
+def test_build_freeze_decision_groups_dependency_probe_blockers(tmp_path: Path) -> None:
+    """Dependency probe blockers should become a dedicated remediation task bucket."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(plan_path.read_text())
+    artifact.blocked_dependency_probes = [
+        "install rich: install probe blocked because environment mutation is disabled",
+    ]
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+    decision = build_freeze_decision(
+        bundle_dir=Path(manifest.draft_bundle_dir),
+        output_dir=tmp_path / "freeze_decision",
+        readiness_report_path=Path(manifest.freeze_readiness_report_path),
+    )
+
+    remediation_payload = json.loads(Path(decision.remediation_plan_path).read_text())
+    dependency_tasks = [
+        task
+        for task in remediation_payload["tasks"]
+        if "E-DRAFT-DEPENDENCY-PROBE-BLOCKED" in task["finding_codes"]
+    ]
+    assert len(dependency_tasks) == 1
+    dependency_task = dependency_tasks[0]
+    assert dependency_task["blocking"] is True
+    assert any(target.endswith("draft_blueprint_plan.json") for target in dependency_task["target_files"])
+    assert any(
+        target.endswith("dependency_execution_artifact.json")
+        for target in dependency_task["target_files"]
+    )

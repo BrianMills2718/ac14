@@ -373,6 +373,14 @@ def _authoring_findings(
                 path="plan.dependency_open_questions",
             ),
         )
+    for blocked_probe in plan.blocked_dependency_probes:
+        findings.append(
+            ValidationFinding(
+                code="E-DRAFT-DEPENDENCY-PROBE-BLOCKED",
+                message=f"dependency probe still blocked before freeze: {blocked_probe}",
+                path="plan.blocked_dependency_probes",
+            ),
+        )
     return findings
 
 

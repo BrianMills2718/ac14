@@ -599,6 +599,45 @@ def test_make_draft_blueprint_plan_runs_with_dependency_plan(tmp_path: Path) -> 
             }
         )
     )
+    dependency_execution_path = tmp_path / "dependency_execution_artifact.json"
+    dependency_execution_path.write_text(
+        json.dumps(
+            {
+                "dependency_plan_path": str(dependency_plan_path),
+                "execution_mode": "check_only",
+                "planning_summary": "Reuse pydantic for typed schema contracts.",
+                "carried_forward_questions": [],
+                "results": [
+                    {
+                        "package_name": "pydantic",
+                        "action": "reuse",
+                        "result": "confirmed",
+                        "summary": "reuse probe confirmed the package is already available",
+                        "mutation_permitted": False,
+                        "mutation_attempted": False,
+                        "attempted_command": None,
+                        "command_exit_code": None,
+                        "before": {
+                            "package_name": "pydantic",
+                            "installed": True,
+                            "version": "2.11.0",
+                            "top_level_modules": ["pydantic"],
+                            "discoverable_modules": ["pydantic"],
+                        },
+                        "after": {
+                            "package_name": "pydantic",
+                            "installed": True,
+                            "version": "2.11.0",
+                            "top_level_modules": ["pydantic"],
+                            "discoverable_modules": ["pydantic"],
+                        },
+                        "observations": ["checked installed distribution state for pydantic"],
+                    }
+                ],
+                "environment_observations": ["install mutation was disabled for this run"],
+            }
+        )
+    )
     output_dir = tmp_path / "draft_plan"
     env = os.environ.copy()
     env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
@@ -608,6 +647,7 @@ def test_make_draft_blueprint_plan_runs_with_dependency_plan(tmp_path: Path) -> 
             "draft-blueprint-plan",
             f"DISCOVERY={discovery_path}",
             f"DEPENDENCY_PLAN={dependency_plan_path}",
+            f"DEPENDENCY_EXECUTION={dependency_execution_path}",
             f"OUTPUT={output_dir}",
             "REQUIREMENTS=normalize discovered ticket input",
         ],
@@ -620,6 +660,7 @@ def test_make_draft_blueprint_plan_runs_with_dependency_plan(tmp_path: Path) -> 
     assert result.returncode == 0, result.stderr
     payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
     assert payload["dependency_plan_path"] == str(dependency_plan_path)
+    assert payload["dependency_execution_artifact_path"] == str(dependency_execution_path)
     assert payload["dependency_recommendations"] == ["reuse pydantic: typed schema contracts"]
 
 

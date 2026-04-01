@@ -66,13 +66,15 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The active lane after planning-artifact resynchronization is dependency
-execution probing.
+The current focus after dependency execution probing is dependency-probe
+integration until a newer numbered plan replaces it.
 
-- turn approved dependency recommendations into explicit execution probes rather
-  than leaving them permanently advisory
-- keep install/reuse checks reviewable with persisted environment deltas and
-  fail-loud results
+- feed dependency execution evidence back into draft planning rather than
+  leaving it as a disconnected side artifact
+- treat blocked dependency probes as explicit freeze blockers until the plan or
+  environment changes
+- keep confirmed probe results reviewable and reusable so later phases stop
+  re-asking the same dependency question
 - preserve the AC14-native notebook and implementation-status doc as the
   canonical story surface while implementation continues
 - keep dependency execution tied to blueprint freeze preparation rather than a

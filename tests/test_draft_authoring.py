@@ -27,6 +27,13 @@ def _write_plan_artifact(path: Path) -> Path:
         dependency_plan_path=str(path.parent / "dependency_plan.json"),
         dependency_plan_summary="Reuse pydantic and leave richer UI libraries unresolved.",
         dependency_recommendations=["reuse pydantic: typed schema contracts"],
+        dependency_execution_artifact_path=str(path.parent / "dependency_execution_artifact.json"),
+        dependency_execution_summary="check_only dependency probes: 1 confirmed, 0 blocked, 0 skipped",
+        confirmed_dependency_probes=[
+            "reuse pydantic: reuse probe confirmed the package is already available",
+        ],
+        blocked_dependency_probes=[],
+        dependency_probe_observations=["install mutation was disabled for this run"],
         dependency_open_questions=[
             PlanningQuestion(
                 question="Should richer terminal rendering stay out of the first draft slice?",
@@ -115,3 +122,29 @@ def test_materialize_draft_blueprint_bundle_persists_bundle_and_report(tmp_path:
     assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
     assert "W-DRAFT-OPEN-QUESTION" in codes
     assert "W-DRAFT-DEPENDENCY-QUESTION" in codes
+
+
+def test_materialize_draft_blueprint_bundle_blocks_on_dependency_probe_results(
+    tmp_path: Path,
+) -> None:
+    """Blocked dependency probes should become explicit freeze-readiness blockers."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.blocked_dependency_probes = [
+        "install rich: install probe blocked because environment mutation is disabled",
+    ]
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+
+    report = json.loads(Path(manifest.freeze_readiness_report_path).read_text())
+    assert report["ready"] is False
+    blocked_findings = [
+        finding for finding in report["findings"] if finding["code"] == "E-DRAFT-DEPENDENCY-PROBE-BLOCKED"
+    ]
+    assert len(blocked_findings) == 1
+    assert "install rich" in blocked_findings[0]["message"]

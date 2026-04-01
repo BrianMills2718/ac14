@@ -75,9 +75,9 @@ Implemented:
 4. persisted external documentation and repository retrieval artifacts
 5. advisory dependency and library planning
 6. explicit dependency execution probes for dependency-plan recommendations
-7. dependency-aware draft blueprint planning
+7. dependency-aware draft blueprint planning with confirmed and blocked probe carry-forward
 8. draft bundle materialization
-9. freeze readiness
+9. freeze readiness that now blocks on unresolved dependency probes
 10. explicit freeze decision and remediation planning
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze

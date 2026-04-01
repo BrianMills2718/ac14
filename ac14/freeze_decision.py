@@ -310,6 +310,11 @@ def _bucket_key_for_finding(finding: ValidationFinding) -> str:
         return "component_interface"
     if finding.code == "W-DRAFT-OPEN-QUESTION":
         return "planning"
+    if finding.code in {
+        "W-DRAFT-DEPENDENCY-QUESTION",
+        "E-DRAFT-DEPENDENCY-PROBE-BLOCKED",
+    }:
+        return "dependencies"
     return _fallback_bucket_from_path(finding.path)
 
 
@@ -411,6 +416,28 @@ def _task_shape_for_bucket(
             [target],
             actions,
         )
+    if bucket_key == "dependencies":
+        target_files = []
+        if upstream_plan_path is not None:
+            target_files.append(upstream_plan_path)
+            dependency_execution_path = _read_upstream_dependency_execution_path(upstream_plan_path)
+            if dependency_execution_path is not None:
+                target_files.append(dependency_execution_path)
+        if not target_files:
+            target_files.append(str(source_dir / "metadata.yaml"))
+        actions = [
+            "Inspect blocked dependency probes and decide whether to revise the dependency plan or rerun probing with explicit operator approval.",
+            "Do not retry freeze until every dependency needed by the draft plan is either confirmed or removed from scope.",
+        ]
+        if upstream_plan_path is not None:
+            actions.append(
+                "If you update the upstream plan or dependency execution artifact, regenerate the draft bundle before retrying freeze.",
+            )
+        return (
+            "Resolve blocked dependency probes",
+            target_files,
+            actions,
+        )
     return (
         "Resolve uncategorized freeze findings",
         [str(source_dir / "validation.yaml")],
@@ -430,6 +457,14 @@ def _read_upstream_plan_path(source_dir: Path) -> str | None:
     if source_kind == "draft_plan_artifact" and isinstance(created_from, str):
         return created_from
     return None
+
+
+def _read_upstream_dependency_execution_path(upstream_plan_path: str) -> str | None:
+    """Read the dependency execution artifact path from an upstream plan when available."""
+
+    payload = json.loads(Path(upstream_plan_path).read_text())
+    path = payload.get("dependency_execution_artifact_path")
+    return path if isinstance(path, str) and path else None
 
 
 def _dedupe(values: Iterable[str]) -> list[str]:
