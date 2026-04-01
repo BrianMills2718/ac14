@@ -28,7 +28,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -71,6 +71,9 @@ plan-dependencies: ## Build an evidence-backed dependency plan (DISCOVERY=.ac14_
 
 probe-dependencies: ## Probe dependency recommendations (DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json OUTPUT=.ac14_out/dependency_probe ALLOW_INSTALL=1 to permit installs)
 	$(PYTHON) -m ac14 probe-dependencies "$(DEPENDENCY_PLAN)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,)
+
+remediate-dependencies: ## Rerun blocked install probes from an execution artifact (INPUT=.ac14_out/dependency_probe/dependency_execution_artifact.json OUTPUT=.ac14_out/dependency_remediation)
+	$(PYTHON) -m ac14 remediate-dependencies "$(INPUT)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)"
 
 draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json)
 	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

@@ -148,6 +148,53 @@ def _write_dependency_plan_artifact(path: Path) -> Path:
     return path
 
 
+def _write_dependency_plan_without_install(path: Path) -> Path:
+    """Persist a dependency plan with no install actions for remediation Make tests."""
+
+    artifact = DependencyPlanningArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["preserve typed schema contracts"],
+        carried_forward_concerns=[],
+        planning_summary="Reuse pydantic and skip richer formatting for now.",
+        recommendations=[
+            DependencyRecommendation(
+                package_name="pydantic",
+                action="reuse",
+                capability_need="Typed schema contracts for blueprint models.",
+                justification="Already installed and used throughout AC14.",
+                already_installed=True,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="pydantic",
+                        detail="pydantic is already installed in the current environment.",
+                    ),
+                ],
+            ),
+            DependencyRecommendation(
+                package_name="rich",
+                action="investigate",
+                capability_need="Richer terminal formatting later.",
+                justification="Not required for this proof slice.",
+                already_installed=False,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="requirement",
+                        locator="operator output",
+                        detail="Formatting is not yet required.",
+                    ),
+                ],
+            ),
+        ],
+        standard_library_notes=[],
+        open_questions=[],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
+
+
 def _write_llm_codegen_fixture(path: Path, blueprint_dir: Path) -> Path:
     """Persist fixture-backed LLM codegen responses using deterministic module code."""
 
@@ -413,6 +460,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "retrieve-context" in result.stdout
     assert "plan-dependencies" in result.stdout
     assert "probe-dependencies" in result.stdout
+    assert "remediate-dependencies" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
@@ -544,6 +592,43 @@ def test_make_probe_dependencies_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "dependency_execution_artifact.json").exists()
+
+
+def test_make_remediate_dependencies_runs_end_to_end(tmp_path: Path) -> None:
+    """Make remediation target should persist a dependency-remediation artifact."""
+
+    dependency_plan_path = _write_dependency_plan_without_install(tmp_path / "dependency_plan.json")
+    probe_output_dir = tmp_path / "dependency_probe"
+    probe_result = subprocess.run(
+        [
+            "make",
+            "probe-dependencies",
+            f"DEPENDENCY_PLAN={dependency_plan_path}",
+            f"OUTPUT={probe_output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert probe_result.returncode == 0, probe_result.stderr
+
+    output_dir = tmp_path / "dependency_remediation"
+    result = subprocess.run(
+        [
+            "make",
+            "remediate-dependencies",
+            f"INPUT={probe_output_dir / 'dependency_execution_artifact.json'}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "dependency_remediation_artifact.json").read_text())
+    assert payload["attempted_packages"] == []
 
 
 def test_make_inspect_project_context_runs_end_to_end(tmp_path: Path) -> None:

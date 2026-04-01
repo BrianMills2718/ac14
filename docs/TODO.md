@@ -27,30 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: remediation scope design
-  - [ ] pre-make the narrowest safe remediation scope
-  - [ ] pre-make how remediation results feed back into freeze/readiness
-  - Success criteria: the remediation lane is explicit enough to implement without hidden policy drift
+- [ ] Phase 1: remediation hand-off scope design
+  - [ ] pre-make which surfaces accept remediation artifacts first
+  - [ ] pre-make how the chosen dependency execution artifact stays explicit downstream
+  - Success criteria: the hand-off lane is explicit enough to implement without hidden provenance loss
 
-- [ ] Phase 2: remediation implementation
-  - [ ] persist one explicit remediation artifact/command
-  - [ ] keep operator-visible intent and environment delta explicit
-  - [ ] feed remediation results back into the front-half chain
-  - Success criteria: dependency blockers can move through one reviewable remediation lane
+- [ ] Phase 2: remediation hand-off implementation
+  - [ ] let draft planning and/or front-half acceptance consume remediation artifacts directly
+  - [ ] keep the chosen dependency execution artifact explicit in downstream outputs
+  - Success criteria: remediation no longer requires manual path extraction between phases
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted remediation tests
+  - [ ] run targeted remediation-hand-off tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the remediation lane
+  - Success criteria: verification passes and the docs match the remediation-hand-off lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- recommendation now consumes suite live-readiness evidence, but dependency blockers still stop at diagnosis more often than controlled action
-- the front half now includes one honest messy-input proof, but dependency remediation is still weaker than dependency diagnosis
+- recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
+- dependency remediation now exists, but downstream phases still need a cleaner direct hand-off from remediation artifacts
 
 ## Latest Verified Results
 
@@ -187,6 +186,14 @@ Detailed uncertainty tracking now lives in:
   - `python -m ruff check tests/test_front_half_acceptance.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `146 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted remediation verification passed:
+  - `python -m pytest -q tests/test_dependency_execution.py tests/test_cli.py::test_cli_remediate_dependencies_runs_end_to_end tests/test_make_targets.py::test_make_remediate_dependencies_runs_end_to_end` passed with `5 passed`
+  - `python -m mypy ac14/dependency_execution.py ac14/__main__.py tests/test_dependency_execution.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/dependency_execution.py ac14/__main__.py tests/test_dependency_execution.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `149 passed`
     - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
 

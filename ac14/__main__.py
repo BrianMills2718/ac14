@@ -20,7 +20,10 @@ from ac14.blueprint_planning import (
     build_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
-from ac14.dependency_execution import build_dependency_execution_artifact
+from ac14.dependency_execution import (
+    build_dependency_execution_artifact,
+    build_dependency_remediation_artifact,
+)
 from ac14.dependency_planning import (
     DEFAULT_DEPENDENCY_PLAN_MAX_BUDGET,
     DEFAULT_DEPENDENCY_PLAN_MODEL,
@@ -145,6 +148,14 @@ def main() -> int:
     dependency_probe_parser.add_argument("--output-dir", type=Path, required=True)
     dependency_probe_parser.add_argument("--allow-install", action="store_true")
     dependency_probe_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+
+    dependency_remediation_parser = subparsers.add_parser(
+        "remediate-dependencies",
+        help="Rerun blocked install probes and persist a dependency-remediation artifact.",
+    )
+    dependency_remediation_parser.add_argument("dependency_execution_artifact_path", type=Path)
+    dependency_remediation_parser.add_argument("--output-dir", type=Path, required=True)
+    dependency_remediation_parser.add_argument("--project-root", type=Path, default=Path.cwd())
 
     draft_plan_parser = subparsers.add_parser(
         "draft-blueprint-plan",
@@ -447,6 +458,12 @@ def main() -> int:
             args.dependency_plan_path,
             args.output_dir,
             args.allow_install,
+            args.project_root,
+        )
+    if args.command == "remediate-dependencies":
+        return _remediate_dependencies(
+            args.dependency_execution_artifact_path,
+            args.output_dir,
             args.project_root,
         )
     if args.command == "draft-blueprint-plan":
@@ -769,6 +786,22 @@ def _probe_dependencies(
         dependency_plan_path=dependency_plan_path,
         output_dir=output_dir,
         allow_install=allow_install,
+        project_root=project_root,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _remediate_dependencies(
+    dependency_execution_artifact_path: Path,
+    output_dir: Path,
+    project_root: Path,
+) -> int:
+    """Build and print a persisted dependency-remediation artifact."""
+
+    artifact = build_dependency_remediation_artifact(
+        dependency_execution_artifact_path=dependency_execution_artifact_path,
+        output_dir=output_dir,
         project_root=project_root,
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))

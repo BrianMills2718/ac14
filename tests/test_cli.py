@@ -149,6 +149,53 @@ def _write_dependency_plan_artifact(path: Path) -> Path:
     return path
 
 
+def _write_dependency_plan_without_install(path: Path) -> Path:
+    """Persist a dependency plan with no install actions for remediation CLI tests."""
+
+    artifact = DependencyPlanningArtifact(
+        discovery_artifact_path=str(path.parent / "discovery_artifact.json"),
+        requirements=["preserve typed schema contracts"],
+        carried_forward_concerns=[],
+        planning_summary="Reuse pydantic and skip richer formatting for now.",
+        recommendations=[
+            DependencyRecommendation(
+                package_name="pydantic",
+                action="reuse",
+                capability_need="Typed schema contracts for blueprint models.",
+                justification="Already installed and used throughout AC14.",
+                already_installed=True,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="environment",
+                        locator="pydantic",
+                        detail="pydantic is already installed in the current environment.",
+                    ),
+                ],
+            ),
+            DependencyRecommendation(
+                package_name="rich",
+                action="investigate",
+                capability_need="Richer terminal formatting later.",
+                justification="Not required for this proof slice.",
+                already_installed=False,
+                install_command=None,
+                evidence=[
+                    DependencyEvidence(
+                        source="requirement",
+                        locator="operator output",
+                        detail="Formatting is not yet required.",
+                    ),
+                ],
+            ),
+        ],
+        standard_library_notes=[],
+        open_questions=[],
+    )
+    path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    return path
+
+
 def _write_llm_codegen_fixture(path: Path, blueprint_dir: Path) -> Path:
     """Persist fixture-backed LLM codegen responses using deterministic module code."""
 
@@ -543,6 +590,52 @@ def test_cli_probe_dependencies(tmp_path: Path) -> None:
     package_names = {entry["package_name"] for entry in payload["results"]}
     assert {"pydantic", "ac14-missing-lib"} <= package_names
     assert (tmp_path / "dependency_probe" / "dependency_execution_artifact.json").exists()
+
+
+def test_cli_remediate_dependencies_runs_end_to_end(tmp_path: Path) -> None:
+    """Dependency remediation command should persist a remediation artifact."""
+
+    dependency_plan_path = _write_dependency_plan_without_install(tmp_path / "dependency_plan.json")
+    probe_result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "probe-dependencies",
+            str(dependency_plan_path),
+            "--output-dir",
+            str(tmp_path / "dependency_probe"),
+            "--project-root",
+            str(REPO_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert probe_result.returncode == 0, probe_result.stderr
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "remediate-dependencies",
+            str(tmp_path / "dependency_probe" / "dependency_execution_artifact.json"),
+            "--output-dir",
+            str(tmp_path / "dependency_remediation"),
+            "--project-root",
+            str(REPO_ROOT),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["attempted_packages"] == []
+    assert (tmp_path / "dependency_remediation" / "dependency_remediation_artifact.json").exists()
 
 
 def test_cli_inspect_project_context(tmp_path: Path) -> None:

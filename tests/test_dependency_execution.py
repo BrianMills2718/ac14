@@ -8,7 +8,11 @@ from subprocess import CompletedProcess
 
 import pytest
 
-from ac14.dependency_execution import build_dependency_execution_artifact
+from ac14.dependency_execution import (
+    DependencySnapshot,
+    build_dependency_execution_artifact,
+    build_dependency_remediation_artifact,
+)
 from ac14.dependency_planning import (
     DependencyEvidence,
     DependencyPlanningArtifact,
@@ -138,3 +142,69 @@ def test_probe_failure_is_fail_loud(
     assert failed_install.mutation_attempted is True
     assert failed_install.command_exit_code == 1
     assert any("stderr:" in observation for observation in failed_install.observations)
+
+
+def test_build_dependency_remediation_artifact_runs_approved_actions(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Dependency remediation should rerun blocked installs and persist the delta."""
+
+    plan_path = _write_dependency_plan(tmp_path / "dependency_plan.json")
+    build_dependency_execution_artifact(
+        dependency_plan_path=plan_path,
+        output_dir=tmp_path / "dependency_probe",
+        allow_install=False,
+    )
+    install_state = {"ac14-missing-lib": False}
+
+    def _fake_run(*_args: object, **_kwargs: object) -> CompletedProcess[str]:
+        install_state["ac14-missing-lib"] = True
+        return CompletedProcess(
+            args=["python", "-m", "pip", "install", "ac14-missing-lib"],
+            returncode=0,
+            stdout="installed",
+            stderr="",
+        )
+
+    def _fake_snapshot(package_name: str) -> DependencySnapshot:
+        if package_name == "pydantic":
+            return DependencySnapshot(
+                package_name=package_name,
+                installed=True,
+                version="2.0.0",
+                top_level_modules=["pydantic"],
+                discoverable_modules=["pydantic"],
+            )
+        if package_name == "ac14-missing-lib":
+            installed = install_state[package_name]
+            return DependencySnapshot(
+                package_name=package_name,
+                installed=installed,
+                version="1.0.0" if installed else None,
+                top_level_modules=["ac14_missing_lib"] if installed else [],
+                discoverable_modules=["ac14_missing_lib"] if installed else [],
+            )
+        return DependencySnapshot(
+            package_name=package_name,
+            installed=False,
+            version=None,
+            top_level_modules=[],
+            discoverable_modules=[],
+        )
+
+    monkeypatch.setattr("ac14.dependency_execution.subprocess.run", _fake_run)
+    monkeypatch.setattr("ac14.dependency_execution._snapshot_distribution", _fake_snapshot)
+
+    artifact = build_dependency_remediation_artifact(
+        dependency_execution_artifact_path=tmp_path / "dependency_probe" / "dependency_execution_artifact.json",
+        output_dir=tmp_path / "dependency_remediation",
+    )
+
+    assert artifact.attempted_packages == ["ac14-missing-lib"]
+    assert artifact.newly_confirmed_packages == ["ac14-missing-lib"]
+    assert artifact.still_blocked_packages == []
+    assert (tmp_path / "dependency_remediation" / "dependency_remediation_artifact.json").exists()
+    remediated_payload = json.loads(Path(artifact.remediated_dependency_execution_artifact_path).read_text())
+    remediated_lookup = {result["package_name"]: result for result in remediated_payload["results"]}
+    assert remediated_lookup["ac14-missing-lib"]["result"] == "confirmed"

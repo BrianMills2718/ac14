@@ -198,4 +198,10 @@ runtime feature. AC14 now proves the front-half chain on a reviewable CSV asset
 under the support-ticket example so discovery-through-freeze can be tested on a
 messier artifact without scope sprawl.
 
+### 2026-04-01 — codex — best-practice
+Dependency remediation does not need a second dependency system. AC14 now uses
+the existing dependency execution artifact as the hand-off, reruns previously
+blocked install probes explicitly, and persists a remediation delta artifact
+plus a fresh dependency execution artifact for downstream reuse.
+
 ---

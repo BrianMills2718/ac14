@@ -7,14 +7,13 @@ Last updated: 2026-04-01
 
 This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contracts for the current sequence are:
+The authoritative implementation contract for the current lane is:
 
-- [Plan #18: Messy-Input Front-Half Proof](/home/brian/projects/ac14/docs/plans/18_messy_input_front_half_proof.md)
-- [Plan #19: Controlled Dependency Remediation](/home/brian/projects/ac14/docs/plans/19_controlled_dependency_remediation.md)
+- [Plan #20: Remediation Hand-Off Automation](/home/brian/projects/ac14/docs/plans/20_remediation_handoff_automation.md)
 
-Plan #17 closed the missing suite-level front-half breadth artifact. Plan #18
-closed the first honest messy-input front-half proof lane. The next honest gap
-is turning explicit dependency blockers into one narrow remediation lane.
+Plan #19 closed the first narrow dependency-remediation lane. The current
+active gap is reducing the manual path hand-off from remediation artifacts back
+into later front-half phases.
 
 ## Progress Update
 
@@ -34,36 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Completed in Plan #18:
+Required in Plan #20:
 
-1. one honest messy-input front-half proof lane
-2. explicit design choice about the first messy-input format
-3. reviewable discovery-through-freeze artifacts on that messier input
-
-Required in Plan #19:
-
-1. one explicit dependency-remediation artifact/command
-2. explicit operator-visible intent and environment delta
-3. remediation results that feed back into the front-half chain
+1. direct remediation-artifact consumption in later front-half phases
+2. explicit persisted provenance for the chosen dependency execution artifact
+3. less manual path plumbing between remediation and the rest of the chain
 
 ## Tactical Phase Summary
 
-Detailed references, write scope, tests, and acceptance criteria live in Plans
-#18 and #19.
+Detailed references, write scope, tests, and acceptance criteria live in Plan
+#20.
 
-### Phase 1: remediation scope design
+### Phase 1: hand-off scope design
 
-- choose the narrowest safe remediation scope
-- pre-make how remediation outcomes feed back into freeze/readiness
+- choose which downstream surfaces accept remediation artifacts first
+- pre-make how remediation provenance stays explicit
 
-### Phase 2: remediation implementation
+### Phase 2: hand-off implementation
 
-- add the remediation artifact/command
-- keep environment delta and operator intent explicit
+- let later front-half phases consume remediation artifacts directly
+- keep the selected dependency execution artifact explicit in downstream outputs
 
 ### Phase 3: Verification And Lock
 
-- targeted remediation verification
+- targeted hand-off verification
 - full local verification
 - doc lock and clean commit
 
@@ -75,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. remediation should stay explicit and narrow instead of becoming silent package management
-2. remediation outcomes should feed back into freeze/readiness without guesswork
-3. the lane should preserve reviewability instead of hiding environment mutation
+1. automation should reduce manual path plumbing without hiding provenance
+2. the first consumer surfaces should be chosen narrowly
+3. the lane should preserve reviewability instead of creating implicit dependency state

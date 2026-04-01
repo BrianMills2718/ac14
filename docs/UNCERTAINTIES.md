@@ -274,6 +274,18 @@ asset under the support-ticket example, keeping discovery, draft planning,
 freeze review, and semantic front-half review explicit on a messier artifact.
 **Date resolved:** 2026-04-01
 
+### U-030: Dependency blockers still stopped at diagnosis more often than controlled action.
+**Status:** Resolved
+**Context:** AC14 could plan dependencies, probe them, and block freeze when
+needed libraries remained unavailable, but it still lacked a narrow remediation
+lane.
+**Why it matters:** The long-term system needs to install and use libraries in a
+reviewable way, not just report blockers.
+**Resolution:** AC14 now persists an explicit dependency-remediation artifact
+that reruns previously blocked install probes, records the delta, and points to
+a fresh dependency execution artifact for downstream reuse.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

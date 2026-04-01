@@ -89,6 +89,29 @@ class DependencyExecutionArtifact(BaseModel):
     )
 
 
+class DependencyRemediationArtifact(BaseModel):
+    """Persisted summary of one explicit dependency-remediation rerun."""
+
+    prior_dependency_execution_artifact_path: str = Field(
+        description="Previously persisted dependency execution artifact being remediated.",
+    )
+    remediated_dependency_execution_artifact_path: str = Field(
+        description="Fresh dependency execution artifact produced by the remediation rerun.",
+    )
+    attempted_packages: list[str] = Field(
+        description="Previously blocked install packages targeted by the remediation rerun.",
+    )
+    newly_confirmed_packages: list[str] = Field(
+        description="Attempted packages that became confirmed after remediation.",
+    )
+    still_blocked_packages: list[str] = Field(
+        description="Attempted packages that remained blocked after remediation.",
+    )
+    summary: str = Field(
+        description="Compact reviewable summary of the remediation outcome.",
+    )
+
+
 def build_dependency_execution_artifact(
     dependency_plan_path: Path | str,
     output_dir: Path | str,
@@ -125,6 +148,77 @@ def build_dependency_execution_artifact(
         environment_observations=environment_observations,
     )
     (destination / "dependency_execution_artifact.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return artifact
+
+
+def build_dependency_remediation_artifact(
+    dependency_execution_artifact_path: Path | str,
+    output_dir: Path | str,
+    *,
+    python_executable: str = sys.executable,
+    project_root: Path | None = None,
+) -> DependencyRemediationArtifact:
+    """Rerun blocked install probes and persist a reviewable remediation delta."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    prior_path = Path(dependency_execution_artifact_path)
+    prior_artifact = DependencyExecutionArtifact.model_validate_json(prior_path.read_text())
+    attempted_packages = sorted(
+        {
+            result.package_name
+            for result in prior_artifact.results
+            if result.action == "install" and result.result == "blocked"
+        },
+    )
+
+    rerun_output_dir = destination / "remediated_dependency_probe"
+    remediated_artifact = build_dependency_execution_artifact(
+        dependency_plan_path=prior_artifact.dependency_plan_path,
+        output_dir=rerun_output_dir,
+        allow_install=True,
+        python_executable=python_executable,
+        project_root=project_root,
+    )
+    result_lookup = {
+        result.package_name: result
+        for result in remediated_artifact.results
+    }
+    newly_confirmed_packages = [
+        package_name
+        for package_name in attempted_packages
+        if result_lookup[package_name].result == "confirmed"
+    ]
+    still_blocked_packages = [
+        package_name
+        for package_name in attempted_packages
+        if result_lookup[package_name].result == "blocked"
+    ]
+    if not attempted_packages:
+        summary = "no blocked install probes required remediation"
+    elif still_blocked_packages:
+        summary = (
+            f"remediation reran {len(attempted_packages)} blocked install probes; "
+            f"{len(newly_confirmed_packages)} confirmed and {len(still_blocked_packages)} remained blocked"
+        )
+    else:
+        summary = (
+            f"remediation reran {len(attempted_packages)} blocked install probes and all became confirmed"
+        )
+
+    artifact = DependencyRemediationArtifact(
+        prior_dependency_execution_artifact_path=str(prior_path),
+        remediated_dependency_execution_artifact_path=str(
+            rerun_output_dir / "dependency_execution_artifact.json",
+        ),
+        attempted_packages=attempted_packages,
+        newly_confirmed_packages=newly_confirmed_packages,
+        still_blocked_packages=still_blocked_packages,
+        summary=summary,
+    )
+    (destination / "dependency_remediation_artifact.json").write_text(
         json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return artifact

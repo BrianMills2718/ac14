@@ -1,6 +1,6 @@
 # Plan #19: Controlled Dependency Remediation
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -41,14 +41,21 @@ bridging that diagnosis into a controlled action lane.
 ## Open Questions
 
 ### Q1: What is the narrowest safe remediation scope?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The first remediation lane should stay explicit and
 reviewable rather than becoming broad automatic environment mutation.
+**Resolution:** The remediation lane is a narrow rerun/delta artifact built on
+top of the existing dependency execution artifact. It reruns previously blocked
+install probes with explicit mutation intent instead of introducing a second
+dependency system.
 
 ### Q2: How should remediation outcomes feed back into freeze/readiness?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** A remediation lane only matters if later phases can consume
 its result without guesswork.
+**Resolution:** The remediation artifact now points to a fresh remediated
+dependency execution artifact. That path becomes the explicit hand-off back
+into draft planning and later front-half phases.
 
 ---
 
@@ -104,9 +111,9 @@ its result without guesswork.
 
 ## Acceptance Criteria
 
-- [ ] AC14 provides one explicit, reviewable dependency-remediation lane.
-- [ ] Remediation does not silently mutate the environment without an explicit artifact and operator-visible intent.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 provides one explicit, reviewable dependency-remediation lane.
+- [x] Remediation does not silently mutate the environment without an explicit artifact and operator-visible intent.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 
