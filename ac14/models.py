@@ -272,6 +272,7 @@ class ComponentSummary(BaseModel):
 class ComponentPacket(BaseModel):
     """Bounded local context packet compiled for one component."""
 
+    blueprint_id: str = Field(description="Stable blueprint identifier for the packet origin.")
     component: ComponentDefinition = Field(description="Target component definition.")
     local_schemas: dict[str, SchemaDefinition] = Field(
         description="Schemas needed by the component packet.",
@@ -311,6 +312,7 @@ class RecompositionPlan(BaseModel):
 class PacketBundle(BaseModel):
     """All component packets plus the recomposition plan."""
 
+    blueprint_id: str = Field(description="Stable blueprint identifier shared by all packets.")
     packets: dict[str, ComponentPacket] = Field(
         description="Component packets keyed by component_id.",
     )

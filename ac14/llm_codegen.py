@@ -49,6 +49,7 @@ async def agenerate_component_module_with_llm(
     if fixture_path:
         response = _load_fixture_response(
             fixture_path=Path(fixture_path),
+            blueprint_id=context.blueprint_id,
             component_id=context.component_id,
         )
         _validate_generated_module(response.module_code, component_id=context.component_id)
@@ -119,6 +120,7 @@ def _validate_generated_module(module_code: str, *, component_id: str) -> None:
 def _load_fixture_response(
     *,
     fixture_path: Path,
+    blueprint_id: str,
     component_id: str,
 ) -> GeneratedModuleResponse:
     """Load one deterministic LLM-codegen fixture response for a component."""
@@ -128,7 +130,23 @@ def _load_fixture_response(
         raise ValueError("AC14_LLM_CODEGEN_FIXTURE must point to a JSON object")
     if "module_code" in payload:
         return GeneratedModuleResponse.model_validate(payload)
+    blueprint_payload = payload.get(blueprint_id)
+    if blueprint_payload is not None:
+        if not isinstance(blueprint_payload, dict):
+            raise ValueError(
+                "AC14_LLM_CODEGEN_FIXTURE blueprint entry must map component ids to responses",
+            )
+        component_payload = blueprint_payload.get(component_id)
+        if component_payload is None:
+            raise ValueError(
+                f"AC14_LLM_CODEGEN_FIXTURE blueprint entry {blueprint_id} "
+                f"has no component {component_id}",
+            )
+        return GeneratedModuleResponse.model_validate(component_payload)
     component_payload = payload.get(component_id)
     if component_payload is None:
-        raise ValueError(f"AC14_LLM_CODEGEN_FIXTURE has no entry for component {component_id}")
+        raise ValueError(
+            "AC14_LLM_CODEGEN_FIXTURE has no entry for "
+            f"blueprint {blueprint_id} component {component_id}",
+        )
     return GeneratedModuleResponse.model_validate(component_payload)

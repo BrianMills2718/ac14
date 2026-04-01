@@ -15,6 +15,7 @@ from ac14.acceptance import (
     build_realistic_suite_acceptance_report,
     build_suite_acceptance_report,
 )
+from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
@@ -56,6 +57,30 @@ def _write_llm_codegen_fixture(tmp_path: Path, blueprint_dir: Path) -> Path:
         for component_id, module_path in deterministic_package.module_paths.items()
     }
     fixture_path = tmp_path / f"{blueprint.metadata.blueprint_id}_llm_codegen_fixture.json"
+    fixture_path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
+    return fixture_path
+
+
+def _write_blueprint_aware_llm_codegen_fixture(tmp_path: Path) -> Path:
+    """Persist fixture-backed LLM codegen responses keyed by blueprint id and component id."""
+
+    fixture_payload: dict[str, dict[str, dict[str, object]]] = {}
+    for example in discover_shipped_blueprints(EXAMPLES_ROOT):
+        blueprint = load_blueprint_dir(Path(example.blueprint_dir))
+        packet_bundle = compile_packets(blueprint)
+        deterministic_package = emit_generated_package(
+            packet_bundle,
+            tmp_path / f"{blueprint.metadata.blueprint_id}_deterministic_generated",
+            generator_kind="deterministic",
+        )
+        fixture_payload[blueprint.metadata.blueprint_id] = {
+            component_id: {
+                "module_code": Path(module_path).read_text(),
+                "implementation_notes": [f"fixture-backed llm codegen for {blueprint.metadata.blueprint_id}"],
+            }
+            for component_id, module_path in deterministic_package.module_paths.items()
+        }
+    fixture_path = tmp_path / "blueprint_aware_llm_codegen_fixture.json"
     fixture_path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
     return fixture_path
 
@@ -282,3 +307,26 @@ def test_build_realistic_mode_comparison_report_supports_llm(
         "llm": "accept",
     }
     assert (tmp_path / "realistic_mode_compare" / "realistic_mode_comparison_report.json").exists()
+
+
+def test_build_realistic_suite_acceptance_report_supports_llm_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Realistic suite acceptance should support llm mode across shipped examples."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+    monkeypatch.setenv("AC14_LLM_CODEGEN_FIXTURE", str(_write_blueprint_aware_llm_codegen_fixture(tmp_path)))
+
+    report = build_realistic_suite_acceptance_report(
+        output_dir=tmp_path / "realistic_suite_acceptance_llm",
+        examples_root=EXAMPLES_ROOT,
+        modes=["llm"],
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert report.example_count >= 3
+    assert report.mode_summaries["llm"].accepted_examples == report.example_count
+    assert (tmp_path / "realistic_suite_acceptance_llm" / "realistic_suite_acceptance_report.json").exists()

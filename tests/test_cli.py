@@ -23,6 +23,7 @@ from ac14.dependency_planning import (
     DependencyQuestion,
     DependencyRecommendation,
 )
+from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
@@ -163,6 +164,29 @@ def _write_llm_codegen_fixture(path: Path, blueprint_dir: Path) -> Path:
         }
         for component_id, module_path in deterministic_package.module_paths.items()
     }
+    path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
+    return path
+
+
+def _write_blueprint_aware_llm_codegen_fixture(path: Path) -> Path:
+    """Persist fixture-backed LLM codegen responses keyed by blueprint id and component id."""
+
+    fixture_payload: dict[str, dict[str, dict[str, object]]] = {}
+    for example in discover_shipped_blueprints(EXAMPLES_ROOT):
+        blueprint = load_blueprint_dir(Path(example.blueprint_dir))
+        packet_bundle = compile_packets(blueprint)
+        deterministic_package = emit_generated_package(
+            packet_bundle,
+            path.parent / f"{blueprint.metadata.blueprint_id}_deterministic_generated",
+            generator_kind="deterministic",
+        )
+        fixture_payload[blueprint.metadata.blueprint_id] = {
+            component_id: {
+                "module_code": Path(module_path).read_text(),
+                "implementation_notes": [f"fixture-backed llm codegen for {blueprint.metadata.blueprint_id}"],
+            }
+            for component_id, module_path in deterministic_package.module_paths.items()
+        }
     path.write_text(json.dumps(fixture_payload, indent=2, sort_keys=True))
     return path
 
@@ -1586,3 +1610,54 @@ def test_cli_acceptance_review_realistic_compare_runs_end_to_end(tmp_path: Path)
         "llm": "accept",
     }
     assert (tmp_path / "realistic_compare" / "realistic_mode_comparison_report.json").exists()
+
+
+def test_cli_acceptance_review_realistic_suite_with_llm_runs_end_to_end(tmp_path: Path) -> None:
+    """Realistic suite acceptance command should support fixture-backed llm breadth."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed llm outputs remain reviewable across shipped examples.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    llm_fixture = _write_blueprint_aware_llm_codegen_fixture(
+        tmp_path / "blueprint_aware_llm_codegen_fixture.json",
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(llm_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review-realistic-suite",
+            "--output-dir",
+            str(tmp_path / "realistic_suite_acceptance_llm"),
+            "--examples-root",
+            str(EXAMPLES_ROOT),
+            "--modes",
+            "llm",
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["mode_summaries"]["llm"]["accepted_examples"] == payload["example_count"]
+    assert (
+        tmp_path / "realistic_suite_acceptance_llm" / "realistic_suite_acceptance_report.json"
+    ).exists()

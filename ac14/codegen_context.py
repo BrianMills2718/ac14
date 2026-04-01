@@ -11,6 +11,7 @@ from ac14.packet_tests import PacketTestCase
 class CodegenContext(BaseModel):
     """Bounded local context that can be handed to a component generator."""
 
+    blueprint_id: str = Field(description="Stable blueprint identifier for the packet origin.")
     component_id: str = Field(description="Target component identifier.")
     purpose: str = Field(description="Human-readable component purpose.")
     semantic_responsibility: str = Field(description="Stable semantic responsibility label.")
@@ -46,6 +47,7 @@ def build_codegen_context(
 
     component = packet.component
     return CodegenContext(
+        blueprint_id=packet.blueprint_id,
         component_id=component.component_id,
         purpose=component.purpose,
         semantic_responsibility=component.semantic_responsibility,
@@ -77,6 +79,7 @@ def render_codegen_context_text(context: CodegenContext) -> str:
     return "\n".join(
         [
             f"component_id: {context.component_id}",
+            f"blueprint_id: {context.blueprint_id}",
             f"purpose: {context.purpose}",
             f"semantic_responsibility: {context.semantic_responsibility}",
             f"input_ports: {input_ports}",

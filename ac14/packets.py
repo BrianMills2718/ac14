@@ -42,6 +42,7 @@ def compile_packets(blueprint: FrozenBlueprint) -> PacketBundle:
             if any(fixture_id in local_fixtures for fixture_id in scenario.fixture_ids)
         }
         packets[component_id] = ComponentPacket(
+            blueprint_id=blueprint.metadata.blueprint_id,
             component=component,
             local_schemas={schema_id: blueprint.schemas[schema_id] for schema_id in schema_ids},
             inbound_bindings=inbound_bindings,
@@ -67,7 +68,11 @@ def compile_packets(blueprint: FrozenBlueprint) -> PacketBundle:
             store_id: store.owner_component for store_id, store in blueprint.state_stores.items()
         },
     )
-    return PacketBundle(packets=packets, recomposition_plan=recomposition_plan)
+    return PacketBundle(
+        blueprint_id=blueprint.metadata.blueprint_id,
+        packets=packets,
+        recomposition_plan=recomposition_plan,
+    )
 
 
 def validate_packets(packet_bundle: PacketBundle, blueprint: FrozenBlueprint) -> ValidationResult:

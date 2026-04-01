@@ -23,16 +23,23 @@ from ac14.packets import compile_packets
 
 
 EXAMPLE_DIR = Path(__file__).resolve().parents[1] / "examples" / "support_ticket_digest" / "blueprint"
+AUTH_MIX_EXAMPLE_DIR = (
+    Path(__file__).resolve().parents[1] / "examples" / "support_ticket_digest_auth_mix" / "blueprint"
+)
 
 
-def _digest_assembler_context() -> CodegenContext:
-    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+def _component_context(blueprint_dir: Path, component_id: str) -> CodegenContext:
+    blueprint = load_blueprint_dir(blueprint_dir)
     packet_bundle = compile_packets(blueprint)
     packet_cases = materialize_packet_test_cases(packet_bundle)
     return build_codegen_context(
-        packet_bundle.packets["digest_assembler"],
-        packet_cases["digest_assembler"],
+        packet_bundle.packets[component_id],
+        packet_cases[component_id],
     )
+
+
+def _digest_assembler_context() -> CodegenContext:
+    return _component_context(EXAMPLE_DIR, "digest_assembler")
 
 
 @pytest.mark.asyncio
@@ -165,3 +172,60 @@ def test_generate_component_module_with_llm_uses_fixture_env(
 
     assert "class GeneratedComponent" in response.module_code
     assert response.implementation_notes == ["fixture-backed llm codegen"]
+
+
+def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Fixture-backed LLM codegen should disambiguate repeated component ids by blueprint."""
+
+    fixture_path = tmp_path / "llm_codegen_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "support_ticket_digest_v1": {
+                    "customer_context_loader": {
+                        "module_code": (
+                            "class GeneratedComponent:\n"
+                            "    def execute(self, inputs):\n"
+                            "        return {}\n\n"
+                            "def build_component():\n"
+                            "    return GeneratedComponent()\n"
+                        ),
+                        "implementation_notes": ["support blueprint fixture"],
+                    }
+                },
+                "support_ticket_digest_auth_mix_v1": {
+                    "customer_context_loader": {
+                        "module_code": (
+                            "class GeneratedComponent:\n"
+                            "    def execute(self, inputs):\n"
+                            "        return {}\n\n"
+                            "def build_component():\n"
+                            "    return GeneratedComponent()\n"
+                        ),
+                        "implementation_notes": ["auth-mix blueprint fixture"],
+                    }
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+    monkeypatch.setenv("AC14_LLM_CODEGEN_FIXTURE", str(fixture_path))
+
+    support_response = generate_component_module_with_llm(
+        _component_context(EXAMPLE_DIR, "customer_context_loader"),
+        trace_id="test/llm_codegen/blueprint_aware/support",
+        max_budget=0.1,
+    )
+    auth_mix_response = generate_component_module_with_llm(
+        _component_context(AUTH_MIX_EXAMPLE_DIR, "customer_context_loader"),
+        trace_id="test/llm_codegen/blueprint_aware/auth_mix",
+        max_budget=0.1,
+    )
+
+    assert support_response.implementation_notes == ["support blueprint fixture"]
+    assert auth_mix_response.implementation_notes == ["auth-mix blueprint fixture"]
