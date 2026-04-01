@@ -109,12 +109,23 @@ lane, but the shipped input is still a plausible structured batch rather than a
 broader messy-corpus proof.
 **Why it matters:** The front half is still weaker than the back half.
 
-### U-016: Realistic-input full-system acceptance is still `reference`-mode only.
+### U-016: Should realistic-input full-system acceptance broaden beyond the manual reference lane?
+**Status:** Resolved
+**Context:** The final realistic-input gate initially existed only in
+`reference` mode, which made the broader mode story too weak.
+**Why it matters:** The proof slice needed at least one non-reference lane and
+one explicit breadth artifact before moving to `llm`.
+**Resolution:** AC14 now supports realistic-input full-system acceptance in
+`reference` and `deterministic` modes, plus one suite-level realistic-input
+acceptance artifact across shipped examples for those supported modes.
+**Date resolved:** 2026-03-31
+
+### U-017: Realistic-input full-system acceptance is still missing `llm` mode.
 **Status:** Deferred
-**Context:** The final realistic-input gate now exists, but only the
-`reference` execution mode is currently supported honestly.
-**Why it matters:** Broader confidence will require realistic-input acceptance
-outside the manual reference lane.
+**Context:** The final realistic-input gate now exists in `reference` and
+`deterministic`, but `llm` mode is still unproven.
+**Why it matters:** The project vision is not deterministic-only, so one honest
+`llm` realistic-input lane is the next meaningful gap.
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

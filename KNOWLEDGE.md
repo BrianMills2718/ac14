@@ -119,4 +119,12 @@ front-half artifacts. AC14 now lets `acceptance-review` run a realistic input
 record through a shipped blueprint in `reference` mode, persist the real
 outputs, and then add a structured semantic review at the final gate.
 
+### 2026-03-31 — codex — best-practice
+Realistic-input breadth should fail loud on missing shipped artifacts instead of
+quietly shrinking the suite. When AC14 added a realistic-input suite artifact,
+it surfaced that `support_ticket_digest_auth_mix` declared a realistic-input
+scenario but shipped no input file; the right fix was to add the missing input
+artifact and keep suite coverage explicit rather than silently filtering the
+example out.
+
 ---

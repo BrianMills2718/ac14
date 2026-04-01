@@ -1,6 +1,6 @@
 # Plan #6: Realistic-Input Acceptance Breadth
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -127,11 +127,11 @@ counts and report paths.
 
 ## Acceptance Criteria
 
-- [ ] AC14 supports realistic-input full-system acceptance in `deterministic` mode for the existing support-ticket slice.
-- [ ] AC14 supports at least one second shipped realistic-input slice.
-- [ ] AC14 can persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes.
-- [ ] CLI and Make expose the widened lane without manual glue code.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 supports realistic-input full-system acceptance in `deterministic` mode for the existing support-ticket slice.
+- [x] AC14 supports at least one second shipped realistic-input slice.
+- [x] AC14 can persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes.
+- [x] CLI and Make expose the widened lane without manual glue code.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

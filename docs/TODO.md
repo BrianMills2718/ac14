@@ -9,6 +9,8 @@ The most recently completed implementation contracts are:
 - [Plan #2: Dependency Probe Integration](/home/brian/projects/ac14/docs/plans/02_dependency_probe_integration.md)
 - [Plan #3: Meta-Process Dependency Probe Policy](/home/brian/projects/ac14/docs/plans/03_meta_process_dependency_probe_policy.md)
 - [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
+- [Plan #5: Realistic-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/05_realistic_input_full_system_acceptance.md)
+- [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
 
 This file is the running checklist and short verification ledger for the active
 plan.
@@ -19,35 +21,35 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: deterministic realistic-input acceptance
-  - [x] support deterministic realistic-input full-system acceptance on the support-ticket slice
-  - [x] resolve generated-state assumptions explicitly rather than hiding them
-  - Success criteria: support-ticket realistic input passes in `deterministic` mode with persisted outputs and review
+- [ ] Phase 1: fixture-backed llm realistic-input path
+  - [ ] add a deterministic fixture surface for LLM codegen in tests
+  - [ ] keep the `llm` realistic-input lane testable without live keys
+  - Success criteria: unit, CLI, and Make tests can exercise the `llm` realistic-input path deterministically
 
-- [x] Phase 2: second shipped realistic-input slice
-  - [x] add one realistic-input artifact for the incident slice
-  - [x] prove realistic-input acceptance on that slice
-  - Success criteria: realistic-input acceptance is no longer proved on only one workflow
+- [ ] Phase 2: single-slice llm realistic-input acceptance
+  - [ ] support `llm` realistic-input full-system acceptance on the support-ticket slice
+  - [ ] keep execution outputs and final review persisted exactly as in the other modes
+  - Success criteria: support-ticket realistic input passes through `llm` mode with persisted outputs and semantic review
 
-- [x] Phase 3: suite-level realistic-input acceptance
-  - [x] persist one suite-level realistic-input acceptance artifact across shipped examples and supported modes
-  - [x] keep the suite artifact explicit about what modes are and are not covered
-  - Success criteria: proof breadth for realistic-input final acceptance is reviewable in one persisted artifact
+- [ ] Phase 3: realistic-input mode comparison
+  - [ ] persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
+  - [ ] keep the artifact explicit about its one-blueprint scope
+  - Success criteria: one persisted artifact makes cross-mode realistic-input behavior reviewable in one place
 
 - [ ] Phase 4: operator surface and lock
   - [ ] expose any widened CLI and Make surfaces cleanly
-  - [ ] run targeted realistic-input breadth tests
+  - [ ] run targeted realistic-input `llm` tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the realistic-input breadth lane
+  - Success criteria: verification passes and the docs match the realistic-input `llm` lane
 
 ## Current Open Uncertainties
 
-- realistic-input full-system acceptance now exists, but it is still too narrow on mode and workflow coverage
+- realistic-input full-system acceptance now exists in `reference` and `deterministic`, but `llm` mode is still unproven
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- deterministic realistic-input acceptance may expose more hidden fixture-derived state assumptions
+- `llm` realistic-input generation may expose additional hidden runtime-state assumptions
 
 ## Latest Verified Results
 
@@ -94,6 +96,10 @@ Detailed uncertainty tracking now lives in:
   - `python -m mypy ac14 tests` passed on `60` source files
   - `python -m ruff check ac14 tests` passed
 - current implementation reality and broader historical verification context live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
+- realistic-input acceptance breadth verification passed:
+  - `python -m pytest -q` passed with `120 passed`
+  - `python -m mypy ac14 tests` passed on `60` source files
+  - `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps
 

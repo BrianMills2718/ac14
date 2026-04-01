@@ -89,15 +89,15 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after realistic-input full-system acceptance is realistic-input
-acceptance breadth.
+The current focus after realistic-input reference/deterministic breadth is one
+honest `llm` realistic-input final gate.
 
-- extend realistic-input final acceptance from `reference` into
-  `deterministic` mode before claiming broader mode coverage
-- add at least one second shipped realistic-input slice so the final gate is no
-  longer proved on only one workflow
-- add one suite-level realistic-input acceptance artifact so proof breadth
-  remains explicit rather than conversational
+- prove one realistic-input `llm` acceptance path on a shipped slice before
+  making any broader mode-completeness claim
+- keep suite-level realistic-input breadth explicit about covered modes instead
+  of implying that `llm` breadth already exists
+- add one realistic-input mode-comparison artifact so `reference`,
+  `deterministic`, and `llm` differences stay reviewable
 - keep realistic-input final acceptance tied to actual blueprint execution
   rather than a disconnected review workflow
 - keep the final verdict as combined evidence: hard programmatic artifacts plus

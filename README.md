@@ -59,7 +59,8 @@ AC14 now supports:
 - making an explicit approve/block freeze decision and promoting only approved bundles
 - turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths
 - running a persisted realistic-input front-half acceptance lane from discovery through freeze decision plus a structured semantic review
-- running a persisted realistic-input full-system acceptance lane in `reference` mode with actual outputs plus a final semantic review
+- running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
+- persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
@@ -80,7 +81,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- realistic-input full-system acceptance outside `reference` mode
+- realistic-input full-system acceptance in `llm` mode
 - realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 
@@ -111,5 +112,6 @@ make prove-suite OUTPUT=.ac14_out/suite TRIALS=1
 make compare-suite OUTPUT=.ac14_out/suite_compare TRIALS=1 GENERATORS=deterministic
 make semantic-compare-suite OUTPUT=.ac14_out/suite_semantic MODES="reference deterministic"
 make acceptance-review-suite OUTPUT=.ac14_out/suite_acceptance GENERATOR=deterministic
+make acceptance-review-realistic-suite OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

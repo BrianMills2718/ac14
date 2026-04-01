@@ -9,12 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
+- [Plan #7: Realistic-Input LLM Acceptance](/home/brian/projects/ac14/docs/plans/07_realistic_input_llm_acceptance.md)
 
-Plan #5 proved a realistic-input full-system acceptance artifact in
-`reference` mode. Plan #6 now broadens that final gate by adding deterministic
-mode support, a second shipped realistic-input slice, and one suite-level
-realistic-input acceptance artifact.
+Plan #6 closed the realistic-input breadth gap for `reference` and
+`deterministic` modes. The next honest gap is `llm`: AC14 should prove one
+realistic-input full-system acceptance path there without pretending suite-wide
+`llm` breadth already exists.
 
 ## Progress Update
 
@@ -23,55 +23,38 @@ Completed before this lane:
 1. six-file frozen blueprint bundle and proof surfaces
 2. pre-freeze discovery, draft planning, authoring, freeze remediation, and promotion
 3. broader proof breadth across ticket and incident workflow slices
-4. local project-context inventory inside discovery artifacts
-5. persisted external web/repository retrieval artifacts with discovery integration
-6. evidence-backed dependency and library planning artifacts
-7. dependency-aware draft planning with preserved dependency provenance
-8. explicit dependency execution probes for dependency-plan recommendations
+4. persisted external retrieval, dependency planning, dependency probing, and shared `meta-process` dependency-probe policy consumption
+5. realistic-input front-half acceptance from discovery through freeze decision
+6. realistic-input full-system acceptance in `reference` and `deterministic` modes
+7. suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
 
-Completed before this lane:
+Required in Plan #7:
 
-1. one persisted front-half acceptance artifact
-2. one structured review over the full front-half chain
-3. one shipped realistic input file plus operator surfaces
-
-Completed before this lane:
-
-1. one persisted realistic-input full-system acceptance artifact in `reference` mode
-2. one final structured review over actual system outputs
-3. one shipped realistic-input slice exercised through blueprint execution
-
-Required in Plan #6:
-
-1. deterministic realistic-input acceptance for the support-ticket slice
-2. one second shipped realistic-input slice
-3. one suite-level realistic-input acceptance artifact across shipped examples and supported modes
+1. fixture-backed non-live verification for the `llm` realistic-input lane
+2. one persisted realistic-input full-system acceptance artifact in `llm` mode
+3. one realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
 
 ## Tactical Phase Summary
 
-This document mirrors the active plan at a higher level. Detailed references,
-write scope, tests, and acceptance criteria live in Plan #6.
+Detailed references, write scope, tests, and acceptance criteria live in Plan
+#7.
 
-### Phase 1: deterministic realistic-input acceptance
+### Phase 1: fixture-backed llm realistic-input path
 
-- persist realistic-input acceptance in `deterministic` mode
-- surface and resolve generated-state assumptions explicitly
+- add a deterministic fixture surface for LLM codegen in tests
+- keep `llm` realistic-input execution testable without live provider keys
 
-### Phase 2: second shipped realistic-input slice
+### Phase 2: single-slice llm realistic-input acceptance
 
-- add one realistic-input artifact for the incident slice
-- prove realistic-input acceptance there
+- prove realistic-input full-system acceptance in `llm` mode on the support-ticket slice
+- persist actual outputs and final semantic review exactly as in other modes
 
-### Phase 3: suite-level acceptance
+### Phase 3: realistic-input mode comparison
 
-Status: Complete
-
-- persist one suite-level realistic-input acceptance artifact
-- keep supported modes explicit and reviewable
+- persist one comparison artifact across `reference`, `deterministic`, and `llm`
+- keep the artifact explicit about its one-blueprint scope
 
 ### Phase 4: Verification And Lock
-
-Status: Current
 
 - any widened CLI and Make surfaces
 - full local verification
@@ -85,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. deterministic realistic-input acceptance may expose more hidden fixture-derived state assumptions
-2. realistic-input acceptance should strengthen the final gate without replacing the separate front-half artifact
-3. realistic-input acceptance is still plausible rather than broadly messy
+1. `llm` realistic-input generation may rely on module-level state patterns that differ from the deterministic lane
+2. non-live fixture coverage for `llm` codegen must not hide failures that matter in live execution
+3. one passing `llm` realistic-input slice should not be over-interpreted as suite-wide `llm` readiness

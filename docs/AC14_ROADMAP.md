@@ -59,7 +59,7 @@ Prove that blueprint-driven decomposition is real, not just well-instrumented.
 
 Remaining emphasis:
 
-1. realistic-input full-system acceptance beyond the narrow `reference` slice
+1. realistic-input full-system acceptance through one honest `llm` slice after closing the `reference` and `deterministic` lanes
 2. cleaner packet sufficiency and recomposition evidence
 3. slightly broader proof breadth
 4. realistic-input final gates that combine programmatic and LLM review
@@ -68,7 +68,7 @@ Exit criteria:
 
 1. the frozen blueprint spine is stable
 2. dependency and environment assumptions can be checked explicitly
-3. realistic-input acceptance exists as a persisted artifact
+3. realistic-input acceptance exists as persisted artifacts across controlled modes
 4. the proof slice is documented with clear pass/fail criteria
 
 Failure signs:
@@ -156,7 +156,7 @@ Failure signs:
 In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
-2. finish the remaining proof-slice infrastructure, especially realistic-input final acceptance beyond `reference`
+2. finish the remaining proof-slice infrastructure, especially one honest realistic-input `llm` final gate
 3. strengthen the front half before making stronger generality claims
 4. broaden proof breadth before expanding scope claims
 
