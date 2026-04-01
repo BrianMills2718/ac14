@@ -9,19 +9,16 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #32: Multi-Artifact Discovery Inputs](/home/brian/projects/ac14/docs/plans/32_multi_artifact_discovery_inputs.md)
+- [Plan #34: Directory Context Summaries](/home/brian/projects/ac14/docs/plans/34_directory_context_summaries.md)
 
-Plan #28 closed the first bounded messy-input `llm` final-gate lane. The active
-24-hour chain is now:
+Plan #33 closed the bounded directory-input front-half proof lane. The active 24-hour
+chain is now:
 
-1. explicit per-example realistic-input policy with a named default and named alternate profiles
-2. profile-aware parity across front-half, final-gate, and suite/default realistic-input surfaces
-3. one explicit suite-level `messy` profile proof that preserves the clean default path
-
-Plan #28 closed the bounded messy-input `llm` final-gate proof. The immediate
-active gap is now that realistic-input choice is still implicit and inconsistent
-across surfaces once one shipped example has both a clean JSON input and a
-messy CSV input.
+1. keep one explicit primary structured planning input
+2. add bounded summaries for alternate structured candidates and supporting
+   local context files
+3. keep CLI and Make parity so directory discovery stays reviewable instead of
+   hiding content in prompts
 
 ## Progress Update
 
@@ -35,36 +32,37 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Completed in Plan #15:
+Completed in Plan #33:
 
-1. recommendation now consumes the suite-level live-readiness artifact explicitly
-2. recommendation reasons now fail loud when suite live readiness is not ready
-3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
+1. front-half acceptance now has one bounded directory-input proof lane
+2. that lane preserves the directory input path plus explicit primary and
+   alternate structured candidates inside the persisted discovery artifact
+3. CLI and Make front-half surfaces preserve the same story
 
-Required in Plan #32:
+Required in Plan #34:
 
-1. directory-based discovery support with explicit candidate inventory
-2. one explicit primary structured candidate plus explicit alternatives
-3. CLI and Make parity for directory-based discovery
+1. bounded summaries for alternate structured candidates
+2. bounded summaries for supporting local context files
+3. CLI and Make parity for the same compact-summary story
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#32.
+#34.
 
-### Phase 1: directory discovery contract
+### Phase 1: alternate structured-candidate summaries
 
-- allow discovery to accept an input directory as one reviewable unit
-- inventory supported structured candidates and supporting context files explicitly
+- persist bounded summaries for alternate structured candidates
+- keep one explicit primary structured planning input
 
-### Phase 2: explicit primary-candidate persistence
+### Phase 2: supporting-context summaries
 
-- choose one primary structured candidate deterministically
-- persist the chosen primary candidate and the alternatives in the discovery artifact
+- persist bounded summaries for supporting local context files
+- keep the summaries compact and explicitly truncated if needed
 
 ### Phase 3: verification and lock
 
-- run targeted multi-artifact discovery verification
+- run targeted directory-input front-half verification
 - run full verification and lock the docs
 
 ## Known Uncertainties
@@ -75,6 +73,9 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. multi-artifact discovery should not silently turn into hidden multi-file orchestration
-2. primary-candidate choice must stay explicit and reviewable
-3. discovery breadth should strengthen the front half without weakening packet/freeze explicitness
+1. alternate-candidate summaries must stay bounded and must not silently turn
+   into multi-file planning
+2. supporting-context summaries should help planning without recreating the
+   context-bloat problem
+3. one primary structured planning input must remain explicit even when the
+   surrounding directory gets richer summaries

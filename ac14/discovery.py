@@ -13,7 +13,12 @@ from pathlib import Path
 from typing import Any, Literal
 from pydantic import BaseModel, Field
 
-from ac14.structured_inputs import InputFormat, detect_input_format, load_input
+from ac14.structured_inputs import (
+    InputFormat,
+    detect_input_format,
+    discover_structured_input_candidates,
+    load_input,
+)
 RootKind = Literal["record", "record_stream", "list", "scalar", "text"]
 DependencySource = Literal["project", "requested"]
 DocumentCategory = Literal["readme", "claude", "doc"]
@@ -32,10 +37,22 @@ class InputInspection(BaseModel):
     """Persisted summary of a local input inspected before blueprint freeze."""
 
     input_path: str = Field(description="Local input path inspected during discovery.")
+    primary_input_path: str | None = Field(
+        default=None,
+        description="Primary structured input path chosen when discovery inspected a directory.",
+    )
     input_format: InputFormat = Field(description="Detected input file format.")
     root_kind: RootKind = Field(description="Observed top-level structural kind.")
     sample_count: int = Field(description="Number of samples inspected.")
     truncated: bool = Field(description="Whether discovery truncated the inspected samples.")
+    structured_candidate_paths: list[str] = Field(
+        default_factory=list,
+        description="Supported structured input candidates discovered for this input.",
+    )
+    supporting_context_paths: list[str] = Field(
+        default_factory=list,
+        description="Local supporting context files discovered alongside the primary input.",
+    )
     sample_records: list[object] = Field(description="Compact input samples for reviewer context.")
     field_summaries: list[InferredFieldSummary] = Field(
         description="Flattened field summaries inferred from the inspected samples.",
@@ -195,6 +212,9 @@ def inspect_input_path(input_path: Path | str, *, max_samples: int = 5) -> Input
     """Inspect a local input file and infer a compact structural summary."""
 
     path = Path(input_path)
+    if path.is_dir():
+        return _inspect_input_directory(path, max_samples=max_samples)
+
     input_format = detect_input_format(path)
     root_value = load_input(path, input_format)
     root_kind, sample_records, truncated = _extract_samples(root_value, input_format, max_samples)
@@ -208,13 +228,56 @@ def inspect_input_path(input_path: Path | str, *, max_samples: int = 5) -> Input
     )
     return InputInspection(
         input_path=str(path),
+        primary_input_path=str(path),
         input_format=input_format,
         root_kind=root_kind,
         sample_count=len(sample_records),
         truncated=truncated,
+        structured_candidate_paths=[str(path)] if input_format != "text" else [],
+        supporting_context_paths=[],
         sample_records=sample_records,
         field_summaries=field_summaries,
         concerns=concerns,
+    )
+
+
+def _inspect_input_directory(path: Path, *, max_samples: int) -> InputInspection:
+    """Inspect a directory input by choosing one explicit primary structured candidate."""
+
+    structured_candidates = discover_structured_input_candidates(path)
+    if not structured_candidates:
+        raise ValueError(
+            f"discovery input directory {path} exposes no supported structured input candidates",
+        )
+    primary_candidate = structured_candidates[0]
+    input_format = detect_input_format(primary_candidate)
+    root_value = load_input(primary_candidate, input_format)
+    root_kind, sample_records, truncated = _extract_samples(root_value, input_format, max_samples)
+    field_summaries = _infer_field_summaries(sample_records, root_kind)
+    concerns = _build_input_concerns(
+        root_kind=root_kind,
+        sample_count=len(sample_records),
+        field_summaries=field_summaries,
+        truncated=truncated,
+        max_samples=max_samples,
+    )
+    if len(structured_candidates) > 1:
+        concerns.append(
+            "directory discovery selected primary structured candidate "
+            f"{primary_candidate.name} from {len(structured_candidates)} candidates",
+        )
+    return InputInspection(
+        input_path=str(path),
+        primary_input_path=str(primary_candidate),
+        input_format=input_format,
+        root_kind=root_kind,
+        sample_count=len(sample_records),
+        truncated=truncated,
+        structured_candidate_paths=[str(candidate) for candidate in structured_candidates],
+        supporting_context_paths=[str(candidate) for candidate in _supporting_context_candidates(path)],
+        sample_records=sample_records,
+        field_summaries=field_summaries,
+        concerns=_dedupe_preserve_order(concerns),
     )
 
 
@@ -368,6 +431,16 @@ def _load_external_retrieval_summaries(
             ),
         )
     return summaries
+
+
+def _supporting_context_candidates(input_dir: Path) -> list[Path]:
+    """Return bounded local context files discovered beside a directory input."""
+
+    patterns = ("*.md", "*.txt", "*.rst")
+    candidates: list[Path] = []
+    for pattern in patterns:
+        candidates.extend(sorted(path for path in input_dir.glob(pattern) if path.is_file()))
+    return candidates
 
 
 def _extract_samples(

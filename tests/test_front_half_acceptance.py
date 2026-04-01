@@ -217,6 +217,38 @@ def _write_freeze_semantic_review_fixture(path: Path) -> Path:
     return path
 
 
+def _write_input_directory_bundle(path: Path) -> Path:
+    """Persist a bounded directory input bundle for directory-input front-half tests."""
+
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "tickets.json").write_text(
+        json.dumps(
+            [
+                {
+                    "ticket_id": "SUP-10421",
+                    "body": "SSO login fails after certificate rotation.",
+                    "channel": "email",
+                },
+                {
+                    "ticket_id": "SUP-10422",
+                    "body": "Bulk user import times out after 300 users.",
+                    "channel": "web",
+                },
+            ],
+            indent=2,
+        ),
+    )
+    (path / "tickets_archive.csv").write_text(
+        "ticket_id,body,channel\n"
+        "SUP-09999,Archived backlog item,email\n",
+    )
+    (path / "notes.md").write_text(
+        "# Intake notes\n\n"
+        "Tickets in this folder represent the latest support batch.\n",
+    )
+    return path
+
+
 def test_build_front_half_acceptance_report_runs_pipeline(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -501,6 +533,53 @@ def test_build_front_half_acceptance_report_supports_messy_input_artifact(
 
     discovery_payload = json.loads(Path(artifact.artifact_paths.discovery_artifact_path).read_text())
     assert discovery_payload["input_inspection"]["input_format"] == "csv"
+    assert artifact.review.freeze_verdict == "promising_but_blocked"
+    assert artifact.artifact_paths.freeze_semantic_review_path is not None
+
+
+def test_build_front_half_acceptance_report_supports_input_directory(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half acceptance should preserve explicit directory-input discovery evidence."""
+
+    input_dir = _write_input_directory_bundle(tmp_path / "input_bundle")
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_report(
+        input_path=input_dir,
+        output_dir=tmp_path / "front_half_directory",
+        requirements=["preserve support ticket meaning", "keep packets bounded"],
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+        max_budget=0.1,
+    )
+
+    discovery_payload = json.loads(Path(artifact.artifact_paths.discovery_artifact_path).read_text())
+    inspection = discovery_payload["input_inspection"]
+    assert artifact.input_path == str(input_dir)
+    assert inspection["input_path"] == str(input_dir)
+    assert inspection["primary_input_path"].endswith("tickets.json")
+    assert inspection["structured_candidate_paths"] == [
+        str(input_dir / "tickets.json"),
+        str(input_dir / "tickets_archive.csv"),
+    ]
+    assert inspection["supporting_context_paths"] == [str(input_dir / "notes.md")]
     assert artifact.review.freeze_verdict == "promising_but_blocked"
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
 

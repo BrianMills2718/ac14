@@ -42,7 +42,9 @@ current executable lane.
 | 29 | [Explicit Realistic-Input Policy](29_explicit_realistic_input_policy.md) | High | Complete | 28 |
 | 30 | [Profile-Aware Realistic-Input Parity](30_profile_aware_realistic_input_parity.md) | High | Complete | 29 |
 | 31 | [Messy-Profile Suite Proof](31_messy_profile_suite_proof.md) | High | Complete | 30 |
-| 32 | [Multi-Artifact Discovery Inputs](32_multi_artifact_discovery_inputs.md) | High | In Progress | 31 |
+| 32 | [Multi-Artifact Discovery Inputs](32_multi_artifact_discovery_inputs.md) | High | Complete | 31 |
+| 33 | [Directory Front-Half Acceptance Proof](33_directory_front_half_acceptance_proof.md) | High | Complete | 32 |
+| 34 | [Directory Context Summaries](34_directory_context_summaries.md) | High | In Progress | 33 |
 
 ## Status Key
 

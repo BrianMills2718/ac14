@@ -47,6 +47,7 @@ AC14 now supports:
 - keeping an AC14-native execution/alignment notebook and status surface so the story artifact can stay synchronized with the implementation
 - loading and validating the six-file blueprint bundle
 - inspecting local inputs before blueprint freeze and persisting discovery artifacts with inferred field summaries and open concerns
+- accepting one bounded input directory as a reviewable discovery surface, inventorying explicit structured candidates plus supporting local context files, and persisting one deterministic primary structured candidate plus explicit alternatives
 - recording environment and dependency inventory before generation begins
 - recording local project-document context before blueprint freeze so README, CLAUDE, and docs become explicit planning inputs
 - retrieving and persisting reviewable external documentation and repository-search artifacts before blueprint freeze
@@ -60,6 +61,7 @@ AC14 now supports:
 - turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths
 - attaching a persisted semantic review artifact directly to draft/freeze quality whenever `decide-freeze` evaluates a draft bundle with readiness evidence
 - running a persisted realistic-input front-half acceptance lane from discovery through freeze decision plus a structured semantic review
+- proving that the same front-half acceptance lane can start from a bounded directory input bundle while preserving the directory input path plus explicit primary and alternate structured candidates
 - running a persisted suite-level front-half acceptance lane across shipped realistic-input examples, with separate review-vs-freeze aggregates and explicit freeze-semantic review paths
 - proving one explicit messy-input front-half lane on a reviewable CSV asset without changing the blueprint/runtime model
 - rerunning previously blocked install probes through one explicit dependency-remediation artifact that points to a fresh dependency execution artifact for downstream reuse
@@ -105,7 +107,7 @@ AC14 is still incomplete on:
 
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
-- explicit multi-artifact discovery and primary-candidate selection before blueprint planning
+- bounded summaries for alternate structured candidates and supporting local context files in directory discovery
 - broader refinement and retry loops after blocked freeze
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate

@@ -93,6 +93,42 @@ def test_build_discovery_artifact_persists_environment_and_input(tmp_path: Path)
     assert (tmp_path / "discovery" / "discovery_artifact.json").exists()
 
 
+def test_build_discovery_artifact_supports_input_directory_with_primary_candidate(tmp_path: Path) -> None:
+    """Discovery should support a directory input with one explicit primary structured candidate."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {"ticket_id": "SUP-1", "status": "open"},
+                {"ticket_id": "SUP-2", "status": "closed"},
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text("ticket_id,status\nSUP-3,pending\n")
+    (input_dir / "notes.md").write_text("# Notes\n\nKeep the source schema truthful.\n")
+
+    artifact = build_discovery_artifact(
+        input_path=input_dir,
+        output_dir=tmp_path / "discovery",
+        project_root=REPO_ROOT,
+        max_samples=5,
+    )
+
+    inspection = artifact.input_inspection
+    assert inspection.input_path == str(input_dir)
+    assert inspection.primary_input_path is not None
+    assert inspection.primary_input_path.endswith("tickets.json")
+    assert inspection.structured_candidate_paths == [
+        str(input_dir / "tickets.json"),
+        str(input_dir / "tickets_archive.csv"),
+    ]
+    assert inspection.supporting_context_paths == [str(input_dir / "notes.md")]
+    assert any("selected primary structured candidate tickets.json" in concern for concern in inspection.concerns)
+
+
 def test_build_discovery_artifact_loads_external_retrieval_summaries(tmp_path: Path) -> None:
     """Discovery should summarize persisted external retrieval artifacts when provided."""
 

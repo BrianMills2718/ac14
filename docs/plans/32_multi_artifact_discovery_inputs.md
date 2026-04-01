@@ -1,6 +1,6 @@
 # Plan #32: Multi-Artifact Discovery Inputs
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 31
@@ -98,10 +98,10 @@ needs more than one file.
 
 ## Acceptance Criteria
 
-- [ ] AC14 discovery accepts a directory input and inventories supported structured candidates explicitly.
-- [ ] The discovery artifact persists one explicit primary structured candidate plus explicit alternatives.
-- [ ] CLI and Make discovery surfaces preserve the same reviewable story.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 discovery accepts a directory input and inventories supported structured candidates explicitly.
+- [x] The discovery artifact persists one explicit primary structured candidate plus explicit alternatives.
+- [x] CLI and Make discovery surfaces preserve the same reviewable story.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 
@@ -109,3 +109,26 @@ needs more than one file.
 
 This plan strengthens the front half by broadening discovery context in a
 bounded, reviewable way. It is not broad automatic multi-file planning yet.
+
+## Outcome
+
+Implemented and verified:
+
+1. discovery now accepts a directory input as one bounded reviewable unit
+2. discovery inventories supported structured candidates and supporting local
+   context files explicitly
+3. discovery chooses one primary structured candidate deterministically and
+   persists both the chosen primary candidate and the alternatives
+4. CLI and Make discovery surfaces preserve the same explicit story
+
+## Verification
+
+- `python -m pytest -q tests/test_discovery.py::test_build_discovery_artifact_supports_input_directory_with_primary_candidate tests/test_cli.py::test_cli_discover_input_supports_input_directory tests/test_make_targets.py::test_make_discover_input_supports_input_directory`
+  passed with `3 passed`
+- `python -m mypy ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py`
+  passed
+- `python -m ruff check ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py`
+  passed
+- `python -m pytest -q` passed with `200 passed`
+- `python -m mypy ac14 tests` passed on `65` source files
+- `python -m ruff check ac14 tests` passed

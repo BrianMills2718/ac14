@@ -239,6 +239,19 @@ silently falling back, which keeps the clean default proof path separate from
 alternate-profile experiments.
 
 ### 2026-04-01 — codex — best-practice
+Directory discovery is only useful if the primary planning input stays
+explicit. AC14 now persists the chosen primary structured candidate plus the
+alternative structured candidates and supporting local context files whenever
+discovery starts from a directory input, instead of collapsing that choice
+into hidden prompt context.
+
+### 2026-04-01 — codex — best-practice
+Directory-input proof should not stop at raw discovery. AC14 now proves the
+same explicit directory-input story through front-half acceptance, while the
+next honest gap is bounded summaries for alternate candidates and supporting
+context rather than only their file paths.
+
+### 2026-04-01 — codex — best-practice
 The first honest alternate-profile breadth proof is not to replace the default
 path; it is to run one explicit bounded suite lane and make absence visible.
 AC14 now proves the `messy` profile across the realistic-input suite in

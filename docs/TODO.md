@@ -55,26 +55,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Next Active Lane
 
-- [ ] Phase 1: multi-artifact discovery contract
-  - [ ] allow discovery to accept an input directory as one reviewable unit
-  - [ ] inventory supported structured candidates and supporting local context files explicitly
-  - Success criteria: discovery can ingest a directory without hiding which files mattered
+- [ ] Phase 1: alternate structured-candidate summaries
+  - [ ] persist bounded summaries for alternate structured candidates in directory discovery
+  - [ ] keep one explicit primary structured planning input
+  - Success criteria: directory discovery carries more than filenames without collapsing into multi-file planning
 
-- [ ] Phase 2: explicit primary-candidate persistence
-  - [ ] choose one primary structured candidate deterministically
-  - [ ] persist the chosen primary candidate and alternatives in the discovery artifact
-  - Success criteria: multi-artifact discovery stays explicit about what became the planning input
+- [ ] Phase 2: supporting-context summaries
+  - [ ] persist bounded summaries for supporting local context files
+  - [ ] keep the summary payload compact and explicitly truncated when needed
+  - Success criteria: directory discovery carries compact reviewable supporting context rather than path-only references
 
-- [ ] Phase 3: operator parity and lock
-  - [ ] expose the same directory-discovery story through CLI and Make
-  - [ ] run targeted verification, then full verification, then lock the docs
-  - Success criteria: directory-based discovery is reviewable and the docs match Plan #32
+- [ ] Phase 3: verification and lock
+  - [ ] run targeted verification for directory-input front-half acceptance
+  - [ ] run full `python -m pytest -q`
+  - [ ] run full `python -m mypy ac14 tests`
+  - [ ] run full `python -m ruff check ac14 tests`
+  - [ ] update TODO, active plan, README, KNOWLEDGE, uncertainties, and implementation-status docs to reflect Plans #32-#33
+  - Success criteria: verification passes and the docs match Plan #33
 
 ## Current Open Uncertainties
 
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- discovery is still centered on one input file at a time
-- multi-artifact discovery must not hide which structured file became primary
+- alternate-candidate and supporting-context directory summaries are not yet persisted
+- directory enrichment must not turn into hidden multi-file planning
 
 ## Latest Verified Results
 
@@ -85,7 +88,23 @@ Detailed uncertainty tracking now lives in:
 - the most recently completed lane before this one was:
   - `docs/plans/31_messy_profile_suite_proof.md`
 - the current active lane is:
-  - `docs/plans/32_multi_artifact_discovery_inputs.md`
+  - `docs/plans/33_directory_front_half_acceptance_proof.md`
+- targeted multi-artifact discovery verification passed:
+  - `python -m pytest -q tests/test_discovery.py::test_build_discovery_artifact_supports_input_directory_with_primary_candidate tests/test_cli.py::test_cli_discover_input_supports_input_directory tests/test_make_targets.py::test_make_discover_input_supports_input_directory` passed with `3 passed`
+  - `python -m mypy ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/discovery.py tests/test_discovery.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `200 passed`
+    - `python -m mypy ac14 tests` passed on `65` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted directory-input front-half verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_input_directory tests/test_cli.py::test_cli_front_half_acceptance_supports_input_directory tests/test_make_targets.py::test_make_front_half_acceptance_supports_input_directory` passed with `3 passed`
+  - `python -m mypy tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `203 passed`
+    - `python -m mypy ac14 tests` passed on `65` source files
+    - `python -m ruff check ac14 tests` passed
 - targeted messy-profile suite verification passed:
   - `python -m pytest -q tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_messy_profile_llm_mode tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_messy_profile_llm_mode tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_messy_profile_llm_mode` passed with `3 passed`
   - `python -m mypy tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed

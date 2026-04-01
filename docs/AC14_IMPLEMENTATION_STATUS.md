@@ -105,6 +105,8 @@ Implemented:
 32. explicit realistic-input manifests plus a shared resolver for shipped examples, so the clean default and alternate profiles are named explicitly instead of relying on hidden file precedence
 33. explicit profile-aware suite and operator surfaces for realistic-input acceptance, including persisted `missing_profile` states instead of silent fallback or silent skipping
 34. one explicit suite-level `messy` profile proof across `reference`, `deterministic`, and bounded fixture-backed `llm`, while preserving the clean default path and explicit `missing_profile` states
+35. one explicit bounded directory-input discovery lane that inventories supported structured candidates plus supporting local context files, chooses one deterministic primary structured candidate, and persists both the chosen primary candidate and the alternatives explicitly
+36. one explicit bounded directory-input front-half proof lane, including CLI and Make parity, that preserves the directory input path plus the chosen primary candidate through discovery, draft planning, and freeze review artifacts
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -124,7 +126,7 @@ It is good at:
 
 It is not yet strong at:
 
-1. messy multi-artifact synthesis
+1. bounded summaries for alternate structured candidates and supporting local context files
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
 
@@ -153,7 +155,7 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. multi-artifact discovery and primary-candidate selection before blueprint planning
+3. directory-input front-half proof beyond raw discovery
 4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, one bounded messy-input retry proof, one bounded messy-input non-LLM final-gate proof, one bounded messy-input `llm` final-gate proof, one explicit realistic-input manifest layer, one explicit profile-aware suite/operator layer, and one explicit messy-profile suite proof
 
 ### Generality
@@ -172,7 +174,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. explicit multi-artifact discovery with reviewable primary-candidate selection
+1. bounded directory-context summaries for alternate structured candidates and supporting files
 2. broad automatic dependency installation and post-install verification as a normal lane
 3. real shared-tool execution inside blueprinted components
 4. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -218,7 +220,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. first proof slice: 99%
-2. long-term general coding agent vision: 62-66%
+2. long-term general coding agent vision: 64-68%
 
 The remaining work is not mainly “more code.” It is:
 

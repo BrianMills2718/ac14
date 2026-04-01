@@ -455,12 +455,36 @@ states for the other shipped examples.
 **Date resolved:** 2026-04-01
 
 ### U-043: Discovery is still centered on one input file at a time.
-**Status:** Open
+**Status:** Resolved
 **Context:** AC14 can inspect one input file well, but real blueprint derivation
 often requires looking across a directory of related structured files and local
 context artifacts before choosing the primary planning input.
 **Why it matters:** The front half remains weaker than the thesis if discovery
 cannot review a bounded multi-artifact input set explicitly.
+**Resolution:** Discovery now accepts one bounded directory input, inventories
+supported structured candidates plus supporting local context files, chooses
+one deterministic primary structured candidate, and persists both the chosen
+primary candidate and the alternatives explicitly.
+**Date resolved:** 2026-04-01
+
+### U-044: Directory-input discovery is implemented, but the front-half acceptance lane has not yet proven it end to end.
+**Status:** Resolved
+**Context:** AC14 can now persist explicit directory-input discovery artifacts,
+but the front-half acceptance proof still focuses on single-file inputs.
+**Why it matters:** The new discovery capability remains weaker than the thesis
+until the same explicit directory-input story survives the discovery-through-freeze chain.
+**Resolution:** Front-half acceptance now has one explicit directory-input proof
+lane, and CLI plus Make preserve the same directory-input discovery evidence
+without hiding which structured candidate became primary.
+**Date resolved:** 2026-04-01
+
+### U-045: Directory discovery still persists only paths for alternate candidates and supporting context.
+**Status:** Open
+**Context:** AC14 now inventories alternate structured candidates and supporting
+local context files explicitly, but the persisted discovery artifact still
+provides only their file paths.
+**Why it matters:** Planning remains weaker than it should be if the surrounding
+directory context cannot be reviewed in a compact bounded summary.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

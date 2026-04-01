@@ -604,6 +604,34 @@ def test_make_discover_input_runs_end_to_end(tmp_path: Path) -> None:
     assert (output_dir / "discovery_artifact.json").exists()
 
 
+def test_make_discover_input_supports_input_directory(tmp_path: Path) -> None:
+    """Make discovery target should support directory inputs with explicit primary-candidate persistence."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir()
+    (input_dir / "tickets.json").write_text('[{"id": 1, "status": "open"}]')
+    (input_dir / "tickets_archive.csv").write_text("id,status\n2,closed\n")
+    (input_dir / "notes.md").write_text("# Notes\n\nKeep packet context bounded.\n")
+    output_dir = tmp_path / "discovery"
+    result = subprocess.run(
+        [
+            "make",
+            "discover-input",
+            f"INPUT={input_dir}",
+            f"OUTPUT={output_dir}",
+            "PACKAGES=pydantic",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "discovery_artifact.json").read_text())
+    assert payload["input_inspection"]["input_path"] == str(input_dir)
+    assert payload["input_inspection"]["primary_input_path"].endswith("tickets.json")
+
+
 def test_make_inspect_environment_runs_end_to_end(tmp_path: Path) -> None:
     """Make environment target should persist an environment inventory artifact."""
 
@@ -1677,6 +1705,70 @@ def test_make_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     payload = json.loads((output_dir / "front_half_acceptance_report.json").read_text())
     assert payload["artifact_paths"]["freeze_semantic_review_path"] is not None
     assert (output_dir / "freeze_decision" / "freeze_semantic_review.json").exists()
+
+
+def test_make_front_half_acceptance_supports_input_directory(tmp_path: Path) -> None:
+    """Make front-half target should preserve directory-input discovery evidence."""
+
+    input_dir = tmp_path / "input_bundle"
+    input_dir.mkdir(parents=True, exist_ok=True)
+    (input_dir / "tickets.json").write_text(
+        json.dumps(
+            [
+                {
+                    "ticket_id": "SUP-10421",
+                    "body": "SSO login fails after certificate rotation.",
+                    "channel": "email",
+                }
+            ],
+            indent=2,
+        ),
+    )
+    (input_dir / "tickets_archive.csv").write_text(
+        "ticket_id,body,channel\n"
+        "SUP-09999,Archived backlog item,email\n",
+    )
+    (input_dir / "notes.md").write_text("# Intake notes\n\nLatest support batch.\n")
+
+    dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
+    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    review_fixture = _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")
+
+    output_dir = tmp_path / "front_half_directory"
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(dependency_fixture)
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(review_fixture)
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "front-half-acceptance",
+            f"REALISTIC_INPUT={input_dir}",
+            f"OUTPUT={output_dir}",
+            "REQUIREMENTS=preserve support ticket meaning keep packets bounded",
+            "PACKAGES=pydantic",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "front_half_acceptance_report.json").read_text())
+    discovery_payload = json.loads((output_dir / "discovery" / "discovery_artifact.json").read_text())
+    inspection = discovery_payload["input_inspection"]
+    assert payload["input_path"] == str(input_dir)
+    assert inspection["input_path"] == str(input_dir)
+    assert inspection["primary_input_path"].endswith("tickets.json")
+    assert inspection["structured_candidate_paths"] == [
+        str(input_dir / "tickets.json"),
+        str(input_dir / "tickets_archive.csv"),
+    ]
+    assert (output_dir / "front_half_acceptance_report.json").exists()
 
 
 def test_make_front_half_acceptance_supports_retry_freeze(tmp_path: Path) -> None:
