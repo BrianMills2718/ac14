@@ -492,6 +492,33 @@ def test_build_realistic_suite_acceptance_report_supports_llm_mode(
     assert (tmp_path / "realistic_suite_acceptance_llm" / "realistic_suite_acceptance_report.json").exists()
 
 
+def test_build_realistic_suite_acceptance_report_supports_realistic_input_profile_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Realistic suite acceptance should record explicit missing-profile states."""
+
+    fake_call = AsyncMock(return_value=_fake_review())
+    monkeypatch.setattr("ac14.acceptance.acall_llm_structured", fake_call)
+
+    report = build_realistic_suite_acceptance_report(
+        output_dir=tmp_path / "realistic_suite_acceptance_messy",
+        examples_root=EXAMPLES_ROOT,
+        modes=["reference", "deterministic"],
+        realistic_input_profile="messy",
+        realistic_input_record_index=0,
+        max_budget=0.1,
+    )
+
+    assert report.realistic_input_profile == "messy"
+    assert report.realistic_input_paths["support_ticket_digest"] is not None
+    assert report.realistic_input_paths["incident_alert_digest"] is None
+    assert report.realistic_input_paths["support_ticket_digest_auth_mix"] is None
+    assert report.mode_summaries["reference"].missing_profile_examples == report.example_count - 1
+    assert report.mode_summaries["reference"].example_results["support_ticket_digest"] == "accept"
+    assert report.mode_summaries["reference"].example_results["incident_alert_digest"] == "missing_profile"
+
+
 def test_discover_realistic_input_path_supports_structured_non_json_inputs(tmp_path: Path) -> None:
     """Acceptance should discover a supported structured input even when JSON is absent."""
 

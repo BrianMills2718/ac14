@@ -103,6 +103,7 @@ Implemented:
 30. one explicit messy-input realistic-input final-gate proof on the support-ticket CSV asset in `reference` and `deterministic` modes, plus a matching non-LLM realistic mode-comparison artifact
 31. one bounded fixture-backed messy-input realistic-input final-gate proof on the same support-ticket CSV asset in `llm` mode, plus a matching realistic mode-comparison artifact across `reference`, `deterministic`, and `llm`
 32. explicit realistic-input manifests plus a shared resolver for shipped examples, so the clean default and alternate profiles are named explicitly instead of relying on hidden file precedence
+33. explicit profile-aware suite and operator surfaces for realistic-input acceptance, including persisted `missing_profile` states instead of silent fallback or silent skipping
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -151,8 +152,8 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. strategy/value review during draft and freeze phases beyond the current artifact set
-3. explicit profile-aware suite and operator behavior once alternate realistic-input profiles exist
-4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, one bounded messy-input retry proof, one bounded messy-input non-LLM final-gate proof, one bounded messy-input `llm` final-gate proof, and one explicit realistic-input manifest layer
+3. one explicit messy-profile suite proof across bounded modes, especially the fixture-backed `llm` lane
+4. broader automatic dependency execution/install remediation beyond the current narrow rerun artifact, first draft-planning hand-off, refined-plan retry step, explicit retry-chain wrapper, one bounded front-half retry integration, one bounded front-half retry breadth lane, one bounded messy-input retry proof, one bounded messy-input non-LLM final-gate proof, one bounded messy-input `llm` final-gate proof, one explicit realistic-input manifest layer, and one explicit profile-aware suite/operator layer
 
 ### Generality
 
@@ -170,7 +171,7 @@ Still missing:
 
 ## What Is Not Implemented Yet
 
-1. explicit profile selection across operator and suite surfaces
+1. explicit messy-profile suite proof across bounded modes
 2. broad automatic dependency installation and post-install verification as a normal lane
 3. real shared-tool execution inside blueprinted components
 4. first-class runtime tool nodes or retrieval nodes in the blueprint model

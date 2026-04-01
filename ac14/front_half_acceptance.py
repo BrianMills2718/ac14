@@ -135,10 +135,14 @@ class FrontHalfSuiteExampleResult(BaseModel):
         default=None,
         description="Realistic-input artifact used for this example when available.",
     )
+    realistic_input_profile: str | None = Field(
+        default=None,
+        description="Requested realistic-input profile used for this example when one was selected.",
+    )
     requirements: list[str] = Field(
         description="Requirements used for this example's front-half review.",
     )
-    overall_verdict: Literal["accept", "concern", "reject", "missing_input"] = Field(
+    overall_verdict: Literal["accept", "concern", "reject", "missing_input", "missing_profile"] = Field(
         description="Compact suite-level verdict for this example.",
     )
     freeze_approved: bool | None = Field(
@@ -178,12 +182,19 @@ class FrontHalfSuiteExampleResult(BaseModel):
 class FrontHalfSuiteAcceptanceReport(BaseModel):
     """Persisted suite-level front-half acceptance breadth artifact."""
 
+    realistic_input_profile: str | None = Field(
+        default=None,
+        description="Requested realistic-input profile used across the suite when one was selected.",
+    )
     example_count: int = Field(description="Number of shipped examples considered in the suite.")
     accepted_examples: int = Field(description="Examples with accept front-half verdicts.")
     concern_examples: int = Field(description="Examples with concern front-half verdicts.")
     rejected_examples: int = Field(description="Examples with reject front-half verdicts.")
     missing_input_examples: int = Field(
         description="Examples that could not run because realistic-input artifacts were missing.",
+    )
+    missing_profile_examples: int = Field(
+        description="Examples that could not run because the requested realistic-input profile was absent.",
     )
     freeze_approved_examples: int = Field(
         description="Examples whose front-half freeze decision approved promotion.",
@@ -381,6 +392,7 @@ async def abuild_front_half_acceptance_suite_report(
     output_dir: Path | str,
     *,
     examples_root: Path | str | None = None,
+    realistic_input_profile: str | None = None,
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
@@ -399,6 +411,7 @@ async def abuild_front_half_acceptance_suite_report(
     concern_examples = 0
     rejected_examples = 0
     missing_input_examples = 0
+    missing_profile_examples = 0
     freeze_approved_examples = 0
     freeze_blocked_examples = 0
     final_freeze_approved_examples = 0
@@ -407,22 +420,33 @@ async def abuild_front_half_acceptance_suite_report(
 
     for example in discover_shipped_blueprints(examples_root):
         try:
-            realistic_input_path = _discover_realistic_input_path(example)
+            realistic_input_path = (
+                resolve_realistic_input_path(example, profile=realistic_input_profile)
+                if realistic_input_profile is not None
+                else _discover_realistic_input_path(example)
+            )
         except ValueError as exc:
+            missing_verdict: Literal["missing_profile", "missing_input"] = (
+                "missing_profile" if realistic_input_profile is not None else "missing_input"
+            )
             examples.append(
                 FrontHalfSuiteExampleResult(
                     example_id=example.example_id,
                     blueprint_dir=example.blueprint_dir,
                     realistic_input_path=None,
+                    realistic_input_profile=realistic_input_profile,
                     requirements=[],
-                    overall_verdict="missing_input",
+                    overall_verdict=missing_verdict,
                     freeze_approved=None,
                     freeze_semantic_review_path=None,
                     report_path=None,
                     reason=str(exc),
                 ),
             )
-            missing_input_examples += 1
+            if realistic_input_profile is not None:
+                missing_profile_examples += 1
+            else:
+                missing_input_examples += 1
             continue
 
         requirements = _front_half_suite_requirements(example)
@@ -463,6 +487,7 @@ async def abuild_front_half_acceptance_suite_report(
                 example_id=example.example_id,
                 blueprint_dir=example.blueprint_dir,
                 realistic_input_path=str(realistic_input_path),
+                realistic_input_profile=realistic_input_profile,
                 requirements=requirements,
                 overall_verdict=overall_verdict,
                 freeze_approved=report.freeze_approved,
@@ -477,11 +502,13 @@ async def abuild_front_half_acceptance_suite_report(
         )
 
     suite_report = FrontHalfSuiteAcceptanceReport(
+        realistic_input_profile=realistic_input_profile,
         example_count=len(examples),
         accepted_examples=accepted_examples,
         concern_examples=concern_examples,
         rejected_examples=rejected_examples,
         missing_input_examples=missing_input_examples,
+        missing_profile_examples=missing_profile_examples,
         freeze_approved_examples=freeze_approved_examples,
         freeze_blocked_examples=freeze_blocked_examples,
         final_freeze_approved_examples=final_freeze_approved_examples,
@@ -499,6 +526,7 @@ def build_front_half_acceptance_suite_report(
     output_dir: Path | str,
     *,
     examples_root: Path | str | None = None,
+    realistic_input_profile: str | None = None,
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
@@ -513,6 +541,7 @@ def build_front_half_acceptance_suite_report(
         abuild_front_half_acceptance_suite_report(
             output_dir=output_dir,
             examples_root=examples_root,
+            realistic_input_profile=realistic_input_profile,
             allow_install=allow_install,
             model=model,
             max_budget=max_budget,

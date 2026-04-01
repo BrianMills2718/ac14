@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #30: Profile-Aware Realistic-Input Parity](/home/brian/projects/ac14/docs/plans/30_profile_aware_realistic_input_parity.md)
+- [Plan #31: Messy-Profile Suite Proof](/home/brian/projects/ac14/docs/plans/31_messy_profile_suite_proof.md)
 
 Plan #28 closed the first bounded messy-input `llm` final-gate lane. The active
 24-hour chain is now:
@@ -41,31 +41,31 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #30:
+Required in Plan #31:
 
-1. front-half and final-gate realistic-input surfaces consume the same shared resolver
-2. suite/default surfaces persist selected-profile or missing-profile state explicitly
-3. CLI and Make surfaces expose profile selection without silently changing the clean default path
+1. one explicit front-half suite lane on the `messy` profile
+2. one realistic-input suite lane on the same `messy` profile across bounded modes
+3. explicit included-versus-missing-profile accounting without changing the clean default proof path
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#30 through Plan #31.
+#31.
 
-### Phase 1: profile-aware cross-surface parity
+### Phase 1: front-half messy-profile suite proof
 
-- thread optional realistic-input profile selection through front-half and final-gate execution
-- persist selected-profile or missing-profile state explicitly in suite artifacts
+- verify the explicit `messy` profile through the front-half suite artifact
+- keep missing-profile states reviewable and keep the clean default path unchanged
 
-### Phase 2: operator-surface parity
+### Phase 2: realistic-input messy-profile suite proof
 
-- add the same profile-selection surface to CLI and Make targets
-- keep the clean default proof path unchanged when no profile is specified
+- verify the same explicit `messy` profile through the realistic-input suite artifact
+- extend the proof across bounded modes, including fixture-backed `llm`
 
-### Phase 3: messy-profile suite proof
+### Phase 3: verification and lock
 
-- prove one explicit suite-level `messy` profile lane without silently redefining the clean default proof path
-- keep missing-profile states reviewable rather than silently falling back
+- run targeted messy-profile suite verification
+- run full verification and lock the docs
 
 ## Known Uncertainties
 
@@ -75,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. suite/profile behavior should stay explicit about `missing_profile` rather than silently falling back
-2. operator surfaces should not silently change the clean default path while adding profile selection
-3. the first alternate-profile suite proof should stay bounded and reviewable instead of pretending broad breadth
+1. the first alternate-profile suite proof should stay bounded and reviewable instead of pretending broad breadth
+2. the `llm` part of the messy-profile suite proof must stay fixture-backed and separate from live readiness
+3. the clean default path should remain the default proof story even after the alternate-profile suite proof exists

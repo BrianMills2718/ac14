@@ -419,19 +419,35 @@ acceptance surfaces use the shared resolver for shipped-example defaults.
 **Date resolved:** 2026-04-01
 
 ### U-040: Alternate realistic-input profile behavior is not yet explicit at suite level.
-**Status:** Open
+**Status:** Resolved
 **Context:** Once realistic-input selection becomes explicit per example, suite
 surfaces still need to say whether a requested alternate profile is included or
 missing for each shipped example.
 **Why it matters:** Suite breadth should not silently fall back to the default
 profile or silently skip examples when an alternate profile is absent.
+**Resolution:** AC14 suite surfaces now persist the requested realistic-input
+profile and explicit `missing_profile` counts/results instead of silently
+falling back or silently skipping examples.
+**Date resolved:** 2026-04-01
 
 ### U-041: Operator surfaces do not yet expose realistic-input profile selection explicitly.
-**Status:** Open
+**Status:** Resolved
 **Context:** The manifest and shared resolver now exist, but CLI and Make
 surfaces still assume the implicit default profile.
 **Why it matters:** Alternate realistic-input profiles should be operable and
 reviewable without changing code or silently redefining the clean default path.
+**Resolution:** Front-half suite and realistic-input suite CLI/Make surfaces now
+accept an explicit realistic-input profile selector while preserving the clean
+default profile when the flag is omitted.
+**Date resolved:** 2026-04-01
+
+### U-042: The explicit messy-profile suite proof is still incomplete in bounded `llm` mode.
+**Status:** Open
+**Context:** AC14 can now request the explicit `messy` profile across suite and
+operator surfaces, but the suite-level alternate-profile proof has not yet been
+completed across the bounded fixture-backed `llm` lane.
+**Why it matters:** The next honest step is one reviewable non-deterministic
+suite proof on the alternate profile, not another policy-only lane.
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred

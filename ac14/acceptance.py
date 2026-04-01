@@ -124,7 +124,13 @@ class RealisticSuiteModeSummary(BaseModel):
     accepted_examples: int = Field(description="Examples with only accept verdicts.")
     concern_examples: int = Field(description="Examples with any concern verdicts.")
     rejected_examples: int = Field(description="Examples with any reject or execution failure.")
+    missing_profile_examples: int = Field(
+        description="Examples skipped because the requested realistic-input profile was absent.",
+    )
     reports: dict[str, str] = Field(description="Per-example persisted report paths for this mode.")
+    example_results: dict[str, Literal["accept", "concern", "reject", "missing_profile"]] = Field(
+        description="Per-example result state for this mode.",
+    )
 
 
 class RealisticSuiteAcceptanceReport(BaseModel):
@@ -132,9 +138,13 @@ class RealisticSuiteAcceptanceReport(BaseModel):
 
     modes: list[AcceptanceMode] = Field(description="Execution modes reviewed across the suite.")
     example_count: int = Field(description="Number of shipped examples covered by the suite.")
+    realistic_input_profile: str | None = Field(
+        default=None,
+        description="Requested realistic-input profile used across the suite when one was selected.",
+    )
     record_index: int = Field(description="Realistic-input record index used for every example.")
-    realistic_input_paths: dict[str, str] = Field(
-        description="Persisted realistic-input paths keyed by shipped example identifier.",
+    realistic_input_paths: dict[str, str | None] = Field(
+        description="Persisted realistic-input paths keyed by shipped example identifier when available.",
     )
     mode_summaries: dict[str, RealisticSuiteModeSummary] = Field(
         description="Per-mode realistic-input acceptance summaries.",
@@ -375,6 +385,7 @@ async def abuild_realistic_suite_acceptance_report(
     *,
     examples_root: Path | str | None = None,
     modes: list[AcceptanceMode] | None = None,
+    realistic_input_profile: str | None = None,
     realistic_input_record_index: int = 0,
     model: str = DEFAULT_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
@@ -385,10 +396,16 @@ async def abuild_realistic_suite_acceptance_report(
     destination.mkdir(parents=True, exist_ok=True)
     shipped_examples = discover_shipped_blueprints(examples_root)
     selected_modes = modes or ["reference", "deterministic"]
-    realistic_input_paths = {
-        example.example_id: str(_discover_realistic_input_path(example))
-        for example in shipped_examples
-    }
+    realistic_input_paths: dict[str, str | None] = {}
+    for example in shipped_examples:
+        try:
+            realistic_input_paths[example.example_id] = str(
+                resolve_realistic_input_path(example, profile=realistic_input_profile)
+                if realistic_input_profile is not None
+                else _discover_realistic_input_path(example),
+            )
+        except ValueError:
+            realistic_input_paths[example.example_id] = None
 
     mode_summaries: dict[str, RealisticSuiteModeSummary] = {}
     for mode in selected_modes:
@@ -396,12 +413,19 @@ async def abuild_realistic_suite_acceptance_report(
         accepted_examples = 0
         concern_examples = 0
         rejected_examples = 0
+        missing_profile_examples = 0
+        example_results: dict[str, Literal["accept", "concern", "reject", "missing_profile"]] = {}
         for example in shipped_examples:
+            realistic_input_path = realistic_input_paths[example.example_id]
+            if realistic_input_path is None:
+                missing_profile_examples += 1
+                example_results[example.example_id] = "missing_profile"
+                continue
             report = await abuild_acceptance_report(
                 blueprint_dir=example.blueprint_dir,
                 output_dir=destination / mode / example.example_id,
                 mode=mode,
-                realistic_input_path=realistic_input_paths[example.example_id],
+                realistic_input_path=realistic_input_path,
                 realistic_input_record_index=realistic_input_record_index,
                 model=model,
                 max_budget=max_budget,
@@ -410,6 +434,7 @@ async def abuild_realistic_suite_acceptance_report(
                 destination / mode / example.example_id / "acceptance_report.json",
             )
             example_verdict = _example_verdict(report)
+            example_results[example.example_id] = example_verdict
             if example_verdict == "accept":
                 accepted_examples += 1
             elif example_verdict == "concern":
@@ -422,12 +447,15 @@ async def abuild_realistic_suite_acceptance_report(
             accepted_examples=accepted_examples,
             concern_examples=concern_examples,
             rejected_examples=rejected_examples,
+            missing_profile_examples=missing_profile_examples,
             reports=reports,
+            example_results=example_results,
         )
 
     suite_report = RealisticSuiteAcceptanceReport(
         modes=selected_modes,
         example_count=len(shipped_examples),
+        realistic_input_profile=realistic_input_profile,
         record_index=realistic_input_record_index,
         realistic_input_paths=realistic_input_paths,
         mode_summaries=mode_summaries,
@@ -443,6 +471,7 @@ def build_realistic_suite_acceptance_report(
     *,
     examples_root: Path | str | None = None,
     modes: list[AcceptanceMode] | None = None,
+    realistic_input_profile: str | None = None,
     realistic_input_record_index: int = 0,
     model: str = DEFAULT_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
@@ -454,6 +483,7 @@ def build_realistic_suite_acceptance_report(
             output_dir=output_dir,
             examples_root=examples_root,
             modes=modes,
+            realistic_input_profile=realistic_input_profile,
             realistic_input_record_index=realistic_input_record_index,
             model=model,
             max_budget=max_budget,

@@ -40,8 +40,8 @@ current executable lane.
 | 27 | [Messy-Input Full-System Acceptance](27_messy_input_full_system_acceptance.md) | High | Complete | 26 |
 | 28 | [Messy-Input LLM Comparison](28_messy_input_llm_comparison.md) | High | Complete | 27 |
 | 29 | [Explicit Realistic-Input Policy](29_explicit_realistic_input_policy.md) | High | Complete | 28 |
-| 30 | [Profile-Aware Realistic-Input Parity](30_profile_aware_realistic_input_parity.md) | High | In Progress | 29 |
-| 31 | [Messy-Profile Suite Proof](31_messy_profile_suite_proof.md) | High | Planned | 30 |
+| 30 | [Profile-Aware Realistic-Input Parity](30_profile_aware_realistic_input_parity.md) | High | Complete | 29 |
+| 31 | [Messy-Profile Suite Proof](31_messy_profile_suite_proof.md) | High | In Progress | 30 |
 
 ## Status Key
 

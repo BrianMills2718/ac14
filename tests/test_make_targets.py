@@ -1846,6 +1846,43 @@ def test_make_front_half_acceptance_suite_supports_retry_freeze(tmp_path: Path) 
     assert payload["retry_approved_examples"] == 0
 
 
+def test_make_front_half_acceptance_suite_supports_realistic_input_profile_selection(tmp_path: Path) -> None:
+    """Make front-half suite target should expose explicit realistic-input profile selection."""
+
+    output_dir = tmp_path / "front_half_suite"
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(
+        _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json"),
+    )
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(
+        _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json"),
+    )
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "front-half-acceptance-suite",
+            f"OUTPUT={output_dir}",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            "REALISTIC_INPUT_PROFILE=messy",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "front_half_acceptance_suite_report.json").read_text())
+    assert payload["realistic_input_profile"] == "messy"
+    assert payload["missing_profile_examples"] == payload["example_count"] - 1
+
+
 def test_make_acceptance_review_with_realistic_input_runs_end_to_end(tmp_path: Path) -> None:
     """Make acceptance-review target should support realistic-input execution context."""
 
@@ -2265,3 +2302,43 @@ def test_make_acceptance_review_realistic_suite_with_llm_runs_end_to_end(tmp_pat
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "realistic_suite_acceptance_report.json").exists()
+
+
+def test_make_acceptance_review_realistic_suite_supports_profile_selection(tmp_path: Path) -> None:
+    """Make realistic suite acceptance target should expose explicit realistic-input profile selection."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Explicit messy-profile runs remain reviewable where present.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+        )
+    )
+    output_dir = tmp_path / "realistic_suite_acceptance_messy"
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            "make",
+            "acceptance-review-realistic-suite",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+            f"OUTPUT={output_dir}",
+            "MODES=reference deterministic",
+            "REALISTIC_INPUT_PROFILE=messy",
+            "RECORD_INDEX=0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "realistic_suite_acceptance_report.json").read_text())
+    assert payload["realistic_input_profile"] == "messy"
+    assert payload["mode_summaries"]["reference"]["missing_profile_examples"] == payload["example_count"] - 1

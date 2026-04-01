@@ -17,6 +17,7 @@ MAX_BUDGET ?= 0.50
 RETRY_MODEL ?= gemini/gemini-2.5-flash-lite
 RETRY_MAX_BUDGET ?= 0.75
 RECORD_INDEX ?= 0
+REALISTIC_INPUT_PROFILE ?=
 PACKAGES ?=
 WEB_QUERY ?=
 REPO_QUERY ?=
@@ -97,8 +98,8 @@ decide-freeze: ## Build a freeze decision and promote only when approved (INPUT=
 front-half-acceptance: ## Run realistic-input discovery through freeze decision and review the front half (REALISTIC_INPUT=... OUTPUT=.ac14_out/front_half REQUIREMENTS="..." PACKAGES="pydantic" RETRY_BLOCKED_FREEZE=1)
 	$(PYTHON) -m ac14 front-half-acceptance "$(REALISTIC_INPUT)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --project-root "$(CURDIR)" --packages $(PACKAGES) $(foreach artifact,$(RETRIEVAL_ARTIFACTS),--retrieval-artifact "$(artifact)") $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)" $(if $(filter 1 true yes,$(RETRY_BLOCKED_FREEZE)),--retry-blocked-freeze,) --retry-model "$(RETRY_MODEL)" --retry-max-budget "$(RETRY_MAX_BUDGET)"
 
-front-half-acceptance-suite: ## Run realistic-input front-half acceptance across shipped examples (OUTPUT=.ac14_out/front_half_suite EXAMPLES_ROOT=examples RETRY_BLOCKED_FREEZE=1)
-	$(PYTHON) -m ac14 front-half-acceptance-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)" $(if $(filter 1 true yes,$(RETRY_BLOCKED_FREEZE)),--retry-blocked-freeze,) --retry-model "$(RETRY_MODEL)" --retry-max-budget "$(RETRY_MAX_BUDGET)"
+front-half-acceptance-suite: ## Run realistic-input front-half acceptance across shipped examples (OUTPUT=.ac14_out/front_half_suite EXAMPLES_ROOT=examples REALISTIC_INPUT_PROFILE=messy RETRY_BLOCKED_FREEZE=1)
+	$(PYTHON) -m ac14 front-half-acceptance-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" $(if $(REALISTIC_INPUT_PROFILE),--realistic-input-profile "$(REALISTIC_INPUT_PROFILE)",) $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)" $(if $(filter 1 true yes,$(RETRY_BLOCKED_FREEZE)),--retry-blocked-freeze,) --retry-model "$(RETRY_MODEL)" --retry-max-budget "$(RETRY_MAX_BUDGET)"
 
 generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated GENERATOR=deterministic|llm)
 	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
@@ -133,8 +134,8 @@ semantic-compare-suite: ## Compare semantic outputs across shipped examples (OUT
 acceptance-review-suite: ## Run requirements-aware acceptance review across shipped examples (OUTPUT=.ac14_out/suite_acceptance GENERATOR=reference|deterministic|llm)
 	$(PYTHON) -m ac14 acceptance-review-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --mode "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
-acceptance-review-realistic-suite: ## Run realistic-input acceptance review across shipped examples (OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0)
-	$(PYTHON) -m ac14 acceptance-review-realistic-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --modes $(MODES) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+acceptance-review-realistic-suite: ## Run realistic-input acceptance review across shipped examples (OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" REALISTIC_INPUT_PROFILE=messy RECORD_INDEX=0)
+	$(PYTHON) -m ac14 acceptance-review-realistic-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" --modes $(MODES) $(if $(REALISTIC_INPUT_PROFILE),--realistic-input-profile "$(REALISTIC_INPUT_PROFILE)",) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 acceptance-review-realistic-compare: ## Compare realistic-input acceptance across modes for one blueprint (INPUT=... REALISTIC_INPUT=... OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0)
 	$(PYTHON) -m ac14 acceptance-review-realistic-compare "$(INPUT)" --output-dir "$(OUTPUT)" --realistic-input "$(REALISTIC_INPUT)" --modes $(MODES) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

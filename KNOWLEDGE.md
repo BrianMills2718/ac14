@@ -233,6 +233,12 @@ examples explicit realistic-input manifests and a shared resolver so both
 acceptance surfaces use the same named default.
 
 ### 2026-04-01 — codex — best-practice
+Once the manifest exists, alternate profiles need explicit suite/operator
+semantics too. AC14 now records `missing_profile` explicitly instead of
+silently falling back, which keeps the clean default proof path separate from
+alternate-profile experiments.
+
+### 2026-04-01 — codex — best-practice
 Dependency remediation does not need a second dependency system. AC14 now uses
 the existing dependency execution artifact as the hand-off, reruns previously
 blocked install probes explicitly, and persists a remediation delta artifact

@@ -421,6 +421,52 @@ def test_build_front_half_acceptance_suite_report_supports_retry_freeze(
     assert all(example.retry_freeze_artifact_path is not None for example in artifact.examples)
 
 
+def test_build_front_half_acceptance_suite_report_supports_realistic_input_profile_selection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half suite breadth should support explicit realistic-input profile selection."""
+
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_suite_report(
+        output_dir=tmp_path / "front_half_suite",
+        examples_root=REPO_ROOT / "examples",
+        realistic_input_profile="messy",
+        max_budget=0.1,
+    )
+
+    assert artifact.realistic_input_profile == "messy"
+    assert artifact.example_count >= 3
+    assert artifact.missing_profile_examples == artifact.example_count - 1
+    assert next(
+        example for example in artifact.examples if example.example_id == "support_ticket_digest"
+    ).realistic_input_profile == "messy"
+    assert {
+        example.example_id
+        for example in artifact.examples
+        if example.overall_verdict == "missing_profile"
+    } == {
+        "incident_alert_digest",
+        "support_ticket_digest_auth_mix",
+    }
+
+
 def test_build_front_half_acceptance_report_supports_messy_input_artifact(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

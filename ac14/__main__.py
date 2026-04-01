@@ -264,6 +264,7 @@ def main() -> int:
         default=DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
     )
     front_half_suite_parser.add_argument("--max-samples", type=int, default=5)
+    front_half_suite_parser.add_argument("--realistic-input-profile", default=None)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -394,6 +395,7 @@ def main() -> int:
         choices=["reference", "deterministic", "llm"],
         default=["reference", "deterministic"],
     )
+    realistic_acceptance_suite_parser.add_argument("--realistic-input-profile", default=None)
     realistic_acceptance_suite_parser.add_argument("--record-index", type=int, default=0)
     realistic_acceptance_suite_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     realistic_acceptance_suite_parser.add_argument("--max-budget", type=float, default=0.50)
@@ -571,6 +573,7 @@ def main() -> int:
         return _front_half_acceptance_suite(
             args.output_dir,
             args.examples_root,
+            args.realistic_input_profile,
             args.allow_install,
             args.model,
             args.max_budget,
@@ -665,6 +668,7 @@ def main() -> int:
             args.output_dir,
             args.examples_root,
             [cast(AcceptanceMode, mode) for mode in args.modes],
+            args.realistic_input_profile,
             args.record_index,
             args.model,
             args.max_budget,
@@ -1013,6 +1017,7 @@ def _front_half_acceptance(
 def _front_half_acceptance_suite(
     output_dir: Path,
     examples_root: Path | None,
+    realistic_input_profile: str | None,
     allow_install: bool,
     model: str,
     max_budget: float,
@@ -1026,6 +1031,7 @@ def _front_half_acceptance_suite(
     artifact = build_front_half_acceptance_suite_report(
         output_dir=output_dir,
         examples_root=examples_root,
+        realistic_input_profile=realistic_input_profile,
         allow_install=allow_install,
         model=model,
         max_budget=max_budget,
@@ -1172,6 +1178,7 @@ def _acceptance_review_realistic_suite(
     output_dir: Path,
     examples_root: Path | None,
     modes: list[AcceptanceMode],
+    realistic_input_profile: str | None,
     record_index: int,
     model: str,
     max_budget: float,
@@ -1182,6 +1189,7 @@ def _acceptance_review_realistic_suite(
         output_dir=output_dir,
         examples_root=examples_root,
         modes=modes,
+        realistic_input_profile=realistic_input_profile,
         realistic_input_record_index=record_index,
         model=model,
         max_budget=max_budget,

@@ -1,6 +1,6 @@
 # Plan #30: Profile-Aware Realistic-Input Parity
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** 29
@@ -103,10 +103,24 @@ executed.
 
 ## Acceptance Criteria
 
-- [ ] Front-half and final-gate realistic-input surfaces consume the same shared profile-aware resolver.
-- [ ] Suite/default artifacts persist explicit selected-profile or missing-profile state.
-- [ ] CLI and Make surfaces expose profile selection without changing the clean default path.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] Front-half and final-gate realistic-input surfaces consume the same shared profile-aware resolver.
+- [x] Suite/default artifacts persist explicit selected-profile or missing-profile state.
+- [x] CLI and Make surfaces expose profile selection without changing the clean default path.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted profile-aware parity verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_supports_realistic_input_profile_selection tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_profile_selection tests/test_make_targets.py::test_make_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_profile_selection`
+  - `python -m mypy ac14/acceptance.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/acceptance.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 now threads explicit realistic-input profile selection through the
+front-half suite, realistic-input suite, CLI, and Make surfaces. Those suite
+artifacts now persist the requested profile and explicit `missing_profile`
+states instead of silently falling back or silently skipping examples.
 
 ---
 

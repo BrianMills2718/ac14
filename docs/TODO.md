@@ -34,9 +34,9 @@ Detailed uncertainty tracking now lives in:
   - Success criteria: implicit extension precedence is removed from shipped-example policy
 
 - [ ] Phase 2: profile-aware cross-surface parity
-  - [ ] make front-half acceptance consume the shared profile-aware resolver
-  - [ ] make final-gate acceptance consume the same resolver
-  - [ ] thread optional profile selection through suite/default surfaces with explicit artifact state
+  - [x] make front-half acceptance consume the shared profile-aware resolver
+  - [x] make final-gate acceptance consume the same resolver
+  - [x] thread optional profile selection through suite/default surfaces with explicit artifact state
   - Success criteria: front-half and final-gate realistic-input surfaces no longer diverge on default selection
 
 - [ ] Phase 3: explicit messy-profile suite proof
@@ -57,7 +57,7 @@ Detailed uncertainty tracking now lives in:
 
 - suite/default behavior for alternate realistic-input profiles is not yet explicit
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- operator surfaces do not yet expose profile selection explicitly
+- the bounded `llm` slice of the explicit messy-profile suite proof is not yet landed
 
 ## Latest Verified Results
 
@@ -66,9 +66,13 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/TEMPLATE.md`
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
-  - `docs/plans/29_explicit_realistic_input_policy.md`
-- the current active lane is:
   - `docs/plans/30_profile_aware_realistic_input_parity.md`
+- the current active lane is:
+  - `docs/plans/31_messy_profile_suite_proof.md`
+- targeted profile-aware parity verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_supports_realistic_input_profile_selection tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_cli.py::test_cli_acceptance_review_realistic_suite_supports_profile_selection tests/test_make_targets.py::test_make_front_half_acceptance_suite_supports_realistic_input_profile_selection tests/test_make_targets.py::test_make_acceptance_review_realistic_suite_supports_profile_selection` passed with `6 passed`
+  - `python -m mypy ac14/acceptance.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/acceptance.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_acceptance.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 - targeted realistic-input policy verification passed:
   - `python -m pytest -q tests/test_examples.py tests/test_acceptance.py::test_build_realistic_suite_acceptance_report_supports_realistic_inputs tests/test_acceptance.py::test_discover_realistic_input_path_supports_structured_non_json_inputs tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_runs_for_shipped_examples` passed with `5 passed`
   - `python -m mypy ac14/examples.py ac14/structured_inputs.py ac14/acceptance.py ac14/front_half_acceptance.py tests/test_examples.py tests/test_acceptance.py tests/test_front_half_acceptance.py` passed
