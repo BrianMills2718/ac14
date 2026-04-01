@@ -10,8 +10,11 @@ journeys:
     related_docs:
       - docs/AC14_ANTI_DRIFT_DOCTRINE.md
       - docs/AC14_IMPLEMENTATION_STATUS.md
+      - docs/UNCERTAINTIES.md
       - docs/AC14_NEXT_24_HOURS.md
       - docs/TODO.md
+      - docs/plans/CLAUDE.md
+      - docs/plans/01_dependency_execution_probing.md
       - CLAUDE.md
     related_code:
       - ac14/blueprint_planning.py
@@ -57,9 +60,10 @@ journeys:
       - phase_id: phase_04_next_gates
         title: Next Gates
         status: partial
-        execution_mode: fixture
-        input_artifact: current implementation + active plan
-        output_artifact: explicit next decision gates
+        execution_mode: live
+        input_artifact: current implementation + active plan + uncertainty tracker
+        output_artifact: explicit next decision gates plus governance-surface check
         acceptance_criteria:
+          - The notebook proves the active plan and uncertainty tracker exist.
           - The notebook states what should happen before more broad implementation.
           - The notebook ties next lanes back to the decomposition thesis.

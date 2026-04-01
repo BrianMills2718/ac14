@@ -54,6 +54,10 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/01_dependency_execution_probing.md`
 - dedicated uncertainty tracking now exists:
   - `docs/UNCERTAINTIES.md`
+- notebook governance tightening verification passed:
+  - `notebooks/notebook_registry.yaml` parses successfully
+  - `notebooks/01_ac14_execution_status_journey.ipynb` parses successfully
+  - notebook code cells execute successfully from repo root
 - detailed implementation reality and broader risk framing now live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 - planning-artifact resynchronization verification passed:
   - notebook JSON parsed successfully for `notebooks/01_ac14_execution_status_journey.ipynb`

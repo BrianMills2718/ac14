@@ -30,12 +30,14 @@ Completed:
 2. Phase 2: uncertainty split
    - `docs/UNCERTAINTIES.md`
    - reduced uncertainty burden in `TODO.md`
+3. Phase 3: notebook tightening
+   - updated notebook registry links and phase semantics
+   - restored live execution for the current notebook's phase-4 governance check
 
 Next:
 
-1. Phase 3: notebook tightening
-2. Phase 4: light enforcement
-3. Phase 5: control-surface cleanup
+1. Phase 4: light enforcement
+2. Phase 5: control-surface cleanup
 
 ## Decision
 
