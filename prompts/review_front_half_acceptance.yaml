@@ -52,6 +52,9 @@ messages:
       Freeze summary:
       {{ freeze_summary }}
 
+      Retry summary:
+      {{ retry_freeze_summary }}
+
       Required output:
       - `overall_verdict` should be `accept`, `concern`, or `reject`
       - `freeze_verdict` should distinguish `ready`, `promising_but_blocked`, and `blocked`

@@ -100,7 +100,7 @@ process failure. The required behavior is:
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-getting explicit retry-chain evidence into realistic-input front-half acceptance.
+getting explicit retry-chain evidence into front-half suite breadth.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -128,6 +128,9 @@ getting explicit retry-chain evidence into realistic-input front-half acceptance
   persisted retry-chain artifact over hidden multi-command orchestration
 - once the retry chain exists, integrate it into front-half evidence carefully;
   preserve the initial blocked freeze record instead of replacing it
+- once single-example retry-aware front-half acceptance exists, broaden it to
+  suite breadth carefully; preserve per-example retry provenance instead of
+  collapsing everything into one aggregate claim
 
 ## Continuation Rule
 

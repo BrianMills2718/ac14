@@ -222,4 +222,10 @@ retry chain, not hidden command sequencing. AC14 now persists one retry-chain
 artifact that runs refine -> materialize -> refreeze and keeps every
 intermediate path visible.
 
+### 2026-04-01 — codex — best-practice
+Retry-aware front-half evidence should preserve the first blocked freeze
+record. AC14 now lets realistic-input front-half acceptance opt into one
+explicit retry chain while keeping both the initial freeze decision path and
+the retry artifact path visible in the final report.
+
 ---

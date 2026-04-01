@@ -323,6 +323,17 @@ materialize -> refreeze and records every intermediate path plus the refreshed
 freeze result.
 **Date resolved:** 2026-04-01
 
+### U-034: Retry evidence still stopped at standalone artifacts instead of front-half acceptance.
+**Status:** Resolved
+**Context:** AC14 could emit retry-chain artifacts, but realistic-input
+front-half acceptance still stopped at the initial freeze decision.
+**Why it matters:** The front-half evidence story should be able to include one
+bounded retry without overwriting the original blocked freeze result.
+**Resolution:** AC14 now offers an opt-in retry-aware front-half acceptance path
+that preserves the initial freeze decision, adds the retry artifact path, and
+publishes final freeze approval separately from the original blocked result.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

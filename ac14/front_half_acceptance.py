@@ -11,19 +11,26 @@ from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field
 
-from ac14.blueprint_planning import abuild_draft_blueprint_plan
+from ac14.blueprint_planning import (
+    DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    DEFAULT_BLUEPRINT_PLAN_MODEL,
+    abuild_draft_blueprint_plan,
+)
 from ac14.dependency_execution import build_dependency_execution_artifact
 from ac14.dependency_planning import abuild_dependency_plan
 from ac14.discovery import DiscoveryArtifact, build_discovery_artifact
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
 from ac14.freeze_decision import FreezeDecisionArtifact, build_freeze_decision
+from ac14.freeze_retry import FreezeRetryArtifact, abuild_freeze_retry_artifact
 from ac14.loader import load_blueprint_dir
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
 DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL = "gemini/gemini-2.5-flash-lite"
 DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET = 0.50
+DEFAULT_FRONT_HALF_RETRY_MODEL = DEFAULT_BLUEPRINT_PLAN_MODEL
+DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET
 FRONT_HALF_ACCEPTANCE_PROMPT_PATH = (
     Path(__file__).resolve().parents[1] / "prompts" / "review_front_half_acceptance.yaml"
 )
@@ -79,6 +86,10 @@ class FrontHalfArtifactPaths(BaseModel):
         default=None,
         description="Path to the persisted freeze-semantic review artifact when one was built.",
     )
+    retry_freeze_artifact_path: str | None = Field(
+        default=None,
+        description="Path to the persisted retry-chain artifact when retry was attempted.",
+    )
 
 
 class FrontHalfAcceptanceArtifact(BaseModel):
@@ -97,6 +108,16 @@ class FrontHalfAcceptanceArtifact(BaseModel):
         description="Persisted paths for the sub-artifacts produced by the front-half pipeline.",
     )
     freeze_approved: bool = Field(description="Whether the resulting draft bundle was approved for freeze.")
+    final_freeze_approved: bool = Field(
+        description="Whether the front-half result ended in freeze approval after any bounded retry.",
+    )
+    retry_freeze_attempted: bool = Field(
+        description="Whether one explicit retry chain was attempted after blocked freeze.",
+    )
+    retry_freeze_approved: bool | None = Field(
+        default=None,
+        description="Whether the retry chain reached freeze approval when one was attempted.",
+    )
     blocking_finding_codes: list[str] = Field(
         description="Blocking finding codes carried by the freeze decision.",
     )
@@ -170,6 +191,9 @@ async def abuild_front_half_acceptance_report(
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
     max_samples: int = 5,
 ) -> FrontHalfAcceptanceArtifact:
     """Build a persisted realistic-input front-half acceptance artifact."""
@@ -228,6 +252,15 @@ async def abuild_front_half_acceptance_report(
         readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),
     )
     freeze_decision_path = destination / "freeze_decision" / "freeze_decision.json"
+    retry_artifact: FreezeRetryArtifact | None = None
+    if retry_blocked_freeze and not freeze_decision.approved:
+        retry_artifact = await abuild_freeze_retry_artifact(
+            plan_artifact_path=draft_plan_path,
+            freeze_decision_path=freeze_decision_path,
+            output_dir=destination / "freeze_retry",
+            model=retry_model,
+            max_budget=retry_max_budget,
+        )
 
     review = await _review_front_half_acceptance(
         input_path=normalized_input_path,
@@ -237,6 +270,7 @@ async def abuild_front_half_acceptance_report(
         dependency_execution_path=dependency_execution_path,
         draft_plan_path=draft_plan_path,
         freeze_decision=freeze_decision,
+        retry_artifact=retry_artifact,
         model=model,
         max_budget=max_budget,
     )
@@ -256,8 +290,16 @@ async def abuild_front_half_acceptance_report(
             freeze_readiness_report_path=draft_bundle_manifest.freeze_readiness_report_path,
             freeze_decision_path=str(freeze_decision_path),
             freeze_semantic_review_path=freeze_decision.semantic_review_path,
+            retry_freeze_artifact_path=(
+                str(destination / "freeze_retry" / "freeze_retry_artifact.json")
+                if retry_artifact is not None
+                else None
+            ),
         ),
         freeze_approved=freeze_decision.approved,
+        final_freeze_approved=retry_artifact.approved if retry_artifact is not None else freeze_decision.approved,
+        retry_freeze_attempted=retry_artifact is not None,
+        retry_freeze_approved=retry_artifact.approved if retry_artifact is not None else None,
         blocking_finding_codes=sorted(
             {
                 finding.code
@@ -284,6 +326,9 @@ def build_front_half_acceptance_report(
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
     max_samples: int = 5,
 ) -> FrontHalfAcceptanceArtifact:
     """Synchronous wrapper for realistic-input front-half acceptance."""
@@ -299,6 +344,9 @@ def build_front_half_acceptance_report(
             allow_install=allow_install,
             model=model,
             max_budget=max_budget,
+            retry_blocked_freeze=retry_blocked_freeze,
+            retry_model=retry_model,
+            retry_max_budget=retry_max_budget,
             max_samples=max_samples,
         ),
     )
@@ -432,6 +480,7 @@ async def _review_front_half_acceptance(
     dependency_execution_path: Path,
     draft_plan_path: Path,
     freeze_decision: FreezeDecisionArtifact,
+    retry_artifact: FreezeRetryArtifact | None,
     model: str,
     max_budget: float,
 ) -> FrontHalfReviewResponse:
@@ -455,6 +504,7 @@ async def _review_front_half_acceptance(
         ),
         draft_plan_summary=_build_draft_plan_summary(draft_plan_payload),
         freeze_summary=_build_freeze_summary(freeze_decision),
+        retry_freeze_summary=_build_retry_freeze_summary(retry_artifact),
     )
     response, _meta = await acall_llm_structured(
         model,
@@ -525,6 +575,22 @@ def _build_dependency_execution_summary(payload: dict[str, Any]) -> dict[str, ob
             }
             for result in results[:10]
         ],
+    }
+
+
+def _build_retry_freeze_summary(
+    artifact: FreezeRetryArtifact | None,
+) -> dict[str, object] | None:
+    """Build a compact summary from the optional retry-chain artifact."""
+
+    if artifact is None:
+        return None
+    return {
+        "refinement_round": artifact.refinement_round,
+        "approved": artifact.approved,
+        "summary": artifact.summary,
+        "refined_draft_blueprint_plan_path": artifact.refined_draft_blueprint_plan_path,
+        "refreshed_freeze_decision_path": artifact.refreshed_freeze_decision_path,
     }
 
 

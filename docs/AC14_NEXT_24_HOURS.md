@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #23: Front-Half Retry Integration](/home/brian/projects/ac14/docs/plans/23_front_half_retry_integration.md)
+- [Plan #24: Front-Half Retry Suite Breadth](/home/brian/projects/ac14/docs/plans/24_front_half_retry_suite_breadth.md)
 
-Plan #22 closed the first explicit retry chain after blocked freeze. The
-current active gap is getting that retry evidence into realistic-input
-front-half acceptance instead of stopping at the first blocked freeze.
+Plan #23 closed the first retry-aware single-example front-half lane. The
+current active gap is carrying that retry evidence honestly across the shipped
+front-half suite.
 
 ## Progress Update
 
@@ -33,30 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #23:
+Required in Plan #24:
 
-1. an optional retry-aware front-half acceptance path
-2. explicit persisted paths for both the initial freeze decision and the retry artifact
-3. stronger realistic-input front-half evidence beyond the first blocked freeze
+1. an optional retry-aware suite-level front-half breadth path
+2. explicit persisted per-example retry paths plus aggregate retry counts
+3. stronger retry-aware front-half breadth across the shipped examples
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#23.
+#24.
 
-### Phase 1: front-half retry scope design
+### Phase 1: retry breadth scope design
 
-- choose retry integration as an explicit optional extension
-- pre-make how both initial and retried freeze paths stay explicit
+- choose retry-aware breadth as an explicit optional extension
+- pre-make how per-example retry paths and suite-level retry counts stay explicit
 
-### Phase 2: front-half retry implementation
+### Phase 2: retry breadth implementation
 
-- let front-half acceptance optionally call the retry chain after a blocked freeze
-- keep the initial freeze decision path and the retry artifact path explicit
+- let suite front-half acceptance optionally call retry-aware per-example runs
+- keep per-example retry paths and aggregate retry counts explicit
 
 ### Phase 3: Verification And Lock
 
-- targeted retry-aware front-half verification
+- targeted retry-aware suite verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. retry-aware front-half acceptance should stay opt-in until the evidence story is clearer
-2. retry integration must preserve the initial blocked freeze evidence instead of overwriting it
-3. the lane should strengthen realistic-input evidence without turning front-half acceptance into hidden healing
+1. retry-aware suite breadth should stay opt-in until its evidence story is clearer
+2. suite breadth must preserve per-example retry provenance instead of collapsing everything into aggregate counts
+3. the lane should strengthen front-half breadth without turning the suite runner into hidden healing

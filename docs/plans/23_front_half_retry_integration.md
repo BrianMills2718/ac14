@@ -1,6 +1,6 @@
 # Plan #23: Front-Half Retry Integration
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -39,16 +39,16 @@ instead of ending at the first blocked freeze.
 ## Open Questions
 
 ### Q1: Should retry integration be automatic or opt-in?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The first integration should strengthen front-half evidence
 without silently changing the default story.
-**Default:** Opt-in through an explicit flag.
+**Decision:** Opt-in through an explicit flag.
 
 ### Q2: What should the front-half artifact expose after retry?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** Retry integration should add evidence, not replace the
 original blocked freeze record.
-**Default:** Keep the initial freeze decision path and add an optional retry
+**Decision:** Keep the initial freeze decision path and add an optional retry
 artifact path plus retry-approved summary fields.
 
 ---
@@ -103,10 +103,23 @@ artifact path plus retry-approved summary fields.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can optionally run one explicit retry chain during realistic-input front-half acceptance.
-- [ ] The front-half artifact preserves both the initial freeze decision and the retry artifact path.
-- [ ] The lane stays explicit and does not silently replace the initial blocked freeze evidence.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can optionally run one explicit retry chain during realistic-input front-half acceptance.
+- [x] The front-half artifact preserves both the initial freeze decision and the retry artifact path.
+- [x] The lane stays explicit and does not silently replace the initial blocked freeze evidence.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted retry-aware front-half verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_retry_freeze tests/test_cli.py::test_cli_front_half_acceptance_supports_retry_freeze tests/test_make_targets.py::test_make_front_half_acceptance_supports_retry_freeze`
+  - `python -m mypy ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+Realistic-input front-half acceptance can now opt into one explicit retry chain
+after a blocked freeze decision and preserve both the initial freeze evidence
+and the retry artifact instead of overwriting the first blocked result.
 
 ---
 

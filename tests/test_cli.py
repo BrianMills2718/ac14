@@ -2055,6 +2055,61 @@ def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     assert (tmp_path / "front_half" / "freeze_decision" / "freeze_semantic_review.json").exists()
 
 
+def test_cli_front_half_acceptance_supports_retry_freeze(tmp_path: Path) -> None:
+    """Front-half acceptance CLI should optionally persist one retry-chain artifact."""
+
+    dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
+    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    refine_fixture = tmp_path / "refine_blueprint_plan_fixture.json"
+    refine_payload = json.loads(blueprint_fixture.read_text())
+    refine_payload["refinement_summary"] = "Clarified dependency scope after the blocked freeze."
+    refine_fixture.write_text(json.dumps(refine_payload, indent=2, sort_keys=True))
+    review_fixture = _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")
+
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(dependency_fixture)
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)
+    env["AC14_REFINE_BLUEPRINT_PLAN_FIXTURE"] = str(refine_fixture)
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(review_fixture)
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "front-half-acceptance",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"),
+            "--output-dir",
+            str(tmp_path / "front_half"),
+            "--requirements",
+            "preserve",
+            "support",
+            "ticket",
+            "meaning",
+            "keep",
+            "packets",
+            "bounded",
+            "--project-root",
+            str(REPO_ROOT),
+            "--packages",
+            "pydantic",
+            "--retry-blocked-freeze",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["retry_freeze_attempted"] is True
+    assert payload["artifact_paths"]["retry_freeze_artifact_path"] is not None
+    assert (tmp_path / "front_half" / "freeze_retry" / "freeze_retry_artifact.json").exists()
+
+
 def test_cli_front_half_acceptance_suite_runs_end_to_end(tmp_path: Path) -> None:
     """Front-half suite command should persist breadth artifacts across shipped examples."""
 

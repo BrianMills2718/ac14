@@ -130,6 +130,15 @@ def _write_blueprint_plan_fixture(path: Path) -> Path:
     return path
 
 
+def _write_refine_blueprint_plan_fixture(path: Path) -> Path:
+    """Persist a deterministic refinement fixture for blocked-freeze retries."""
+
+    payload = json.loads(_write_blueprint_plan_fixture(path).read_text())
+    payload["refinement_summary"] = "Clarified dependency scope after the blocked freeze."
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return path
+
+
 def _write_front_half_review_fixture(path: Path) -> Path:
     """Persist a deterministic front-half review fixture."""
 
@@ -266,6 +275,65 @@ def test_build_front_half_acceptance_report_runs_pipeline(
     assert Path(artifact.artifact_paths.freeze_decision_path).exists()
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
     assert Path(artifact.artifact_paths.freeze_semantic_review_path).exists()
+
+
+def test_build_front_half_acceptance_report_supports_retry_freeze(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half acceptance should optionally persist one bounded retry-chain artifact."""
+
+    input_path = tmp_path / "realistic_ticket_batch.json"
+    input_path.write_text(
+        json.dumps(
+            [
+                {
+                    "ticket_id": "SUP-10421",
+                    "body": "SSO login fails after certificate rotation.",
+                    "channel": "email",
+                }
+            ],
+            indent=2,
+        ),
+    )
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_report(
+        input_path=input_path,
+        output_dir=tmp_path / "front_half",
+        requirements=["preserve support ticket meaning", "keep packets bounded"],
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+        retry_blocked_freeze=True,
+        max_budget=0.1,
+        retry_max_budget=0.1,
+    )
+
+    assert artifact.freeze_approved is False
+    assert artifact.retry_freeze_attempted is True
+    assert artifact.retry_freeze_approved is False
+    assert artifact.final_freeze_approved is False
+    assert artifact.artifact_paths.retry_freeze_artifact_path is not None
+    assert Path(artifact.artifact_paths.retry_freeze_artifact_path).exists()
     assert artifact.freeze_approved is False
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in artifact.blocking_finding_codes
     assert artifact.review.freeze_verdict == "promising_but_blocked"

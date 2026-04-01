@@ -33,7 +33,8 @@ current executable lane.
 | 20 | [Remediation Hand-Off Automation](20_remediation_handoff_automation.md) | High | Complete | - |
 | 21 | [Freeze Remediation Plan Refinement](21_freeze_remediation_plan_refinement.md) | High | Complete | - |
 | 22 | [Freeze Retry Chain](22_freeze_retry_chain.md) | High | Complete | - |
-| 23 | [Front-Half Retry Integration](23_front_half_retry_integration.md) | High | Planned | - |
+| 23 | [Front-Half Retry Integration](23_front_half_retry_integration.md) | High | Complete | - |
+| 24 | [Front-Half Retry Suite Breadth](24_front_half_retry_suite_breadth.md) | High | Planned | - |
 
 ## Status Key
 

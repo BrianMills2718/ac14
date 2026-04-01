@@ -7,6 +7,7 @@ behind transient orchestration.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -15,7 +16,7 @@ from pydantic import BaseModel, Field
 from ac14.blueprint_planning import (
     DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     DEFAULT_BLUEPRINT_PLAN_MODEL,
-    build_refined_draft_blueprint_plan,
+    abuild_refined_draft_blueprint_plan,
 )
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.freeze_decision import build_freeze_decision
@@ -57,7 +58,7 @@ class FreezeRetryArtifact(BaseModel):
     )
 
 
-def build_freeze_retry_artifact(
+async def abuild_freeze_retry_artifact(
     plan_artifact_path: Path | str,
     freeze_decision_path: Path | str,
     output_dir: Path | str,
@@ -70,7 +71,7 @@ def build_freeze_retry_artifact(
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
 
-    refined_plan = build_refined_draft_blueprint_plan(
+    refined_plan = await abuild_refined_draft_blueprint_plan(
         plan_artifact_path=plan_artifact_path,
         freeze_decision_path=freeze_decision_path,
         output_dir=destination / "refined_plan",
@@ -112,3 +113,24 @@ def build_freeze_retry_artifact(
         json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return artifact
+
+
+def build_freeze_retry_artifact(
+    plan_artifact_path: Path | str,
+    freeze_decision_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
+    max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+) -> FreezeRetryArtifact:
+    """Synchronous wrapper for the explicit remediation-driven retry chain."""
+
+    return asyncio.run(
+        abuild_freeze_retry_artifact(
+            plan_artifact_path=plan_artifact_path,
+            freeze_decision_path=freeze_decision_path,
+            output_dir=output_dir,
+            model=model,
+            max_budget=max_budget,
+        ),
+    )

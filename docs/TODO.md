@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: front-half retry scope design
-  - [ ] pre-make retry integration as an explicit optional front-half extension
-  - [ ] pre-make how initial freeze evidence and retry evidence both stay visible
-  - Success criteria: retry-aware front-half acceptance is explicit enough to implement without replacing the original freeze record
+- [ ] Phase 1: retry breadth scope design
+  - [ ] pre-make retry-aware suite breadth as an explicit optional extension
+  - [ ] pre-make how per-example retry paths and suite-level retry counts both stay visible
+  - Success criteria: retry-aware suite breadth is explicit enough to implement without changing the default suite story silently
 
-- [ ] Phase 2: front-half retry implementation
-  - [ ] let front-half acceptance optionally run one explicit retry chain after a blocked freeze
-  - [ ] persist both the initial freeze decision path and the retry artifact path
-  - Success criteria: front-half realistic-input acceptance can expose one bounded retry without hiding the original blocked evidence
+- [ ] Phase 2: retry breadth implementation
+  - [ ] let front-half acceptance suite optionally run retry-aware per-example acceptance
+  - [ ] persist aggregate retry-attempted and retry-approved counts plus per-example retry paths
+  - Success criteria: the shipped front-half suite can expose one bounded retry-aware breadth artifact
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted retry-aware front-half tests
+  - [ ] run targeted retry-aware suite tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the retry-aware front-half lane
+  - Success criteria: verification passes and the docs match the retry-aware suite lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- explicit retry-chain automation now exists, but front-half acceptance still stops at the initial freeze decision
+- retry-aware front-half acceptance now exists, but the suite-level front-half breadth artifact still only aggregates the initial freeze result
 
 ## Latest Verified Results
 
@@ -212,6 +212,10 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_freeze_retry.py::test_build_freeze_retry_artifact_runs_refine_materialize_and_refreeze tests/test_cli.py::test_cli_retry_freeze_runs_end_to_end tests/test_make_targets.py::test_make_retry_freeze_runs_end_to_end` passed with `3 passed`
   - `python -m mypy ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/freeze_retry.py ac14/__main__.py tests/test_freeze_retry.py tests/test_cli.py tests/test_make_targets.py` passed
+- targeted retry-aware front-half verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_retry_freeze tests/test_cli.py::test_cli_front_half_acceptance_supports_retry_freeze tests/test_make_targets.py::test_make_front_half_acceptance_supports_retry_freeze` passed with `3 passed`
+  - `python -m mypy ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 
 ## Longer-Term Next Steps
 
@@ -219,7 +223,7 @@ Detailed uncertainty tracking now lives in:
 - [ ] broaden front-half acceptance into an explicit suite-level breadth artifact
 - [ ] prove one messier-input front-half lane without hiding ambiguity in prompts
 - [ ] turn dependency blockers into one explicit remediation lane instead of only diagnosis
-- [ ] connect retry-chain artifacts into realistic-input front-half acceptance
+- [ ] connect retry-aware front-half acceptance into the shipped suite breadth artifact
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

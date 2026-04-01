@@ -43,6 +43,8 @@ from ac14.freeze_retry import build_freeze_retry_artifact
 from ac14.front_half_acceptance import (
     DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
     DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+    DEFAULT_FRONT_HALF_RETRY_MODEL,
     build_front_half_acceptance_report,
     build_front_half_acceptance_suite_report,
 )
@@ -232,6 +234,13 @@ def main() -> int:
     front_half_parser.add_argument("--allow-install", action="store_true")
     front_half_parser.add_argument("--model", default=DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL)
     front_half_parser.add_argument("--max-budget", type=float, default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET)
+    front_half_parser.add_argument("--retry-blocked-freeze", action="store_true")
+    front_half_parser.add_argument("--retry-model", default=DEFAULT_FRONT_HALF_RETRY_MODEL)
+    front_half_parser.add_argument(
+        "--retry-max-budget",
+        type=float,
+        default=DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+    )
     front_half_parser.add_argument("--max-samples", type=int, default=5)
 
     front_half_suite_parser = subparsers.add_parser(
@@ -546,6 +555,9 @@ def main() -> int:
             args.allow_install,
             args.model,
             args.max_budget,
+            args.retry_blocked_freeze,
+            args.retry_model,
+            args.retry_max_budget,
             args.max_samples,
         )
     if args.command == "front-half-acceptance-suite":
@@ -962,6 +974,9 @@ def _front_half_acceptance(
     allow_install: bool,
     model: str,
     max_budget: float,
+    retry_blocked_freeze: bool,
+    retry_model: str,
+    retry_max_budget: float,
     max_samples: int,
 ) -> int:
     """Build and print a persisted realistic-input front-half acceptance artifact."""
@@ -976,6 +991,9 @@ def _front_half_acceptance(
         allow_install=allow_install,
         model=model,
         max_budget=max_budget,
+        retry_blocked_freeze=retry_blocked_freeze,
+        retry_model=retry_model,
+        retry_max_budget=retry_max_budget,
         max_samples=max_samples,
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))
