@@ -83,6 +83,17 @@ structured semantic review that can still say `promising_but_blocked` when
 freeze is not yet approved.
 **Date resolved:** 2026-03-31
 
+### U-015: Should AC14 persist one realistic-input full-system acceptance artifact?
+**Status:** Resolved
+**Context:** The front-half lane existed, but the final gate still lacked one
+artifact that judged actual system outputs from realistic input data.
+**Why it matters:** Without this, AC14 would remain much stronger at planning
+and proof setup than at final realistic-input acceptance.
+**Resolution:** AC14 now persists a realistic-input full-system acceptance
+artifact in `reference` mode, including the realistic input record, actual
+outputs, and a structured semantic review.
+**Date resolved:** 2026-03-31
+
 ## Deferred Project Uncertainties
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
@@ -97,6 +108,13 @@ than a general synthesis engine.
 lane, but the shipped input is still a plausible structured batch rather than a
 broader messy-corpus proof.
 **Why it matters:** The front half is still weaker than the back half.
+
+### U-016: Realistic-input full-system acceptance is still `reference`-mode only.
+**Status:** Deferred
+**Context:** The final realistic-input gate now exists, but only the
+`reference` execution mode is currently supported honestly.
+**Why it matters:** Broader confidence will require realistic-input acceptance
+outside the manual reference lane.
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

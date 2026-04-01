@@ -59,6 +59,7 @@ AC14 now supports:
 - making an explicit approve/block freeze decision and promoting only approved bundles
 - turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths
 - running a persisted realistic-input front-half acceptance lane from discovery through freeze decision plus a structured semantic review
+- running a persisted realistic-input full-system acceptance lane in `reference` mode with actual outputs plus a final semantic review
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
@@ -79,6 +80,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
+- realistic-input full-system acceptance outside `reference` mode
 - realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 
@@ -99,6 +101,7 @@ make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json 
 make materialize-draft-bundle PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle
 make decide-freeze INPUT=.ac14_out/draft_bundle OUTPUT=.ac14_out/freeze READINESS=.ac14_out/draft_bundle/freeze_readiness_report.json
 make front-half-acceptance REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/front_half REQUIREMENTS="preserve support ticket meaning keep packets bounded" PACKAGES="pydantic"
+make acceptance-review INPUT=examples/support_ticket_digest/blueprint OUTPUT=.ac14_out/acceptance_realistic GENERATOR=reference REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json RECORD_INDEX=0
 make list-examples
 make generate-components OUTPUT=.ac14_out/generated
 make prove-example OUTPUT=.ac14_out/proof TRIALS=3

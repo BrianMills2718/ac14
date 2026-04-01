@@ -19,31 +19,32 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: add the realistic-input front-half artifact
-  - [x] persist discovery, dependency planning, probing, draft planning, draft bundle, freeze decision, and final review paths together
-  - [x] keep the final review separate from the underlying programmatic artifacts
-  - Success criteria: one artifact shows the whole front-half chain for a real input file
+- [x] Phase 1: add realistic-input full-system acceptance artifact
+  - [x] persist actual blueprint outputs for one realistic-input acceptance run
+  - [x] keep the full-system acceptance artifact distinct from the front-half artifact
+  - Success criteria: one artifact shows realistic inputs, actual outputs, and final review together
 
-- [x] Phase 2: add structured front-half review
-  - [x] review the front-half result against explicit requirements
-  - [x] allow promising-but-blocked front-half outcomes instead of requiring freeze approval
-  - Success criteria: the front half gets a semantic verdict instead of only a collection of sub-artifacts
+- [x] Phase 2: add final structured review
+  - [x] review realistic-input outputs against explicit requirements
+  - [x] support `reference` mode on the first honest slice
+  - Success criteria: realistic-input system behavior gets a final semantic verdict instead of only raw outputs
 
-- [x] Phase 3: expose operator surfaces and shipped input
-  - [x] add CLI and Make entrypoints
-  - [x] add one shipped realistic input file for a current example slice
+- [x] Phase 3: expose operator surfaces
+  - [x] add CLI and Make entrypoints or extend the existing acceptance surface cleanly
+  - [x] wire at least one shipped realistic-input slice into the lane
   - Success criteria: operators can run the lane without manual assembly
 
 - [x] Phase 4: verify and lock the lane
-  - [x] run targeted front-half acceptance tests
+  - [x] run targeted realistic-input full-system acceptance tests
   - [x] run full `python -m pytest -q`
   - [x] run full `python -m mypy ac14 tests`
   - [x] run full `python -m ruff check ac14 tests`
   - [x] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the realistic-input front-half lane
+  - Success criteria: verification passes and the docs match the realistic-input full-system acceptance lane
 
 ## Current Open Uncertainties
 
+- realistic-input full-system acceptance now exists, but it is still `reference`-mode only
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - the next decision after this lane is whether blocked dependency remediation should stay manual or become a later controlled automation lane
 
@@ -55,8 +56,10 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
-- the current completed lane is:
-  - `docs/plans/04_realistic_input_front_half_acceptance.md`
+- the most recently completed lane is:
+  - `docs/plans/05_realistic_input_full_system_acceptance.md`
+- targeted realistic-input full-system acceptance verification passed:
+  - `python -m pytest -q tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_artifact tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_runs_end_to_end` passed with `3 passed`
 - targeted realistic-input front-half acceptance verification passed:
   - `python -m pytest -q tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `3 passed`
 - targeted dependency-probe integration verification passed:
@@ -78,7 +81,7 @@ Detailed uncertainty tracking now lives in:
   - `python -m mypy ac14 tests` passed on `56` source files
   - `python -m ruff check ac14 tests` passed
 - full verification passed:
-  - `python -m pytest -q` passed with `109 passed`
+  - `python -m pytest -q` passed with `112 passed`
   - `python -m mypy ac14 tests` passed on `60` source files
   - `python -m ruff check ac14 tests` passed
 - current implementation reality and broader historical verification context live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
@@ -86,6 +89,7 @@ Detailed uncertainty tracking now lives in:
 ## Longer-Term Next Steps
 
 - [ ] connect broader proof breadth to less hard-coded deterministic generation
+- [ ] extend realistic-input full-system acceptance beyond `reference` mode
 - [ ] connect remediation tasks to automated draft-refinement loops when the current manual bundle-edit loop is proven
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven

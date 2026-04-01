@@ -216,6 +216,8 @@ def main() -> int:
     acceptance_parser.add_argument("blueprint_dir", type=Path)
     acceptance_parser.add_argument("--output-dir", type=Path, required=True)
     acceptance_parser.add_argument("--mode", choices=["reference", "deterministic", "llm"], default="deterministic")
+    acceptance_parser.add_argument("--realistic-input", type=Path, default=None)
+    acceptance_parser.add_argument("--record-index", type=int, default=0)
     acceptance_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     acceptance_parser.add_argument("--max-budget", type=float, default=0.50)
 
@@ -430,6 +432,8 @@ def main() -> int:
             args.blueprint_dir,
             args.output_dir,
             cast(AcceptanceMode, args.mode),
+            args.realistic_input,
+            args.record_index,
             args.model,
             args.max_budget,
         )
@@ -792,6 +796,8 @@ def _acceptance_review(
     blueprint_dir: Path,
     output_dir: Path,
     mode: AcceptanceMode,
+    realistic_input: Path | None,
+    record_index: int,
     model: str,
     max_budget: float,
 ) -> int:
@@ -801,6 +807,8 @@ def _acceptance_review(
         blueprint_dir=blueprint_dir,
         output_dir=output_dir,
         mode=mode,
+        realistic_input_path=realistic_input,
+        realistic_input_record_index=record_index,
         model=model,
         max_budget=max_budget,
     )

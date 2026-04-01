@@ -24,6 +24,9 @@ messages:
       Scenario:
       {{ scenario }}
 
+      Realistic input payload:
+      {{ realistic_input_payload }}
+
       Actual outputs by component:
       {{ outputs_by_component }}
 

@@ -1268,3 +1268,56 @@ def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     assert payload["freeze_approved"] is False
     assert payload["review"]["freeze_verdict"] == "promising_but_blocked"
     assert (tmp_path / "front_half" / "front_half_acceptance_report.json").exists()
+
+
+def test_cli_acceptance_review_with_realistic_input_runs_end_to_end(tmp_path: Path) -> None:
+    """Acceptance-review command should support realistic-input execution context."""
+
+    review_fixture = tmp_path / "acceptance_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Outputs look consistent with the realistic ticket requirements.",
+                "concerns": [],
+                "requirement_assessments": [
+                    {
+                        "requirement": "The system should escalate a billing renewal failure affecting a known enterprise customer.",
+                        "verdict": "satisfied",
+                        "rationale": "The output preserves the priority, label, and escalation action."
+                    }
+                ],
+            },
+            indent=2,
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "acceptance-review",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "acceptance_realistic"),
+            "--mode",
+            "reference",
+            "--realistic-input",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"),
+            "--record-index",
+            "0",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert len(payload["scenario_results"]) == 1
+    assert payload["scenario_results"][0]["realistic_input_path"].endswith("realistic_ticket_batch.json")
+    assert (tmp_path / "acceptance_realistic" / "acceptance_report.json").exists()

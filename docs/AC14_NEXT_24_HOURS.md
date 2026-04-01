@@ -9,12 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the completed lane is:
 
-- [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
+- [Plan #5: Realistic-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/05_realistic_input_full_system_acceptance.md)
 
-Plan #3 put dependency-probe policy into shared process config. Plan #4 used
-that stronger front-half foundation to run discovery through freeze decision on
-a realistic input file and then review the whole front-half result against the
-requirements.
+Plan #4 proved a realistic-input front-half artifact. Plan #5 extended that
+into the final gate by running realistic input through actual blueprint
+execution in `reference` mode and then reviewing the resulting outputs against
+the requirements.
 
 ## Progress Update
 
@@ -29,31 +29,37 @@ Completed before this lane:
 7. dependency-aware draft planning with preserved dependency provenance
 8. explicit dependency execution probes for dependency-plan recommendations
 
-Completed in Plan #4:
+Completed before this lane:
 
 1. one persisted front-half acceptance artifact
 2. one structured review over the full front-half chain
 3. one shipped realistic input file plus operator surfaces
 
+Completed in Plan #5:
+
+1. one persisted realistic-input full-system acceptance artifact
+2. one final structured review over actual system outputs
+3. one shipped realistic-input slice exercised through blueprint execution
+
 ## Tactical Phase Summary
 
-This document mirrors the active plan at a higher level. Detailed references,
-write scope, tests, and acceptance criteria live in Plan #4.
+This document mirrors the completed plan at a higher level. Detailed
+references, write scope, tests, and acceptance criteria live in Plan #5.
 
-### Phase 1: front-half artifact
+### Phase 1: full-system artifact
 
-- persisted discovery, dependency, draft, freeze, and review paths
-- one reviewable artifact for a realistic input file
+- persisted realistic inputs, actual outputs, and final review
+- one reviewable artifact for a realistic-input execution run
 
-### Phase 2: structured review
+### Phase 2: final structured review
 
-- review the front-half result against explicit requirements
-- allow promising-but-blocked outcomes when the front half still looks sound
+- review full-system outputs against explicit requirements
+- support `reference` mode on the first honest slice
 
 ### Phase 3: operator surface
 
-- CLI and Make expose the new lane
-- at least one shipped realistic input file exists
+- CLI and Make expose the new lane cleanly
+- at least one shipped realistic-input slice is wired into the lane
 
 ### Phase 4: Verification And Lock
 
@@ -68,6 +74,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the front-half review should strengthen the front half without replacing later full-system acceptance
-2. realistic-input acceptance is now persisted, but the current shipped input remains plausible rather than broadly messy
-3. broader automation should still not outrun the current explicit operator-invoked probe model
+1. realistic-input full-system acceptance should strengthen the final gate without replacing the separate front-half artifact
+2. realistic-input full-system acceptance is now persisted, but it is still `reference`-mode only
+3. realistic-input acceptance is now persisted, but the current shipped input remains plausible rather than broadly messy

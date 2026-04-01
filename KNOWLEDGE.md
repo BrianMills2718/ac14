@@ -113,4 +113,10 @@ freeze decision on a realistic input file, then adds a structured semantic
 review that can still conclude `promising_but_blocked` when the front half
 looks sound but freeze is not yet approved.
 
+### 2026-03-31 — codex — best-practice
+Realistic-input final acceptance should use actual system outputs, not only
+front-half artifacts. AC14 now lets `acceptance-review` run a realistic input
+record through a shipped blueprint in `reference` mode, persist the real
+outputs, and then add a structured semantic review at the final gate.
+
 ---

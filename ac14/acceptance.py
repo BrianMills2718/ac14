@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field
 
@@ -20,6 +21,7 @@ from ac14.recomposition import (
     execute_recomposition_scenarios,
 )
 from ac14.reference_components import build_reference_component_builders_for_blueprint
+from ac14.runtime import run_blueprint_once
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
@@ -59,6 +61,14 @@ class AcceptanceScenarioResult(BaseModel):
     mode: AcceptanceMode = Field(description="Execution mode under review.")
     realistic_input: bool = Field(description="Whether the scenario is marked realistic.")
     requirements: list[str] = Field(description="Requirements reviewed by the LLM.")
+    realistic_input_path: str | None = Field(
+        default=None,
+        description="Path to the realistic input artifact when one was supplied.",
+    )
+    realistic_input_record: object | None = Field(
+        default=None,
+        description="Realistic input record reviewed and executed when one was supplied.",
+    )
     execution_error: str | None = Field(default=None, description="Execution error when the run failed.")
     outputs_by_component: dict[str, dict[str, dict[str, object]]] | None = Field(
         default=None,
@@ -96,6 +106,8 @@ async def abuild_acceptance_report(
     output_dir: Path | str,
     *,
     mode: AcceptanceMode = "deterministic",
+    realistic_input_path: Path | str | None = None,
+    realistic_input_record_index: int = 0,
     model: str = DEFAULT_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
 ) -> AcceptanceReport:
@@ -114,16 +126,38 @@ async def abuild_acceptance_report(
     if not acceptance_scenarios:
         raise ValueError(f"blueprint {blueprint.metadata.blueprint_id} has no semantic_acceptance scenarios")
 
-    scenario_executions = await _execute_mode_for_acceptance(
-        blueprint=blueprint,
-        mode=mode,
-        output_dir=destination / mode,
-        model=model,
-        max_budget=max_budget,
+    realistic_input_record: dict[str, Any] | None = (
+        _load_realistic_input_record(
+            realistic_input_path=realistic_input_path,
+            record_index=realistic_input_record_index,
+        )
+        if realistic_input_path is not None
+        else None
     )
+    if realistic_input_record is not None and mode != "reference":
+        raise ValueError("realistic-input acceptance currently supports reference mode only")
+    if realistic_input_record is None:
+        scenario_executions = await _execute_mode_for_acceptance(
+            blueprint=blueprint,
+            mode=mode,
+            output_dir=destination / mode,
+            model=model,
+            max_budget=max_budget,
+        )
+    else:
+        scenario_executions = await _execute_mode_for_realistic_input_acceptance(
+            blueprint=blueprint,
+            mode=mode,
+            output_dir=destination / mode,
+            realistic_input_record=realistic_input_record,
+            model=model,
+            max_budget=max_budget,
+        )
 
     results: list[AcceptanceScenarioResult] = []
     for scenario_id, scenario in acceptance_scenarios.items():
+        if realistic_input_record is not None and not scenario.realistic_input:
+            continue
         execution = scenario_executions[scenario_id]
         if execution.error is not None:
             results.append(
@@ -132,6 +166,16 @@ async def abuild_acceptance_report(
                     mode=mode,
                     realistic_input=scenario.realistic_input,
                     requirements=scenario.requirements,
+                    realistic_input_path=(
+                        str(Path(realistic_input_path))
+                        if realistic_input_path is not None and scenario.realistic_input
+                        else None
+                    ),
+                    realistic_input_record=(
+                        realistic_input_record
+                        if realistic_input_record is not None and scenario.realistic_input
+                        else None
+                    ),
                     execution_error=execution.error,
                 ),
             )
@@ -141,6 +185,9 @@ async def abuild_acceptance_report(
             blueprint=blueprint,
             scenario=scenario,
             outputs_by_component=execution.outputs_by_component or {},
+            realistic_input_payload=(
+                realistic_input_record if scenario.realistic_input else None
+            ),
             model=model,
             max_budget=max_budget,
             trace_id=f"ac14/acceptance/{mode}/{scenario_id}",
@@ -151,6 +198,16 @@ async def abuild_acceptance_report(
                 mode=mode,
                 realistic_input=scenario.realistic_input,
                 requirements=scenario.requirements,
+                realistic_input_path=(
+                    str(Path(realistic_input_path))
+                    if realistic_input_path is not None and scenario.realistic_input
+                    else None
+                ),
+                realistic_input_record=(
+                    realistic_input_record
+                    if realistic_input_record is not None and scenario.realistic_input
+                    else None
+                ),
                 outputs_by_component=execution.outputs_by_component,
                 review=review,
             ),
@@ -172,6 +229,8 @@ def build_acceptance_report(
     output_dir: Path | str,
     *,
     mode: AcceptanceMode = "deterministic",
+    realistic_input_path: Path | str | None = None,
+    realistic_input_record_index: int = 0,
     model: str = DEFAULT_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_ACCEPTANCE_MAX_BUDGET,
 ) -> AcceptanceReport:
@@ -182,6 +241,8 @@ def build_acceptance_report(
             blueprint_dir=blueprint_dir,
             output_dir=output_dir,
             mode=mode,
+            realistic_input_path=realistic_input_path,
+            realistic_input_record_index=realistic_input_record_index,
             model=model,
             max_budget=max_budget,
         ),
@@ -263,16 +324,22 @@ async def _review_acceptance_scenario(
     blueprint: FrozenBlueprint,
     scenario: Scenario,
     outputs_by_component: dict[str, dict[str, dict[str, object]]],
+    realistic_input_payload: object | None,
     model: str,
     max_budget: float,
     trace_id: str,
 ) -> AcceptanceReviewResponse:
     """Run the LLM reviewer for one semantic-acceptance scenario."""
 
+    fixture_path = os.environ.get("AC14_ACCEPTANCE_REVIEW_FIXTURE")
+    if fixture_path:
+        return AcceptanceReviewResponse.model_validate_json(Path(fixture_path).read_text())
+
     messages = render_prompt(
         ACCEPTANCE_PROMPT_PATH,
         blueprint_metadata=blueprint.metadata.model_dump(mode="json"),
         scenario=scenario.model_dump(mode="json"),
+        realistic_input_payload=realistic_input_payload,
         outputs_by_component=outputs_by_component,
     )
     response, _meta = await acall_llm_structured(
@@ -296,20 +363,13 @@ async def _execute_mode_for_acceptance(
 ) -> dict[str, RecompositionScenarioExecution]:
     """Execute one mode and return runnable scenario outputs keyed by scenario id."""
 
-    if mode == "reference":
-        builders = build_reference_component_builders_for_blueprint(blueprint)
-    else:
-        packet_bundle = compile_packets(blueprint)
-        generated_package = emit_generated_package(
-            packet_bundle,
-            output_dir / "generated",
-            generator_kind="deterministic" if mode == "deterministic" else "llm",
-            llm_model=model,
-            llm_max_budget=max_budget,
-            trace_id_prefix=f"ac14/acceptance/{mode}",
-        )
-        builders = load_generated_component_builders(generated_package)
-
+    builders = _builders_for_mode(
+        blueprint=blueprint,
+        mode=mode,
+        output_dir=output_dir,
+        model=model,
+        max_budget=max_budget,
+    )
     catalog = build_recomposition_scenario_catalog(blueprint)
     _catalog, executions = execute_recomposition_scenarios(blueprint, builders)
     execution_by_id = {execution.scenario_id: execution for execution in executions}
@@ -318,6 +378,153 @@ async def _execute_mode_for_acceptance(
         for scenario in catalog.runnable_scenarios
         if scenario.scenario_id in execution_by_id
     }
+
+
+async def _execute_mode_for_realistic_input_acceptance(
+    *,
+    blueprint: FrozenBlueprint,
+    mode: AcceptanceMode,
+    output_dir: Path,
+    realistic_input_record: dict[str, Any],
+    model: str,
+    max_budget: float,
+) -> dict[str, RecompositionScenarioExecution]:
+    """Execute realistic-input semantic-acceptance scenarios from one real input record."""
+
+    realistic_scenarios = [
+        scenario
+        for scenario in blueprint.scenarios.values()
+        if scenario.kind == "semantic_acceptance" and scenario.realistic_input
+    ]
+    if len(realistic_scenarios) != 1:
+        raise ValueError(
+            "realistic-input acceptance currently requires exactly one realistic semantic_acceptance scenario",
+        )
+    source_components = _source_components(blueprint)
+    if len(source_components) != 1:
+        raise ValueError(
+            "realistic-input acceptance currently requires exactly one source component",
+        )
+    source_component_id = source_components[0]
+    source_component = blueprint.components[source_component_id]
+    if len(source_component.input_ports) != 1:
+        raise ValueError(
+            "realistic-input acceptance currently requires exactly one source input port",
+        )
+    source_port_name = source_component.input_ports[0].name
+    builders = _builders_for_mode(
+        blueprint=blueprint,
+        mode=mode,
+        output_dir=output_dir,
+        model=model,
+        max_budget=max_budget,
+    )
+    implementations = {
+        component_id: builders[component_id]()
+        for component_id in blueprint.components
+    }
+    _seed_realistic_runtime_state(
+        implementations=implementations,
+        realistic_input_record=realistic_input_record,
+    )
+    scenario = realistic_scenarios[0]
+    try:
+        outputs = run_blueprint_once(
+            blueprint,
+            implementations,
+            {str(source_component_id): {source_port_name: realistic_input_record}},
+        )
+        return {
+            scenario.scenario_id: RecompositionScenarioExecution(
+                scenario_id=scenario.scenario_id,
+                outputs_by_component=outputs,
+            )
+        }
+    except Exception as exc:  # pragma: no cover - explicit failure capture
+        return {
+            scenario.scenario_id: RecompositionScenarioExecution(
+                scenario_id=scenario.scenario_id,
+                error=str(exc),
+            )
+        }
+
+
+def _builders_for_mode(
+    *,
+    blueprint: FrozenBlueprint,
+    mode: AcceptanceMode,
+    output_dir: Path,
+    model: str,
+    max_budget: float,
+) -> dict[str, Any]:
+    """Build component factories for one acceptance mode."""
+
+    if mode == "reference":
+        return build_reference_component_builders_for_blueprint(blueprint)
+    packet_bundle = compile_packets(blueprint)
+    generated_package = emit_generated_package(
+        packet_bundle,
+        output_dir / "generated",
+        generator_kind="deterministic" if mode == "deterministic" else "llm",
+        llm_model=model,
+        llm_max_budget=max_budget,
+        trace_id_prefix=f"ac14/acceptance/{mode}",
+    )
+    return load_generated_component_builders(generated_package)
+
+
+def _load_realistic_input_record(
+    *,
+    realistic_input_path: Path | str,
+    record_index: int,
+) -> dict[str, Any]:
+    """Load one realistic input record from a persisted JSON artifact."""
+
+    path = Path(realistic_input_path)
+    payload = json.loads(path.read_text())
+    if not isinstance(payload, list):
+        raise ValueError("realistic-input acceptance currently requires a top-level JSON list")
+    if record_index < 0 or record_index >= len(payload):
+        raise ValueError("realistic-input record index is out of range")
+    record = payload[record_index]
+    if not isinstance(record, dict):
+        raise ValueError("realistic-input acceptance currently requires object records")
+    return cast(dict[str, Any], record)
+
+
+def _source_components(blueprint: FrozenBlueprint) -> list[str]:
+    """Return source components in blueprint order."""
+
+    inbound_components = {binding.to_component for binding in blueprint.bindings}
+    return [
+        component_id
+        for component_id in blueprint.components
+        if component_id not in inbound_components
+    ]
+
+
+def _seed_realistic_runtime_state(
+    *,
+    implementations: dict[str, Any],
+    realistic_input_record: dict[str, Any],
+) -> None:
+    """Seed reference runtime state for unseen realistic-input identifiers."""
+
+    ticket_id = realistic_input_record.get("ticket_id")
+    opened_at = realistic_input_record.get("opened_at") or realistic_input_record.get("submitted_at")
+    if isinstance(ticket_id, str) and isinstance(opened_at, str):
+        for implementation in implementations.values():
+            generated_at_by_ticket_id = getattr(implementation, "_generated_at_by_ticket_id", None)
+            if isinstance(generated_at_by_ticket_id, dict):
+                generated_at_by_ticket_id.setdefault(ticket_id, opened_at)
+
+    alert_id = realistic_input_record.get("alert_id")
+    observed_at = realistic_input_record.get("observed_at") or realistic_input_record.get("opened_at")
+    if isinstance(alert_id, str) and isinstance(observed_at, str):
+        for implementation in implementations.values():
+            generated_at_by_alert_id = getattr(implementation, "_generated_at_by_alert_id", None)
+            if isinstance(generated_at_by_alert_id, dict):
+                generated_at_by_alert_id.setdefault(alert_id, observed_at)
 
 
 def _example_verdict(report: AcceptanceReport) -> Literal["accept", "concern", "reject"]:

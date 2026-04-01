@@ -73,21 +73,19 @@ Treat the active numbered plan as a mandatory execution contract:
 
 ## Active Proof Expansion Rule
 
-The current focus after dependency-probe policy is realistic-input front-half
-acceptance.
+The current focus after realistic-input full-system acceptance is broadening
+that final gate beyond the narrow `reference` slice.
 
-- run discovery through freeze decision on a real input artifact rather than
-  only on abstract example blueprints
-- persist a reviewable front-half acceptance artifact that judges whether the
-  discovered-input pipeline looks requirements-sound
-- keep the final front-half verdict as combined evidence: hard programmatic
-  artifacts plus LLM semantic review
-- keep uncertainties logged, but do not treat them as blockers unless they
-  contradict the frozen proof slice
+- keep realistic-input final acceptance tied to actual blueprint execution
+  rather than a disconnected review workflow
+- broaden the final gate carefully from `reference` outward instead of claiming
+  multi-mode support before it is real
+- keep the final verdict as combined evidence: hard programmatic artifacts plus
+  LLM semantic review
 - preserve the AC14-native notebook and implementation-status doc as the
   canonical story surface while implementation continues
-- keep realistic-input acceptance tied to blueprint freeze preparation rather
-  than a disconnected side review workflow
+- keep uncertainties logged, but do not treat them as blockers unless they
+  contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 
 ## Continuation Rule

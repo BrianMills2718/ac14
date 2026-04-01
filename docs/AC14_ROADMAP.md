@@ -59,10 +59,10 @@ Prove that blueprint-driven decomposition is real, not just well-instrumented.
 
 Remaining emphasis:
 
-1. dependency execution probing
-2. stronger realistic-input acceptance
-3. cleaner packet sufficiency and recomposition evidence
-4. slightly broader proof breadth
+1. realistic-input full-system acceptance beyond the narrow `reference` slice
+2. cleaner packet sufficiency and recomposition evidence
+3. slightly broader proof breadth
+4. realistic-input final gates that combine programmatic and LLM review
 
 Exit criteria:
 
@@ -156,7 +156,7 @@ Failure signs:
 In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
-2. finish the remaining proof-slice infrastructure, especially dependency execution probing
+2. finish the remaining proof-slice infrastructure, especially realistic-input final acceptance beyond `reference`
 3. strengthen the front half before making stronger generality claims
 4. broaden proof breadth before expanding scope claims
 

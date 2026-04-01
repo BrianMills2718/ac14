@@ -14,6 +14,7 @@ GENERATORS ?= deterministic llm
 MODES ?= reference deterministic
 MODEL ?= gemini/gemini-2.5-flash-lite
 MAX_BUDGET ?= 0.50
+RECORD_INDEX ?= 0
 PACKAGES ?=
 WEB_QUERY ?=
 REPO_QUERY ?=
@@ -92,8 +93,8 @@ fresh-runs: ## Run repeated fresh generation trials (INPUT=... OUTPUT=.ac14_out/
 compare-generators: ## Compare generator modes (INPUT=... OUTPUT=.ac14_out/compare GENERATORS="deterministic llm")
 	$(PYTHON) -m ac14 compare-generators "$(INPUT)" --output-dir "$(OUTPUT)" --fresh-run-trials "$(TRIALS)" --generators $(GENERATORS) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
-acceptance-review: ## Run requirements-aware acceptance review for one blueprint (INPUT=... OUTPUT=.ac14_out/acceptance GENERATOR=reference|deterministic|llm)
-	$(PYTHON) -m ac14 acceptance-review "$(INPUT)" --output-dir "$(OUTPUT)" --mode "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+acceptance-review: ## Run requirements-aware acceptance review for one blueprint (INPUT=... OUTPUT=.ac14_out/acceptance GENERATOR=reference|deterministic|llm REALISTIC_INPUT=optional.json RECORD_INDEX=0)
+	$(PYTHON) -m ac14 acceptance-review "$(INPUT)" --output-dir "$(OUTPUT)" --mode "$(GENERATOR)" $(if $(REALISTIC_INPUT),--realistic-input "$(REALISTIC_INPUT)",) --record-index "$(RECORD_INDEX)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 semantic-compare: ## Compare semantic outputs for one blueprint (INPUT=... OUTPUT=.ac14_out/semantic MODES="reference deterministic")
 	$(PYTHON) -m ac14 semantic-compare "$(INPUT)" --output-dir "$(OUTPUT)" --modes $(MODES) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
