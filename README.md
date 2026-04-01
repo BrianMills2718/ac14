@@ -61,6 +61,8 @@ AC14 now supports:
 - running a persisted realistic-input front-half acceptance lane from discovery through freeze decision plus a structured semantic review
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
+- running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review
+- persisting one per-blueprint realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
@@ -81,7 +83,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- realistic-input full-system acceptance in `llm` mode
+- suite-level realistic-input acceptance in `llm` mode
 - realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 
@@ -113,5 +115,6 @@ make compare-suite OUTPUT=.ac14_out/suite_compare TRIALS=1 GENERATORS=determinis
 make semantic-compare-suite OUTPUT=.ac14_out/suite_semantic MODES="reference deterministic"
 make acceptance-review-suite OUTPUT=.ac14_out/suite_acceptance GENERATOR=deterministic
 make acceptance-review-realistic-suite OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0
+make acceptance-review-realistic-compare INPUT=examples/support_ticket_digest/blueprint REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

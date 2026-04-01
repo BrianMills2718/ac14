@@ -11,6 +11,7 @@ The most recently completed implementation contracts are:
 - [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
 - [Plan #5: Realistic-Input Full-System Acceptance](/home/brian/projects/ac14/docs/plans/05_realistic_input_full_system_acceptance.md)
 - [Plan #6: Realistic-Input Acceptance Breadth](/home/brian/projects/ac14/docs/plans/06_realistic_input_acceptance_breadth.md)
+- [Plan #7: Realistic-Input LLM Acceptance](/home/brian/projects/ac14/docs/plans/07_realistic_input_llm_acceptance.md)
 
 This file is the running checklist and short verification ledger for the active
 plan.
@@ -21,35 +22,30 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [x] Phase 1: fixture-backed llm realistic-input path
-  - [x] add a deterministic fixture surface for LLM codegen in tests
-  - [x] keep the `llm` realistic-input lane testable without live keys
-  - Success criteria: unit, CLI, and Make tests can exercise the `llm` realistic-input path deterministically
+- [ ] Phase 1: blueprint-aware fixture-backed llm codegen
+  - [ ] make LLM-codegen fixtures disambiguate repeated component IDs across blueprints
+  - [ ] fail loud when a fixture payload is ambiguous for the current blueprint
+  - Success criteria: multi-blueprint `llm` tests can run without hidden fixture collisions
 
-- [x] Phase 2: single-slice llm realistic-input acceptance
-  - [x] support `llm` realistic-input full-system acceptance on the support-ticket slice
-  - [x] keep execution outputs and final review persisted exactly as in the other modes
-  - Success criteria: support-ticket realistic input passes through `llm` mode with persisted outputs and semantic review
+- [ ] Phase 2: suite-level llm realistic-input acceptance
+  - [ ] persist one realistic-input suite artifact in `llm` mode across shipped examples
+  - [ ] keep the suite artifact explicit about its fixture-backed scope
+  - Success criteria: one persisted artifact broadens `llm` realistic-input evidence beyond a single blueprint
 
-- [x] Phase 3: realistic-input mode comparison
-  - [x] persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm`
-  - [x] keep the artifact explicit about its one-blueprint scope
-  - Success criteria: one persisted artifact makes cross-mode realistic-input behavior reviewable in one place
-
-- [ ] Phase 4: operator surface and lock
+- [ ] Phase 3: operator surface and lock
   - [ ] expose any widened CLI and Make surfaces cleanly
-  - [ ] run targeted realistic-input `llm` tests
+  - [ ] run targeted `llm` breadth tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
-  - Success criteria: verification passes and the docs match the realistic-input `llm` lane
+  - Success criteria: verification passes and the docs match the `llm` breadth lane
 
 ## Current Open Uncertainties
 
-- realistic-input full-system acceptance now exists in `reference` and `deterministic`, but `llm` mode is still unproven
+- realistic-input full-system acceptance now has one `llm` slice, but suite-level `llm` breadth is still unproven
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- `llm` realistic-input generation may expose additional hidden runtime-state assumptions
+- fixture-backed `llm` codegen is still too narrow for multi-blueprint breadth because it keys by component ID only
 
 ## Latest Verified Results
 
@@ -104,6 +100,10 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_llm_codegen.py::test_generate_component_module_with_llm_uses_fixture_env tests/test_acceptance.py::test_build_acceptance_report_supports_realistic_input_llm_mode tests/test_acceptance.py::test_build_realistic_mode_comparison_report_supports_llm tests/test_cli.py::test_cli_acceptance_review_realistic_compare_help tests/test_cli.py::test_cli_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end tests/test_cli.py::test_cli_acceptance_review_realistic_compare_runs_end_to_end tests/test_make_targets.py::test_make_help_lists_proof_targets tests/test_make_targets.py::test_make_acceptance_review_with_realistic_input_llm_mode_runs_end_to_end tests/test_make_targets.py::test_make_acceptance_review_realistic_compare_runs_end_to_end` passed with `9 passed`
   - `python -m mypy ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/generated_codegen.py ac14/llm_codegen.py ac14/acceptance.py ac14/__main__.py tests/test_llm_codegen.py tests/test_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `128 passed`
+    - `python -m mypy ac14 tests` passed on `60` source files
+    - `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps
 

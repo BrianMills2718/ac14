@@ -17,7 +17,8 @@ current executable lane.
 | 4 | [Realistic-Input Front-Half Acceptance](04_realistic_input_front_half_acceptance.md) | High | Complete | - |
 | 5 | [Realistic-Input Full-System Acceptance](05_realistic_input_full_system_acceptance.md) | High | Complete | - |
 | 6 | [Realistic-Input Acceptance Breadth](06_realistic_input_acceptance_breadth.md) | High | Complete | - |
-| 7 | [Realistic-Input LLM Acceptance](07_realistic_input_llm_acceptance.md) | High | In Progress | - |
+| 7 | [Realistic-Input LLM Acceptance](07_realistic_input_llm_acceptance.md) | High | Complete | - |
+| 8 | [LLM Realistic-Input Breadth](08_llm_realistic_input_breadth.md) | High | In Progress | - |
 
 ## Status Key
 

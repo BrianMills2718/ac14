@@ -120,12 +120,24 @@ one explicit breadth artifact before moving to `llm`.
 acceptance artifact across shipped examples for those supported modes.
 **Date resolved:** 2026-03-31
 
-### U-017: Realistic-input full-system acceptance is still missing `llm` mode.
+### U-017: Should realistic-input full-system acceptance include one honest `llm` lane?
+**Status:** Resolved
+**Context:** After the controlled `reference` and `deterministic` lanes,
+realistic-input `llm` coverage was the next meaningful gap.
+**Why it matters:** The project vision is not deterministic-only, so the final
+gate needed one bounded `llm` slice before broader breadth claims.
+**Resolution:** AC14 now supports one realistic-input `llm` acceptance slice on
+the support-ticket blueprint, plus one per-blueprint realistic-input
+comparison artifact across `reference`, `deterministic`, and `llm`.
+**Date resolved:** 2026-03-31
+
+### U-018: Fixture-backed `llm` breadth is still too narrow for multi-blueprint coverage.
 **Status:** Deferred
-**Context:** The final realistic-input gate now exists in `reference` and
-`deterministic`, but `llm` mode is still unproven.
-**Why it matters:** The project vision is not deterministic-only, so one honest
-`llm` realistic-input lane is the next meaningful gap.
+**Context:** The current fixture-backed LLM codegen path keys responses by
+component ID only, which is too weak when multiple blueprints reuse component
+IDs with different embedded deterministic state.
+**Why it matters:** Suite-level `llm` breadth will be misleading until the
+fixture path becomes blueprint-aware and fails loud on ambiguity.
 
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred

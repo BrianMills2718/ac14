@@ -127,4 +127,11 @@ scenario but shipped no input file; the right fix was to add the missing input
 artifact and keep suite coverage explicit rather than silently filtering the
 example out.
 
+### 2026-03-31 — codex — bug-pattern
+`llm` realistic-input acceptance was structurally broken inside AC14's async
+acceptance path because LLM codegen still routed through the sync wrapper with
+`asyncio.run()`. The right fix was not a test workaround; it was an async
+generated-package path so acceptance can call async LLM codegen directly when
+already inside an event loop.
+
 ---

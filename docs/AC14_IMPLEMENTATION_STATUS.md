@@ -82,6 +82,8 @@ Implemented:
 11. persisted realistic-input front-half acceptance from discovery through freeze decision plus structured semantic review
 12. persisted realistic-input full-system acceptance in `reference` and `deterministic` modes with actual outputs plus final semantic review
 13. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
+14. one bounded realistic-input full-system acceptance slice in `llm` mode
+15. one per-blueprint realistic-input mode-comparison artifact across `reference`, `deterministic`, and `llm`
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -117,11 +119,12 @@ Implemented:
 4. realistic-input front-half acceptance artifacts that judge discovery through freeze against explicit requirements
 5. realistic-input full-system acceptance artifacts that review actual outputs from realistic inputs in `reference` and `deterministic` modes
 6. one suite-level realistic-input acceptance artifact across shipped examples for supported non-LLM modes
+7. one bounded realistic-input `llm` acceptance slice plus a per-blueprint realistic-input mode-comparison artifact
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
-2. realistic-input full-system acceptance in `llm` mode
+2. suite-level realistic-input acceptance in `llm` mode
 3. final realistic-input full-system acceptance as the default gate
 4. strategy/value review during draft and freeze phases
 
@@ -185,8 +188,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 90-94%
-2. long-term general coding agent vision: 40-44%
+1. first proof slice: 91-95%
+2. long-term general coding agent vision: 41-45%
 
 The remaining work is not mainly “more code.” It is:
 

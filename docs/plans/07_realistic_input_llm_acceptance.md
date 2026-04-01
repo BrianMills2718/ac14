@@ -1,6 +1,6 @@
 # Plan #7: Realistic-Input LLM Acceptance
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -131,11 +131,11 @@ that records realistic-input acceptance results across `reference`,
 
 ## Acceptance Criteria
 
-- [ ] AC14 supports realistic-input full-system acceptance in `llm` mode on the support-ticket slice.
-- [ ] Non-live tests can exercise the `llm` realistic-input lane deterministically.
-- [ ] AC14 can persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm` for one blueprint.
-- [ ] CLI and Make expose the widened lane without manual glue code.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 supports realistic-input full-system acceptance in `llm` mode on the support-ticket slice.
+- [x] Non-live tests can exercise the `llm` realistic-input lane deterministically.
+- [x] AC14 can persist one realistic-input comparison artifact across `reference`, `deterministic`, and `llm` for one blueprint.
+- [x] CLI and Make expose the widened lane without manual glue code.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

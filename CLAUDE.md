@@ -89,15 +89,15 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after realistic-input reference/deterministic breadth is one
-honest `llm` realistic-input final gate.
+The current focus after one honest realistic-input `llm` slice is bounded
+`llm` breadth across shipped examples.
 
-- prove one realistic-input `llm` acceptance path on a shipped slice before
-  making any broader mode-completeness claim
-- keep suite-level realistic-input breadth explicit about covered modes instead
-  of implying that `llm` breadth already exists
-- add one realistic-input mode-comparison artifact so `reference`,
-  `deterministic`, and `llm` differences stay reviewable
+- make fixture-backed `llm` codegen blueprint-aware before claiming suite-level
+  `llm` breadth
+- prove one suite-level realistic-input `llm` artifact only after that
+  blueprint-aware fixture surface exists
+- keep the docs explicit that fixture-backed `llm` breadth is still proof
+  breadth, not default live readiness
 - keep realistic-input final acceptance tied to actual blueprint execution
   rather than a disconnected review workflow
 - keep the final verdict as combined evidence: hard programmatic artifacts plus
