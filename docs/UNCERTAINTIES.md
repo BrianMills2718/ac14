@@ -70,6 +70,19 @@ do not get the configuration model for free.
 behavior.
 **Date resolved:** 2026-03-31
 
+### U-014: Should AC14 persist one realistic-input front-half acceptance artifact?
+**Status:** Resolved
+**Context:** Discovery, dependency planning, probing, draft planning, draft
+authoring, and freeze decisions already existed, but the front half still
+lacked one artifact that judged the whole chain against explicit requirements.
+**Why it matters:** Without one persisted front-half verdict, AC14 remained
+stronger on frozen-blueprint proof than on realistic-input pre-freeze work.
+**Resolution:** AC14 now persists `front_half_acceptance_report.json`, which
+runs discovery through freeze decision on a realistic input file and adds a
+structured semantic review that can still say `promising_but_blocked` when
+freeze is not yet approved.
+**Date resolved:** 2026-03-31
+
 ## Deferred Project Uncertainties
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
@@ -80,8 +93,9 @@ than a general synthesis engine.
 
 ### U-005: Realistic-input acceptance is still synthetic-but-plausible.
 **Status:** Deferred
-**Context:** The pre-freeze discovery layer exists, but realistic end-to-end
-acceptance is not yet the default surface.
+**Context:** AC14 now has a persisted front-half realistic-input acceptance
+lane, but the shipped input is still a plausible structured batch rather than a
+broader messy-corpus proof.
 **Why it matters:** The front half is still weaker than the back half.
 
 ### U-006: Proof breadth is still narrow overall.

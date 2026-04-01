@@ -79,6 +79,7 @@ Implemented:
 8. draft bundle materialization with shared `meta-process` dependency-probe policy consumption
 9. freeze readiness that now blocks on unresolved dependency probes
 10. explicit freeze decision and remediation planning
+11. persisted realistic-input front-half acceptance from discovery through freeze decision plus structured semantic review
 
 This is no longer just a back-half compiler. AC14 now has meaningful pre-freeze
 infrastructure, though it is still early.
@@ -111,11 +112,12 @@ Implemented:
 1. semantic comparison artifacts
 2. requirements-aware acceptance artifacts
 3. optional LLM-backed generation comparison
+4. realistic-input front-half acceptance artifacts that judge discovery through freeze against explicit requirements
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
-2. final realistic-input acceptance as the default gate
+2. final realistic-input full-system acceptance as the default gate
 3. strategy/value review during draft and freeze phases
 
 ### Generality
@@ -178,8 +180,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 80-85%
-2. long-term general coding agent vision: 30-35%
+1. first proof slice: 85-90%
+2. long-term general coding agent vision: 35-40%
 
 The remaining work is not mainly “more code.” It is:
 

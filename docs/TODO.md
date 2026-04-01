@@ -19,32 +19,32 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: add the realistic-input front-half artifact
-  - [ ] persist discovery, dependency planning, probing, draft planning, draft bundle, freeze decision, and final review paths together
-  - [ ] keep the final review separate from the underlying programmatic artifacts
+- [x] Phase 1: add the realistic-input front-half artifact
+  - [x] persist discovery, dependency planning, probing, draft planning, draft bundle, freeze decision, and final review paths together
+  - [x] keep the final review separate from the underlying programmatic artifacts
   - Success criteria: one artifact shows the whole front-half chain for a real input file
 
-- [ ] Phase 2: add structured front-half review
-  - [ ] review the front-half result against explicit requirements
-  - [ ] allow promising-but-blocked front-half outcomes instead of requiring freeze approval
+- [x] Phase 2: add structured front-half review
+  - [x] review the front-half result against explicit requirements
+  - [x] allow promising-but-blocked front-half outcomes instead of requiring freeze approval
   - Success criteria: the front half gets a semantic verdict instead of only a collection of sub-artifacts
 
-- [ ] Phase 3: expose operator surfaces and shipped input
-  - [ ] add CLI and Make entrypoints
-  - [ ] add one shipped realistic input file for a current example slice
+- [x] Phase 3: expose operator surfaces and shipped input
+  - [x] add CLI and Make entrypoints
+  - [x] add one shipped realistic input file for a current example slice
   - Success criteria: operators can run the lane without manual assembly
 
-- [ ] Phase 4: verify and lock the lane
-  - [ ] run targeted front-half acceptance tests
-  - [ ] run full `python -m pytest -q`
-  - [ ] run full `python -m mypy ac14 tests`
-  - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
+- [x] Phase 4: verify and lock the lane
+  - [x] run targeted front-half acceptance tests
+  - [x] run full `python -m pytest -q`
+  - [x] run full `python -m mypy ac14 tests`
+  - [x] run full `python -m ruff check ac14 tests`
+  - [x] update TODO, active plan, README, KNOWLEDGE, and uncertainties to reflect the implemented state
   - Success criteria: verification passes and the docs match the realistic-input front-half lane
 
 ## Current Open Uncertainties
 
-- realistic-input acceptance should strengthen the front half without pretending a blocked draft bundle is already a finished system
+- realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - the next decision after this lane is whether blocked dependency remediation should stay manual or become a later controlled automation lane
 
 ## Latest Verified Results
@@ -55,8 +55,10 @@ Detailed uncertainty tracking now lives in:
   - `docs/plans/01_dependency_execution_probing.md`
 - the most recently completed lane before this one was:
   - `docs/plans/03_meta_process_dependency_probe_policy.md`
-- the current active lane is:
+- the current completed lane is:
   - `docs/plans/04_realistic_input_front_half_acceptance.md`
+- targeted realistic-input front-half acceptance verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py tests/test_cli.py::test_cli_front_half_acceptance_runs_end_to_end tests/test_make_targets.py::test_make_front_half_acceptance_runs_end_to_end` passed with `3 passed`
 - targeted dependency-probe integration verification passed:
   - `python -m pytest -q tests/test_blueprint_planning.py tests/test_draft_authoring.py tests/test_freeze_decision.py tests/test_cli.py tests/test_make_targets.py -x` passed with `50 passed`
 - targeted meta-process policy verification passed:
@@ -76,8 +78,8 @@ Detailed uncertainty tracking now lives in:
   - `python -m mypy ac14 tests` passed on `56` source files
   - `python -m ruff check ac14 tests` passed
 - full verification passed:
-  - `python -m pytest -q` passed with `106 passed`
-  - `python -m mypy ac14 tests` passed on `58` source files
+  - `python -m pytest -q` passed with `109 passed`
+  - `python -m mypy ac14 tests` passed on `60` source files
   - `python -m ruff check ac14 tests` passed
 - current implementation reality and broader historical verification context live in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md)
 

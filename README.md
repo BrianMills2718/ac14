@@ -58,6 +58,7 @@ AC14 now supports:
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
 - making an explicit approve/block freeze decision and promoting only approved bundles
 - turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths
+- running a persisted realistic-input front-half acceptance lane from discovery through freeze decision plus a structured semantic review
 - enforcing explicit scenario kinds, evaluator definitions, component fixture coverage, and realistic-input semantic-acceptance coverage
 - discovering a shipped suite of blueprint examples with more than one workflow slice
 - compiling bounded component packets
@@ -78,6 +79,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
+- realistic-input full-system acceptance as the default gate instead of only a front-half gate
 - first-class tool/runtime nodes in the blueprint model
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
@@ -96,6 +98,7 @@ make probe-dependencies DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_pla
 make draft-blueprint-plan DISCOVERY=.ac14_out/discovery/discovery_artifact.json DEPENDENCY_PLAN=.ac14_out/dependency_plan/dependency_plan.json DEPENDENCY_EXECUTION=.ac14_out/dependency_probe/dependency_execution_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="bounded decomposition preserve semantics"
 make materialize-draft-bundle PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json OUTPUT=.ac14_out/draft_bundle
 make decide-freeze INPUT=.ac14_out/draft_bundle OUTPUT=.ac14_out/freeze READINESS=.ac14_out/draft_bundle/freeze_readiness_report.json
+make front-half-acceptance REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/front_half REQUIREMENTS="preserve support ticket meaning keep packets bounded" PACKAGES="pydantic"
 make list-examples
 make generate-components OUTPUT=.ac14_out/generated
 make prove-example OUTPUT=.ac14_out/proof TRIALS=3

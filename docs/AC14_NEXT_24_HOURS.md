@@ -1,20 +1,20 @@
 # AC14 Next 24 Hours
 
-Status: In Progress
+Status: Complete
 Last updated: 2026-03-31
 
 ## Purpose
 
 This document is the tactical summary for the active numbered plan.
 
-The authoritative implementation contract for the current lane is:
+The authoritative implementation contract for the completed lane is:
 
 - [Plan #4: Realistic-Input Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/04_realistic_input_front_half_acceptance.md)
 
-Plan #3 put dependency-probe policy into shared process config. Plan #4 now
-uses that stronger front-half foundation to run discovery through freeze
-decision on a realistic input file and then review the whole front-half result
-against the requirements.
+Plan #3 put dependency-probe policy into shared process config. Plan #4 used
+that stronger front-half foundation to run discovery through freeze decision on
+a realistic input file and then review the whole front-half result against the
+requirements.
 
 ## Progress Update
 
@@ -29,7 +29,7 @@ Completed before this lane:
 7. dependency-aware draft planning with preserved dependency provenance
 8. explicit dependency execution probes for dependency-plan recommendations
 
-Required in Plan #4:
+Completed in Plan #4:
 
 1. one persisted front-half acceptance artifact
 2. one structured review over the full front-half chain
@@ -69,5 +69,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the front-half review should strengthen the front half without replacing later full-system acceptance
-2. a blocked draft bundle may still deserve a positive front-half verdict if the decomposition and findings are sound
+2. realistic-input acceptance is now persisted, but the current shipped input remains plausible rather than broadly messy
 3. broader automation should still not outrun the current explicit operator-invoked probe model

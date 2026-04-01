@@ -1,0 +1,38 @@
+[
+  {
+    "ticket_id": "SUP-10421",
+    "customer_id": "cust-7781",
+    "subject": "SSO login fails for finance team after IdP certificate rotation",
+    "body": "Since the certificate rollover at 08:15 UTC, finance users see a blank callback page after Okta login. Payroll close is tonight and four users are blocked.",
+    "product_area": "authentication",
+    "channel": "email",
+    "auth_method": "sso",
+    "reported_priority": "high",
+    "tags": ["sso", "okta", "finance", "certificate"],
+    "opened_at": "2026-03-31T08:32:00Z"
+  },
+  {
+    "ticket_id": "SUP-10422",
+    "customer_id": "cust-1180",
+    "subject": "API requests timing out during bulk user import",
+    "body": "Our nightly import job started returning 504s after about 300 users. We retried twice with the same result. CSV payload is about 18 MB and this was stable last week.",
+    "product_area": "api",
+    "channel": "web",
+    "auth_method": "token",
+    "reported_priority": "medium",
+    "tags": ["api", "import", "timeout", "csv"],
+    "opened_at": "2026-03-31T09:04:00Z"
+  },
+  {
+    "ticket_id": "SUP-10423",
+    "customer_id": "cust-5520",
+    "subject": "Managers cannot approve requests from mobile app",
+    "body": "Approvals load on desktop but the mobile app shows 'request unavailable' for every pending approval. This started after the 3.18 release and affects iOS only so far.",
+    "product_area": "workflow",
+    "channel": "chat",
+    "auth_method": "password",
+    "reported_priority": "medium",
+    "tags": ["mobile", "ios", "workflow", "approvals"],
+    "opened_at": "2026-03-31T09:41:00Z"
+  }
+]

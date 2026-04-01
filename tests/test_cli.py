@@ -1098,3 +1098,173 @@ def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> N
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["recommended_default"] == "deterministic"
+
+
+def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
+    """Front-half acceptance command should persist the realistic-input artifact chain."""
+
+    dependency_fixture = tmp_path / "dependency_plan_fixture.json"
+    dependency_fixture.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Reuse pydantic for typed schema contracts.",
+                "recommendations": [
+                    {
+                        "package_name": "pydantic",
+                        "action": "reuse",
+                        "capability_need": "typed schema contracts",
+                        "justification": "Pydantic is already installed and aligns with schema validation.",
+                        "already_installed": True,
+                        "install_command": None,
+                        "evidence": [
+                            {
+                                "source": "environment",
+                                "locator": "pydantic",
+                                "detail": "Installed in the current environment.",
+                            }
+                        ],
+                    }
+                ],
+                "standard_library_notes": [
+                    "The standard library is sufficient for filesystem and JSON handling in the first slice."
+                ],
+                "open_questions": [],
+            },
+            indent=2,
+        )
+    )
+    blueprint_fixture = tmp_path / "blueprint_plan_fixture.json"
+    blueprint_fixture.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Split the ticket digest into a source parser and a digest sink.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "RawTicket",
+                        "kind": "record",
+                        "description": "Normalized support ticket input.",
+                        "fields": [
+                            {
+                                "field_name": "ticket_id",
+                                "field_type": "str",
+                                "description": "Stable ticket identifier.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "ticket_ingest",
+                        "semantic_responsibility": "ingest_ticket",
+                        "purpose": "Normalize discovered ticket input into RawTicket records.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "raw_ticket",
+                                "schema_name": "RawTicket",
+                                "description": "Normalized ticket payload.",
+                            }
+                        ],
+                        "packet_focus": [
+                            "normalize incoming ticket fields",
+                            "preserve support context that matters downstream",
+                        ],
+                        "dependency_notes": [
+                            "reuse pydantic models for typed schema validation"
+                        ],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "realistic_batch",
+                        "kind": "semantic_acceptance",
+                        "description": "Review a realistic batch of support tickets.",
+                        "requirement_focus": [
+                            "preserve ticket meaning",
+                            "keep packets bounded",
+                        ],
+                    }
+                ],
+                "packetization_notes": [
+                    "Keep the source packet focused on normalization and preserve downstream context needs explicitly."
+                ],
+                "dependency_decisions": [
+                    "Reuse pydantic for schema contracts in the front-half slice."
+                ],
+                "open_questions": [],
+            },
+            indent=2,
+        )
+    )
+    review_fixture = tmp_path / "front_half_review_fixture.json"
+    review_fixture.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "freeze_verdict": "promising_but_blocked",
+                "summary": "The front half preserves the requirements well enough to be promising, but the draft is still blocked by provisional authoring gaps.",
+                "strengths": [
+                    "Discovery preserved realistic ticket structure and key fields.",
+                    "The decomposition stays bounded and uses a truthful source schema."
+                ],
+                "concerns": [
+                    "The current draft bundle still lacks fixture coverage and concrete invariants."
+                ],
+                "requirement_assessments": [
+                    {
+                        "requirement": "preserve support ticket meaning",
+                        "verdict": "satisfied",
+                        "rationale": "The discovered fields and draft schema keep the core ticket content intact.",
+                    },
+                    {
+                        "requirement": "keep packets bounded",
+                        "verdict": "satisfied",
+                        "rationale": "The source-only draft packet stays narrowly scoped.",
+                    }
+                ],
+                "recommended_next_steps": [
+                    "Add concrete fixtures and local invariants before retrying freeze."
+                ],
+            },
+            indent=2,
+        )
+    )
+
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(dependency_fixture)
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(review_fixture)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "front-half-acceptance",
+            str(REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch.json"),
+            "--output-dir",
+            str(tmp_path / "front_half"),
+            "--requirements",
+            "preserve",
+            "support",
+            "ticket",
+            "meaning",
+            "keep",
+            "packets",
+            "bounded",
+            "--project-root",
+            str(REPO_ROOT),
+            "--packages",
+            "pydantic",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["freeze_approved"] is False
+    assert payload["review"]["freeze_verdict"] == "promising_but_blocked"
+    assert (tmp_path / "front_half" / "front_half_acceptance_report.json").exists()

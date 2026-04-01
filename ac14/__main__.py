@@ -33,6 +33,11 @@ from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
 from ac14.freeze_decision import build_freeze_decision
+from ac14.front_half_acceptance import (
+    DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    build_front_half_acceptance_report,
+)
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
@@ -156,6 +161,21 @@ def main() -> int:
     freeze_parser.add_argument("bundle_dir", type=Path)
     freeze_parser.add_argument("--output-dir", type=Path, required=True)
     freeze_parser.add_argument("--readiness-report", type=Path, default=None)
+
+    front_half_parser = subparsers.add_parser(
+        "front-half-acceptance",
+        help="Run realistic-input discovery through freeze decision and review the front-half result.",
+    )
+    front_half_parser.add_argument("input_path", type=Path)
+    front_half_parser.add_argument("--output-dir", type=Path, required=True)
+    front_half_parser.add_argument("--requirements", nargs="+", required=True)
+    front_half_parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    front_half_parser.add_argument("--packages", nargs="*", default=[])
+    front_half_parser.add_argument("--retrieval-artifact", nargs="*", default=[])
+    front_half_parser.add_argument("--allow-install", action="store_true")
+    front_half_parser.add_argument("--model", default=DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL)
+    front_half_parser.add_argument("--max-budget", type=float, default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET)
+    front_half_parser.add_argument("--max-samples", type=int, default=5)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -364,6 +384,19 @@ def main() -> int:
             args.bundle_dir,
             args.output_dir,
             args.readiness_report,
+        )
+    if args.command == "front-half-acceptance":
+        return _front_half_acceptance(
+            args.input_path,
+            args.output_dir,
+            cast(list[str], args.requirements),
+            args.project_root,
+            cast(list[str], args.packages),
+            [Path(path) for path in cast(list[str], args.retrieval_artifact)],
+            args.allow_install,
+            args.model,
+            args.max_budget,
+            args.max_samples,
         )
     if args.command == "prove-example":
         return _prove_example(
@@ -656,6 +689,36 @@ def _decide_freeze(
         readiness_report_path=readiness_report,
     )
     print(json.dumps(decision.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _front_half_acceptance(
+    input_path: Path,
+    output_dir: Path,
+    requirements: list[str],
+    project_root: Path | None,
+    packages: list[str],
+    retrieval_artifact_paths: list[Path],
+    allow_install: bool,
+    model: str,
+    max_budget: float,
+    max_samples: int,
+) -> int:
+    """Build and print a persisted realistic-input front-half acceptance artifact."""
+
+    artifact = build_front_half_acceptance_report(
+        input_path=input_path,
+        output_dir=output_dir,
+        requirements=requirements,
+        project_root=project_root,
+        requested_packages=packages,
+        retrieval_artifact_paths=retrieval_artifact_paths,
+        allow_install=allow_install,
+        model=model,
+        max_budget=max_budget,
+        max_samples=max_samples,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0
 
 

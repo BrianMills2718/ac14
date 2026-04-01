@@ -1,6 +1,6 @@
 # Plan #4: Realistic-Input Front-Half Acceptance
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -128,11 +128,11 @@ input file and persist it as a shipped example input.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can persist a realistic-input front-half acceptance artifact from discovery through freeze decision.
-- [ ] The artifact includes a structured LLM review of the front-half result against requirements.
-- [ ] CLI and Make expose the lane without manual glue code.
-- [ ] A shipped realistic input file exists for at least one example slice.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can persist a realistic-input front-half acceptance artifact from discovery through freeze decision.
+- [x] The artifact includes a structured LLM review of the front-half result against requirements.
+- [x] CLI and Make expose the lane without manual glue code.
+- [x] A shipped realistic input file exists for at least one example slice.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

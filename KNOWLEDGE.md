@@ -105,4 +105,12 @@ not AC14-only convention. AC14 now reads `planning.dependency_probe_policy`
 from `meta-process.yaml` with `strict` default behavior, while `project-meta`
 defines the shared `strict|warn|ignore` vocabulary.
 
+### 2026-03-31 — codex — best-practice
+Realistic-input proof should not begin at frozen blueprints. AC14 now persists
+one `front_half_acceptance_report.json` artifact that runs discovery,
+dependency planning, dependency probing, draft planning, draft authoring, and
+freeze decision on a realistic input file, then adds a structured semantic
+review that can still conclude `promising_but_blocked` when the front half
+looks sound but freeze is not yet approved.
+
 ---
