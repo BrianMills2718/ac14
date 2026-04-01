@@ -89,8 +89,8 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after the live-readiness boundary is packet sufficiency
-evidence.
+The current focus after packet sufficiency evidence is realistic-input default
+gate integration.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -108,8 +108,9 @@ evidence.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
-- next, strengthen packet sufficiency evidence without smuggling whole-blueprint
-  assumptions back into local coder contexts
+- next, strengthen the default proof story by carrying realistic-input final
+  acceptance into the default evidence path instead of leaving it as a side
+  artifact
 
 ## Continuation Rule
 

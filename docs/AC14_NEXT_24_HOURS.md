@@ -9,12 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #10: Packet Sufficiency Evidence](/home/brian/projects/ac14/docs/plans/10_packet_sufficiency_evidence.md)
+- [Plan #11: Realistic-Input Default Gate](/home/brian/projects/ac14/docs/plans/11_realistic_input_default_gate.md)
 
-Plan #9 closed the explicit live-readiness boundary gap. The next honest gap is
-packet sufficiency evidence: AC14 should stop leaving it implicit whether a
-packet merely exists or is structurally sufficient for bounded local
-generation.
+Plan #10 closed the packet-sufficiency gap. The next honest gap is the default
+final gate: AC14 should stop treating realistic-input full-system acceptance as
+only an optional side artifact when shipped examples already provide realistic
+inputs.
 
 ## Progress Update
 
@@ -28,30 +28,30 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Required in Plan #10:
+Required in Plan #11:
 
-1. one persisted packet-sufficiency artifact for a shipped blueprint
-2. explicit structural sufficiency reporting without overclaiming semantic sufficiency
-3. operator surfaces and status docs that distinguish packet existence from packet sufficiency
+1. realistic-input full-system acceptance carried into the default single-example proof/evidence path
+2. explicit handling for shipped examples that lack realistic-input artifacts
+3. status/docs that stop presenting realistic-input acceptance as only an optional side artifact
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#10.
+#11.
 
-### Phase 1: packet sufficiency artifact
+### Phase 1: default realistic-input gate
 
-- add one explicit packet-sufficiency artifact for a shipped blueprint
-- keep the artifact structural and bounded
+- carry realistic-input full-system acceptance into the default proof/evidence path
+- keep missing realistic-input artifacts explicit
 
-### Phase 2: operator surface
+### Phase 2: operator and artifact surface
 
-- expose a clean CLI surface
-- expose a clean Make surface
+- keep realistic-input final-gate evidence connected to the default proof story
+- avoid multiplying disconnected artifact surfaces
 
 ### Phase 3: Verification And Lock
 
-- targeted packet-sufficiency verification
+- targeted default-gate verification
 - full local verification
 - doc lock and clean commit
 
@@ -63,6 +63,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the new artifact must not quietly smuggle whole-blueprint context back into local packet claims
-2. the first lane should stay structural and avoid pretending it proves full semantic sufficiency
-3. packet sufficiency should remain separate from broader proof/recommendation artifacts
+1. the new default gate should strengthen the proof story instead of adding a disconnected side artifact
+2. shipped examples without realistic-input artifacts must remain explicit in the evidence path
+3. the lane should keep structural proof and semantic acceptance complementary rather than replacing one with the other

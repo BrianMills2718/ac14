@@ -44,6 +44,7 @@ from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
+from ac14.packet_sufficiency import build_packet_sufficiency_report
 from ac14.recommendation import (
     build_default_generator_recommendation,
     build_llm_live_readiness_artifact,
@@ -67,6 +68,13 @@ def main() -> int:
 
     verify_parser = subparsers.add_parser("verify-blueprint", help="Validate a blueprint bundle.")
     verify_parser.add_argument("blueprint_dir", type=Path)
+
+    packet_sufficiency_parser = subparsers.add_parser(
+        "packet-sufficiency",
+        help="Build a persisted structural packet-sufficiency artifact for one blueprint.",
+    )
+    packet_sufficiency_parser.add_argument("blueprint_dir", type=Path)
+    packet_sufficiency_parser.add_argument("--output-dir", type=Path, required=True)
 
     generate_parser = subparsers.add_parser("generate-components", help="Emit generated modules.")
     generate_parser.add_argument("blueprint_dir", type=Path)
@@ -360,6 +368,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
+    if args.command == "packet-sufficiency":
+        return _packet_sufficiency(args.blueprint_dir, args.output_dir)
     if args.command == "generate-components":
         return _generate_components(
             args.blueprint_dir,
@@ -573,6 +583,14 @@ def _verify_blueprint(blueprint_dir: Path) -> int:
     result = validate_blueprint(blueprint)
     print(json.dumps(result.model_dump(mode="json"), indent=2))
     return 0 if result.passed else 1
+
+
+def _packet_sufficiency(blueprint_dir: Path, output_dir: Path) -> int:
+    """Build and print a persisted packet-sufficiency report."""
+
+    report = build_packet_sufficiency_report(blueprint_dir=blueprint_dir, output_dir=output_dir)
+    print(json.dumps(report.model_dump(mode="json"), indent=2))
+    return 0
 
 
 def _generate_components(

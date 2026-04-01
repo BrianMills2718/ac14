@@ -47,7 +47,8 @@ Implemented:
 3. blueprint loading
 4. structural validation
 5. packet compilation
-6. recomposition proof surfaces
+6. structural packet-sufficiency artifact
+7. recomposition proof surfaces
 
 This is the strongest and most thesis-central part of the repo.
 
@@ -129,7 +130,7 @@ Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
 2. broader live/default readiness evidence beyond the new explicit boundary artifact
-3. final realistic-input full-system acceptance as the default gate
+3. final realistic-input full-system acceptance as the default proof/evidence gate
 4. strategy/value review during draft and freeze phases
 
 ### Generality
@@ -192,8 +193,8 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 93-96%
-2. long-term general coding agent vision: 43-47%
+1. first proof slice: 94-97%
+2. long-term general coding agent vision: 44-48%
 
 The remaining work is not mainly “more code.” It is:
 

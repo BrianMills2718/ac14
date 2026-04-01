@@ -149,4 +149,10 @@ attempts a real live-readiness run, persists an explicit `ready` / `blocked` /
 `skipped` artifact, and keeps that evidence separate from fixture-backed `llm`
 breadth in recommendation/status surfaces.
 
+### 2026-04-01 — codex — best-practice
+Packet existence is not enough. AC14 now persists a structural
+`packet_sufficiency_report.json` so the project can show, per packet, that
+local schemas, neighboring context, fixtures, and packet-local tests are
+present without pretending that this alone proves semantic sufficiency.
+
 ---

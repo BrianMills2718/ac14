@@ -76,6 +76,7 @@ AC14 now supports:
 - building requirements-aware semantic-acceptance artifacts against actual system outputs
 - producing an evidence-backed default-generator recommendation that reasons about proof breadth
 - persisting an explicit live-readiness artifact for realistic-input `llm` acceptance that stays separate from fixture-backed breadth and requires `AC14_ENABLE_LIVE_LLM_READINESS=1` before a real live attempt
+- persisting a structural packet-sufficiency artifact so packet existence and packet sufficiency are not conflated
 
 ## What Is Still Missing
 
@@ -86,7 +87,7 @@ AC14 is still incomplete on:
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
 - broader live/default readiness evidence beyond the new explicit operator-gated boundary artifact
-- realistic-input full-system acceptance as the default gate instead of only a front-half gate
+- realistic-input full-system acceptance as the default proof/evidence gate instead of only an optional side artifact
 - first-class tool/runtime nodes in the blueprint model
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
@@ -119,5 +120,6 @@ make acceptance-review-suite OUTPUT=.ac14_out/suite_acceptance GENERATOR=determi
 make acceptance-review-realistic-suite OUTPUT=.ac14_out/realistic_suite_acceptance MODES="reference deterministic" RECORD_INDEX=0
 make acceptance-review-realistic-compare INPUT=examples/support_ticket_digest/blueprint REALISTIC_INPUT=examples/support_ticket_digest/input/realistic_ticket_batch.json OUTPUT=.ac14_out/realistic_compare MODES="reference deterministic llm" RECORD_INDEX=0
 AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness OUTPUT=.ac14_out/live_llm_readiness
+make packet-sufficiency INPUT=examples/support_ticket_digest/blueprint OUTPUT=.ac14_out/packet_sufficiency
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
 ```

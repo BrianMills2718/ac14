@@ -24,29 +24,28 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: packet sufficiency artifact
-  - [ ] define one persisted packet-sufficiency artifact for a shipped blueprint
-  - [ ] keep the artifact structural and bounded instead of overclaiming semantic sufficiency
-  - Success criteria: AC14 can persist packet-sufficiency evidence instead of implying it from packet existence alone
+- [ ] Phase 1: default realistic-input gate
+  - [ ] carry realistic-input full-system acceptance into the default single-example proof/evidence path
+  - [ ] keep missing realistic-input artifacts explicit instead of silently skipping them
+  - Success criteria: the default proof/evidence path includes realistic-input acceptance whenever a shipped realistic-input artifact exists
 
-- [ ] Phase 2: operator surface
-  - [ ] expose a clean CLI surface
-  - [ ] expose a clean Make surface
-  - [ ] keep packet-sufficiency evidence separate from broader proof or recommendation artifacts
-  - Success criteria: one operator can generate the packet-sufficiency artifact without custom glue
+- [ ] Phase 2: operator and artifact surface
+  - [ ] keep realistic-input final-gate evidence connected to the default proof/evidence bundle
+  - [ ] avoid adding a disconnected side artifact
+  - Success criteria: the final proof story becomes stronger without multiplying unrelated surfaces
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted packet-sufficiency tests
+  - [ ] run targeted default-gate tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
-  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the new artifact
-  - Success criteria: verification passes and the docs match the packet-sufficiency lane
+  - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
+  - Success criteria: verification passes and the docs match the realistic-input default-gate lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- packet existence is now proven, but packet sufficiency is still too implicit
+- realistic-input acceptance now exists, but it is still not part of the default proof/evidence gate
 - broader live/default evidence is still narrow even after the new explicit boundary artifact
 
 ## Latest Verified Results
@@ -113,6 +112,14 @@ Detailed uncertainty tracking now lives in:
   - full verification passed:
     - `python -m pytest -q` passed with `135 passed`
     - `python -m mypy ac14 tests` passed on `60` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted packet-sufficiency verification passed:
+  - `python -m pytest -q tests/test_packets.py::test_build_packet_sufficiency_report_flags_complete_packet_context tests/test_cli.py::test_cli_packet_sufficiency_runs_end_to_end tests/test_make_targets.py::test_make_help_lists_proof_targets tests/test_make_targets.py::test_make_packet_sufficiency_runs_end_to_end` passed with `4 passed`
+  - `python -m mypy ac14/packet_sufficiency.py ac14/__main__.py tests/test_packets.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/packet_sufficiency.py ac14/__main__.py tests/test_packets.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `138 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
     - `python -m ruff check ac14 tests` passed
 
 ## Longer-Term Next Steps

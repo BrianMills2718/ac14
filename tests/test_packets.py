@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 from ac14.loader import load_blueprint_dir
+from ac14.packet_sufficiency import build_packet_sufficiency_report
 from ac14.packets import compile_packets, validate_packets
 
 
@@ -54,3 +56,21 @@ def test_validate_packets_rejects_unknown_fixture_port() -> None:
     result = validate_packets(packet_bundle, broken_blueprint)
     assert not result.passed
     assert any(finding.code == "E-B2-PACKET-FIXTURE-INPUT-MISMATCH" for finding in result.findings)
+
+
+def test_build_packet_sufficiency_report_flags_complete_packet_context(tmp_path: Path) -> None:
+    """Packet sufficiency report should mark shipped packets structurally sufficient."""
+
+    report = build_packet_sufficiency_report(
+        blueprint_dir=EXAMPLE_DIR,
+        output_dir=tmp_path / "packet_sufficiency",
+    )
+
+    report_path = tmp_path / "packet_sufficiency" / "packet_sufficiency_report.json"
+    assert report_path.exists()
+    payload = json.loads(report_path.read_text())
+    assert report.all_packets_structurally_sufficient is True
+    assert payload["all_packets_structurally_sufficient"] is True
+    digest_entry = report.packets["digest_assembler"]
+    assert digest_entry.structurally_sufficient is True
+    assert "happy_path_digest_assembler" in digest_entry.packet_test_case_ids

@@ -204,6 +204,7 @@ def test_make_help_lists_proof_targets() -> None:
     )
     assert result.returncode == 0
     assert "verify-blueprint" in result.stdout
+    assert "packet-sufficiency" in result.stdout
     assert "discover-input" in result.stdout
     assert "inspect-environment" in result.stdout
     assert "inspect-project-context" in result.stdout
@@ -226,6 +227,28 @@ def test_make_help_lists_proof_targets() -> None:
     assert "acceptance-review-realistic-suite" in result.stdout
     assert "acceptance-review-realistic-compare" in result.stdout
     assert "recommend-default-generator" in result.stdout
+    assert "live-llm-readiness" in result.stdout
+
+
+def test_make_packet_sufficiency_runs_end_to_end(tmp_path: Path) -> None:
+    """Make packet-sufficiency target should persist the structural sufficiency artifact."""
+
+    output_dir = tmp_path / "packet_sufficiency"
+    result = subprocess.run(
+        [
+            "make",
+            "packet-sufficiency",
+            f"INPUT={EXAMPLE_DIR}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "packet_sufficiency_report.json").read_text())
+    assert payload["all_packets_structurally_sufficient"] is True
 
 
 def test_make_prove_example_runs_end_to_end(tmp_path: Path) -> None:

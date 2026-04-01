@@ -28,7 +28,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -50,6 +50,9 @@ status: ## Show git status
 
 verify-blueprint: ## Validate a blueprint bundle (INPUT=examples/.../blueprint)
 	$(PYTHON) -m ac14 verify-blueprint "$(INPUT)"
+
+packet-sufficiency: ## Build a persisted structural packet-sufficiency artifact (INPUT=examples/.../blueprint OUTPUT=.ac14_out/packet_sufficiency)
+	$(PYTHON) -m ac14 packet-sufficiency "$(INPUT)" --output-dir "$(OUTPUT)"
 
 discover-input: ## Inspect a local input and persist a pre-freeze discovery artifact (INPUT=data.json OUTPUT=.ac14_out/discovery PACKAGES="pandas requests")
 	$(PYTHON) -m ac14 discover-input "$(INPUT)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" --packages $(PACKAGES) $(foreach artifact,$(RETRIEVAL_ARTIFACTS),--retrieval-artifact "$(artifact)")

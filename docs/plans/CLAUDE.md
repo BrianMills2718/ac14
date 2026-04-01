@@ -20,7 +20,8 @@ current executable lane.
 | 7 | [Realistic-Input LLM Acceptance](07_realistic_input_llm_acceptance.md) | High | Complete | - |
 | 8 | [LLM Realistic-Input Breadth](08_llm_realistic_input_breadth.md) | High | Complete | - |
 | 9 | [Live LLM Readiness Boundary](09_live_llm_readiness_boundary.md) | High | Complete | - |
-| 10 | [Packet Sufficiency Evidence](10_packet_sufficiency_evidence.md) | High | In Progress | - |
+| 10 | [Packet Sufficiency Evidence](10_packet_sufficiency_evidence.md) | High | Complete | - |
+| 11 | [Realistic-Input Default Gate](11_realistic_input_default_gate.md) | High | In Progress | - |
 
 ## Status Key
 

@@ -167,6 +167,19 @@ attempts a live readiness run; otherwise it records an explicit `skipped`
 artifact instead of inferring permission from ambient process state.
 **Date resolved:** 2026-04-01
 
+### U-021: Packet existence is not the same as packet sufficiency.
+**Status:** Resolved
+**Context:** AC14 already had compiled packets and bounded codegen contexts,
+but it still lacked one explicit artifact proving the local structural contract
+was present per packet.
+**Why it matters:** The thesis depends on packets being enough for bounded local
+generation, not merely on packets existing.
+**Resolution:** AC14 now persists a structural packet-sufficiency artifact that
+records local schemas, neighboring context, fixtures, packet-local tests, and
+any missing structural elements per packet without overclaiming semantic
+sufficiency.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

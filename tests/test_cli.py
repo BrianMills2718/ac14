@@ -208,6 +208,30 @@ def test_cli_verify_blueprint() -> None:
     assert payload["passed"] is True
 
 
+def test_cli_packet_sufficiency_runs_end_to_end(tmp_path: Path) -> None:
+    """Packet sufficiency command should persist the structural sufficiency artifact."""
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "packet-sufficiency",
+            str(EXAMPLE_DIR),
+            "--output-dir",
+            str(tmp_path / "packet_sufficiency"),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["all_packets_structurally_sufficient"] is True
+    assert (tmp_path / "packet_sufficiency" / "packet_sufficiency_report.json").exists()
+
+
 def test_cli_generate_components(tmp_path: Path) -> None:
     """Generated-components command should emit the package manifest."""
 
