@@ -27,7 +27,9 @@ current executable lane.
 | 14 | [Live LLM Suite Readiness](14_live_llm_suite_readiness.md) | High | Complete | - |
 | 15 | [Recommendation Live Suite Awareness](15_recommendation_live_suite_awareness.md) | High | Complete | - |
 | 16 | [Freeze Semantic Review Gate](16_freeze_semantic_review_gate.md) | High | Complete | - |
-| 17 | [Front-Half Suite Breadth](17_front_half_suite_breadth.md) | High | In Progress | - |
+| 17 | [Front-Half Suite Breadth](17_front_half_suite_breadth.md) | High | Complete | - |
+| 18 | [Messy-Input Front-Half Proof](18_messy_input_front_half_proof.md) | High | Complete | - |
+| 19 | [Controlled Dependency Remediation](19_controlled_dependency_remediation.md) | High | In Progress | - |
 
 ## Status Key
 

@@ -99,8 +99,8 @@ process failure. The required behavior is:
 
 ## Active Proof Expansion Rule
 
-The current focus after landing the freeze-semantic review gate is front-half
-breadth across the shipped realistic-input suite.
+The current focus after landing one honest messy-input front-half proof lane is
+controlled dependency remediation.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -118,10 +118,10 @@ breadth across the shipped realistic-input suite.
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
-- keep the directly attached freeze-semantic review artifact in the front-half
-  chain and broaden that chain across shipped realistic-input examples
-- do not let front-half breadth silently skip missing realistic-input coverage;
-  missing coverage should be explicit in the suite artifact
+- keep dependency remediation explicit, reviewable, and artifact-backed
+- do not let remediation collapse into silent broad environment mutation
+- keep dependency remediation wired back into the front-half chain rather than
+  leaving it as an isolated side command
 
 ## Continuation Rule
 

@@ -1,6 +1,6 @@
 # Plan #17: Front-Half Suite Breadth
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -41,15 +41,21 @@ discovery-through-freeze breadth explicit and thesis-aligned.
 ## Open Questions
 
 ### Q1: Where should suite requirements come from for front-half breadth?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** Front-half acceptance needs explicit requirements, and the
 suite lane should stay deterministic and reviewable instead of hiding them in
 code.
+**Resolution:** The suite now derives requirements from each blueprint's
+realistic-input `semantic_acceptance` scenarios and fails loud when those
+requirements are missing.
 
 ### Q2: Should the suite aggregate count review verdicts only, or also freeze approval?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The suite needs a compact truth surface that reflects both
 semantic quality and structural freeze readiness without conflating them.
+**Resolution:** The suite artifact now counts semantic verdicts and freeze
+approval separately while preserving per-example report paths and directly
+attached freeze-semantic review paths.
 
 ---
 
@@ -103,9 +109,9 @@ semantic quality and structural freeze readiness without conflating them.
 
 ## Acceptance Criteria
 
-- [ ] AC14 persists one suite-level front-half acceptance artifact across shipped realistic-input examples.
-- [ ] The suite artifact makes missing realistic-input coverage explicit instead of silently skipping it.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 persists one suite-level front-half acceptance artifact across shipped realistic-input examples.
+- [x] The suite artifact makes missing realistic-input coverage explicit instead of silently skipping it.
+- [x] Full local verification passes and the docs match the lane.
 
 ---
 

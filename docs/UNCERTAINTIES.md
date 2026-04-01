@@ -251,6 +251,29 @@ draft bundles with readiness evidence, publishes its path on the freeze
 decision artifact, and front-half acceptance carries that path forward.
 **Date resolved:** 2026-04-01
 
+### U-028: Front-half breadth was still only a one-example story.
+**Status:** Resolved
+**Context:** AC14 had a strong per-example front-half artifact plus a directly
+attached freeze-semantic review, but no suite-level breadth artifact across the
+shipped realistic-input examples.
+**Why it matters:** The front half should have explicit breadth evidence rather
+than leaving breadth only to the back half of the proof slice.
+**Resolution:** AC14 now persists `front_half_acceptance_suite_report.json`
+with per-example report paths, directly attached freeze-semantic review paths,
+separate review-vs-freeze aggregate counts, and explicit missing-input states.
+**Date resolved:** 2026-04-01
+
+### U-029: The front half was still too clean relative to the messy-input thesis.
+**Status:** Resolved
+**Context:** AC14 had front-half breadth across shipped JSON examples, but the
+first realistic inputs were still relatively schema-friendly.
+**Why it matters:** The project thesis is about helping with messy context, not
+just clean structured inputs.
+**Resolution:** AC14 now proves one explicit front-half lane on a reviewable CSV
+asset under the support-ticket example, keeping discovery, draft planning,
+freeze review, and semantic front-half review explicit on a messier artifact.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

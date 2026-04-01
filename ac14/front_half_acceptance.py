@@ -16,7 +16,9 @@ from ac14.dependency_execution import build_dependency_execution_artifact
 from ac14.dependency_planning import abuild_dependency_plan
 from ac14.discovery import DiscoveryArtifact, build_discovery_artifact
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
+from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints
 from ac14.freeze_decision import FreezeDecisionArtifact, build_freeze_decision
+from ac14.loader import load_blueprint_dir
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
@@ -100,6 +102,60 @@ class FrontHalfAcceptanceArtifact(BaseModel):
     )
     review: FrontHalfReviewResponse = Field(
         description="Structured review of the front-half result against the requirements.",
+    )
+
+
+class FrontHalfSuiteExampleResult(BaseModel):
+    """Per-example front-half breadth result across shipped examples."""
+
+    example_id: str = Field(description="Shipped example identifier.")
+    blueprint_dir: str = Field(description="Blueprint directory reviewed for this result.")
+    realistic_input_path: str | None = Field(
+        default=None,
+        description="Realistic-input artifact used for this example when available.",
+    )
+    requirements: list[str] = Field(
+        description="Requirements used for this example's front-half review.",
+    )
+    overall_verdict: Literal["accept", "concern", "reject", "missing_input"] = Field(
+        description="Compact suite-level verdict for this example.",
+    )
+    freeze_approved: bool | None = Field(
+        default=None,
+        description="Whether the per-example front-half freeze decision approved promotion.",
+    )
+    freeze_semantic_review_path: str | None = Field(
+        default=None,
+        description="Attached freeze-semantic review path from the per-example artifact.",
+    )
+    report_path: str | None = Field(
+        default=None,
+        description="Per-example front-half acceptance report path when one was produced.",
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Reason for a missing-input or rejected example result.",
+    )
+
+
+class FrontHalfSuiteAcceptanceReport(BaseModel):
+    """Persisted suite-level front-half acceptance breadth artifact."""
+
+    example_count: int = Field(description="Number of shipped examples considered in the suite.")
+    accepted_examples: int = Field(description="Examples with accept front-half verdicts.")
+    concern_examples: int = Field(description="Examples with concern front-half verdicts.")
+    rejected_examples: int = Field(description="Examples with reject front-half verdicts.")
+    missing_input_examples: int = Field(
+        description="Examples that could not run because realistic-input artifacts were missing.",
+    )
+    freeze_approved_examples: int = Field(
+        description="Examples whose front-half freeze decision approved promotion.",
+    )
+    freeze_blocked_examples: int = Field(
+        description="Examples whose front-half freeze decision remained blocked.",
+    )
+    examples: list[FrontHalfSuiteExampleResult] = Field(
+        description="Per-example front-half breadth results.",
     )
 
 
@@ -248,6 +304,125 @@ def build_front_half_acceptance_report(
     )
 
 
+async def abuild_front_half_acceptance_suite_report(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    allow_install: bool = False,
+    model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    max_samples: int = 5,
+) -> FrontHalfSuiteAcceptanceReport:
+    """Build persisted front-half acceptance artifacts across shipped examples."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+
+    examples: list[FrontHalfSuiteExampleResult] = []
+    accepted_examples = 0
+    concern_examples = 0
+    rejected_examples = 0
+    missing_input_examples = 0
+    freeze_approved_examples = 0
+    freeze_blocked_examples = 0
+
+    for example in discover_shipped_blueprints(examples_root):
+        try:
+            realistic_input_path = _discover_realistic_input_path(example)
+        except ValueError as exc:
+            examples.append(
+                FrontHalfSuiteExampleResult(
+                    example_id=example.example_id,
+                    blueprint_dir=example.blueprint_dir,
+                    realistic_input_path=None,
+                    requirements=[],
+                    overall_verdict="missing_input",
+                    freeze_approved=None,
+                    freeze_semantic_review_path=None,
+                    report_path=None,
+                    reason=str(exc),
+                ),
+            )
+            missing_input_examples += 1
+            continue
+
+        requirements = _front_half_suite_requirements(example)
+        report = await abuild_front_half_acceptance_report(
+            input_path=realistic_input_path,
+            output_dir=destination / example.example_id,
+            requirements=requirements,
+            project_root=Path(example.blueprint_dir).resolve().parents[2],
+            requested_packages=[],
+            retrieval_artifact_paths=[],
+            allow_install=allow_install,
+            model=model,
+            max_budget=max_budget,
+            max_samples=max_samples,
+        )
+        overall_verdict = report.review.overall_verdict
+        if overall_verdict == "accept":
+            accepted_examples += 1
+        elif overall_verdict == "concern":
+            concern_examples += 1
+        else:
+            rejected_examples += 1
+        if report.freeze_approved:
+            freeze_approved_examples += 1
+        else:
+            freeze_blocked_examples += 1
+        examples.append(
+            FrontHalfSuiteExampleResult(
+                example_id=example.example_id,
+                blueprint_dir=example.blueprint_dir,
+                realistic_input_path=str(realistic_input_path),
+                requirements=requirements,
+                overall_verdict=overall_verdict,
+                freeze_approved=report.freeze_approved,
+                freeze_semantic_review_path=report.artifact_paths.freeze_semantic_review_path,
+                report_path=str(destination / example.example_id / "front_half_acceptance_report.json"),
+                reason=None,
+            ),
+        )
+
+    suite_report = FrontHalfSuiteAcceptanceReport(
+        example_count=len(examples),
+        accepted_examples=accepted_examples,
+        concern_examples=concern_examples,
+        rejected_examples=rejected_examples,
+        missing_input_examples=missing_input_examples,
+        freeze_approved_examples=freeze_approved_examples,
+        freeze_blocked_examples=freeze_blocked_examples,
+        examples=examples,
+    )
+    (destination / "front_half_acceptance_suite_report.json").write_text(
+        json.dumps(suite_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return suite_report
+
+
+def build_front_half_acceptance_suite_report(
+    output_dir: Path | str,
+    *,
+    examples_root: Path | str | None = None,
+    allow_install: bool = False,
+    model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    max_samples: int = 5,
+) -> FrontHalfSuiteAcceptanceReport:
+    """Synchronous wrapper for suite-level front-half acceptance."""
+
+    return asyncio.run(
+        abuild_front_half_acceptance_suite_report(
+            output_dir=output_dir,
+            examples_root=examples_root,
+            allow_install=allow_install,
+            model=model,
+            max_budget=max_budget,
+            max_samples=max_samples,
+        ),
+    )
+
+
 async def _review_front_half_acceptance(
     *,
     input_path: Path,
@@ -387,3 +562,49 @@ def _build_freeze_summary(decision: FreezeDecisionArtifact) -> dict[str, object]
         ],
         "finding_messages": [finding.message for finding in decision.findings[:12]],
     }
+
+
+def _discover_realistic_input_path(example: ShippedBlueprintExample | object) -> Path:
+    """Return the default realistic-input artifact for one shipped example."""
+
+    typed_example = (
+        example
+        if isinstance(example, ShippedBlueprintExample)
+        else ShippedBlueprintExample.model_validate(example)
+    )
+    example_dir = Path(typed_example.blueprint_dir).parent
+    input_dir = example_dir / "input"
+    if not input_dir.is_dir():
+        raise ValueError(f"no input directory found for shipped example {typed_example.example_id}")
+    candidates = sorted(input_dir.glob("*.json"))
+    if not candidates:
+        raise ValueError(
+            f"no realistic-input json artifact found for shipped example {typed_example.example_id}",
+        )
+    return candidates[0]
+
+
+def _front_half_suite_requirements(example: ShippedBlueprintExample | object) -> list[str]:
+    """Derive explicit suite requirements from realistic-input semantic scenarios."""
+
+    typed_example = (
+        example
+        if isinstance(example, ShippedBlueprintExample)
+        else ShippedBlueprintExample.model_validate(example)
+    )
+    blueprint = load_blueprint_dir(typed_example.blueprint_dir)
+    requirements = [
+        requirement
+        for scenario in blueprint.scenarios.values()
+        if scenario.kind == "semantic_acceptance" and scenario.realistic_input
+        for requirement in scenario.requirements
+    ]
+    deduped_requirements: list[str] = []
+    for requirement in requirements:
+        if requirement not in deduped_requirements:
+            deduped_requirements.append(requirement)
+    if not deduped_requirements:
+        raise ValueError(
+            f"no realistic-input semantic requirements found for shipped example {typed_example.example_id}",
+        )
+    return deduped_requirements

@@ -7,7 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from ac14.front_half_acceptance import build_front_half_acceptance_report
+from ac14.front_half_acceptance import (
+    build_front_half_acceptance_report,
+    build_front_half_acceptance_suite_report,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -268,3 +271,79 @@ def test_build_front_half_acceptance_report_runs_pipeline(
     assert artifact.review.freeze_verdict == "promising_but_blocked"
     assert artifact.review.overall_verdict == "concern"
     assert (tmp_path / "front_half" / "front_half_acceptance_report.json").exists()
+
+
+def test_build_front_half_acceptance_suite_report_runs_for_shipped_examples(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half suite artifact should persist one report per shipped example."""
+
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_suite_report(
+        output_dir=tmp_path / "front_half_suite",
+        examples_root=REPO_ROOT / "examples",
+        max_budget=0.1,
+    )
+
+    assert artifact.example_count >= 3
+    assert artifact.concern_examples == artifact.example_count
+    assert artifact.freeze_blocked_examples == artifact.example_count
+    assert artifact.freeze_approved_examples == 0
+    assert all(example.report_path is not None for example in artifact.examples)
+    assert all(example.freeze_semantic_review_path is not None for example in artifact.examples)
+    assert (tmp_path / "front_half_suite" / "front_half_acceptance_suite_report.json").exists()
+
+
+def test_build_front_half_acceptance_report_supports_messy_input_artifact(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half acceptance should stay reviewable on a messier CSV input asset."""
+
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_report(
+        input_path=REPO_ROOT / "examples" / "support_ticket_digest" / "input" / "realistic_ticket_batch_messy.csv",
+        output_dir=tmp_path / "front_half_csv",
+        requirements=["preserve support ticket meaning", "keep packets bounded"],
+        project_root=REPO_ROOT,
+        requested_packages=["pydantic"],
+        max_budget=0.1,
+    )
+
+    discovery_payload = json.loads(Path(artifact.artifact_paths.discovery_artifact_path).read_text())
+    assert discovery_payload["input_inspection"]["input_format"] == "csv"
+    assert artifact.review.freeze_verdict == "promising_but_blocked"
+    assert artifact.artifact_paths.freeze_semantic_review_path is not None

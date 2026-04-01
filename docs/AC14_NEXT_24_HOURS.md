@@ -9,12 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contracts for the current sequence are:
 
-- [Plan #16: Freeze Semantic Review Gate](/home/brian/projects/ac14/docs/plans/16_freeze_semantic_review_gate.md)
-- [Plan #17: Front-Half Suite Breadth](/home/brian/projects/ac14/docs/plans/17_front_half_suite_breadth.md)
+- [Plan #18: Messy-Input Front-Half Proof](/home/brian/projects/ac14/docs/plans/18_messy_input_front_half_proof.md)
+- [Plan #19: Controlled Dependency Remediation](/home/brian/projects/ac14/docs/plans/19_controlled_dependency_remediation.md)
 
-Plan #15 closed the recommendation suite-live gap. Plan #16 closed the missing
-directly attached freeze-semantic artifact. The next honest gap is front-half
-breadth across the shipped realistic-input examples.
+Plan #17 closed the missing suite-level front-half breadth artifact. Plan #18
+closed the first honest messy-input front-half proof lane. The next honest gap
+is turning explicit dependency blockers into one narrow remediation lane.
 
 ## Progress Update
 
@@ -34,43 +34,36 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Completed in Plan #16:
+Completed in Plan #18:
 
-1. explicit freeze-semantic review artifact
-2. direct connection from that artifact to draft/freeze quality
-3. status/docs that stop treating front-half semantic review as only a side artifact
+1. one honest messy-input front-half proof lane
+2. explicit design choice about the first messy-input format
+3. reviewable discovery-through-freeze artifacts on that messier input
 
-Required in Plan #17:
+Required in Plan #19:
 
-1. suite-level front-half acceptance artifact across shipped realistic-input examples
-2. explicit per-example paths and aggregate review/freeze counts
-3. explicit handling for missing realistic-input coverage instead of silent skipping
+1. one explicit dependency-remediation artifact/command
+2. explicit operator-visible intent and environment delta
+3. remediation results that feed back into the front-half chain
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plans
-#16 and #17.
+#18 and #19.
 
-### Phase 1: Close Plan #16
+### Phase 1: remediation scope design
 
-- run full local verification
-- lock docs and commit the freeze-semantic lane cleanly
+- choose the narrowest safe remediation scope
+- pre-make how remediation outcomes feed back into freeze/readiness
 
-### Phase 2: Plan #17 design decisions
+### Phase 2: remediation implementation
 
-- pre-make suite requirement sourcing
-- pre-make suite aggregate semantics
-- keep the front-half suite lane explicit and reviewable
+- add the remediation artifact/command
+- keep environment delta and operator intent explicit
 
-### Phase 3: Plan #17 implementation
+### Phase 3: Verification And Lock
 
-- persist one suite-level front-half breadth artifact
-- expose it through CLI and Make
-- keep missing realistic-input coverage explicit
-
-### Phase 4: Verification And Lock
-
-- targeted front-half-suite verification
+- targeted remediation verification
 - full local verification
 - doc lock and clean commit
 
@@ -82,6 +75,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the front-half suite lane should reuse explicit requirements instead of inventing hidden ones
-2. the suite aggregate should keep semantic verdicts and freeze approval distinct
-3. missing realistic-input coverage should be explicit in the suite artifact rather than silently skipped
+1. remediation should stay explicit and narrow instead of becoming silent package management
+2. remediation outcomes should feed back into freeze/readiness without guesswork
+3. the lane should preserve reviewability instead of hiding environment mutation

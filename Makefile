@@ -28,7 +28,7 @@ ALLOW_INSTALL ?= 0
 REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies draft-blueprint-plan materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -83,6 +83,9 @@ decide-freeze: ## Build a freeze decision and promote only when approved (INPUT=
 
 front-half-acceptance: ## Run realistic-input discovery through freeze decision and review the front half (REALISTIC_INPUT=... OUTPUT=.ac14_out/front_half REQUIREMENTS="..." PACKAGES="pydantic")
 	$(PYTHON) -m ac14 front-half-acceptance "$(REALISTIC_INPUT)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --project-root "$(CURDIR)" --packages $(PACKAGES) $(foreach artifact,$(RETRIEVAL_ARTIFACTS),--retrieval-artifact "$(artifact)") $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+front-half-acceptance-suite: ## Run realistic-input front-half acceptance across shipped examples (OUTPUT=.ac14_out/front_half_suite EXAMPLES_ROOT=examples)
+	$(PYTHON) -m ac14 front-half-acceptance-suite --output-dir "$(OUTPUT)" --examples-root "$(EXAMPLES_ROOT)" $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 generate-components: ## Emit generated components (INPUT=... OUTPUT=.ac14_out/generated GENERATOR=deterministic|llm)
 	$(PYTHON) -m ac14 generate-components "$(INPUT)" --output-dir "$(OUTPUT)" --generator "$(GENERATOR)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

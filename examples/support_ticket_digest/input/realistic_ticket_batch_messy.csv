@@ -1,0 +1,4 @@
+ticket_id,body,channel,priority_hint,customer_tier,auth_method,notes
+SUP-20421,"SSO login fails after certificate rotation, only for legacy IdP users",email,high,enterprise,saml,"opened by TAM; customer says outage started after midnight"
+SUP-20422,"Bulk user import times out after 300 users",web,,midmarket,,"csv attached in prior thread; reproduces only on weekend runs"
+SUP-20423,"Billing renewal webhook retries forever after card update",api,urgent,enterprise,oauth,"customer mentioned duplicate invoices and timezone mismatch"

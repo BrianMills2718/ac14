@@ -39,6 +39,7 @@ from ac14.front_half_acceptance import (
     DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
     DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     build_front_half_acceptance_report,
+    build_front_half_acceptance_suite_report,
 )
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
@@ -190,6 +191,21 @@ def main() -> int:
     front_half_parser.add_argument("--model", default=DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL)
     front_half_parser.add_argument("--max-budget", type=float, default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET)
     front_half_parser.add_argument("--max-samples", type=int, default=5)
+
+    front_half_suite_parser = subparsers.add_parser(
+        "front-half-acceptance-suite",
+        help="Run realistic-input front-half acceptance across shipped examples.",
+    )
+    front_half_suite_parser.add_argument("--output-dir", type=Path, required=True)
+    front_half_suite_parser.add_argument("--examples-root", type=Path, default=None)
+    front_half_suite_parser.add_argument("--allow-install", action="store_true")
+    front_half_suite_parser.add_argument("--model", default=DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL)
+    front_half_suite_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    )
+    front_half_suite_parser.add_argument("--max-samples", type=int, default=5)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
     prove_parser.add_argument("blueprint_dir", type=Path)
@@ -462,6 +478,15 @@ def main() -> int:
             args.project_root,
             cast(list[str], args.packages),
             [Path(path) for path in cast(list[str], args.retrieval_artifact)],
+            args.allow_install,
+            args.model,
+            args.max_budget,
+            args.max_samples,
+        )
+    if args.command == "front-half-acceptance-suite":
+        return _front_half_acceptance_suite(
+            args.output_dir,
+            args.examples_root,
             args.allow_install,
             args.model,
             args.max_budget,
@@ -825,6 +850,28 @@ def _front_half_acceptance(
         project_root=project_root,
         requested_packages=packages,
         retrieval_artifact_paths=retrieval_artifact_paths,
+        allow_install=allow_install,
+        model=model,
+        max_budget=max_budget,
+        max_samples=max_samples,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _front_half_acceptance_suite(
+    output_dir: Path,
+    examples_root: Path | None,
+    allow_install: bool,
+    model: str,
+    max_budget: float,
+    max_samples: int,
+) -> int:
+    """Build and print a persisted front-half acceptance suite artifact."""
+
+    artifact = build_front_half_acceptance_suite_report(
+        output_dir=output_dir,
+        examples_root=examples_root,
         allow_install=allow_install,
         model=model,
         max_budget=max_budget,

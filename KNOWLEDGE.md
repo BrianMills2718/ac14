@@ -185,4 +185,17 @@ float only as a later acceptance artifact. AC14 now persists
 with readiness evidence, and front-half acceptance now carries that path
 forward explicitly.
 
+### 2026-04-01 — codex — best-practice
+Once front-half semantic review exists per example, the next honest breadth step
+is a suite-level front-half artifact across shipped realistic-input examples.
+AC14 now persists `front_half_acceptance_suite_report.json` with per-example
+report paths, attached freeze-semantic paths, and separate semantic-vs-freeze
+aggregate counts instead of leaving front-half breadth implicit.
+
+### 2026-04-01 — codex — best-practice
+The first honest messy-input step does not need a new blueprint family or a new
+runtime feature. AC14 now proves the front-half chain on a reviewable CSV asset
+under the support-ticket example so discovery-through-freeze can be tested on a
+messier artifact without scope sprawl.
+
 ---

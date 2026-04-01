@@ -210,6 +210,151 @@ def _write_acceptance_review_fixture(path: Path) -> Path:
     return path
 
 
+def _write_front_half_dependency_plan_fixture(path: Path) -> Path:
+    """Persist one deterministic dependency-plan fixture for Make front-half tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Reuse pydantic for typed schema contracts.",
+                "recommendations": [
+                    {
+                        "package_name": "pydantic",
+                        "action": "reuse",
+                        "capability_need": "typed schema contracts",
+                        "justification": "Pydantic is already installed and aligns with schema validation.",
+                        "already_installed": True,
+                        "install_command": None,
+                        "evidence": [
+                            {
+                                "source": "environment",
+                                "locator": "pydantic",
+                                "detail": "Installed in the current environment.",
+                            }
+                        ],
+                    }
+                ],
+                "standard_library_notes": [
+                    "The standard library is sufficient for filesystem and JSON handling in the first slice."
+                ],
+                "open_questions": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
+def _write_front_half_blueprint_plan_fixture(path: Path) -> Path:
+    """Persist one deterministic draft-blueprint fixture for Make front-half tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Split the ticket digest into a source parser and a digest sink.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "RawTicket",
+                        "kind": "record",
+                        "description": "Normalized support ticket input.",
+                        "fields": [
+                            {
+                                "field_name": "ticket_id",
+                                "field_type": "str",
+                                "description": "Stable ticket identifier.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "ticket_ingest",
+                        "semantic_responsibility": "ingest_ticket",
+                        "purpose": "Normalize discovered ticket input into RawTicket records.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "raw_ticket",
+                                "schema_name": "RawTicket",
+                                "description": "Normalized ticket payload.",
+                            }
+                        ],
+                        "packet_focus": [
+                            "normalize incoming ticket fields",
+                            "preserve support context that matters downstream",
+                        ],
+                        "dependency_notes": [
+                            "reuse pydantic models for typed schema validation"
+                        ],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "realistic_batch",
+                        "kind": "semantic_acceptance",
+                        "description": "Review a realistic batch of support tickets.",
+                        "requirement_focus": [
+                            "preserve ticket meaning",
+                            "keep packets bounded",
+                        ],
+                    }
+                ],
+                "packetization_notes": [
+                    "Keep the source packet focused on normalization and preserve downstream context needs explicitly."
+                ],
+                "dependency_decisions": [
+                    "Reuse pydantic for schema contracts in the front-half slice."
+                ],
+                "open_questions": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
+def _write_front_half_review_fixture(path: Path) -> Path:
+    """Persist one deterministic front-half review fixture for Make front-half tests."""
+
+    path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "concern",
+                "freeze_verdict": "promising_but_blocked",
+                "summary": "The front half preserves the requirements well enough to be promising, but the draft is still blocked by provisional authoring gaps.",
+                "strengths": [
+                    "Discovery preserved realistic ticket structure and key fields.",
+                    "The decomposition stays bounded and uses a truthful source schema."
+                ],
+                "concerns": [
+                    "The current draft bundle still lacks fixture coverage and concrete invariants."
+                ],
+                "requirement_assessments": [
+                    {
+                        "requirement": "preserve support ticket meaning",
+                        "verdict": "satisfied",
+                        "rationale": "The discovered fields and draft schema keep the core ticket content intact.",
+                    },
+                    {
+                        "requirement": "keep packets bounded",
+                        "verdict": "satisfied",
+                        "rationale": "The source-only draft packet stays narrowly scoped.",
+                    }
+                ],
+                "recommended_next_steps": [
+                    "Add concrete fixtures and local invariants before retrying freeze."
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return path
+
+
 def _write_freeze_semantic_review_fixture(path: Path) -> Path:
     """Persist one deterministic freeze-semantic review fixture for Make subprocess tests."""
 
@@ -272,6 +417,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
     assert "front-half-acceptance" in result.stdout
+    assert "front-half-acceptance-suite" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
     assert "compare-generators" in result.stdout
@@ -1187,6 +1333,42 @@ def test_make_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     payload = json.loads((output_dir / "front_half_acceptance_report.json").read_text())
     assert payload["artifact_paths"]["freeze_semantic_review_path"] is not None
     assert (output_dir / "freeze_decision" / "freeze_semantic_review.json").exists()
+
+
+def test_make_front_half_acceptance_suite_runs_end_to_end(tmp_path: Path) -> None:
+    """Make front-half suite target should persist the suite breadth artifact."""
+
+    output_dir = tmp_path / "front_half_suite"
+    env = os.environ.copy()
+    env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(
+        _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json"),
+    )
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(
+        _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json"),
+    )
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "front-half-acceptance-suite",
+            f"OUTPUT={output_dir}",
+            f"EXAMPLES_ROOT={EXAMPLES_ROOT}",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "front_half_acceptance_suite_report.json").read_text())
+    assert payload["example_count"] >= 3
+    assert payload["freeze_blocked_examples"] == payload["example_count"]
 
 
 def test_make_acceptance_review_with_realistic_input_runs_end_to_end(tmp_path: Path) -> None:
