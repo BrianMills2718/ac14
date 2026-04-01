@@ -79,6 +79,7 @@ AC14 now supports:
 - persisting a structural packet-sufficiency artifact so packet existence and packet sufficiency are not conflated
 - carrying realistic-input full-system acceptance into the default deterministic proof/evidence bundle for shipped examples, while keeping missing realistic-input artifacts explicit
 - carrying realistic-input full-system acceptance into the default suite proof/evidence story for shipped examples, while keeping missing and unsupported suite gate states explicit
+- making default-generator recommendation consume suite-level realistic-input default-gate evidence instead of reasoning only from structural suite comparison and semantic comparison
 
 ## What Is Still Missing
 
@@ -88,8 +89,7 @@ AC14 is still incomplete on:
 - stronger messy-input blueprint derivation
 - broad automatic dependency execution/install remediation
 - richer first-class semantic/business-logic review at every major gate
-- broader live/default readiness evidence beyond the new explicit operator-gated boundary artifact
-- recommendation/default-generator logic consuming the new suite-level realistic-input default-gate evidence
+- broader live/default readiness evidence beyond the current one-example operator-gated boundary artifact
 - first-class tool/runtime nodes in the blueprint model
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).

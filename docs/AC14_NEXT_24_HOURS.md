@@ -9,12 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #13: Recommendation Default-Gate Awareness](/home/brian/projects/ac14/docs/plans/13_recommendation_default_gate_awareness.md)
+- [Plan #14: Live LLM Suite Readiness](/home/brian/projects/ac14/docs/plans/14_live_llm_suite_readiness.md)
 
-Plan #12 closed the suite-level default-gate gap. The next honest gap is the
-default-generator/readiness story: AC14 should stop making recommendation
-judgments without consuming the realistic-input default-gate evidence that now
-exists at the suite level.
+Plan #13 closed the recommendation/default-gate gap. The next honest gap is
+live-readiness breadth: AC14 should stop relying on a one-example live
+readiness artifact when the suite-level readiness story is still missing.
 
 ## Progress Update
 
@@ -28,36 +27,36 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Completed in Plan #12:
+Completed in Plan #13:
 
-1. realistic-input acceptance carried into the default suite proof/evidence story
-2. explicit handling for shipped examples that lack realistic-input artifacts
-3. status/docs that stop presenting suite realistic-input acceptance as only a side artifact
+1. recommendation/default-generator artifacts now consume suite-level realistic-input default-gate evidence
+2. recommendation reasons now fail loud when default-gate coverage is missing or unsupported
+3. status/docs now stop presenting recommendation/default-generator logic as independent from the default suite proof story
 
-Required in Plan #13:
+Required in Plan #14:
 
-1. recommendation/default-generator evidence should consume suite-level realistic-input gate coverage
-2. recommendation reasons should fail loud when default-gate coverage is missing or unsupported
-3. live-readiness should remain separate from default-gate coverage instead of being conflated with it
+1. suite-level live-readiness artifact with explicit per-example and aggregate statuses
+2. explicit operator gating and explicit separation from fixture-backed breadth
+3. status/docs that stop presenting one-example live readiness as broad readiness evidence
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#13.
+#14.
 
-### Phase 1: suite default-gate recommendation inputs
+### Phase 1: suite live-readiness artifact
 
-- thread suite-level realistic-input gate coverage into the recommendation artifact
-- persist explicit counts and paths so the recommendation surface is reviewable
+- add one suite-level live-readiness artifact with explicit per-example statuses
+- persist aggregate ready/blocked/skipped counts and paths
 
-### Phase 2: recommendation policy integration
+### Phase 2: boundary preservation
 
-- make recommendation reasons fail loud when default-gate coverage is missing
-- keep live-readiness and default-gate evidence as separate categories
+- keep live execution explicitly gated
+- keep suite live readiness separate from fixture-backed breadth and recommendation promotion policy
 
 ### Phase 3: Verification And Lock
 
-- targeted recommendation/default-gate verification
+- targeted suite live-readiness verification
 - full local verification
 - doc lock and clean commit
 
@@ -69,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. recommendation should consume realistic-input default-gate evidence without duplicating the suite proof artifact chain
-2. live-readiness and realistic-input default-gate coverage should stay distinct in the recommendation story
-3. the lane should strengthen default-generator evidence without turning recommendation into a second proof runner
+1. suite live readiness should broaden evidence without silently upgrading recommendation policy
+2. live execution should remain operator-explicit even when suite breadth is added
+3. the lane should preserve explicit per-example results instead of stopping at the first failure

@@ -168,4 +168,10 @@ recommendation/default-generator logic should consume that evidence directly
 instead of reasoning only from structural suite comparison and semantic
 comparison artifacts.
 
+### 2026-04-01 — codex — best-practice
+Live readiness should not stop at a one-example probe once suite-level
+realistic-input breadth exists. The next honest artifact is a suite-level live
+readiness report that stays operator-gated and keeps per-example `ready` /
+`blocked` / `skipped` results explicit.
+
 ---

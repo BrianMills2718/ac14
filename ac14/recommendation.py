@@ -22,7 +22,9 @@ from ac14.semantic_suite import (
 from ac14.suite import (
     SuiteComparisonReport,
     SuiteGeneratorAggregate,
+    SuiteProofReport,
     build_suite_comparison_report,
+    build_suite_proof_report,
 )
 
 
@@ -50,8 +52,20 @@ class DefaultGeneratorRecommendation(BaseModel):
     suite_comparison_report_path: str = Field(
         description="Persisted suite comparison report used by this recommendation.",
     )
+    suite_proof_report_path: str = Field(
+        description="Persisted suite proof report used by this recommendation.",
+    )
     suite_semantic_report_path: str = Field(
         description="Persisted suite semantic comparison report used by this recommendation.",
+    )
+    suite_default_gate_included_examples: int = Field(
+        description="Suite examples whose default proof bundle included the realistic-input final gate.",
+    )
+    suite_default_gate_missing_examples: int = Field(
+        description="Suite examples missing realistic-input default-gate coverage.",
+    )
+    suite_default_gate_unsupported_examples: int = Field(
+        description="Suite examples whose current generator mode does not support the default realistic-input gate.",
     )
     reasons: list[str] = Field(description="Human-readable reasons for the recommendation.")
 
@@ -111,6 +125,14 @@ def build_default_generator_recommendation(
         llm_model=llm_model,
         llm_max_budget=llm_max_budget,
     )
+    suite_proof = build_suite_proof_report(
+        output_dir=destination / "suite_proof",
+        examples_root=examples_root,
+        fresh_run_trials=fresh_run_trials,
+        generator_kind="deterministic",
+        llm_model=llm_model,
+        llm_max_budget=llm_max_budget,
+    )
     suite_semantic = build_suite_semantic_comparison_report(
         output_dir=destination / "suite_semantic",
         examples_root=examples_root,
@@ -130,6 +152,7 @@ def build_default_generator_recommendation(
     llm_promotion_ready = _llm_promotion_ready(
         selected_generators,
         suite_comparison,
+        suite_proof,
         suite_semantic,
         proof_breadth_count,
         live_readiness,
@@ -147,9 +170,15 @@ def build_default_generator_recommendation(
         suite_comparison_report_path=str(
             destination / "suite_comparison" / "suite_comparison_report.json"
         ),
+        suite_proof_report_path=str(
+            destination / "suite_proof" / "suite_proof_report.json"
+        ),
         suite_semantic_report_path=str(
             destination / "suite_semantic" / "suite_semantic_comparison_report.json"
         ),
+        suite_default_gate_included_examples=suite_proof.realistic_input_gate_included_examples,
+        suite_default_gate_missing_examples=suite_proof.realistic_input_gate_missing_examples,
+        suite_default_gate_unsupported_examples=suite_proof.realistic_input_gate_unsupported_examples,
         reasons=reasons,
     )
     (destination / "default_generator_recommendation.json").write_text(
@@ -258,6 +287,7 @@ def _proof_breadth_count(examples_root: Path | str | None) -> int:
 def _llm_promotion_ready(
     selected_generators: list[GeneratorKind],
     suite_comparison: SuiteComparisonReport,
+    suite_proof: SuiteProofReport,
     suite_semantic: SuiteSemanticComparisonReport,
     proof_breadth_count: int,
     live_readiness: LlmLiveReadinessArtifact,
@@ -266,6 +296,7 @@ def _llm_promotion_ready(
     """Evaluate whether current evidence is strong enough to promote the LLM generator."""
 
     if "llm" not in selected_generators:
+        _append_suite_default_gate_reasons(suite_proof, reasons)
         reasons.append("LLM generator was not evaluated in this recommendation run.")
         reasons.append(
             "Live LLM readiness remains "
@@ -276,6 +307,7 @@ def _llm_promotion_ready(
 
     llm_comparison = _suite_generator_aggregate(suite_comparison, "llm")
     llm_semantic = _suite_mode_aggregate(suite_semantic, "llm")
+    _append_suite_default_gate_reasons(suite_proof, reasons)
 
     if llm_comparison.failed_examples != 0:
         reasons.append("LLM generator has failing suite-proof examples.")
@@ -290,6 +322,12 @@ def _llm_promotion_ready(
             "Live LLM readiness is "
             f"{live_readiness.status}: {live_readiness.reason}"
         )
+    if suite_proof.realistic_input_gate_included_examples != suite_proof.example_count:
+        reasons.append(
+            "Suite default-gate coverage is incomplete: "
+            f"{suite_proof.realistic_input_gate_included_examples}/"
+            f"{suite_proof.example_count} examples included realistic-input final-gate acceptance."
+        )
 
     promotion_ready = (
         llm_comparison.failed_examples == 0
@@ -297,12 +335,27 @@ def _llm_promotion_ready(
         and (llm_semantic.failing_reference_examples or 0) == 0
         and proof_breadth_count > 1
         and live_readiness.status == "ready"
+        and suite_proof.realistic_input_gate_included_examples == suite_proof.example_count
     )
     if promotion_ready:
         reasons.append("LLM generator satisfies the current promotion criteria.")
     else:
         reasons.append("Deterministic remains the default control lane.")
     return promotion_ready
+
+
+def _append_suite_default_gate_reasons(
+    suite_proof: SuiteProofReport,
+    reasons: list[str],
+) -> None:
+    """Append explicit suite default-gate coverage reasons for recommendation review."""
+
+    reasons.append(
+        "Suite default-gate coverage is "
+        f"{suite_proof.realistic_input_gate_included_examples}/{suite_proof.example_count} included, "
+        f"{suite_proof.realistic_input_gate_missing_examples} missing, "
+        f"{suite_proof.realistic_input_gate_unsupported_examples} unsupported."
+    )
 
 
 def _suite_generator_aggregate(

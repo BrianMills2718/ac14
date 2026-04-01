@@ -1218,6 +1218,9 @@ def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> N
         "AC14_ENABLE_LIVE_LLM_READINESS",
     ]:
         env.pop(key, None)
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
 
     result = subprocess.run(
         [
@@ -1244,6 +1247,9 @@ def test_cli_recommend_default_generator_deterministic_only(tmp_path: Path) -> N
     payload = json.loads(result.stdout)
     assert payload["recommended_default"] == "deterministic"
     assert payload["live_readiness_status"] == "skipped"
+    assert payload["suite_default_gate_included_examples"] == payload["proof_breadth_count"] or payload["suite_default_gate_included_examples"] >= 2
+    assert payload["suite_default_gate_missing_examples"] == 0
+    assert payload["suite_default_gate_unsupported_examples"] == 0
 
 
 def test_cli_live_llm_readiness_reports_skipped_without_keys(

@@ -204,6 +204,19 @@ example in the default suite proof report, with aggregate `included`,
 `missing`, and `unsupported` counts across the suite.
 **Date resolved:** 2026-04-01
 
+### U-024: Recommendation logic was not consuming the suite default-gate evidence.
+**Status:** Resolved
+**Context:** AC14 had default-gate evidence at single-example and suite level,
+but the default-generator recommendation still reasoned from suite comparison,
+semantic comparison, and live readiness without consuming that default-gate
+coverage.
+**Why it matters:** Recommendation should reflect the same default proof story
+that AC14 claims elsewhere.
+**Resolution:** Recommendation now persists the suite proof report path, records
+suite-level default-gate counts, and includes explicit reasons when default-gate
+coverage is incomplete.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

@@ -23,7 +23,8 @@ current executable lane.
 | 10 | [Packet Sufficiency Evidence](10_packet_sufficiency_evidence.md) | High | Complete | - |
 | 11 | [Realistic-Input Default Gate](11_realistic_input_default_gate.md) | High | Complete | - |
 | 12 | [Realistic-Input Suite Default Gate](12_realistic_input_suite_default_gate.md) | High | Complete | - |
-| 13 | [Recommendation Default-Gate Awareness](13_recommendation_default_gate_awareness.md) | High | In Progress | - |
+| 13 | [Recommendation Default-Gate Awareness](13_recommendation_default_gate_awareness.md) | High | Complete | - |
+| 14 | [Live LLM Suite Readiness](14_live_llm_suite_readiness.md) | High | In Progress | - |
 
 ## Status Key
 

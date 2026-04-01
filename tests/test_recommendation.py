@@ -77,7 +77,12 @@ def test_build_default_generator_recommendation_keeps_deterministic_default(
     assert recommendation.llm_promotion_ready is False
     assert recommendation.proof_breadth_count >= 2
     assert recommendation.live_readiness_status == "skipped"
+    assert recommendation.suite_proof_report_path.endswith("suite_proof_report.json")
+    assert recommendation.suite_default_gate_included_examples >= 2
+    assert recommendation.suite_default_gate_missing_examples == 0
+    assert recommendation.suite_default_gate_unsupported_examples == 0
     assert recommendation.live_readiness_artifact_path.endswith("live_llm_readiness.json")
+    assert any("Suite default-gate coverage is" in reason for reason in recommendation.reasons)
 
 
 def test_build_llm_live_readiness_artifact_skips_without_live_keys(

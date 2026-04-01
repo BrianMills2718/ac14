@@ -890,6 +890,9 @@ def test_make_recommend_default_generator_deterministic_only(tmp_path: Path) -> 
         "AC14_ENABLE_LIVE_LLM_READINESS",
     ]:
         env.pop(key, None)
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             "make",
@@ -910,6 +913,8 @@ def test_make_recommend_default_generator_deterministic_only(tmp_path: Path) -> 
     assert recommendation_path.exists()
     payload = json.loads(recommendation_path.read_text())
     assert payload["live_readiness_status"] == "skipped"
+    assert payload["suite_default_gate_missing_examples"] == 0
+    assert payload["suite_default_gate_unsupported_examples"] == 0
 
 
 def test_make_live_llm_readiness_reports_skipped_without_keys(

@@ -27,28 +27,28 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: recommendation default-gate inputs
-  - [ ] feed suite-level realistic-input gate coverage into recommendation artifacts
-  - [ ] persist explicit suite default-gate counts and paths in recommendation output
-  - Success criteria: recommendation artifacts carry reviewable default-gate coverage instead of ignoring it
+- [ ] Phase 1: suite live-readiness artifact
+  - [ ] add one suite-level live-readiness artifact with explicit per-example statuses
+  - [ ] persist aggregate ready/blocked/skipped counts and paths
+  - Success criteria: suite live readiness is reviewable without being reduced to a one-example probe
 
-- [ ] Phase 2: recommendation policy integration
-  - [ ] fail loud in recommendation reasons when default-gate coverage is missing or unsupported
-  - [ ] keep live-readiness and default-gate evidence separate in the recommendation story
-  - Success criteria: recommendation output is more honest without creating a second proof runner
+- [ ] Phase 2: boundary preservation
+  - [ ] keep live execution explicitly gated
+  - [ ] keep suite live readiness separate from fixture-backed breadth and recommendation promotion policy
+  - Success criteria: the live-readiness story broadens without silently upgrading promotion claims
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted recommendation/default-gate tests
+  - [ ] run targeted suite live-readiness tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the recommendation default-gate lane
+  - Success criteria: verification passes and the docs match the suite live-readiness lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
-- realistic-input default-gate evidence now exists at single-example and suite level, but recommendation/readiness logic does not yet consume it
+- realistic-input default-gate evidence now feeds recommendation, but live-readiness evidence is still only a one-example artifact
 - broader live/default evidence is still narrow even after the new explicit boundary artifact
 
 ## Latest Verified Results
@@ -136,6 +136,14 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_suite.py::test_build_suite_proof_report_for_deterministic_generator tests/test_cli.py::test_cli_prove_suite tests/test_make_targets.py::test_make_prove_suite_runs_end_to_end` passed with `3 passed`
   - `python -m mypy ac14/suite.py tests/test_suite.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/suite.py tests/test_suite.py tests/test_cli.py tests/test_make_targets.py` passed
+  - full verification passed:
+    - `python -m pytest -q` passed with `139 passed`
+    - `python -m mypy ac14 tests` passed on `61` source files
+    - `python -m ruff check ac14 tests` passed
+- targeted recommendation default-gate verification passed:
+  - `python -m pytest -q tests/test_recommendation.py tests/test_cli.py::test_cli_recommend_default_generator_deterministic_only tests/test_make_targets.py::test_make_recommend_default_generator_deterministic_only` passed with `4 passed`
+  - `python -m mypy ac14/recommendation.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/recommendation.py tests/test_recommendation.py tests/test_cli.py tests/test_make_targets.py` passed
   - full verification passed:
     - `python -m pytest -q` passed with `139 passed`
     - `python -m mypy ac14 tests` passed on `61` source files

@@ -128,13 +128,13 @@ Implemented:
 8. one fixture-backed suite-level realistic-input acceptance artifact in `llm` mode
 9. one explicit operator-gated live-readiness artifact that keeps fixture-backed breadth distinct from actual live-readiness evidence
 10. suite-level default proof/evidence now carries realistic-input final-gate acceptance explicitly, with aggregate included/missing/unsupported counts
+11. default-generator recommendation now consumes suite-level realistic-input default-gate evidence instead of reasoning only from structural suite comparison and semantic comparison
 
 Still weaker than desired:
 
 1. business-logic review as a first-class artifact everywhere
-2. broader live/default readiness evidence beyond the new explicit boundary artifact
-3. recommendation/default-generator logic consuming the new suite-level realistic-input default-gate evidence
-4. strategy/value review during draft and freeze phases
+2. broader live/default readiness evidence beyond the current one-example explicit boundary artifact
+3. strategy/value review during draft and freeze phases
 
 ### Generality
 
@@ -197,7 +197,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. first proof slice: 96-98%
-2. long-term general coding agent vision: 46-50%
+2. long-term general coding agent vision: 47-51%
 
 The remaining work is not mainly “more code.” It is:
 
