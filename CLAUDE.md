@@ -66,18 +66,18 @@ The default failure mode here is waiting too early. Avoid that.
 
 ## Active Proof Expansion Rule
 
-The current focus after dependency execution probing is dependency-probe
-integration until a newer numbered plan replaces it.
+The current focus after dependency-probe integration is shared
+meta-process-driven dependency-probe policy.
 
-- feed dependency execution evidence back into draft planning rather than
-  leaving it as a disconnected side artifact
-- treat blocked dependency probes as explicit freeze blockers until the plan or
-  environment changes
-- keep confirmed probe results reviewable and reusable so later phases stop
-  re-asking the same dependency question
+- keep dependency-probe policy in shared `meta-process` vocabulary rather than
+  AC14-only code comments
+- consume `planning.dependency_probe_policy` from `meta-process.yaml` with a
+  strict default
+- keep blocked probe behavior configurable as `strict`, `warn`, or `ignore`
+  without weakening the default proof slice
 - preserve the AC14-native notebook and implementation-status doc as the
   canonical story surface while implementation continues
-- keep dependency execution tied to blueprint freeze preparation rather than a
+- keep dependency policy tied to blueprint freeze preparation rather than a
   disconnected package-management workflow
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
 

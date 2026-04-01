@@ -99,4 +99,10 @@ results into explicit freeze-readiness blockers, and groups those blockers into
 freeze-remediation tasks so unavailable libraries cannot slip past freeze as
 mere warnings.
 
+### 2026-03-31 — codex — best-practice
+Project-process policy for dependency evidence should be shared infrastructure,
+not AC14-only convention. AC14 now reads `planning.dependency_probe_policy`
+from `meta-process.yaml` with `strict` default behavior, while `project-meta`
+defines the shared `strict|warn|ignore` vocabulary.
+
 ---

@@ -15,6 +15,7 @@ from ac14.blueprint_planning import (
     PlannedComponent,
 )
 from ac14.loader import load_blueprint_dir
+from ac14.meta_process_policy import DependencyProbePolicy, load_dependency_probe_policy
 from ac14.models import (
     ArchitectureFile,
     Binding,
@@ -67,6 +68,8 @@ class DraftBundleManifest(BaseModel):
 def materialize_draft_blueprint_bundle(
     plan_artifact_path: Path | str,
     output_dir: Path | str,
+    *,
+    meta_process_config_path: Path | str | None = None,
 ) -> DraftBundleManifest:
     """Materialize a six-file draft bundle and a freeze-readiness report."""
 
@@ -97,6 +100,7 @@ def materialize_draft_blueprint_bundle(
         draft_bundle_dir=destination,
         plan=plan,
         extra_findings=schema_findings,
+        meta_process_config_path=meta_process_config_path,
     )
     readiness_path = destination / "freeze_readiness_report.json"
     readiness_path.write_text(
@@ -115,21 +119,25 @@ def build_freeze_readiness_report(
     draft_bundle_dir: Path | str,
     plan: DraftBlueprintPlanArtifact,
     extra_findings: list[ValidationFinding] | None = None,
+    meta_process_config_path: Path | str | None = None,
 ) -> FreezeReadinessReport:
     """Build a persisted readiness report for a materialized draft bundle."""
 
     draft_dir = Path(draft_bundle_dir)
+    dependency_probe_policy = load_dependency_probe_policy(meta_process_config_path)
     blueprint = load_blueprint_dir(draft_dir)
     validation_result = validate_blueprint(blueprint)
+    authoring_findings = _authoring_findings(
+        plan,
+        blueprint.components.keys(),
+        dependency_probe_policy=dependency_probe_policy,
+    )
     findings = [
         *validation_result.findings,
         *(extra_findings or []),
-        *_authoring_findings(plan, blueprint.components.keys()),
+        *authoring_findings,
     ]
-    ready = validation_result.passed and not extra_findings and not _authoring_findings(
-        plan,
-        blueprint.components.keys(),
-    )
+    ready = validation_result.passed and not extra_findings and not authoring_findings
     return FreezeReadinessReport(
         ready=ready,
         validation_passed=validation_result.passed,
@@ -332,6 +340,8 @@ def _component_kind(
 def _authoring_findings(
     plan: DraftBlueprintPlanArtifact,
     component_ids: Iterable[str],
+    *,
+    dependency_probe_policy: DependencyProbePolicy,
 ) -> list[ValidationFinding]:
     """Build authoring-specific readiness findings that frozen validation cannot express."""
 
@@ -373,14 +383,20 @@ def _authoring_findings(
                 path="plan.dependency_open_questions",
             ),
         )
-    for blocked_probe in plan.blocked_dependency_probes:
-        findings.append(
-            ValidationFinding(
-                code="E-DRAFT-DEPENDENCY-PROBE-BLOCKED",
-                message=f"dependency probe still blocked before freeze: {blocked_probe}",
-                path="plan.blocked_dependency_probes",
-            ),
+    if dependency_probe_policy != "ignore":
+        code = (
+            "E-DRAFT-DEPENDENCY-PROBE-BLOCKED"
+            if dependency_probe_policy == "strict"
+            else "W-DRAFT-DEPENDENCY-PROBE-BLOCKED"
         )
+        for blocked_probe in plan.blocked_dependency_probes:
+            findings.append(
+                ValidationFinding(
+                    code=code,
+                    message=f"dependency probe still blocked before freeze: {blocked_probe}",
+                    path="plan.blocked_dependency_probes",
+                ),
+            )
     return findings
 
 

@@ -21,6 +21,13 @@ bash scripts/setup_hooks.sh
 This enables the tracked `hooks/commit-msg` hook so local commits follow the
 repo's light plan-prefix discipline.
 
+The repo also reads shared process policy from [meta-process.yaml](/home/brian/projects/ac14/meta-process.yaml).
+Dependency-probe behavior is currently governed by:
+
+- `strict` = blocked probes block freeze
+- `warn` = blocked probes stay visible but non-blocking
+- `ignore` = probe results are recorded but omitted from freeze blocking
+
 ## Core Docs
 
 - [Roadmap](/home/brian/projects/ac14/docs/AC14_ROADMAP.md)
@@ -47,6 +54,7 @@ AC14 now supports:
 - probing dependency-plan recommendations through an explicit persisted execution artifact with narrow default mutation rules
 - turning a persisted discovery artifact plus explicit requirements into an LLM-backed draft blueprint planning artifact
 - carrying dependency-plan provenance, confirmed probe evidence, blocked probe evidence, and unresolved dependency questions into draft planning and freeze readiness
+- consuming shared `meta-process` dependency-probe policy instead of hard-coding freeze behavior
 - materializing a six-file draft bundle plus a freeze-readiness report from that planning artifact
 - making an explicit approve/block freeze decision and promoting only approved bundles
 - turning blocked freeze decisions into persisted remediation worklists with bundle-edit retry paths

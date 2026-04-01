@@ -76,7 +76,7 @@ Implemented:
 5. advisory dependency and library planning
 6. explicit dependency execution probes for dependency-plan recommendations
 7. dependency-aware draft blueprint planning with confirmed and blocked probe carry-forward
-8. draft bundle materialization
+8. draft bundle materialization with shared `meta-process` dependency-probe policy consumption
 9. freeze readiness that now blocks on unresolved dependency probes
 10. explicit freeze decision and remediation planning
 

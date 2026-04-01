@@ -16,6 +16,11 @@ meta_process:
       - "\\[Trivial\\]"
       - "\\[Unplanned\\]"
 
+  planning:
+    question_driven_planning: advisory
+    uncertainty_tracking: advisory
+    dependency_probe_policy: strict
+
   quality:
     type_checking:
       enabled: true

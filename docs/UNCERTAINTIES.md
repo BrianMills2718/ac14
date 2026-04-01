@@ -59,6 +59,17 @@ artifact.
 blockers and grouped freeze-remediation tasks.
 **Date resolved:** 2026-03-31
 
+### U-013: Where should dependency-probe policy live?
+**Status:** Resolved
+**Context:** Multiple projects will need the same project-process decision about
+whether blocked dependency probes should block, warn, or be ignored.
+**Why it matters:** If the policy vocabulary lives only in AC14, other projects
+do not get the configuration model for free.
+**Resolution:** The shared vocabulary now lives in `meta-process.yaml` under
+`planning.dependency_probe_policy`, and AC14 consumes it with `strict` default
+behavior.
+**Date resolved:** 2026-03-31
+
 ## Deferred Project Uncertainties
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.

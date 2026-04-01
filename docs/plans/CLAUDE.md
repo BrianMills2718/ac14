@@ -13,6 +13,7 @@ current executable lane.
 |---|------|----------|--------|--------|
 | 1 | [Dependency Execution Probing](01_dependency_execution_probing.md) | High | Complete | - |
 | 2 | [Dependency Probe Integration](02_dependency_probe_integration.md) | High | Complete | - |
+| 3 | [Meta-Process Dependency Probe Policy](03_meta_process_dependency_probe_policy.md) | High | Complete | - |
 
 ## Status Key
 

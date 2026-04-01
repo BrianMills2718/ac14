@@ -148,3 +148,73 @@ def test_materialize_draft_blueprint_bundle_blocks_on_dependency_probe_results(
     ]
     assert len(blocked_findings) == 1
     assert "install rich" in blocked_findings[0]["message"]
+
+
+def test_materialize_draft_blueprint_bundle_warns_on_dependency_probe_results_when_policy_warn(
+    tmp_path: Path,
+) -> None:
+    """Warn policy should downgrade blocked dependency probes to non-error findings."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.blocked_dependency_probes = [
+        "install rich: install probe blocked because environment mutation is disabled",
+    ]
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    config_path = tmp_path / "meta-process.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "meta_process:",
+                "  version: \"1.0\"",
+                "  planning:",
+                "    dependency_probe_policy: warn",
+            ],
+        ),
+    )
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+        meta_process_config_path=config_path,
+    )
+
+    report = json.loads(Path(manifest.freeze_readiness_report_path).read_text())
+    codes = {finding["code"] for finding in report["findings"]}
+    assert "W-DRAFT-DEPENDENCY-PROBE-BLOCKED" in codes
+    assert "E-DRAFT-DEPENDENCY-PROBE-BLOCKED" not in codes
+
+
+def test_materialize_draft_blueprint_bundle_ignores_dependency_probe_results_when_policy_ignore(
+    tmp_path: Path,
+) -> None:
+    """Ignore policy should omit blocked dependency probe findings entirely."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.blocked_dependency_probes = [
+        "install rich: install probe blocked because environment mutation is disabled",
+    ]
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+    config_path = tmp_path / "meta-process.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "meta_process:",
+                "  version: \"1.0\"",
+                "  planning:",
+                "    dependency_probe_policy: ignore",
+            ],
+        ),
+    )
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+        meta_process_config_path=config_path,
+    )
+
+    report = json.loads(Path(manifest.freeze_readiness_report_path).read_text())
+    codes = {finding["code"] for finding in report["findings"]}
+    assert "W-DRAFT-DEPENDENCY-PROBE-BLOCKED" not in codes
+    assert "E-DRAFT-DEPENDENCY-PROBE-BLOCKED" not in codes

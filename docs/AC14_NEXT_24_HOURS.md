@@ -9,11 +9,11 @@ This document is the tactical summary for the most recently completed numbered p
 
 The authoritative implementation contract for this completed lane is:
 
-- [Plan #2: Dependency Probe Integration](/home/brian/projects/ac14/docs/plans/02_dependency_probe_integration.md)
+- [Plan #3: Meta-Process Dependency Probe Policy](/home/brian/projects/ac14/docs/plans/03_meta_process_dependency_probe_policy.md)
 
-Plan #1 made dependency probing explicit and reviewable. Plan #2 made that
-evidence matter to the front half by carrying it into draft planning and using
-blocked probe results as real freeze blockers.
+Plan #2 made dependency probe evidence matter to AC14 freeze behavior. Plan #3
+puts the policy vocabulary into shared `meta-process` docs/templates and makes
+AC14 consume that shared config instead of hard-coding the rule privately.
 
 This lane is now complete.
 
@@ -30,34 +30,33 @@ Completed before this lane:
 7. dependency-aware draft planning with preserved dependency provenance
 8. explicit dependency execution probes for dependency-plan recommendations
 
-Required in Plan #2:
+Required in Plan #3:
 
-1. dependency execution evidence in draft planning artifacts
-2. blocked dependency probes as freeze blockers
-3. remediation tasks that surface dependency blockers explicitly
+1. shared `dependency_probe_policy` vocabulary in meta-process
+2. AC14 consumption of `planning.dependency_probe_policy`
+3. deterministic proof that `strict`, `warn`, and default loading behave as intended
 
 ## Tactical Phase Summary
 
 This document mirrors the active plan at a higher level. Detailed references,
-write scope, tests, and acceptance criteria live in Plan #2.
+write scope, tests, and acceptance criteria live in Plan #3.
 
-### Phase 1: draft planning integration
+### Phase 1: shared vocabulary
 
-- draft planning accepts an optional dependency execution artifact
-- confirmed and blocked probe summaries are persisted
-- mismatched dependency-plan references fail loud
+- meta-process docs/templates define `dependency_probe_policy`
+- the meaning of `strict`, `warn`, and `ignore` is explicit
 
-### Phase 2: freeze blocker integration
+### Phase 2: AC14 consumption
 
-- blocked dependency probes become explicit readiness findings
-- confirmed probe results remain informative context
-- freeze approval fails while dependency blockers remain
+- AC14 reads `planning.dependency_probe_policy` from `meta-process.yaml`
+- missing config falls back to `strict`
+- draft authoring applies the policy to blocked dependency probe findings
 
-### Phase 3: remediation and operator surface
+### Phase 3: verification
 
-- remediation groups blocked dependency probes into actionable work
-- CLI and Make expose the integrated planning path
-- deterministic tests cover planning, authoring, freeze, CLI, and Make
+- policy loading has deterministic tests
+- warn mode downgrades blocked probe findings without removing them
+- full repo verification still passes
 
 ### Phase 4: Verification And Lock
 
@@ -72,6 +71,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. blocked probes now stop freeze, but broader install remediation remains deferred
-2. confirmed probe evidence should reduce repeated uncertainty without replacing the richer dependency-planning artifact
+1. the shared policy should stay about gate behavior, not expand into automatic remediation
+2. AC14 should keep the default at `strict` even after configurability exists
 3. broader automation should still not outrun the current explicit operator-invoked probe model
