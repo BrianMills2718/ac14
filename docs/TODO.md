@@ -27,29 +27,29 @@ Detailed uncertainty tracking now lives in:
 
 ## Short-Term Active Lane
 
-- [ ] Phase 1: retry breadth scope design
-  - [ ] pre-make retry-aware suite breadth as an explicit optional extension
-  - [ ] pre-make how per-example retry paths and suite-level retry counts both stay visible
-  - Success criteria: retry-aware suite breadth is explicit enough to implement without changing the default suite story silently
+- [ ] Phase 1: messy-input retry scope design
+  - [ ] pre-make the messy CSV retry lane on the existing artifact instead of inventing a new artifact type
+  - [ ] pre-make how discovery, initial freeze, retry, and final review all stay explicit
+  - Success criteria: the messy-input retry lane is explicit enough to implement without changing the artifact model unnecessarily
 
-- [ ] Phase 2: retry breadth implementation
-  - [ ] let front-half acceptance suite optionally run retry-aware per-example acceptance
-  - [ ] persist aggregate retry-attempted and retry-approved counts plus per-example retry paths
-  - Success criteria: the shipped front-half suite can expose one bounded retry-aware breadth artifact
+- [ ] Phase 2: messy-input retry implementation
+  - [ ] run retry-aware front-half acceptance on the existing messy CSV asset
+  - [ ] preserve discovery, initial freeze, retry, and final review paths in the resulting artifact
+  - Success criteria: the messy-input front-half proof includes one bounded retry without hiding any step
 
 - [ ] Phase 3: verification and lock
-  - [ ] run targeted retry-aware suite tests
+  - [ ] run targeted messy-input retry tests
   - [ ] run full `python -m pytest -q`
   - [ ] run full `python -m mypy ac14 tests`
   - [ ] run full `python -m ruff check ac14 tests`
   - [ ] update TODO, active plan, README, KNOWLEDGE, and implementation-status docs to reflect the lane
-  - Success criteria: verification passes and the docs match the retry-aware suite lane
+  - Success criteria: verification passes and the docs match the messy-input retry lane
 
 ## Current Open Uncertainties
 
 - realistic-input front-half acceptance now exists, but it is still synthetic-but-plausible rather than a broad messy-corpus proof
 - recommendation now consumes suite live-readiness evidence, but broader automatic dependency execution remains intentionally out of scope
-- retry-aware front-half acceptance now exists, but the suite-level front-half breadth artifact still only aggregates the initial freeze result
+- retry-aware suite breadth now exists, but the retry story is still only proven on the cleaner shipped inputs rather than the messy CSV slice
 
 ## Latest Verified Results
 
@@ -216,6 +216,10 @@ Detailed uncertainty tracking now lives in:
   - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_report_supports_retry_freeze tests/test_cli.py::test_cli_front_half_acceptance_supports_retry_freeze tests/test_make_targets.py::test_make_front_half_acceptance_supports_retry_freeze` passed with `3 passed`
   - `python -m mypy ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
   - `python -m ruff check ac14/freeze_retry.py ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+- targeted retry-aware suite verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_supports_retry_freeze tests/test_cli.py::test_cli_front_half_acceptance_suite_supports_retry_freeze tests/test_make_targets.py::test_make_front_half_acceptance_suite_supports_retry_freeze` passed with `3 passed`
+  - `python -m mypy ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
+  - `python -m ruff check ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py` passed
 
 ## Longer-Term Next Steps
 
@@ -223,7 +227,7 @@ Detailed uncertainty tracking now lives in:
 - [ ] broaden front-half acceptance into an explicit suite-level breadth artifact
 - [ ] prove one messier-input front-half lane without hiding ambiguity in prompts
 - [ ] turn dependency blockers into one explicit remediation lane instead of only diagnosis
-- [ ] connect retry-aware front-half acceptance into the shipped suite breadth artifact
+- [ ] prove retry-aware front-half acceptance on the messy CSV slice
 - [ ] feed dependency-probe integration into richer remediation and later draft-refinement loops
 - [ ] connect dependency planning to installation execution only after the advisory layer is proven
 - [ ] connect shared retrieval and dependency-install surfaces without coupling AC14 to agent-only MCP runtime assumptions

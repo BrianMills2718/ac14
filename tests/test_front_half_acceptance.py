@@ -379,6 +379,48 @@ def test_build_front_half_acceptance_suite_report_runs_for_shipped_examples(
     assert (tmp_path / "front_half_suite" / "front_half_acceptance_suite_report.json").exists()
 
 
+def test_build_front_half_acceptance_suite_report_supports_retry_freeze(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Front-half suite breadth should optionally aggregate retry-aware results."""
+
+    monkeypatch.setenv(
+        "AC14_DEPENDENCY_PLAN_FIXTURE",
+        str(_write_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_front_half_acceptance_suite_report(
+        output_dir=tmp_path / "front_half_suite",
+        examples_root=REPO_ROOT / "examples",
+        max_budget=0.1,
+        retry_blocked_freeze=True,
+        retry_max_budget=0.1,
+    )
+
+    assert artifact.example_count >= 3
+    assert artifact.retry_attempted_examples == artifact.example_count
+    assert artifact.retry_approved_examples == 0
+    assert all(example.retry_freeze_attempted for example in artifact.examples)
+    assert all(example.retry_freeze_artifact_path is not None for example in artifact.examples)
+
+
 def test_build_front_half_acceptance_report_supports_messy_input_artifact(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

@@ -256,6 +256,13 @@ def main() -> int:
         type=float,
         default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
     )
+    front_half_suite_parser.add_argument("--retry-blocked-freeze", action="store_true")
+    front_half_suite_parser.add_argument("--retry-model", default=DEFAULT_FRONT_HALF_RETRY_MODEL)
+    front_half_suite_parser.add_argument(
+        "--retry-max-budget",
+        type=float,
+        default=DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+    )
     front_half_suite_parser.add_argument("--max-samples", type=int, default=5)
 
     prove_parser = subparsers.add_parser("prove-example", help="Build a full proof bundle.")
@@ -567,6 +574,9 @@ def main() -> int:
             args.allow_install,
             args.model,
             args.max_budget,
+            args.retry_blocked_freeze,
+            args.retry_model,
+            args.retry_max_budget,
             args.max_samples,
         )
     if args.command == "prove-example":
@@ -1006,6 +1016,9 @@ def _front_half_acceptance_suite(
     allow_install: bool,
     model: str,
     max_budget: float,
+    retry_blocked_freeze: bool,
+    retry_model: str,
+    retry_max_budget: float,
     max_samples: int,
 ) -> int:
     """Build and print a persisted front-half acceptance suite artifact."""
@@ -1016,6 +1029,9 @@ def _front_half_acceptance_suite(
         allow_install=allow_install,
         model=model,
         max_budget=max_budget,
+        retry_blocked_freeze=retry_blocked_freeze,
+        retry_model=retry_model,
+        retry_max_budget=retry_max_budget,
         max_samples=max_samples,
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))

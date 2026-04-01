@@ -1,6 +1,6 @@
 # Plan #24: Front-Half Retry Suite Breadth
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation
 **Priority:** High
 **Blocked By:** None
@@ -37,15 +37,15 @@ suite.
 ## Open Questions
 
 ### Q1: Should suite retry breadth be opt-in?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** The first breadth lane should remain explicit and conservative.
-**Default:** Yes. Keep retry breadth behind an explicit flag.
+**Decision:** Yes. Keep retry breadth behind an explicit flag.
 
 ### Q2: What retry data should the suite aggregate?
-**Status:** Planned
+**Status:** Resolved
 **Why it matters:** Breadth should summarize retry outcomes without hiding
 per-example paths.
-**Default:** Aggregate retry-attempted and retry-approved counts while
+**Decision:** Aggregate retry-attempted and retry-approved counts while
 preserving per-example retry artifact paths.
 
 ---
@@ -100,10 +100,23 @@ preserving per-example retry artifact paths.
 
 ## Acceptance Criteria
 
-- [ ] AC14 can optionally run retry-aware front-half acceptance across the shipped suite.
-- [ ] The suite artifact aggregates retry counts and preserves per-example retry artifact paths.
-- [ ] The lane stays explicit and opt-in.
-- [ ] Full local verification passes and the docs match the lane.
+- [x] AC14 can optionally run retry-aware front-half acceptance across the shipped suite.
+- [x] The suite artifact aggregates retry counts and preserves per-example retry artifact paths.
+- [x] The lane stays explicit and opt-in.
+- [x] Full local verification passes and the docs match the lane.
+
+## Verification
+
+- Targeted retry-aware suite verification passed:
+  - `python -m pytest -q tests/test_front_half_acceptance.py::test_build_front_half_acceptance_suite_report_supports_retry_freeze tests/test_cli.py::test_cli_front_half_acceptance_suite_supports_retry_freeze tests/test_make_targets.py::test_make_front_half_acceptance_suite_supports_retry_freeze`
+  - `python -m mypy ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m ruff check ac14/front_half_acceptance.py ac14/__main__.py tests/test_front_half_acceptance.py tests/test_cli.py tests/test_make_targets.py`
+
+## Outcome
+
+AC14 can now opt into retry-aware front-half breadth across the shipped suite,
+aggregate retry-attempted and retry-approved counts, and preserve per-example
+retry artifact paths instead of collapsing retry evidence into a single claim.
 
 ---
 

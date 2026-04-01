@@ -334,6 +334,18 @@ that preserves the initial freeze decision, adds the retry artifact path, and
 publishes final freeze approval separately from the original blocked result.
 **Date resolved:** 2026-04-01
 
+### U-035: Retry-aware front-half evidence still did not have breadth across the shipped suite.
+**Status:** Resolved
+**Context:** AC14 could produce retry-aware front-half acceptance per example,
+but the suite-level front-half artifact still only aggregated the initial freeze
+result.
+**Why it matters:** The retry-aware front-half story should have at least one
+breadth artifact before broader claims are made.
+**Resolution:** AC14 now offers an opt-in retry-aware front-half suite artifact
+that aggregates retry-attempted and retry-approved counts while preserving
+per-example retry artifact paths.
+**Date resolved:** 2026-04-01
+
 ### U-006: Proof breadth is still narrow overall.
 **Status:** Deferred
 **Context:** AC14 now spans more than one workflow slice, but breadth remains

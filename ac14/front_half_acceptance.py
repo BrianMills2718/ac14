@@ -145,6 +145,22 @@ class FrontHalfSuiteExampleResult(BaseModel):
         default=None,
         description="Whether the per-example front-half freeze decision approved promotion.",
     )
+    final_freeze_approved: bool | None = Field(
+        default=None,
+        description="Whether the per-example front-half result ended in freeze approval after any retry.",
+    )
+    retry_freeze_attempted: bool = Field(
+        default=False,
+        description="Whether one retry chain was attempted for this example.",
+    )
+    retry_freeze_approved: bool | None = Field(
+        default=None,
+        description="Whether the retry chain reached freeze approval for this example.",
+    )
+    retry_freeze_artifact_path: str | None = Field(
+        default=None,
+        description="Retry-chain artifact path for this example when retry was attempted.",
+    )
     freeze_semantic_review_path: str | None = Field(
         default=None,
         description="Attached freeze-semantic review path from the per-example artifact.",
@@ -174,6 +190,15 @@ class FrontHalfSuiteAcceptanceReport(BaseModel):
     )
     freeze_blocked_examples: int = Field(
         description="Examples whose front-half freeze decision remained blocked.",
+    )
+    final_freeze_approved_examples: int = Field(
+        description="Examples whose front-half result ended in freeze approval after any retry.",
+    )
+    retry_attempted_examples: int = Field(
+        description="Examples where one retry chain was attempted.",
+    )
+    retry_approved_examples: int = Field(
+        description="Examples where the retry chain reached freeze approval.",
     )
     examples: list[FrontHalfSuiteExampleResult] = Field(
         description="Per-example front-half breadth results.",
@@ -359,6 +384,9 @@ async def abuild_front_half_acceptance_suite_report(
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
     max_samples: int = 5,
 ) -> FrontHalfSuiteAcceptanceReport:
     """Build persisted front-half acceptance artifacts across shipped examples."""
@@ -373,6 +401,9 @@ async def abuild_front_half_acceptance_suite_report(
     missing_input_examples = 0
     freeze_approved_examples = 0
     freeze_blocked_examples = 0
+    final_freeze_approved_examples = 0
+    retry_attempted_examples = 0
+    retry_approved_examples = 0
 
     for example in discover_shipped_blueprints(examples_root):
         try:
@@ -405,6 +436,9 @@ async def abuild_front_half_acceptance_suite_report(
             allow_install=allow_install,
             model=model,
             max_budget=max_budget,
+            retry_blocked_freeze=retry_blocked_freeze,
+            retry_model=retry_model,
+            retry_max_budget=retry_max_budget,
             max_samples=max_samples,
         )
         overall_verdict = report.review.overall_verdict
@@ -418,6 +452,12 @@ async def abuild_front_half_acceptance_suite_report(
             freeze_approved_examples += 1
         else:
             freeze_blocked_examples += 1
+        if report.final_freeze_approved:
+            final_freeze_approved_examples += 1
+        if report.retry_freeze_attempted:
+            retry_attempted_examples += 1
+        if report.retry_freeze_approved:
+            retry_approved_examples += 1
         examples.append(
             FrontHalfSuiteExampleResult(
                 example_id=example.example_id,
@@ -426,6 +466,10 @@ async def abuild_front_half_acceptance_suite_report(
                 requirements=requirements,
                 overall_verdict=overall_verdict,
                 freeze_approved=report.freeze_approved,
+                final_freeze_approved=report.final_freeze_approved,
+                retry_freeze_attempted=report.retry_freeze_attempted,
+                retry_freeze_approved=report.retry_freeze_approved,
+                retry_freeze_artifact_path=report.artifact_paths.retry_freeze_artifact_path,
                 freeze_semantic_review_path=report.artifact_paths.freeze_semantic_review_path,
                 report_path=str(destination / example.example_id / "front_half_acceptance_report.json"),
                 reason=None,
@@ -440,6 +484,9 @@ async def abuild_front_half_acceptance_suite_report(
         missing_input_examples=missing_input_examples,
         freeze_approved_examples=freeze_approved_examples,
         freeze_blocked_examples=freeze_blocked_examples,
+        final_freeze_approved_examples=final_freeze_approved_examples,
+        retry_attempted_examples=retry_attempted_examples,
+        retry_approved_examples=retry_approved_examples,
         examples=examples,
     )
     (destination / "front_half_acceptance_suite_report.json").write_text(
@@ -455,6 +502,9 @@ def build_front_half_acceptance_suite_report(
     allow_install: bool = False,
     model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
     max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
     max_samples: int = 5,
 ) -> FrontHalfSuiteAcceptanceReport:
     """Synchronous wrapper for suite-level front-half acceptance."""
@@ -466,6 +516,9 @@ def build_front_half_acceptance_suite_report(
             allow_install=allow_install,
             model=model,
             max_budget=max_budget,
+            retry_blocked_freeze=retry_blocked_freeze,
+            retry_model=retry_model,
+            retry_max_budget=retry_max_budget,
             max_samples=max_samples,
         ),
     )

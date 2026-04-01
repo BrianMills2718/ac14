@@ -9,11 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #24: Front-Half Retry Suite Breadth](/home/brian/projects/ac14/docs/plans/24_front_half_retry_suite_breadth.md)
+- [Plan #25: Messy-Input Retry Proof](/home/brian/projects/ac14/docs/plans/25_messy_input_retry_proof.md)
 
-Plan #23 closed the first retry-aware single-example front-half lane. The
-current active gap is carrying that retry evidence honestly across the shipped
-front-half suite.
+Plan #24 closed the first retry-aware front-half suite breadth lane. The
+current active gap is proving that the same retry-aware front-half story stays
+explicit on the messy CSV slice.
 
 ## Progress Update
 
@@ -33,30 +33,30 @@ Completed in Plan #15:
 2. recommendation reasons now fail loud when suite live readiness is not ready
 3. status/docs now stop presenting recommendation as dependent on only the bounded one-example live probe
 
-Required in Plan #24:
+Required in Plan #25:
 
-1. an optional retry-aware suite-level front-half breadth path
-2. explicit persisted per-example retry paths plus aggregate retry counts
-3. stronger retry-aware front-half breadth across the shipped examples
+1. one retry-aware front-half proof on the messy CSV asset
+2. explicit persisted discovery, initial freeze, retry, and final review paths
+3. stronger retry-aware evidence on messier input than the clean shipped JSON slice
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#24.
+#25.
 
-### Phase 1: retry breadth scope design
+### Phase 1: messy-input retry scope design
 
-- choose retry-aware breadth as an explicit optional extension
-- pre-make how per-example retry paths and suite-level retry counts stay explicit
+- choose the messy CSV asset as the next retry-aware proof target
+- pre-make how discovery, initial freeze, retry, and final review stay explicit
 
-### Phase 2: retry breadth implementation
+### Phase 2: messy-input retry implementation
 
-- let suite front-half acceptance optionally call retry-aware per-example runs
-- keep per-example retry paths and aggregate retry counts explicit
+- run retry-aware front-half acceptance on the messy CSV asset
+- keep every stage explicit in the resulting artifact
 
 ### Phase 3: Verification And Lock
 
-- targeted retry-aware suite verification
+- targeted messy-input retry verification
 - full local verification
 - doc lock and clean commit
 
@@ -68,6 +68,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. retry-aware suite breadth should stay opt-in until its evidence story is clearer
-2. suite breadth must preserve per-example retry provenance instead of collapsing everything into aggregate counts
-3. the lane should strengthen front-half breadth without turning the suite runner into hidden healing
+1. the messy-input retry proof should reuse the current artifact model instead of inventing a new one
+2. retry-aware messy-input proof must preserve every stage explicitly instead of compressing the story into one verdict
+3. the lane should strengthen messy-input evidence without turning the retry path into hidden healing

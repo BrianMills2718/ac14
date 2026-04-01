@@ -228,4 +228,10 @@ record. AC14 now lets realistic-input front-half acceptance opt into one
 explicit retry chain while keeping both the initial freeze decision path and
 the retry artifact path visible in the final report.
 
+### 2026-04-01 — codex — best-practice
+Once single-example retry-aware front-half acceptance exists, the next honest
+breadth step is a suite artifact that stays opt-in and preserves per-example
+retry artifact paths. AC14 now aggregates retry-attempted and retry-approved
+counts without collapsing the per-example provenance.
+
 ---

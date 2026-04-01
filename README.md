@@ -67,6 +67,7 @@ AC14 now supports:
 - refining a blocked draft planning artifact directly from the freeze decision plus remediation plan while preserving the full retry provenance
 - running one explicit retry chain that refines a blocked plan, rematerializes the bundle, reruns freeze, and persists every intermediate path
 - optionally carrying that retry-chain evidence into realistic-input front-half acceptance while preserving the initial blocked freeze record
+- optionally carrying that retry-aware front-half evidence across the shipped suite while preserving per-example retry artifact paths
 - running a persisted realistic-input full-system acceptance lane in `reference` and `deterministic` modes with actual outputs plus a final semantic review
 - persisting one suite-level realistic-input acceptance artifact across shipped examples for the currently supported non-LLM modes
 - running one bounded realistic-input full-system acceptance lane in `llm` mode with persisted outputs plus final semantic review

@@ -100,7 +100,7 @@ process failure. The required behavior is:
 ## Active Proof Expansion Rule
 
 The current focus after landing one honest messy-input front-half proof lane is
-getting explicit retry-chain evidence into front-half suite breadth.
+proving retry-aware front-half behavior on the messy CSV slice.
 
 - keep fixture-backed breadth and live readiness as separate evidence categories
 - do not let fixture-backed `llm` breadth silently upgrade the default-generator
@@ -131,6 +131,8 @@ getting explicit retry-chain evidence into front-half suite breadth.
 - once single-example retry-aware front-half acceptance exists, broaden it to
   suite breadth carefully; preserve per-example retry provenance instead of
   collapsing everything into one aggregate claim
+- once retry-aware suite breadth exists, prove the same retry-aware path on the
+  messy CSV slice before making bigger generality claims
 
 ## Continuation Rule
 
