@@ -27,6 +27,8 @@ benchmark:
     - resolution_digest_store
   dynamic_output_fields:
     - resolution_digest_store.generated_at
+    - resolution_digest_entry.action_summary
+    - resolution_digest_store.entries
   system_requirements:
     - Preserve one bounded source-to-sink flow with explicit fan-in and one optional override path.
     - Escalate platinum and gold customers with open_case_count >= 3 as expedite; others as standard.

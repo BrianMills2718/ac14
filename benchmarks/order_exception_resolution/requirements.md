@@ -29,6 +29,8 @@ The system must handle:
 5. The final digest store must preserve entry order and contain at most one entry per case_id.
 6. When BOTH an inventory shortage (quantity_requested > available_quantity) AND a severe shipping delay (delay >= 48h OR shipment_status == "exception") are present simultaneously, classify the case as a compound exception: set exception_type to `compound_exception`, blocker_source to `compound`, priority_band to `critical`, recommended_team to `exception_desk`, and action_summary to indicate coordinated exception desk escalation. Compound exceptions override individual exception routing.
 7. The `resolution_digest_store.generated_at` field must be a valid ISO 8601 timestamp. Its exact value is not compared by the harness because it is a wall-clock timestamp; existence and format are what matter.
+8. The `resolution_digest_entry.action_summary` field must be present but its exact text is not compared by the harness. Semantic review evaluates whether the action summary is appropriate given the case. Example: "expedite allocation and notify account team", "open carrier escalation", "coordinate exception desk escalation".
+9. The `resolution_digest_store.entries` list must be present. Its exact entry-level content (including action_summary text) is evaluated by semantic review rather than exact comparison, because the cumulative store reflects free-form summaries. The categorical fields on `resolution_digest_entry` (exception_type, priority_band, blocker_source, etc.) are still compared exactly.
 
 ## Output Contract
 
