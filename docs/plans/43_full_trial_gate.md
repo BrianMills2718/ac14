@@ -58,7 +58,7 @@ are evidence too.
 ### Steps
 
 1. Confirm the smoke verdict from Plan #60 is `ready_for_full_trials`.
-2. Run five paired trials into `.ac14_out/full_trials_gate_1/` via `python -m ac14 empirical-compare benchmarks/order_exception_resolution --output-dir .ac14_out/full_trials_gate_1 --trial-count 5 --max-attempts 3`.
+2. Run five paired trials into `.ac14_out/full_trials_gate_1/` via `python -m ac14 empirical-compare benchmarks/order_exception_resolution --output-dir .ac14_out/full_trials_gate_1 --trials 5 --max-attempts 3`.
 3. Read the persisted `experiment_decision.json` artifact directly.
 4. Lock the docs with the verdict.
 

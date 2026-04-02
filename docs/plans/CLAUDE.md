@@ -71,6 +71,7 @@ current executable lane.
 | 58 | [Shipping-Only Priority And Correlator Repair](58_shipping_only_priority_and_correlator_repair.md) | Critical | Complete | 57 |
 | 59 | [Generation Stability And Pre-Emit Validation Repair](59_generation_stability_and_pre_emit_validation_repair.md) | Critical | Complete | 57 |
 | 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | Complete | 58, 59 |
+| 61 | [Executable Journey Notebook Remediation](61_executable_journey_notebook_remediation.md) | High | Planned | 44 |
 
 ## Status Key
 
