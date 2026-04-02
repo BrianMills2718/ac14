@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md)
+- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
 
 The experiment contract is frozen in:
 
@@ -26,6 +26,7 @@ The full-trial and interpretation gates remain blocked behind smoke readiness:
 
 - [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
 - [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
+- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
 
 The previously active propagation lane remains blocked:
 
@@ -38,33 +39,40 @@ The previously active propagation lane remains blocked:
 - [x] Plan #51: fresh repair8 smoke artifact exists and honestly stayed `blocked_on_harness`
 - [x] Plan #52: packet/recomposition reports now persist bounded mismatch details and empirical attempts run inside a real `llm_client` experiment context
 - [x] Plan #53: benchmark-local parser, rationale, priority-branch, and ASCII-source contract hardening landed
+- [x] Plan #54: repair9 smoke artifact exists and honestly stayed `blocked_on_harness` without an infrastructure-only explanation
 
-- [ ] Plan #54 Phase 1: rerun one bounded smoke gate on the post-52/post-53 lane
-  - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair9/`
+- [x] Plan #55: repair the shared benchmark-local shipping, correlator, and compound-inventory semantics now exposed by repair9
+  - Success criteria: benchmark contract plus empirical guidance state those rules explicitly enough to target both conditions
 
-- [ ] Plan #54 Phase 2: lock the verdict and next gate honestly
-  - Success criteria: active docs state clearly whether Plan #43 is unblocked or which narrower blocker-clearing plan comes next
+- [x] Plan #56: repair monolithic invalid-source observability and prompt stability
+  - Success criteria: failed monolithic modules are persisted and the monolithic guidance is explicit about shipping-only classification plus syntax discipline
+
+- [ ] Plan #57: rerun one bounded smoke gate on the post-55/post-56 lane
+  - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/` and the next gate is locked honestly
 
 ## Current Open Uncertainties
 
 - AC14 still lacks a completed five-trial comparison result even though the comparison contract and runner exist
 - the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
-- repair8 proved the remaining blocker was harness-local rather than infrastructure-local
-- the next smoke artifact must show whether Plans #52 and #53 materially changed the gate outcome
-- if repair9 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
+- repair9 proved the current blocker is still harness-local rather than infrastructure-local
+- the next smoke artifact must show whether the narrower repair9 blocker set was actually cleared
+- if repair10 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
 
 ## Latest Verified Baseline
 
 - the most recent fully verified implementation state passed:
-  - `python -m pytest -q` with `240 passed`
+  - `python -m pytest -q` with `242 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - the most recently completed planning lanes are:
   - [Plan #52: Structured Empirical Harness Diffs](/home/brian/projects/ac14/docs/plans/52_structured_empirical_harness_diffs.md)
   - [Plan #53: Benchmark-Local Contract Hardening IV](/home/brian/projects/ac14/docs/plans/53_benchmark_local_contract_hardening_iv.md)
+  - [Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md)
+  - [Plan #55: Shared Benchmark Shipping And Escalation Semantics Repair](/home/brian/projects/ac14/docs/plans/55_shared_benchmark_shipping_and_escalation_semantics_repair.md)
+  - [Plan #56: Monolithic Syntax And Failure Artifact Repair](/home/brian/projects/ac14/docs/plans/56_monolithic_syntax_and_failure_artifact_repair.md)
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #54 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
+- [ ] complete Plan #57 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
 - [ ] interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
 - [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis

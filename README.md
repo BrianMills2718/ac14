@@ -123,13 +123,17 @@ AC14 is still incomplete on:
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
-The next strategic gate is
-[Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md),
-which reruns one bounded smoke trial after the Plan #52 observability hardening
-and Plan #53 benchmark-local contract repairs. The immediate goal is to decide
-honestly whether the full five-trial budget in
+The next strategic gate is now a short repair chain:
+
+- [Plan #55: Shared Benchmark Shipping And Escalation Semantics Repair](/home/brian/projects/ac14/docs/plans/55_shared_benchmark_shipping_and_escalation_semantics_repair.md)
+- [Plan #56: Monolithic Syntax And Failure Artifact Repair](/home/brian/projects/ac14/docs/plans/56_monolithic_syntax_and_failure_artifact_repair.md)
+- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
+
+Repair9 proved the five-trial budget is still not justified. The immediate goal
+is to clear the narrower shared benchmark-semantic blockers plus the monolithic
+failed-source observability gap, then decide honestly whether
 [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
-is justified.
+should be unblocked.
 
 ## Quickstart
 

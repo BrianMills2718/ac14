@@ -64,7 +64,10 @@ current executable lane.
 | 51 | [Empirical Smoke Gate Refresh III](51_empirical_smoke_gate_refresh_iii.md) | Critical | Complete | 50 |
 | 52 | [Structured Empirical Harness Diffs](52_structured_empirical_harness_diffs.md) | Critical | Complete | 51 |
 | 53 | [Benchmark-Local Contract Hardening IV](53_benchmark_local_contract_hardening_iv.md) | Critical | Complete | 51 |
-| 54 | [Empirical Smoke Gate Refresh IV](54_empirical_smoke_gate_refresh_iv.md) | Critical | In Progress | 52, 53 |
+| 54 | [Empirical Smoke Gate Refresh IV](54_empirical_smoke_gate_refresh_iv.md) | Critical | Complete | 52, 53 |
+| 55 | [Shared Benchmark Shipping And Escalation Semantics Repair](55_shared_benchmark_shipping_and_escalation_semantics_repair.md) | Critical | Complete | 54 |
+| 56 | [Monolithic Syntax And Failure Artifact Repair](56_monolithic_syntax_and_failure_artifact_repair.md) | Critical | Complete | 54 |
+| 57 | [Empirical Smoke Gate Refresh V](57_empirical_smoke_gate_refresh_v.md) | Critical | In Progress | 55, 56 |
 
 ## Status Key
 

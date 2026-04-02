@@ -40,9 +40,10 @@ The main current issue is no longer architectural incoherence. It is the lack
 of a completed empirical comparison verdict against a fair monolithic baseline,
 plus the need to state clearly that the current gate is a bounded back-half
 comparison rather than the full end-to-end thesis test. Plans #52 and #53
-landed the latest observability and benchmark-contract repair slice, and the
-next honest step is now the fresh Plan #54 bounded smoke verdict rather than
-more speculative repair work.
+landed the observability and benchmark-contract repair slice, Plan #54 proved
+that repair9 is still `blocked_on_harness`, and the next honest step is now
+one shared semantic-repair lane plus one monolithic observability lane before
+another bounded smoke verdict.
 
 ## What Is Implemented
 
@@ -145,7 +146,7 @@ It is not yet strong at:
 4. completing the current back-half empirical gate cleanly
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
-6. closing the remaining Plan #54 blocker set: syntax-stable generation plus benchmark-local contract fidelity on the repair9 smoke lane
+6. closing the remaining post-repair9 blocker set: shared shipping/correlator/compound semantics plus monolithic invalid-source observability
 
 ### Semantic Validation
 
@@ -194,7 +195,7 @@ Still missing:
 
 1. directory schema-divergence propagation through the front-half chain
 2. a completed monolithic-versus-decomposition comparison verdict
-3. a verified repair9 smoke artifact proving whether the five-trial budget is justified
+3. a verified repair10 smoke artifact proving whether the five-trial budget is justified
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model

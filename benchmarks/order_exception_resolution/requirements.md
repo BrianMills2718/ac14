@@ -31,6 +31,9 @@ The system must handle:
 7. The `resolution_digest_store.generated_at` field must be a valid ISO 8601 timestamp. Its exact value is not compared by the harness because it is a wall-clock timestamp; existence and format are what matter.
 8. The `resolution_digest_entry.action_summary` field must be present but its exact text is not compared by the harness. Semantic review evaluates whether the action summary is appropriate given the case. Example: "expedite allocation and notify account team", "open carrier escalation", "coordinate exception desk escalation".
 9. The `resolution_digest_store.entries` list must be present. Its exact entry-level content (including action_summary text) is evaluated by semantic review rather than exact comparison, because the cumulative store reflects free-form summaries. The categorical fields on `resolution_digest_entry` (exception_type, priority_band, blocker_source, etc.) are still compared exactly.
+10. Shipping risk should be treated as `high` once shipment_delay_hours reaches 24 or more. `48+` hours or `shipment_status == "exception"` makes the shipping problem severe, but the risk band is already `high` at the 24-hour materiality threshold.
+11. In joined resolution factors, `escalation_required` is not the same thing as routing ownership. A standard-customer shipping-delay case may still route to `logistics` while keeping `escalation_required = false`; customer escalation pressure, compound exceptions, or manual overrides are what force escalation.
+12. For moderate shortages with delayed replenishment, `inventory_risk_band` may still be `high` while the reason stays in the "partial fulfillment or back-order" family. Reserve the "threaten the order promise" rationale for clearly large-shortage cases like ORX-100.
 
 ## Output Contract
 

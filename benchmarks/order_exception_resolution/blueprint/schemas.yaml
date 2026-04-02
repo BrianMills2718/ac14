@@ -163,8 +163,9 @@ schemas:
         description: >
           Primary exception type. Valid values: inventory_shortage (quantity
           shortage with no severe shipping delay), shipping_delay (shipping
-          issue only, quantity available), compound_exception (both inventory
-          shortage AND severe shipping delay present simultaneously).
+          issue only, quantity available, including 24+ hour material delays),
+          compound_exception (both inventory shortage AND severe shipping delay
+          present simultaneously).
       - name: reason
         type: string
         required: true
@@ -185,7 +186,10 @@ schemas:
       - name: inventory_risk_band
         type: string
         required: true
-        description: Bucketed inventory risk band.
+        description: >
+          Bucketed inventory risk band. Moderate shortages with delayed
+          replenishment may still be `high`; do not assume only very large
+          shortages can emit the high-risk band.
       - name: inventory_eta_days
         type: integer
         required: true
@@ -193,7 +197,11 @@ schemas:
       - name: reason
         type: string
         required: true
-        description: Short reason for the inventory-risk decision.
+        description: >
+          Short reason for the inventory-risk decision. A moderate shortage with
+          delayed replenishment may still keep the reason in the partial
+          fulfillment/back-order family even when the band is `high`; reserve
+          threaten-the-order-promise language for clearly large shortages.
 
   - schema_id: ShippingRisk
     kind: object
@@ -206,7 +214,10 @@ schemas:
       - name: shipment_risk_band
         type: string
         required: true
-        description: Bucketed shipping risk band.
+        description: >
+          Bucketed shipping risk band. Valid values in this benchmark are `low`
+          and `high`. Treat 24+ hour delays as `high`; 48+ hour delays or
+          `shipment_status == "exception"` are the severe subset of that high-risk bucket.
       - name: shipment_delay_hours
         type: integer
         required: true
@@ -214,7 +225,10 @@ schemas:
       - name: reason
         type: string
         required: true
-        description: Short reason for the shipping-risk decision.
+        description: >
+          Short reason for the shipping-risk decision. A manual override may be
+          present elsewhere in the case, but it should not replace the low-risk
+          shipping reason when shipment delay remains below threshold.
 
   - schema_id: CustomerPriorityContext
     kind: object
@@ -295,7 +309,10 @@ schemas:
       - name: escalation_required
         type: boolean
         required: true
-        description: Whether the joined factors require escalation.
+        description: >
+          Whether the joined factors require escalation. This is not identical to
+          routing ownership: a shipping-only standard-customer case may still
+          route to logistics while keeping `escalation_required=false`.
       - name: override_action
         type: string
         required: false

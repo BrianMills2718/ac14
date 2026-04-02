@@ -64,6 +64,8 @@ components:
       - fail loud on missing parsed_case fields used for risk scoring
     implementation_constraints:
       - compute shortage_units deterministically from the parsed case
+      - moderate shortage plus delayed replenishment may still emit inventory_risk_band='high' while keeping the reason in the partial-fulfillment/back-order family
+      - reserve the threaten-the-order-promise rationale for clearly large-shortage cases like ORX-100
 
   - component_id: shipping_risk_evaluator
     kind: transform
@@ -85,6 +87,8 @@ components:
       - fail loud on missing parsed_case fields used for risk scoring
     implementation_constraints:
       - keep shipping thresholds deterministic in the first comparison gate
+      - treat shipment_delay_hours >= 24 as shipping_risk.shipment_risk_band='high'; 48+ hours or shipment_status == 'exception' is the severe subset of that high-risk bucket
+      - manual override does not replace the low-risk shipping rationale when the shipment delay is still below threshold
 
   - component_id: customer_context_loader
     kind: transform
@@ -175,6 +179,8 @@ components:
       - omit override_action when the optional override input is absent
     implementation_constraints:
       - keep blocker_source explicit instead of hiding override effects in downstream scoring
+      - shipping-only standard-customer cases may route to logistics while keeping escalation_required=false
+      - escalation_required should flip true for customer escalation pressure, compound cases, or overrides rather than for every shipping delay automatically
 
   - component_id: priority_scorer
     kind: transform

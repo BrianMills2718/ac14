@@ -801,6 +801,9 @@ def emit_monolithic_package_with_llm(
         max_budget=max_budget,
         repair_guidance=repair_guidance or [],
     )
+    (destination / "monolithic_response.json").write_text(
+        json.dumps(response.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
     expected_component_ids = set(bundle.blueprint.components)
     modules_by_component = {module.component_id: module.module_code for module in response.modules}
     if set(modules_by_component) != expected_component_ids:
@@ -812,19 +815,49 @@ def emit_monolithic_package_with_llm(
     (destination / "__init__.py").write_text('"""Monolithically generated AC14 components."""\n')
     module_paths: dict[str, str] = {}
     for component_id, module_code in modules_by_component.items():
-        _validate_module_contract(module_code, component_id=component_id)
+        try:
+            _validate_module_contract(module_code, component_id=component_id)
+        except Exception as exc:
+            failed_path = _persist_monolithic_failed_module_artifacts(
+                destination,
+                component_id=component_id,
+                module_code=module_code,
+                error=exc,
+            )
+            raise ValueError(
+                f"{exc}; failed module source persisted at {failed_path}"
+            ) from exc
         module_path = destination / f"{component_id}.py"
         module_path.write_text(module_code)
         module_paths[component_id] = str(module_path)
-
-    (destination / "monolithic_response.json").write_text(
-        json.dumps(response.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
     return GeneratedPackage(
         output_dir=str(destination),
         generator_kind="llm",
         module_paths=module_paths,
     )
+
+
+def _persist_monolithic_failed_module_artifacts(
+    destination: Path,
+    *,
+    component_id: str,
+    module_code: str,
+    error: Exception,
+) -> Path:
+    """Persist invalid monolithic module source and validation metadata for diagnosis."""
+
+    failed_path = destination / f"{component_id}.failed.py"
+    failed_path.write_text(module_code)
+    metadata = {
+        "component_id": component_id,
+        "error": str(error),
+        "failed_module_path": str(failed_path),
+        "persisted_failed_module_source": True,
+    }
+    (destination / f"{component_id}.validation_error.json").write_text(
+        json.dumps(metadata, indent=2, sort_keys=True),
+    )
+    return failed_path
 
 
 def generate_monolithic_system_with_llm(
@@ -955,9 +988,12 @@ def _benchmark_repair_guidance(
         "Never leave a branch with comments only. Use short direct logic and executable statements instead of essay-style commentary inside the code.",
         "Do not annotate build_component() with GeneratedComponent unless the annotation is guaranteed to resolve safely at import time; the safest pattern is an unannotated build_component() defined after the class.",
         "Treat shipping delay as a material shipping_delay exception at 24+ hours; severe shipping delay is 48+ hours or shipment_status == 'exception'.",
-        "ORX-101 is a shipping-only benchmark case: no shortage plus a 24-47 hour shipping delay still means shipping_delay, blocker_source='shipping', recommended_team='logistics', and priority_band='high'.",
+        "Shipping risk is already high at the 24-hour materiality threshold; 48+ hours or shipment_status == 'exception' is the severe subset of that same high-risk bucket, not a separate medium/high split.",
+        "ORX-101 is a shipping-only benchmark case: no shortage plus a 24-47 hour shipping delay still means shipping_delay, blocker_source='shipping', recommended_team='logistics', priority_band='high', and escalation_required=false for the standard-customer path.",
         "When both inventory shortage and severe shipping delay are present, classify compound_exception and route to blocker_source='compound', recommended_team='exception_desk', priority_band='critical'.",
         "Manual override is optional. Preserve it explicitly when present, but never assume override_action exists for every case.",
+        "Manual override can change blocker_source downstream, but it does not replace the low-risk shipping rationale when shipment delay remains below threshold.",
+        "A moderate shortage with delayed replenishment may still emit inventory_risk_band='high' while keeping the reason in the partial-fulfillment/back-order family; reserve threaten-the-order-promise language for clearly large shortages like ORX-100.",
         "Use only schema-valid categorical values and never invent fallback labels outside the benchmark schemas. If no schema-valid category applies, raise ValueError loudly instead of synthesizing a fallback label.",
         "Read only fields that actually exist on each local schema surface. For this benchmark, shipping_risk exposes shipment_risk_band and shipment_delay_hours, but not shipment_status.",
         "Maintain one deterministic digest store across processed cases; do not recreate the store from scratch on every execute call.",
@@ -989,9 +1025,12 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         "inventory_risk_evaluator": [
             "Keep inventory_risk_band within the schema's categorical values and align high-risk outputs with the benchmark fixtures for large shortages or delayed replenishment.",
             "For the ORX-100-style high-risk shortage case, use the benchmark-local rationale 'shortage is large enough to threaten the order promise' instead of a generic back-order explanation.",
+            "For the ORX-102-style moderate shortage plus delayed replenishment case, inventory_risk_band can still be 'high' while the reason stays 'shortage requires partial fulfillment or back-order'.",
         ],
         "shipping_risk_evaluator": [
             "Treat 24+ hour delays as material and 48+ hour or shipment_status == 'exception' as severe, with schema-valid risk-band outputs.",
+            "Do not emit a medium band for ORX-101-style 24-47 hour delays; shipping risk is already high at that threshold.",
+            "If shipment delay remains below threshold, keep the low-risk rationale tied to the delay itself; do not rewrite it as a manual-override reason.",
         ],
         "customer_context_loader": [
             "Emit customer_priority_context.priority_lane='expedite' for platinum customers and gold customers with open_case_count >= 3; otherwise emit 'standard'.",
@@ -1006,6 +1045,8 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
             "Override present => blocker_source='override' and recommended_team='account_operations'.",
             "Compound exception => blocker_source='compound' and recommended_team='exception_desk'.",
             "Shipping delay => blocker_source='shipping' and recommended_team='logistics'. Inventory shortage => blocker_source='inventory' and recommended_team='support'.",
+            "Do not force escalation_required=True for every shipping-delay case. ORX-101 is the benchmark counterexample: standard customer, shipping route, escalation_required=False.",
+            "Manual override can change blocker_source and team ownership, but it does not retroactively rewrite the upstream shipping-risk rationale.",
         ],
         "priority_scorer": [
             "Override and compound exceptions must score as critical. Shipping-delay cases should remain high. Use schema-valid categorical values only.",

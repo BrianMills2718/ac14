@@ -217,16 +217,28 @@ the thesis gate is weaker and harder to analyze honestly.
 context using benchmark/trial/attempt provenance.
 **Date resolved:** 2026-04-02
 
-### U-061: Repair8 still loses bounded attempts to benchmark-local codegen and contract fidelity.
+### U-061: Repair9 still loses bounded attempts to narrower benchmark-local semantic mismatches.
 **Status:** Investigating
-**Context:** The repair8 smoke artifact remained `blocked_on_harness` even when
-AC14 attempt 2 passed runtime outputs and semantic review. The remaining
-blockers were syntax-invalid code in one attempt plus narrower benchmark-local
-exactness around `case_parser.normalized_notes`, inventory-risk rationale, and
-override-vs-compound priority handling.
-**Why it matters:** Plan #54 should only unblock full trials if the repair9
-smoke artifact proves those benchmark-local failures are no longer dominating
+**Context:** The repair9 smoke artifact remained `blocked_on_harness` without an
+infrastructure-only explanation. The shared remaining blockers are shipping
+risk at 24+ hours, factor-correlator escalation semantics on shipping-only
+standard-customer cases, and the compound inventory-risk band/reason mapping.
+**Why it matters:** Plan #57 should only unblock full trials if the next smoke
+artifact proves those narrower benchmark-local failures are no longer dominating
 the bounded attempts.
+
+### U-062: Monolithic invalid-Python failures still lose observability.
+**Status:** Resolved
+**Context:** In repair9 the monolithic condition still lost one bounded attempt
+to syntax-invalid Python, but the failed module source was not persisted in the
+attempt artifact.
+**Why it matters:** The empirical gate cannot be debugged honestly if one
+condition burns attempts on invalid code that the artifact chain does not
+preserve for direct review.
+**Resolution:** Monolithic package emission now persists `monolithic_response.json`
+before validation, writes `<component>.failed.py` plus validation metadata when
+validation fails, and raises an error that points directly to the failed source.
+**Date resolved:** 2026-04-02
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred

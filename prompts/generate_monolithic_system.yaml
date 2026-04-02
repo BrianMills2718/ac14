@@ -34,6 +34,7 @@ messages:
       - if a boolean condition spans multiple lines, wrap the whole expression in parentheses or keep it on one line; never break after `and` / `or` without explicit continuation
       - never leave an `if` / `elif` / `else` branch with comments only; every branch must contain real executable Python statements
       - for small deterministic transforms, prefer a short direct decision tree over exploratory prose comments or speculative fallback logic
+      - for categorical benchmark modules such as classifiers and risk scorers, keep one short explicit decision tree per module; do not blur shipping-only, compound, and override semantics into one ambiguous branch
       - if no schema-valid categorical value applies, raise `ValueError` loudly instead of inventing a fallback label outside the schema
       - keep comments short and rare; do not paste long reasoning or ambiguity analysis into generated modules
       - the safest pattern is: class first, then `def build_component(): return GeneratedComponent()`

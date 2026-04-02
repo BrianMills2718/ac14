@@ -1,6 +1,6 @@
 # Plan #54: Empirical Smoke Gate Refresh IV
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 52, 53
@@ -64,7 +64,13 @@
 
 ## Acceptance Criteria
 
-- [ ] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair9/`.
-- [ ] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
-- [ ] The active control docs reflect that verdict exactly.
-- [ ] Plan #43 is only unblocked if the fresh smoke artifact says `ready_for_full_trials`.
+- [x] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair9/`.
+- [x] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
+- [x] The active control docs reflect that verdict exactly.
+- [x] Plan #43 is only unblocked if the fresh smoke artifact says `ready_for_full_trials`.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+Repair9 finished with an honest `blocked_on_harness` verdict and no infrastructure-only explanation. The fresh smoke artifact showed that Plans #52 and #53 helped narrow the blocker set, but they did not clear it. The remaining shared failures are benchmark-local shipping-delay, correlator, and compound-inventory semantics, while the monolithic lane still loses one bounded attempt to syntax-invalid code without persisting the failed module source. Plan #54 therefore completed by freezing the next chain explicitly: one shared semantic-repair plan, one monolithic observability/stability plan, then another bounded smoke rerun.

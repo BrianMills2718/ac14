@@ -279,6 +279,20 @@ fields omitted, distinguishes override-vs-compound priority branches, and the
 shared generation prompts now require ASCII-only Python source so bounded smoke
 attempts do not burn retries on non-Python identifiers.
 
+### 2026-04-02 — codex — schema-gotcha
+Repair9 showed that the remaining shared benchmark ambiguity was about shipping
+materiality and escalation semantics, not generic packet failure. The benchmark
+now states that shipping risk is already `high` at 24+ hours, that logistics
+routing does not automatically imply `escalation_required=true`, and that a
+moderate shortage with delayed replenishment may still be `high` risk while the
+reason stays in the partial-fulfillment/back-order family.
+
+### 2026-04-02 — codex — best-practice
+Empirical monolithic failures must persist invalid source, not just exception
+strings. AC14 now writes `monolithic_response.json`, `<component>.failed.py`,
+and validation metadata before failing a monolithic attempt on invalid Python so
+the next repair lane can inspect the actual bad code directly.
+
 ### 2026-04-01 — codex — best-practice
 Once directory discovery grows bounded summaries, the next honest proof is
 propagation rather than more raw discovery features. The summaries now exist at

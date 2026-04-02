@@ -19,6 +19,8 @@ from ac14.empirical_comparison import (
     ConditionTrialReport,
     CostObservation,
     ExperimentDecisionArtifact,
+    MonolithicGeneratedModule,
+    MonolithicSystemResponse,
     PairedTrialReport,
     RuntimeCaseExecution,
     _benchmark_repair_guidance,
@@ -29,6 +31,7 @@ from ac14.empirical_comparison import (
     _strip_dynamic_field_paths,
     build_experiment_decision_artifact,
     build_smoke_readiness_artifact,
+    emit_monolithic_package_with_llm,
     load_benchmark_bundle,
     run_paired_trial,
 )
@@ -359,6 +362,9 @@ def test_benchmark_repair_guidance_targets_override_and_shipping_rules() -> None
     assert any("24+ hours" in line for line in guidance)
     assert any("compound_exception" in line for line in guidance)
     assert any("override_action" in line for line in guidance)
+    assert any("Shipping risk is already high at the 24-hour materiality threshold" in line for line in guidance)
+    assert any("escalation_required=false" in line for line in guidance)
+    assert any("partial-fulfillment/back-order family" in line for line in guidance)
 
 
 def test_benchmark_repair_guidance_marks_missing_schema_fields_and_no_fallback_labels() -> None:
@@ -409,6 +415,29 @@ def test_benchmark_repair_guidance_targets_shipping_only_orx101_and_case_parser_
     assert any("stripping one trailing sentence period" in line.lower() for line in component_guidance["case_parser"])
     assert any("override and compound logic into one branch" in line for line in component_guidance["priority_scorer"])
     assert any("threaten the order promise" in line for line in component_guidance["inventory_risk_evaluator"])
+    assert any("ORX-102-style moderate shortage" in line for line in component_guidance["inventory_risk_evaluator"])
+    assert any("Do not emit a medium band" in line for line in component_guidance["shipping_risk_evaluator"])
+    assert any("escalation_required=False" in line for line in component_guidance["factor_correlator"])
+
+
+def test_benchmark_schema_descriptions_state_shipping_and_escalation_contracts() -> None:
+    """The benchmark schema surface should state the repaired shipping and escalation semantics explicitly."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    shipping_schema = bundle.blueprint.schemas["ShippingRisk"]
+    inventory_schema = bundle.blueprint.schemas["InventoryRisk"]
+    factors_schema = bundle.blueprint.schemas["ResolutionFactors"]
+
+    shipping_band = next(field for field in shipping_schema.fields if field.name == "shipment_risk_band")
+    shipping_reason = next(field for field in shipping_schema.fields if field.name == "reason")
+    inventory_reason = next(field for field in inventory_schema.fields if field.name == "reason")
+    escalation_required = next(field for field in factors_schema.fields if field.name == "escalation_required")
+
+    assert "24+ hour delays as `high`" in shipping_band.description
+    assert "manual override may be present elsewhere" in shipping_reason.description
+    assert "partial" in inventory_reason.description.lower()
+    assert "shipping-only standard-customer case" in escalation_required.description
 
 
 def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:
@@ -437,6 +466,59 @@ def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_u
     assert "never break after `and` / `or` without explicit continuation" in system_message
     assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
     assert "ASCII-only Python source code" in system_message
+    assert "short explicit decision tree per module" in system_message
+
+
+def test_emit_monolithic_package_persists_failed_module_source(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Invalid monolithic modules should persist failed source and metadata for direct review."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    def _fake_monolithic_response(**kwargs: object) -> MonolithicSystemResponse:
+        modules = []
+        for component_id in bundle.blueprint.components:
+            module_code = (
+                "class GeneratedComponent:\n"
+                "    def execute(self, inputs):\n"
+                "        return {}\n\n"
+                "def build_component():\n"
+                "    return GeneratedComponent()\n"
+            )
+            if component_id == "exception_classifier":
+                module_code = "def broken(:\n    pass\n"
+            modules.append(
+                MonolithicGeneratedModule(
+                    component_id=component_id,
+                    module_code=module_code,
+                )
+            )
+        return MonolithicSystemResponse(modules=modules, implementation_notes=["test"])
+
+    monkeypatch.setattr(
+        "ac14.empirical_comparison.generate_monolithic_system_with_llm",
+        _fake_monolithic_response,
+    )
+
+    with pytest.raises(ValueError, match="failed module source persisted at"):
+        emit_monolithic_package_with_llm(
+            bundle=bundle,
+            output_dir=tmp_path / "monolithic_generated",
+            trace_id="test/monolithic_failed_source",
+            repair_guidance=[],
+        )
+
+    failed_path = tmp_path / "monolithic_generated" / "exception_classifier.failed.py"
+    metadata_path = tmp_path / "monolithic_generated" / "exception_classifier.validation_error.json"
+    response_path = tmp_path / "monolithic_generated" / "monolithic_response.json"
+
+    assert failed_path.exists()
+    assert metadata_path.exists()
+    assert response_path.exists()
+    assert "def broken(:" in failed_path.read_text()
+    assert json.loads(metadata_path.read_text())["persisted_failed_module_source"] is True
 
 
 def test_failure_summary_includes_packet_and_recomposition_diff_details() -> None:
