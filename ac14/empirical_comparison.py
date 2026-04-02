@@ -636,11 +636,20 @@ def _run_condition_attempt(
                 trace_id_prefix=trace_prefix,
                 repair_guidance_by_component=repair_guidance_by_component,
             )
-        packet_report = run_generated_packet_tests(bundle.packet_bundle, generated_package)
+        packet_report = run_generated_packet_tests(
+            bundle.packet_bundle,
+            generated_package,
+            llm_model=model,
+            trace_id=f"{trace_prefix}/packet_eval",
+            llm_max_budget=max_budget,
+        )
         packet_tests_passed = packet_report.passed
         recomposition_report = run_generated_recomposition_proof(
             Path(bundle.benchmark_dir) / bundle.config.blueprint_dir,
             generated_package,
+            llm_model=model,
+            trace_id=f"{trace_prefix}/recomp_eval",
+            llm_max_budget=max_budget,
         )
         recomposition_passed = recomposition_report.passed
         runtime_cases = _execute_runtime_cases(bundle=bundle, generated_package=generated_package)

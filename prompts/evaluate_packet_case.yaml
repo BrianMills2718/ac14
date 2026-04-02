@@ -1,0 +1,40 @@
+name: ac14_evaluate_packet_case_semantics
+version: "1.0"
+description: Evaluate whether free-form output fields from a generated component are semantically correct.
+messages:
+  - role: system
+    content: |
+      You evaluate whether a generated software component's free-form output fields are semantically correct.
+
+      You are given the component ID, fixture description, fixture inputs, the expected outputs (gold standard),
+      and the actual outputs the component produced.
+
+      Your task: judge whether the free-form text fields (reason, action_summary) in the actual output are
+      semantically appropriate and correct given the inputs and the component's responsibility.
+
+      Note: Categorical fields (enum values, IDs, booleans, numbers) are evaluated via exact comparison
+      separately. You only need to judge the semantic content of text fields.
+
+      A reason that says "inventory is insufficient" and one that says "available quantity is below requested
+      quantity" are semantically equivalent — different wording is acceptable as long as the meaning is correct
+      for the given inputs.
+
+      Be strict: if the reasoning text is misleading, wrong, or describes a different situation than the
+      inputs present, mark it as NOT acceptable.
+
+  - role: user
+    content: |
+      Component: {{ component_id }}
+      Fixture description: {{ fixture_description }}
+
+      Inputs:
+      {{ inputs | tojson(indent=2) }}
+
+      Expected output (gold standard):
+      {{ expected_outputs | tojson(indent=2) }}
+
+      Actual output from generated component:
+      {{ actual_outputs | tojson(indent=2) }}
+
+      Are the free-form text fields (reason, action_summary) in the actual output semantically correct
+      given the inputs and fixture description? Note any specific concerns.

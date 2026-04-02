@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,6 +21,115 @@ from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
 from ac14.recomposition import RecompositionReport, run_recomposition_proof
 
+PACKET_EVALUATE_PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "evaluate_packet_case.yaml"
+
+
+_FIXTURE_FREE_FORM_FIELDS: frozenset[str] = frozenset({
+    "reason",
+    "score",
+    "action_summary",
+    "generated_at",
+})
+"""Fields excluded from packet-test and recomposition exact comparison.
+
+LLM-generated components cannot deterministically reproduce free-form text
+(reason strings, action summaries) or wall-clock timestamps. Stripping these
+fields from both sides of the comparison keeps packet tests focused on
+categorical correctness — the fields that matter for routing decisions.
+"""
+
+# Alias so callers and prompt logic share one name.
+_PACKET_TEST_NON_CATEGORICAL_FIELDS: frozenset[str] = _FIXTURE_FREE_FORM_FIELDS
+
+# Subset of non-categorical fields that carry semantic meaning the LLM should evaluate.
+# ``score`` and ``generated_at`` are excluded: score is numeric (exact or not meaningful),
+# generated_at is a timestamp (not semantic).
+_PACKET_TEST_LLM_EVAL_FIELDS: frozenset[str] = frozenset({"reason", "action_summary"})
+
+
+def _strip_fixture_free_form_fields(data: dict[str, Any]) -> dict[str, Any]:
+    """Remove free-form text and timestamp fields at any nesting depth.
+
+    Only fields in ``_FIXTURE_FREE_FORM_FIELDS`` are removed. All other
+    fields — including nested dicts and list items — are preserved intact so
+    that categorical field comparison is still enforced.
+    """
+    result: dict[str, Any] = {}
+    for k, v in data.items():
+        if k in _FIXTURE_FREE_FORM_FIELDS:
+            continue
+        if isinstance(v, dict):
+            result[k] = _strip_fixture_free_form_fields(v)
+        elif isinstance(v, list):
+            result[k] = [
+                _strip_fixture_free_form_fields(item) if isinstance(item, dict) else item
+                for item in v
+            ]
+        else:
+            result[k] = v
+    return result
+
+
+def _has_llm_eval_fields(data: dict[str, Any]) -> bool:
+    """Return True if data (at any nesting depth) contains a free-form LLM-eval field."""
+    for k, v in data.items():
+        if k in _PACKET_TEST_LLM_EVAL_FIELDS:
+            return True
+        if isinstance(v, dict) and _has_llm_eval_fields(v):
+            return True
+        if isinstance(v, list):
+            for item in v:
+                if isinstance(item, dict) and _has_llm_eval_fields(item):
+                    return True
+    return False
+
+
+class PacketCaseSemanticEval(BaseModel):
+    """LLM evaluation of free-form fields in one packet case output."""
+
+    semantic_fields_acceptable: bool = Field(
+        description=(
+            "True if all free-form text fields (reason, action_summary) are semantically correct"
+            " given the inputs and component purpose"
+        )
+    )
+    concerns: list[str] = Field(
+        description="Specific concerns about semantic correctness; empty list if all fields are acceptable"
+    )
+
+
+async def _aevaluate_packet_case_semantically(
+    component_id: str,
+    fixture_description: str,
+    inputs: dict[str, Any],
+    expected_outputs: dict[str, Any],
+    actual_outputs: dict[str, Any],
+    model: str,
+    trace_id: str,
+    max_budget: float = 0.10,
+) -> PacketCaseSemanticEval:
+    """LLM evaluation of free-form output fields for one packet case."""
+
+    from ac14.acceptance import acall_llm_structured, render_prompt  # lazy — avoids import-time llm_client dep
+
+    messages = render_prompt(
+        PACKET_EVALUATE_PROMPT_PATH,
+        component_id=component_id,
+        fixture_description=fixture_description,
+        inputs=inputs,
+        expected_outputs=expected_outputs,
+        actual_outputs=actual_outputs,
+    )
+    result, _ = await acall_llm_structured(
+        model,
+        messages,
+        response_model=PacketCaseSemanticEval,
+        task="ac14_evaluate_packet_case_semantics",
+        trace_id=trace_id,
+        max_budget=max_budget,
+    )
+    return result
+
 
 class PacketCaseResult(BaseModel):
     """Result of one packet-local generated component test case."""
@@ -27,6 +138,10 @@ class PacketCaseResult(BaseModel):
     fixture_id: str = Field(description="Fixture identifier.")
     passed: bool = Field(description="Whether the case passed.")
     error: str | None = Field(default=None, description="Failure message when the case fails.")
+    semantic_eval: PacketCaseSemanticEval | None = Field(
+        default=None,
+        description="LLM semantic evaluation of free-form output fields when LLM evaluation was requested.",
+    )
 
 
 class PacketTestReport(BaseModel):
@@ -57,8 +172,19 @@ class FreshRunSummary(BaseModel):
 def run_generated_packet_tests(
     packet_bundle: PacketBundle,
     generated_package: GeneratedPackage,
+    *,
+    llm_model: str | None = None,
+    trace_id: str | None = None,
+    llm_max_budget: float = 0.10,
 ) -> PacketTestReport:
-    """Run packet-local fixtures against generated components."""
+    """Run packet-local fixtures against generated components.
+
+    When ``llm_model`` is provided, free-form text fields (reason, action_summary)
+    that pass categorical checks are additionally evaluated for semantic correctness
+    by an LLM judge. The categorical phase must pass first; the LLM phase only runs
+    when the categorical phase passes and the expected outputs contain at least one
+    LLM-eval field.
+    """
 
     packet_cases = materialize_packet_test_cases(packet_bundle)
     builders = load_generated_component_builders(generated_package)
@@ -68,14 +194,40 @@ def run_generated_packet_tests(
         for case in cases:
             component = builders[component_id]()
             error: str | None
+            semantic_eval: PacketCaseSemanticEval | None = None
             try:
                 outputs = component.execute(case.inputs)
                 if _expects_failure(case.scenario_kind):
                     passed = False
                     error = "negative case unexpectedly succeeded"
                 else:
-                    passed = outputs == case.expected_outputs
-                    error = None if passed else "generated outputs did not match expected outputs"
+                    # Phase 1: categorical exact check (free-form fields stripped)
+                    stripped_actual = _strip_fixture_free_form_fields(outputs)
+                    stripped_expected = _strip_fixture_free_form_fields(case.expected_outputs)
+                    categorical_passed = stripped_actual == stripped_expected
+
+                    if not categorical_passed:
+                        passed = False
+                        error = "categorical fields did not match expected outputs"
+                    elif llm_model is not None and _has_llm_eval_fields(case.expected_outputs):
+                        # Phase 2: LLM semantic eval for free-form fields
+                        semantic_eval = asyncio.run(
+                            _aevaluate_packet_case_semantically(
+                                component_id=component_id,
+                                fixture_description=case.description,
+                                inputs=case.inputs,
+                                expected_outputs=case.expected_outputs,
+                                actual_outputs=outputs,
+                                model=llm_model,
+                                trace_id=f"{trace_id or 'packet_test'}/{component_id}/{case.fixture_id}/semantic",
+                                max_budget=llm_max_budget,
+                            )
+                        )
+                        passed = semantic_eval.semantic_fields_acceptable
+                        error = "; ".join(semantic_eval.concerns) if not passed else None
+                    else:
+                        passed = True
+                        error = None
             except Exception as exc:  # pragma: no cover - explicit failure capture
                 if _expects_failure(case.scenario_kind):
                     passed = True
@@ -89,6 +241,7 @@ def run_generated_packet_tests(
                     fixture_id=case.fixture_id,
                     passed=passed,
                     error=error,
+                    semantic_eval=semantic_eval,
                 ),
             )
 
@@ -101,12 +254,27 @@ def run_generated_packet_tests(
 def run_generated_recomposition_proof(
     blueprint_dir: Path | str,
     generated_package: GeneratedPackage,
+    *,
+    llm_model: str | None = None,
+    trace_id: str | None = None,
+    llm_max_budget: float = 0.10,
 ) -> RecompositionReport:
-    """Run blueprint-driven recomposition scenarios against generated components."""
+    """Run blueprint-driven recomposition scenarios against generated components.
+
+    When ``llm_model`` is provided, free-form text fields in recomposition
+    outputs are also evaluated for semantic correctness by an LLM judge after
+    categorical checks pass.
+    """
 
     blueprint = load_blueprint_dir(blueprint_dir)
     builders = load_generated_component_builders(generated_package)
-    return run_recomposition_proof(blueprint, builders)
+    return run_recomposition_proof(
+        blueprint,
+        builders,
+        llm_model=llm_model,
+        trace_id=trace_id,
+        llm_max_budget=llm_max_budget,
+    )
 
 
 def run_fresh_generation_trials(

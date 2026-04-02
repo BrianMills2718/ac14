@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -28,6 +30,10 @@ class RecompositionScenarioCase(BaseModel):
     )
     expected_outputs_by_component: dict[str, dict[str, dict[str, Any]]] = Field(
         description="Expected outputs for each component in the scenario.",
+    )
+    fixture_descriptions_by_component: dict[str, str] = Field(
+        default_factory=dict,
+        description="Fixture description for each component, used for LLM semantic evaluation.",
     )
 
 
@@ -97,6 +103,7 @@ def build_recomposition_scenario_catalog(
         fixtures = [blueprint.fixtures[fixture_id] for fixture_id in scenario.fixture_ids]
         fixtures_by_component: dict[str, dict[str, dict[str, Any]]] = {}
         expected_outputs_by_component: dict[str, dict[str, dict[str, Any]]] = {}
+        fixture_descriptions_by_component: dict[str, str] = {}
         seen_components: set[str] = set()
         for fixture in fixtures:
             if fixture.component_id in seen_components:
@@ -107,6 +114,7 @@ def build_recomposition_scenario_catalog(
             seen_components.add(fixture.component_id)
             fixtures_by_component[fixture.component_id] = fixture.inputs
             expected_outputs_by_component[fixture.component_id] = fixture.expected_outputs
+            fixture_descriptions_by_component[fixture.component_id] = fixture.description
 
         missing_components = sorted(all_components.difference(seen_components))
         if missing_components:
@@ -137,6 +145,7 @@ def build_recomposition_scenario_catalog(
                     component_id: fixtures_by_component[component_id] for component_id in source_components
                 },
                 expected_outputs_by_component=expected_outputs_by_component,
+                fixture_descriptions_by_component=fixture_descriptions_by_component,
             ),
         )
 
@@ -149,8 +158,17 @@ def build_recomposition_scenario_catalog(
 def run_recomposition_proof(
     blueprint: FrozenBlueprint,
     component_builders: dict[str, Callable[[], RuntimeComponent]],
+    *,
+    llm_model: str | None = None,
+    trace_id: str | None = None,
+    llm_max_budget: float = 0.10,
 ) -> RecompositionReport:
-    """Execute all runnable full-graph recomposition scenarios for one blueprint."""
+    """Execute all runnable full-graph recomposition scenarios for one blueprint.
+
+    When ``llm_model`` is provided, free-form text fields in scenario outputs are
+    additionally evaluated for semantic correctness after categorical checks pass.
+    A single LLM call is made per scenario covering all components' outputs at once.
+    """
 
     catalog, executions = execute_recomposition_scenarios(blueprint, component_builders)
     results: list[RecompositionScenarioResult] = []
@@ -173,19 +191,47 @@ def run_recomposition_proof(
             execution.outputs_by_component or {},
             scenario.expected_outputs_by_component,
         )
-        if mismatch is None:
-            results.append(
-                RecompositionScenarioResult(
-                    scenario_id=execution.scenario_id,
-                    passed=True,
-                ),
-            )
-        else:
+        if mismatch is not None:
             results.append(
                 RecompositionScenarioResult(
                     scenario_id=execution.scenario_id,
                     passed=False,
                     error=mismatch,
+                ),
+            )
+            continue
+
+        # Categorical check passed. Optionally run LLM semantic eval for the whole scenario.
+        if llm_model is not None and _scenario_has_llm_eval_fields(scenario.expected_outputs_by_component):
+            sem_result = asyncio.run(
+                _aevaluate_recomposition_scenario_semantically(
+                    scenario=scenario,
+                    actual_outputs_by_component=execution.outputs_by_component or {},
+                    model=llm_model,
+                    trace_id=f"{trace_id or 'recomp_eval'}/{execution.scenario_id}/semantic",
+                    max_budget=llm_max_budget,
+                )
+            )
+            if sem_result.semantic_fields_acceptable:
+                results.append(
+                    RecompositionScenarioResult(
+                        scenario_id=execution.scenario_id,
+                        passed=True,
+                    ),
+                )
+            else:
+                results.append(
+                    RecompositionScenarioResult(
+                        scenario_id=execution.scenario_id,
+                        passed=False,
+                        error="; ".join(sem_result.concerns),
+                    ),
+                )
+        else:
+            results.append(
+                RecompositionScenarioResult(
+                    scenario_id=execution.scenario_id,
+                    passed=True,
                 ),
             )
 
@@ -245,18 +291,134 @@ def _source_components(blueprint: FrozenBlueprint) -> list[str]:
     ]
 
 
+_RECOMP_LLM_EVAL_FIELDS: frozenset[str] = frozenset({"reason", "action_summary"})
+"""Subset of free-form fields that carry semantic meaning and should be LLM-evaluated."""
+
+_RECOMP_FREE_FORM_FIELDS: frozenset[str] = frozenset({
+    "reason",
+    "score",
+    "action_summary",
+    "generated_at",
+})
+"""Fields excluded from recomposition exact comparison.
+
+LLM-generated components cannot deterministically reproduce free-form text
+(reason strings, action summaries) or wall-clock timestamps. Stripping these
+fields from both sides keeps recomposition checks focused on categorical
+correctness — the routing and classification fields that matter.
+"""
+
+
+def _strip_recomp_free_form_fields(data: dict[str, Any]) -> dict[str, Any]:
+    """Remove free-form text and timestamp fields at any nesting depth."""
+    result: dict[str, Any] = {}
+    for k, v in data.items():
+        if k in _RECOMP_FREE_FORM_FIELDS:
+            continue
+        if isinstance(v, dict):
+            result[k] = _strip_recomp_free_form_fields(v)
+        elif isinstance(v, list):
+            result[k] = [
+                _strip_recomp_free_form_fields(item) if isinstance(item, dict) else item
+                for item in v
+            ]
+        else:
+            result[k] = v
+    return result
+
+
+def _has_llm_eval_fields_in_dict(data: dict[str, Any]) -> bool:
+    """Return True if data (at any nesting depth) contains an LLM-eval field."""
+    for k, v in data.items():
+        if k in _RECOMP_LLM_EVAL_FIELDS:
+            return True
+        if isinstance(v, dict) and _has_llm_eval_fields_in_dict(v):
+            return True
+        if isinstance(v, list):
+            for item in v:
+                if isinstance(item, dict) and _has_llm_eval_fields_in_dict(item):
+                    return True
+    return False
+
+
+def _scenario_has_llm_eval_fields(
+    expected_outputs_by_component: dict[str, dict[str, dict[str, Any]]],
+) -> bool:
+    """Return True if any component's expected outputs contain an LLM-eval field."""
+    for component_outputs in expected_outputs_by_component.values():
+        if _has_llm_eval_fields_in_dict(component_outputs):
+            return True
+    return False
+
+
+class _RecompSemanticEval(BaseModel):
+    """LLM evaluation of free-form fields across all components in one recomposition scenario."""
+
+    semantic_fields_acceptable: bool = Field(
+        description=(
+            "True if all free-form text fields (reason, action_summary) across all components "
+            "are semantically correct given the scenario inputs and component responsibilities"
+        )
+    )
+    concerns: list[str] = Field(
+        description="Specific concerns about semantic correctness; empty list if all fields are acceptable"
+    )
+
+
+async def _aevaluate_recomposition_scenario_semantically(
+    scenario: RecompositionScenarioCase,
+    actual_outputs_by_component: dict[str, dict[str, dict[str, Any]]],
+    model: str,
+    trace_id: str,
+    max_budget: float = 0.10,
+) -> _RecompSemanticEval:
+    """Single LLM call evaluating free-form fields for all components in one recomposition scenario."""
+
+    from ac14.acceptance import acall_llm_structured, render_prompt  # lazy — avoids import-time llm_client dep
+
+    _PACKET_EVALUATE_PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "evaluate_packet_case.yaml"
+    messages = render_prompt(
+        _PACKET_EVALUATE_PROMPT_PATH,
+        component_id="full_scenario",
+        fixture_description=scenario.description,
+        inputs=scenario.initial_inputs,
+        expected_outputs=scenario.expected_outputs_by_component,
+        actual_outputs=actual_outputs_by_component,
+    )
+    result, _ = await acall_llm_structured(
+        model,
+        messages,
+        response_model=_RecompSemanticEval,
+        task="ac14_evaluate_packet_case_semantics",
+        trace_id=trace_id,
+        max_budget=max_budget,
+    )
+    return result
+
+
 def _find_first_mismatch(
     actual_outputs: dict[str, dict[str, dict[str, Any]]],
     expected_outputs_by_component: dict[str, dict[str, dict[str, Any]]],
 ) -> str | None:
-    """Return a compact mismatch description or ``None`` when outputs match."""
+    """Return a compact mismatch description or ``None`` when outputs match.
+
+    Free-form text fields (reason strings, action summaries, timestamps) are
+    stripped from both sides before comparison so that only categorical routing
+    and classification fields are checked exactly.
+    """
 
     for component_id, expected_outputs in expected_outputs_by_component.items():
         actual_component_outputs = actual_outputs.get(component_id)
-        if actual_component_outputs != expected_outputs:
+        stripped_actual = (
+            _strip_recomp_free_form_fields(actual_component_outputs)
+            if actual_component_outputs is not None
+            else None
+        )
+        stripped_expected = _strip_recomp_free_form_fields(expected_outputs)
+        if stripped_actual != stripped_expected:
             return (
                 f"component {component_id} outputs did not match expected outputs: "
-                f"expected {expected_outputs!r}, got {actual_component_outputs!r}"
+                f"expected {stripped_expected!r}, got {stripped_actual!r}"
             )
     return None
 
