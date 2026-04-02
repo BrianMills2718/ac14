@@ -128,6 +128,25 @@ running.
 mix thesis evidence with transport instability unless the issue is recorded and
 bounded explicitly.
 
+### U-053: The current empirical gate is narrower than the full AC14 thesis.
+**Status:** Open
+**Context:** The current benchmark declares
+`comparison_scope: decomposition_vs_monolithic_back_half`, and the monolithic
+condition receives the frozen blueprint plus benchmark-local test context.
+**Why it matters:** A successful Plan #39 result would be meaningful, but it
+would still validate a bounded back-half claim rather than the strongest
+end-to-end front-half-plus-back-half version of the thesis.
+
+### U-054: The next blocker is benchmark-fidelity exactness, not infrastructure.
+**Status:** Investigating
+**Context:** The latest bounded smoke rerun stayed `blocked_on_harness` without
+provider contamination. The dominant mismatches are now benchmark-local:
+`generated_at` exactness, required parsed-field omissions, and explicit
+business-rule mismatches.
+**Why it matters:** The next repair lane should stay benchmark-local and avoid
+turning one empirical benchmark's exactness needs into broad AC14 runtime
+policy by accident.
+
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred
 **Context:** The current generator remains more of a controlled proof mechanism

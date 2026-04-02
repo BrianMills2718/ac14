@@ -35,7 +35,7 @@ REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 BENCHMARK ?= benchmarks/order_exception_resolution
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -153,3 +153,6 @@ live-llm-readiness-suite: ## Build one persisted realistic-input suite live-read
 
 empirical-compare: ## Run the frozen monolithic-vs-AC14 empirical comparison benchmark (BENCHMARK=benchmarks/order_exception_resolution OUTPUT=.ac14_out/empirical_compare TRIALS=5 MAX_ATTEMPTS=3)
 	$(PYTHON) -m ac14 empirical-compare "$(BENCHMARK)" --output-dir "$(OUTPUT)" --trials "$(TRIALS)" --max-attempts "$(MAX_ATTEMPTS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+empirical-smoke-gate: ## Run one bounded paired smoke trial and persist a readiness verdict (BENCHMARK=... OUTPUT=.ac14_out/empirical_smoke MAX_ATTEMPTS=3)
+	$(PYTHON) -m ac14 empirical-smoke-gate "$(BENCHMARK)" --output-dir "$(OUTPUT)" --max-attempts "$(MAX_ATTEMPTS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

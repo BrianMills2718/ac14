@@ -35,6 +35,15 @@ class GeneratedModuleResponse(BaseModel):
     )
 
 
+class GeneratedModuleValidationError(ValueError):
+    """Raised when LLM-generated module code fails AC14 contract validation."""
+
+    def __init__(self, *, component_id: str, module_code: str, message: str) -> None:
+        super().__init__(message)
+        self.component_id = component_id
+        self.module_code = module_code
+
+
 async def agenerate_component_module_with_llm(
     context: CodegenContext,
     *,
@@ -52,7 +61,14 @@ async def agenerate_component_module_with_llm(
             blueprint_id=context.blueprint_id,
             component_id=context.component_id,
         )
-        _validate_generated_module(response.module_code, component_id=context.component_id)
+        try:
+            _validate_generated_module(response.module_code, component_id=context.component_id)
+        except ValueError as exc:
+            raise GeneratedModuleValidationError(
+                component_id=context.component_id,
+                module_code=response.module_code,
+                message=str(exc),
+            ) from exc
         return response
 
     messages = render_prompt(
@@ -68,7 +84,14 @@ async def agenerate_component_module_with_llm(
         max_budget=max_budget,
     )
     typed_response = cast(GeneratedModuleResponse, response)
-    _validate_generated_module(typed_response.module_code, component_id=context.component_id)
+    try:
+        _validate_generated_module(typed_response.module_code, component_id=context.component_id)
+    except ValueError as exc:
+        raise GeneratedModuleValidationError(
+            component_id=context.component_id,
+            module_code=typed_response.module_code,
+            message=str(exc),
+        ) from exc
     return typed_response
 
 

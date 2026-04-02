@@ -30,7 +30,7 @@ from ac14.dependency_planning import (
     DEFAULT_DEPENDENCY_PLAN_MODEL,
     build_dependency_plan,
 )
-from ac14.empirical_comparison import run_empirical_comparison
+from ac14.empirical_comparison import run_empirical_comparison, run_empirical_smoke_gate
 from ac14.discovery import (
     build_discovery_artifact,
     persist_environment_inventory,
@@ -463,6 +463,16 @@ def main() -> int:
     empirical_compare_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     empirical_compare_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    empirical_smoke_parser = subparsers.add_parser(
+        "empirical-smoke-gate",
+        help="Run one bounded smoke paired trial and persist a readiness verdict.",
+    )
+    empirical_smoke_parser.add_argument("benchmark_dir", type=Path)
+    empirical_smoke_parser.add_argument("--output-dir", type=Path, required=True)
+    empirical_smoke_parser.add_argument("--max-attempts", type=int, default=3)
+    empirical_smoke_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    empirical_smoke_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -723,6 +733,14 @@ def main() -> int:
             args.benchmark_dir,
             args.output_dir,
             args.trials,
+            args.max_attempts,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "empirical-smoke-gate":
+        return _empirical_smoke_gate(
+            args.benchmark_dir,
+            args.output_dir,
             args.max_attempts,
             args.model,
             args.max_budget,
@@ -1392,6 +1410,26 @@ def _empirical_compare(
         benchmark_dir=benchmark_dir,
         output_dir=output_dir,
         trial_count=trials,
+        max_attempts=max_attempts,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _empirical_smoke_gate(
+    benchmark_dir: Path,
+    output_dir: Path,
+    max_attempts: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Run and print one bounded smoke-readiness artifact for the empirical gate."""
+
+    artifact = run_empirical_smoke_gate(
+        benchmark_dir=benchmark_dir,
+        output_dir=output_dir,
         max_attempts=max_attempts,
         model=model,
         max_budget=max_budget,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 from pathlib import Path
@@ -103,13 +104,17 @@ def emit_generated_package(
                 else []
             ),
         )
-        module_source = _render_module_source(
-            context,
-            generator_kind=generator_kind,
-            llm_model=llm_model,
-            llm_max_budget=llm_max_budget,
-            trace_id=f"{trace_id_prefix}/{component_id}",
-        )
+        try:
+            module_source = _render_module_source(
+                context,
+                generator_kind=generator_kind,
+                llm_model=llm_model,
+                llm_max_budget=llm_max_budget,
+                trace_id=f"{trace_id_prefix}/{component_id}",
+            )
+        except Exception as exc:
+            _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
+            raise
         module_path = destination / f"{component_id}.py"
         module_path.write_text(module_source)
         module_paths[component_id] = str(module_path)
@@ -149,13 +154,17 @@ async def aemit_generated_package(
                 else []
             ),
         )
-        module_source = await _arender_module_source(
-            context,
-            generator_kind=generator_kind,
-            llm_model=llm_model,
-            llm_max_budget=llm_max_budget,
-            trace_id=f"{trace_id_prefix}/{component_id}",
-        )
+        try:
+            module_source = await _arender_module_source(
+                context,
+                generator_kind=generator_kind,
+                llm_model=llm_model,
+                llm_max_budget=llm_max_budget,
+                trace_id=f"{trace_id_prefix}/{component_id}",
+            )
+        except Exception as exc:
+            _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
+            raise
         module_path = destination / f"{component_id}.py"
         module_path.write_text(module_source)
         module_paths[component_id] = str(module_path)
@@ -192,6 +201,22 @@ def _load_module(component_id: str, module_path: Path) -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _persist_failed_module_artifacts(destination: Path, *, component_id: str, error: Exception) -> None:
+    """Persist failed LLM module source and validation metadata for diagnosis."""
+
+    module_code = getattr(error, "module_code", None)
+    if isinstance(module_code, str):
+        (destination / f"{component_id}.failed.py").write_text(module_code)
+    metadata = {
+        "component_id": component_id,
+        "error": str(error),
+        "persisted_failed_module_source": isinstance(module_code, str),
+    }
+    (destination / f"{component_id}.validation_error.json").write_text(
+        json.dumps(metadata, indent=2, sort_keys=True),
+    )
 
 
 def _render_module_source(

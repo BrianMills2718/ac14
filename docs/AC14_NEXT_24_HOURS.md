@@ -9,18 +9,25 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
+- [Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md)
 
 The empirical gate is now frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
+The parent experiment lane remains:
+
+- [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
+
+Completed blocker-clearing lanes:
+
+- [Plan #40: Empirical Smoke Stabilization](/home/brian/projects/ac14/docs/plans/40_empirical_smoke_stabilization.md)
+- [Plan #41: Empirical Harness Repair](/home/brian/projects/ac14/docs/plans/41_empirical_harness_repair.md)
+
 The active 24-hour chain is now:
 
-1. finalize and validate the benchmark asset bundle for the frozen comparison target
-2. implement the bounded `monolithic` trial path
-3. implement the bounded `AC14` trial path
-4. persist one reviewable decision artifact instead of treating experiment
-   results as conversational judgment
-5. run the five fresh paired trials and lock the docs to the result
+1. turn current packet/runtime failure patterns into benchmark-local repair guidance
+2. tighten benchmark-local prompt/guidance language around deterministic outputs and required parsed fields
+3. rerun one bounded smoke gate under the tighter benchmark-fidelity guidance
+4. decide whether Plan #39 is still blocked or can finally spend the five-trial budget
 
 ## Progress Update
 
@@ -41,13 +48,14 @@ Completed before this lane as the immediate predecessor:
 2. one AC14-native notebook now freezes the first comparison target, fairness
    protocol, primary outcome, and decision rule
 3. Plan #37 is now explicitly blocked behind the comparison result
+4. the comparison runner and bounded live smoke findings now exist, but the
+   smoke stage is not yet stable enough to justify the five-trial budget
 
-Required in Plan #39:
+Completed inside Plan #39 before the current blocker-clearing lane:
 
 1. one validated benchmark asset bundle for `order_exception_resolution`
 2. one paired-trial runner that records both conditions explicitly
 3. one decision artifact that applies the frozen success rule
-4. one five-trial experiment result that is reviewable artifact-by-artifact
 
 Current empirical-gate reality:
 
@@ -57,76 +65,62 @@ Current empirical-gate reality:
 4. no smoke run has yet produced a hard-harness success in either condition
 5. repeated provider disconnects and `503` demand errors were observed during live runs
 
-That means Phase 5 is not ready yet. The immediate next step is to get one
-successful smoke paired trial or document a benchmark/generator blocker clearly
-enough to justify stopping the five-trial execution.
+That means the next honest step is Plan #40, not Phase 5 of Plan #39 in the
+abstract.
+
+Latest blocker-clearing outcomes:
+
+1. one bounded smoke gate now persists an explicit verdict
+2. the current verdict remains `blocked_on_harness`
+3. the latest bounded smoke rerun did not show infrastructure/provider contamination
+4. the first repair slice moved AC14 from import-time module failure to later packet-level failure
+5. both conditions now fail later at benchmark-fidelity expectations
+6. that makes Plan #42 the next honest lane
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
 #39.
 
-### Phase 1: benchmark assets and validation
+### Phase 1: benchmark-local repair guidance
 
-- create the `order_exception_resolution` benchmark bundle
-- keep requirements, inputs, dependency surface, and evaluation harness explicit
-- validate that the benchmark blueprint loads and that runtime inputs and
-  expected outputs are structurally coherent
+- turn the current packet/runtime failures into benchmark-local repair guidance
+- keep the guidance tied to the empirical benchmark, not to broad AC14 behavior
 
 Success criteria:
 
-- the bundle is fully reviewable without chat context
-- the benchmark blueprint loads cleanly
-- runtime inputs and expected outputs match the declared source and sink contract
+- repair guidance names deterministic `generated_at` expectations
+- repair guidance names required parsed fields and key business-rule mismatches
 
-### Phase 2: monolithic condition
+### Phase 2: tighter benchmark-fidelity prompts and repair surface
 
-- generate the whole benchmark system in one bounded condition
-- keep attempts, cost capture, and output artifacts explicit
-
-Success criteria:
-
-- one `monolithic` trial can run end to end without manual code edits
-- the trial artifact records attempts, outputs, and pass/fail reasons
-
-### Phase 3: AC14 condition
-
-- generate the benchmark system through packetized AC14 codegen
-- preserve packet tests, recomposition proof, realistic-input execution, and
-  output artifacts inside the paired-trial result
+- apply the tighter benchmark-local guidance to the empirical lane
+- keep the change benchmark-scoped rather than turning it into a broad new abstraction
 
 Success criteria:
 
-- one `AC14` trial can run end to end without manual code edits
-- the trial artifact records attempts, outputs, and pass/fail reasons
+- both conditions are more directly aiming at the explicit benchmark contract
+- the next smoke rerun is testing tighter fidelity, not the old loose guidance
 
-### Phase 4: scoring and decision
+### Phase 3: bounded smoke rerun
 
-- apply the frozen decision rule to five paired trials
-- persist one final decision artifact plus per-trial summaries
-
-Success criteria:
-
-- the decision is traceable back to trial-level evidence
-- the result can be `ac14_wins`, `monolithic_wins`, or `inconclusive` only
-
-### Phase 5: repeated trials and lock
-
-- run the five fresh paired trials under the frozen fairness rules
-- run full verification
-- lock the docs around the result
+- rerun one bounded smoke paired trial under the tighter benchmark-fidelity surface
+- keep the smoke output reviewable artifact-by-artifact
 
 Success criteria:
 
-- the experiment is complete, verified, and reviewable without chat context
-- the active control surface reflects the actual result instead of a planned one
+- AC14 has one explicit smoke verdict tied to one persisted smoke run
+- the next blocker is narrower than the current mixed packet/runtime bundle, or one condition now achieves a hard-harness success
 
-Current blocker before Phase 5:
+### Phase 4: parent-lane decision and lock
 
-- one bounded smoke paired trial has not yet produced a hard-harness success
-- live provider instability is currently mixed into the experiment surface
-- do not spend the full five-trial budget until one smoke trial either succeeds
-  or proves that the current benchmark/prompt setup is itself the blocker
+- update the active control docs to reflect the smoke verdict
+- either resume Plan #39 honestly or keep it blocked with a stable reason
+
+Success criteria:
+
+- the active control surface matches the smoke outcome
+- the next plan step is explicit and no longer ambiguous
 
 ## Known Uncertainties
 
@@ -137,7 +131,7 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the first experiment may still end inconclusive if five trials do not separate the conditions
-2. the monolithic condition must be bounded without silently giving it a looser repair budget
-3. the first ablation should isolate the decomposition claim itself; if the front-half derivation question starts to dominate this lane, that needs to be logged explicitly instead of smuggled in
-4. current live smoke trials have not yet produced a single hard-harness success
-5. provider disconnects and demand errors may contaminate the empirical gate unless they are recorded explicitly
+2. the monolithic condition must stay bounded without silently giving it a looser repair budget
+3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
+4. current bounded smoke trials still have not produced a hard-harness success
+5. the next repair lane needs an explicit decision on benchmark-local exactness such as `generated_at`

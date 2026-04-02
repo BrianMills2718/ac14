@@ -1,9 +1,9 @@
 # Plan #39: Monolithic Vs AC14 Comparison Execution
 
-**Status:** In Progress
+**Status:** Blocked
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 38
+**Blocked By:** 42
 **Blocks:** 37
 
 ---
@@ -17,6 +17,10 @@ but no benchmark assets, paired-trial runner, or persisted comparison result.
 `order_exception_resolution` target, persist paired monolithic and AC14 trial
 artifacts, score them with the same harness and semantic review, and produce a
 decision artifact that says `ac14_wins`, `monolithic_wins`, or `inconclusive`.
+
+This plan measures a bounded back-half comparison over a fixed decomposition.
+It does not by itself measure the full end-to-end front-half-plus-back-half
+thesis.
 
 **Why:** Until this experiment runs, AC14 still lacks the main evidence needed
 to justify the project's stronger thesis claim.
@@ -44,7 +48,9 @@ to justify the project's stronger thesis claim.
 ### Q2: How should paired trials be recorded?
 **Status:** Resolved
 **Why it matters:** The result must be reviewable trial-by-trial rather than only as one final summary.
-**Decision:** Persist one artifact directory per paired trial under `artifacts/empirical_comparison/<timestamp>/trial_N/` with separate `monolithic/` and `ac14/` subdirectories plus a paired summary JSON.
+**Decision:** Persist one artifact directory per paired trial under the
+caller-specified experiment output root, with separate `monolithic/` and
+`ac14/` subdirectories plus a paired summary JSON.
 
 ### Q3: What should count as a failed trial?
 **Status:** Resolved
@@ -91,8 +97,8 @@ to justify the project's stronger thesis claim.
 4. Add scoring and decision logic that applies the primary outcome and
    secondary metrics from Plan #38 and persists a final experiment-decision
    artifact plus per-trial summaries.
-5. Run 5 fresh paired trials, then lock the docs and status surface around the
-   result.
+5. After Plan #40 unblocks the lane, run 5 fresh paired trials, then lock the
+   docs and status surface around the result.
 
 ---
 
@@ -118,9 +124,9 @@ to justify the project's stronger thesis claim.
 
 ## Acceptance Criteria
 
-- [ ] The benchmark asset bundle exists under `benchmarks/order_exception_resolution/`.
-- [ ] AC14 can run paired monolithic and AC14 trials under the frozen fairness rules.
-- [ ] The project persists one final experiment-decision artifact with `ac14_wins`, `monolithic_wins`, or `inconclusive`.
+- [x] The benchmark asset bundle exists under `benchmarks/order_exception_resolution/`.
+- [x] AC14 can run paired monolithic and AC14 trials under the frozen fairness rules.
+- [x] The project persists one final experiment-decision artifact with `ac14_wins`, `monolithic_wins`, or `inconclusive`.
 - [ ] Five fresh paired trials complete and are reviewable artifact-by-artifact.
 - [ ] Full local verification passes and the docs match the result.
 
@@ -136,6 +142,8 @@ Current live-execution note:
 
 - the benchmark bundle, paired-trial runner, and decision artifact now exist
 - bounded live smoke trials have been executed
-- the full five-trial gate should not proceed until one smoke paired trial
-  produces a hard-harness success or the benchmark/generator setup is
-  explicitly documented as the blocker
+- Plans #40 and #41 are complete
+- the full five-trial gate should not proceed until Plan #40 either produces a
+  smoke verdict of `ready_for_full_trials` or documents a stable blocker
+- the latest bounded smoke rerun remains `blocked_on_harness`
+- Plan #42 is now the next queued blocker-repair lane

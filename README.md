@@ -12,6 +12,10 @@ The first proof slice is intentionally narrow:
 AC14 is not trying to solve enterprise deployment, full autonomy, or broad
 tool/runtime integration in the first pass.
 
+The current empirical comparison surface is also intentionally narrower than
+the full end-to-end thesis: the active benchmark compares packetized local
+generation against whole-package generation over a fixed decomposition.
+
 ## Local Setup
 
 ```bash
@@ -119,7 +123,12 @@ AC14 is still incomplete on:
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
-The next strategic gate is execution of [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md) using the frozen contract from [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
+The next strategic gate is
+[Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md),
+which follows completed smoke stabilization and first harness-repair work. The
+goal now is to make the next bounded smoke rerun benchmark-fidelity-focused
+enough to justify spending the full five-trial budget in
+[Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md).
 
 ## Quickstart
 
@@ -152,4 +161,5 @@ AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness OUTPUT=.ac14_out/live_l
 AC14_ENABLE_LIVE_LLM_READINESS=1 make live-llm-readiness-suite OUTPUT=.ac14_out/live_llm_readiness_suite
 make packet-sufficiency INPUT=examples/support_ticket_digest/blueprint OUTPUT=.ac14_out/packet_sufficiency
 make recommend-default-generator OUTPUT=.ac14_out/recommend GENERATORS=deterministic TRIALS=1
+make empirical-smoke-gate BENCHMARK=benchmarks/order_exception_resolution OUTPUT=.ac14_out/empirical_smoke MAX_ATTEMPTS=1
 ```

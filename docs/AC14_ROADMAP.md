@@ -47,7 +47,7 @@ AC14 does not yet have:
 
 1. broad proof breadth
 2. strong messy-input blueprint derivation
-3. explicit dependency execution/install verification
+3. a completed empirical verdict against a fair monolithic baseline
 4. first-class tool/runtime nodes in the blueprint model
 5. a completed long-term front half
 
@@ -94,6 +94,12 @@ Focus areas:
 3. define one explicit primary outcome plus supporting metrics
 4. persist a decision artifact that says whether AC14 wins clearly, loses, or
    remains inconclusive
+
+Important scope note:
+
+The current first empirical gate is a bounded back-half comparison over a fixed
+decomposition. It is the right next gate, but it is not yet the full
+front-half-plus-back-half end-to-end thesis test.
 
 Exit criteria:
 
@@ -189,8 +195,10 @@ In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
 2. design and run the empirical comparison gate before more propagation-proof micro-lanes
-3. strengthen the front half where it materially improves that comparison
-4. broaden proof breadth before expanding scope claims
+3. stabilize the empirical smoke gate before spending the full five-trial budget
+4. repair benchmark-fidelity blockers until a bounded smoke rerun either succeeds or narrows the blocker again
+5. strengthen the front half where it materially improves that comparison
+6. broaden proof breadth before expanding scope claims
 
 ## Working Rule
 

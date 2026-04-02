@@ -531,6 +531,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "recommend-default-generator" in result.stdout
     assert "live-llm-readiness" in result.stdout
     assert "live-llm-readiness-suite" in result.stdout
+    assert "empirical-smoke-gate" in result.stdout
 
 
 def test_make_packet_sufficiency_runs_end_to_end(tmp_path: Path) -> None:

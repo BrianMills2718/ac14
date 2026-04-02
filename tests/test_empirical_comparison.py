@@ -9,6 +9,7 @@ import pytest
 
 from ac14.acceptance import AcceptanceReviewResponse
 from ac14.empirical_comparison import (
+    AttemptFailureClassification,
     ConditionAttemptReport,
     ConditionTrialReport,
     CostObservation,
@@ -16,6 +17,8 @@ from ac14.empirical_comparison import (
     PairedTrialReport,
     RuntimeCaseExecution,
     build_experiment_decision_artifact,
+    build_smoke_readiness_artifact,
+    _build_failure_summary,
     load_benchmark_bundle,
     run_paired_trial,
 )
@@ -62,6 +65,10 @@ def test_run_paired_trial_persists_monolithic_and_ac14_artifacts(
                     runtime_outputs_passed=condition == "ac14",
                     semantic_review=None,
                     semantic_review_passed=condition == "ac14",
+                    failure_classification=AttemptFailureClassification(
+                        category="success" if condition == "ac14" else "runtime_outputs",
+                        detail="passed" if condition == "ac14" else "runtime mismatch",
+                    ),
                     generation_error=None,
                     runtime_cases=[
                         RuntimeCaseExecution(
@@ -164,6 +171,10 @@ def _condition_report(
                 runtime_outputs_passed=passed,
                 semantic_review=semantic_review,
                 semantic_review_passed=semantic_review_passed,
+                failure_classification=AttemptFailureClassification(
+                    category="success" if passed else "semantic_review",
+                    detail="accepted" if passed else "review concern",
+                ),
                 generation_error=None,
                 runtime_cases=[],
                 failure_summary=[] if passed else ["failed"],
@@ -171,3 +182,74 @@ def _condition_report(
             )
         ],
     )
+
+
+def test_classify_infrastructure_failure_from_provider_error() -> None:
+    """Provider/transport failures should be classified explicitly for smoke gating."""
+
+    report = _condition_report(
+        "monolithic",
+        passed=False,
+        semantic_score=0.0,
+        repair_loops=0,
+    )
+    report.attempts[0].generation_error = "503 Service Unavailable: server disconnected during API request"
+    report.attempts[0].failure_classification = AttemptFailureClassification(
+        category="infrastructure_provider",
+        detail=report.attempts[0].generation_error,
+    )
+
+    artifact = build_smoke_readiness_artifact(
+        benchmark_id="order_exception_resolution_v1",
+        paired_trial_report=PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=1,
+            monolithic=report,
+            ac14=_condition_report("ac14", passed=False, semantic_score=0.0, repair_loops=0),
+        ),
+        trial_report_path="/tmp/trial_1/paired_trial_report.json",
+    )
+
+    assert artifact.verdict == "blocked_on_infrastructure"
+    assert artifact.infrastructure_failure_detected is True
+
+
+def test_build_smoke_readiness_artifact_detects_harness_blocker() -> None:
+    """A clean but unsuccessful smoke run should block on the harness rather than infra."""
+
+    artifact = build_smoke_readiness_artifact(
+        benchmark_id="order_exception_resolution_v1",
+        paired_trial_report=PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=1,
+            monolithic=_condition_report("monolithic", passed=False, semantic_score=0.0, repair_loops=1),
+            ac14=_condition_report("ac14", passed=False, semantic_score=0.0, repair_loops=1),
+        ),
+        trial_report_path="/tmp/trial_1/paired_trial_report.json",
+    )
+
+    assert artifact.verdict == "blocked_on_harness"
+    assert artifact.hard_harness_success is False
+
+
+def test_failure_summary_includes_runtime_port_diffs() -> None:
+    """Runtime mismatch guidance should include bounded field-level diffs."""
+
+    summary = _build_failure_summary(
+        generation_error=None,
+        packet_tests_passed=True,
+        recomposition_passed=True,
+        runtime_cases=[
+            RuntimeCaseExecution(
+                case_id="ORX-100",
+                matched_expected=False,
+                actual_outputs={"resolution_digest_entry": {"priority_band": "high"}},
+                expected_outputs={"resolution_digest_entry": {"priority_band": "critical"}},
+                error=None,
+            )
+        ],
+        semantic_review=None,
+    )
+
+    assert "resolution_digest_entry.priority_band" in summary[0]
+    assert "expected='critical' actual='high'" in summary[0]

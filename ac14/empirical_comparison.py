@@ -44,6 +44,20 @@ DEFAULT_MAX_ATTEMPTS = 3
 TrialCondition = Literal["monolithic", "ac14"]
 DecisionVerdict = Literal["ac14_wins", "monolithic_wins", "inconclusive"]
 CostObservationStatus = Literal["observed", "no_rows", "missing_db"]
+AttemptFailureCategory = Literal[
+    "success",
+    "infrastructure_provider",
+    "generation",
+    "packet_tests",
+    "recomposition",
+    "runtime_outputs",
+    "semantic_review",
+]
+SmokeReadinessVerdict = Literal[
+    "ready_for_full_trials",
+    "blocked_on_infrastructure",
+    "blocked_on_harness",
+]
 
 
 class BenchmarkConfig(BaseModel):
@@ -120,6 +134,13 @@ class CostObservation(BaseModel):
     cost_usd: float | None = Field(default=None, description="Observed total cost in USD when available.")
 
 
+class AttemptFailureClassification(BaseModel):
+    """Structured classification for one empirical-comparison attempt outcome."""
+
+    category: AttemptFailureCategory = Field(description="Bounded failure category for this attempt.")
+    detail: str = Field(description="Short reason describing the classification.")
+
+
 class RuntimeCaseExecution(BaseModel):
     """Runtime execution outcome for one benchmark case."""
 
@@ -150,6 +171,9 @@ class ConditionAttemptReport(BaseModel):
         description="Requirements-aware review of the runtime outputs when available.",
     )
     semantic_review_passed: bool = Field(description="Whether semantic review was acceptable.")
+    failure_classification: AttemptFailureClassification = Field(
+        description="Structured failure classification for this attempt.",
+    )
     generation_error: str | None = Field(
         default=None,
         description="Generation failure that prevented evaluation.",
@@ -200,6 +224,25 @@ class ExperimentDecisionArtifact(BaseModel):
     ac14: ConditionAggregate = Field(description="Aggregate AC14 metrics.")
     monolithic: ConditionAggregate = Field(description="Aggregate monolithic metrics.")
     trial_report_paths: list[str] = Field(description="Persisted paired-trial report paths.")
+
+
+class SmokeReadinessArtifact(BaseModel):
+    """Persisted stop/go decision for the empirical smoke gate."""
+
+    benchmark_id: str = Field(description="Benchmark identifier under smoke evaluation.")
+    trial_report_path: str = Field(description="Paired smoke trial report used for this verdict.")
+    verdict: SmokeReadinessVerdict = Field(description="Whether the full five-trial gate should proceed.")
+    rationale: str = Field(description="Short explanation of the smoke verdict.")
+    hard_harness_success: bool = Field(description="Whether either condition achieved a hard-harness pass.")
+    infrastructure_failure_detected: bool = Field(
+        description="Whether any attempt showed infrastructure/provider instability.",
+    )
+    monolithic_failure_categories: list[AttemptFailureCategory] = Field(
+        description="Observed failure categories across monolithic attempts.",
+    )
+    ac14_failure_categories: list[AttemptFailureCategory] = Field(
+        description="Observed failure categories across AC14 attempts.",
+    )
 
 
 def load_benchmark_bundle(benchmark_dir: Path | str) -> BenchmarkBundle:
@@ -318,6 +361,38 @@ def run_empirical_comparison(
     return decision
 
 
+def run_empirical_smoke_gate(
+    benchmark_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    model: str = DEFAULT_LLM_MODEL,
+    max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+) -> SmokeReadinessArtifact:
+    """Run one bounded smoke paired trial and persist a stop/go artifact."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    report = run_paired_trial(
+        benchmark_dir=benchmark_dir,
+        output_dir=destination / "trial_1",
+        trial_id=1,
+        model=model,
+        max_budget=max_budget,
+        max_attempts=max_attempts,
+    )
+    trial_report_path = destination / "trial_1" / "paired_trial_report.json"
+    artifact = build_smoke_readiness_artifact(
+        benchmark_id=report.benchmark_id,
+        paired_trial_report=report,
+        trial_report_path=str(trial_report_path),
+    )
+    (destination / "smoke_readiness_report.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return artifact
+
+
 def build_experiment_decision_artifact(
     *,
     benchmark_id: str,
@@ -375,6 +450,60 @@ def build_experiment_decision_artifact(
         ac14=ac14_aggregate,
         monolithic=monolithic_aggregate,
         trial_report_paths=trial_report_paths,
+    )
+
+
+def build_smoke_readiness_artifact(
+    *,
+    benchmark_id: str,
+    paired_trial_report: PairedTrialReport,
+    trial_report_path: str,
+) -> SmokeReadinessArtifact:
+    """Turn one bounded paired smoke trial into an explicit stop/go verdict."""
+
+    monolithic_categories = [
+        attempt.failure_classification.category
+        for attempt in paired_trial_report.monolithic.attempts
+    ]
+    ac14_categories = [
+        attempt.failure_classification.category
+        for attempt in paired_trial_report.ac14.attempts
+    ]
+    infrastructure_failure_detected = any(
+        category == "infrastructure_provider"
+        for category in [*monolithic_categories, *ac14_categories]
+    )
+    hard_harness_success = paired_trial_report.monolithic.passed or paired_trial_report.ac14.passed
+    if infrastructure_failure_detected:
+        verdict: SmokeReadinessVerdict = "blocked_on_infrastructure"
+        rationale = (
+            "At least one bounded smoke attempt failed because of provider or transport "
+            "instability, so the five-trial budget would currently mix thesis evidence "
+            "with infrastructure noise."
+        )
+    elif hard_harness_success:
+        verdict = "ready_for_full_trials"
+        rationale = (
+            "The smoke run produced at least one hard-harness success without "
+            "infrastructure/provider contamination, so the full paired-trial gate is "
+            "worth spending."
+        )
+    else:
+        verdict = "blocked_on_harness"
+        rationale = (
+            "The smoke run showed no hard-harness success and no infrastructure-only "
+            "explanation, so the benchmark, prompts, or harness still need work before "
+            "the five-trial gate."
+        )
+    return SmokeReadinessArtifact(
+        benchmark_id=benchmark_id,
+        trial_report_path=trial_report_path,
+        verdict=verdict,
+        rationale=rationale,
+        hard_harness_success=hard_harness_success,
+        infrastructure_failure_detected=infrastructure_failure_detected,
+        monolithic_failure_categories=monolithic_categories,
+        ac14_failure_categories=ac14_categories,
     )
 
 
@@ -522,6 +651,13 @@ def _run_condition_attempt(
     duration_s = time.perf_counter() - start
     llm_cost = _observe_llm_cost(trace_prefix)
     semantic_review_passed = semantic_review is not None and semantic_review.overall_verdict == "accept"
+    failure_classification = _classify_attempt_failure(
+        generation_error=generation_error,
+        packet_tests_passed=packet_tests_passed,
+        recomposition_passed=recomposition_passed,
+        runtime_cases=runtime_cases,
+        semantic_review=semantic_review,
+    )
     failure_summary = _build_failure_summary(
         generation_error=generation_error,
         packet_tests_passed=packet_tests_passed,
@@ -539,6 +675,7 @@ def _run_condition_attempt(
         runtime_outputs_passed=runtime_outputs_passed,
         semantic_review=semantic_review,
         semantic_review_passed=semantic_review_passed,
+        failure_classification=failure_classification,
         generation_error=generation_error,
         runtime_cases=runtime_cases,
         failure_summary=failure_summary,
@@ -792,6 +929,80 @@ def _review_runtime_cases(
     return response
 
 
+INFRASTRUCTURE_ERROR_MARKERS = (
+    "503",
+    "service unavailable",
+    "server disconnected",
+    "disconnect",
+    "dns",
+    "name resolution",
+    "api connection",
+    "connecterror",
+    "remoteprotocolerror",
+    "transport",
+    "temporar",
+    "connection failure",
+    "timed out",
+    "timeout",
+)
+
+
+def _classify_attempt_failure(
+    *,
+    generation_error: str | None,
+    packet_tests_passed: bool,
+    recomposition_passed: bool,
+    runtime_cases: list[RuntimeCaseExecution],
+    semantic_review: AcceptanceReviewResponse | None,
+) -> AttemptFailureClassification:
+    """Classify one bounded empirical-comparison attempt into a stable failure domain."""
+
+    if generation_error is not None:
+        if _is_infrastructure_provider_error(generation_error):
+            return AttemptFailureClassification(
+                category="infrastructure_provider",
+                detail=generation_error,
+            )
+        return AttemptFailureClassification(category="generation", detail=generation_error)
+    if not packet_tests_passed:
+        return AttemptFailureClassification(
+            category="packet_tests",
+            detail="packet-local tests failed",
+        )
+    if not recomposition_passed:
+        return AttemptFailureClassification(
+            category="recomposition",
+            detail="recomposition proof failed",
+        )
+    failing_runtime_cases = [case for case in runtime_cases if not case.matched_expected]
+    if failing_runtime_cases:
+        details = [
+            case.error or f"{case.case_id} outputs mismatched expected outputs"
+            for case in failing_runtime_cases
+        ]
+        return AttemptFailureClassification(
+            category="runtime_outputs",
+            detail="; ".join(details),
+        )
+    if semantic_review is not None and semantic_review.overall_verdict != "accept":
+        concerns = "; ".join(semantic_review.concerns) or semantic_review.overall_verdict
+        return AttemptFailureClassification(
+            category="semantic_review",
+            detail=concerns,
+        )
+    return AttemptFailureClassification(
+        category="success",
+        detail="attempt passed the full benchmark harness",
+    )
+
+
+def _is_infrastructure_provider_error(error_text: str) -> bool:
+    """Heuristically detect provider or transport instability from one error string."""
+
+    lowered = error_text.lower()
+    return any(marker in lowered for marker in INFRASTRUCTURE_ERROR_MARKERS)
+
+
 def _build_failure_summary(
     *,
     generation_error: str | None,
@@ -815,8 +1026,9 @@ def _build_failure_summary(
         if case.error is not None:
             summary.append(f"runtime case {case.case_id} failed: {case.error}")
         else:
+            mismatch_details = _summarize_runtime_output_mismatch(case)
             summary.append(
-                f"runtime case {case.case_id} final outputs did not match the expected outputs",
+                f"runtime case {case.case_id} mismatches: " + "; ".join(mismatch_details),
             )
     if semantic_review is not None and semantic_review.overall_verdict != "accept":
         summary.extend(
@@ -877,6 +1089,76 @@ def _semantic_score(review: AcceptanceReviewResponse | None) -> float:
     if review.overall_verdict == "concern":
         return 1.0
     return 0.0
+
+
+def _summarize_runtime_output_mismatch(
+    case: RuntimeCaseExecution,
+    *,
+    max_differences: int = 6,
+) -> list[str]:
+    """Build bounded field-level mismatch guidance for one runtime case."""
+
+    actual_outputs = case.actual_outputs or {}
+    differences: list[str] = []
+    for port_name in sorted(set(case.expected_outputs) | set(actual_outputs)):
+        if len(differences) >= max_differences:
+            break
+        if port_name not in actual_outputs:
+            differences.append(f"{port_name} missing from actual outputs")
+            continue
+        if port_name not in case.expected_outputs:
+            differences.append(f"{port_name} unexpectedly present in actual outputs")
+            continue
+        differences.extend(
+            _collect_bounded_differences(
+                expected=case.expected_outputs[port_name],
+                actual=actual_outputs[port_name],
+                prefix=port_name,
+                limit=max_differences - len(differences),
+            ),
+        )
+    return differences or ["final outputs differed without a bounded field diff"]
+
+
+def _collect_bounded_differences(
+    *,
+    expected: Any,
+    actual: Any,
+    prefix: str,
+    limit: int,
+) -> list[str]:
+    """Collect bounded path-level differences between expected and actual outputs."""
+
+    if limit <= 0:
+        return []
+    if isinstance(expected, dict) and isinstance(actual, dict):
+        differences: list[str] = []
+        for key in sorted(set(expected) | set(actual)):
+            if len(differences) >= limit:
+                break
+            path = f"{prefix}.{key}"
+            if key not in actual:
+                differences.append(f"{path} missing from actual output")
+                continue
+            if key not in expected:
+                differences.append(f"{path} unexpectedly present in actual output")
+                continue
+            differences.extend(
+                _collect_bounded_differences(
+                    expected=expected[key],
+                    actual=actual[key],
+                    prefix=path,
+                    limit=limit - len(differences),
+                ),
+            )
+        return differences
+    if isinstance(expected, list) and isinstance(actual, list):
+        if expected != actual:
+            return [f"{prefix} list mismatch"]
+        return []
+    if expected != actual:
+        return [f"{prefix} expected={expected!r} actual={actual!r}"]
+    return []
 
 
 def _observe_llm_cost(trace_prefix: str) -> CostObservation:

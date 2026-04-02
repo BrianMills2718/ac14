@@ -296,6 +296,24 @@ remediation path and the selected dependency execution path, and fails loud
 when those two sources disagree.
 
 ### 2026-04-01 — codex — best-practice
+Once the empirical comparison gate exists, the next honest step is not always
+the full five-trial run. AC14 now persists an explicit smoke-readiness artifact
+with `ready_for_full_trials`, `blocked_on_infrastructure`, and
+`blocked_on_harness` so the stop/go decision is reviewable instead of living
+only in chat.
+
+### 2026-04-01 — codex — best-practice
+When AC14 LLM codegen fails during import-time validation, the raw module source
+must still be persisted for diagnosis. Otherwise the empirical lane only learns
+an exception string and the next repair step becomes guesswork.
+
+### 2026-04-01 — codex — best-practice
+If empirical smoke failures are now clearly benchmark-local, keep the next
+repair lane benchmark-local too. The current blocker has moved from provider
+noise to fidelity against the benchmark contract, so the next lane should
+tighten benchmark guidance rather than adding broad new AC14 runtime behavior.
+
+### 2026-04-01 — codex — best-practice
 The first blocked-freeze retry step should refine the plan, not mutate the
 bundle. AC14 now emits a refined draft planning artifact from the original
 plan plus the blocked freeze/remediation inputs, preserves explicit retry

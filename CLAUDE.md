@@ -101,6 +101,11 @@ For the active empirical-comparison lane, this rule is especially strict:
   explicit success criteria, not as vague continuation language
 - when the active lane is a thesis gate, prefer finishing the gate over
   broadening adjacent proof machinery
+- if the active thesis gate uncovers a real blocker such as smoke instability
+  or provider contamination, freeze a blocker-clearing numbered plan and
+  execute that plan before resuming the parent gate
+- do not describe a back-half comparison over a fixed decomposition as if it
+  were already the full end-to-end thesis test
 
 Treat waiting for further permission before the active plan is complete as a
 process failure. The required behavior is:

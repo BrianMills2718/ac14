@@ -37,7 +37,10 @@ AC14 is not yet the full long-term general coding agent, but it is not off in a
 different direction.
 
 The main current issue is no longer architectural incoherence. It is the lack
-of an explicit empirical comparison against a fair monolithic baseline.
+of a completed empirical comparison verdict against a fair monolithic baseline,
+plus the need to state clearly that the current gate is a bounded back-half
+comparison rather than the full end-to-end thesis test. The immediate blocker
+inside that gate is now benchmark-fidelity repair, not infrastructure noise.
 
 ## What Is Implemented
 
@@ -135,8 +138,9 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. proving that the decomposition approach materially beats monolithic
-   generation on a system complex enough for the thesis to matter
+4. completing the current back-half empirical gate cleanly
+5. proving that the full end-to-end decomposition approach materially beats
+   monolithic generation on a system complex enough for the thesis to matter
 
 ### Semantic Validation
 
@@ -184,7 +188,7 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. one explicit monolithic-versus-decomposition comparison experiment
+2. a completed monolithic-versus-decomposition comparison verdict
 3. broad automatic dependency installation and post-install verification as a normal lane
 4. real shared-tool execution inside blueprinted components
 5. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -221,6 +225,12 @@ context collapse should matter.
 
 Without that gate, it is too easy to mistake internal proof-hygiene progress
 for project-level thesis validation.
+
+### 3a. The current empirical gate is only a first back-half gate
+
+The current benchmark and runner compare packetized local generation against
+whole-package generation over a fixed decomposition. That is useful and worth
+finishing, but it is narrower than the strongest version of the full thesis.
 
 ### 4. Front Half Still Weaker Than Back Half
 

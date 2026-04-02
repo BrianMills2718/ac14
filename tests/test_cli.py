@@ -2006,6 +2006,21 @@ def test_cli_live_llm_readiness_suite_reports_skipped_without_keys(
     assert (tmp_path / "live_readiness_suite" / "live_llm_readiness_suite.json").exists()
 
 
+def test_cli_empirical_smoke_gate_help() -> None:
+    """Empirical-smoke-gate help should expose the bounded smoke command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "empirical-smoke-gate", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--max-attempts" in result.stdout
+    assert "--output-dir" in result.stdout
+
+
 def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     """Front-half acceptance command should persist the realistic-input artifact chain."""
 
