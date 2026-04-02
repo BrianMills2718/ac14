@@ -1,6 +1,6 @@
 # Plan #60: Empirical Smoke Gate Refresh VI
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 58, 59

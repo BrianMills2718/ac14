@@ -69,8 +69,8 @@ current executable lane.
 | 56 | [Monolithic Syntax And Failure Artifact Repair](56_monolithic_syntax_and_failure_artifact_repair.md) | Critical | Complete | 54 |
 | 57 | [Empirical Smoke Gate Refresh V](57_empirical_smoke_gate_refresh_v.md) | Critical | Complete | 55, 56 |
 | 58 | [Shipping-Only Priority And Correlator Repair](58_shipping_only_priority_and_correlator_repair.md) | Critical | Complete | 57 |
-| 59 | [Generation Stability And Pre-Emit Validation Repair](59_generation_stability_and_pre_emit_validation_repair.md) | Critical | In Progress | 57 |
-| 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | Planned | 58, 59 |
+| 59 | [Generation Stability And Pre-Emit Validation Repair](59_generation_stability_and_pre_emit_validation_repair.md) | Critical | Complete | 57 |
+| 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | In Progress | 58, 59 |
 
 ## Status Key
 

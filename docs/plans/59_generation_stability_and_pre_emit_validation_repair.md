@@ -1,6 +1,6 @@
 # Plan #59: Generation Stability And Pre-Emit Validation Repair
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 57
@@ -68,7 +68,13 @@
 
 ## Acceptance Criteria
 
-- [ ] Monolithic invalid-source persistence covers the pre-emit validation path too.
-- [ ] Attempt artifacts or failure summaries point to the persisted source for that path.
-- [ ] `resolution_assembler` guidance/prompt explicitly names the current generation-stability failures.
-- [ ] Full `pytest`, `mypy`, and `ruff` pass.
+- [x] Monolithic invalid-source persistence covers the pre-emit validation path too.
+- [x] Attempt artifacts or failure summaries point to the persisted source for that path.
+- [x] `resolution_assembler` guidance/prompt explicitly names the current generation-stability failures.
+- [x] Full `pytest`, `mypy`, and `ruff` pass.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+This lane moved the remaining monolithic invalid-module rejection out of the pre-emit black box and tightened the AC14 component contract around the real `resolution_assembler` failures from repair10. `agenerate_monolithic_system_with_llm(...)` now returns structured module responses without pre-validating module source, so `emit_monolithic_package_with_llm(...)` is the single place that validates and persists failed monolithic modules. The shared component prompt and empirical component guidance now say directly that generated modules must end with a real `build_component()` function, must not stop at trailing prose or half-finished code, and must use ordinary ASCII Python operations for digest-store updates. Both the empirical validator and the shared LLM codegen validator now fail loud on non-ASCII source with a direct contract error.

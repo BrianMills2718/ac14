@@ -119,6 +119,12 @@ def generate_component_module_with_llm(
 def _validate_generated_module(module_code: str, *, component_id: str) -> None:
     """Fail loud when generated module code does not meet the minimum contract."""
 
+    non_ascii = next((character for character in module_code if ord(character) > 127), None)
+    if non_ascii is not None:
+        raise ValueError(
+            f"generated module for {component_id} contains non-ASCII character {non_ascii!r}",
+        )
+
     try:
         tree = ast.parse(module_code)
     except SyntaxError as exc:  # pragma: no cover - exercised through fail-loud behavior

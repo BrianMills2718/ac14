@@ -896,10 +896,7 @@ async def agenerate_monolithic_system_with_llm(
 
     fixture_path = os.environ.get("AC14_MONOLITHIC_CODEGEN_FIXTURE")
     if fixture_path:
-        response = MonolithicSystemResponse.model_validate_json(Path(fixture_path).read_text())
-        for module in response.modules:
-            _validate_module_contract(module.module_code, component_id=module.component_id)
-        return response
+        return MonolithicSystemResponse.model_validate_json(Path(fixture_path).read_text())
 
     packet_cases = materialize_packet_test_cases(bundle.packet_bundle)
     packet_cases_by_component = {
@@ -932,10 +929,7 @@ async def agenerate_monolithic_system_with_llm(
             max_budget=max_budget,
         ),
     )
-    typed_response = response
-    for module in typed_response.modules:
-        _validate_module_contract(module.module_code, component_id=module.component_id)
-    return typed_response
+    return response
 
 
 def _build_condition_repair_guidance(
@@ -1058,6 +1052,8 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
             "override_action is optional on resolution_factors. Use .get or membership checks before reading it.",
             "Emit override_applied only when an override exists; do not synthesize it for non-override cases.",
             "Map action_summary explicitly: override => 'expedite allocation and notify account team'; shipping_delay => 'open carrier escalation'; compound_exception => 'coordinate exception desk escalation'.",
+            "Always end the module with a real build_component() function after GeneratedComponent; do not leave trailing prose, comments, or half-finished code at the end of the file.",
+            "When updating the digest-store entries list, use ordinary ASCII Python list and dict operations only; do not emit non-ASCII punctuation or invented method names.",
             "Preserve one digest-store entry per case_id and keep entry order stable across cases.",
         ],
     }
@@ -1569,6 +1565,12 @@ def _observe_llm_cost(trace_prefix: str) -> CostObservation:
 
 def _validate_module_contract(module_code: str, *, component_id: str) -> None:
     """Fail loud when one generated module misses the AC14 runtime contract."""
+
+    non_ascii = next((character for character in module_code if ord(character) > 127), None)
+    if non_ascii is not None:
+        raise ValueError(
+            f"generated module for {component_id} contains non-ASCII character {non_ascii!r}",
+        )
 
     try:
         tree = ast.parse(module_code)

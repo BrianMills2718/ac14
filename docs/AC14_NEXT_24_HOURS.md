@@ -9,10 +9,6 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
-
-The immediate follow-on repair chain is:
-
 - [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The empirical gate is frozen in
@@ -23,11 +19,10 @@ The parent experiment lane remains:
 
 ## Active 24-Hour Chain
 
-1. land Plan #59 so remaining generation-stability and failed-source observability gaps stop wasting bounded smoke attempts
-2. rerun one bounded smoke paired trial via Plan #60 into `.ac14_out/empirical_smoke_gate_repair11/`
-3. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
-4. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
-5. only after full trials exist should Plan #44 interpret the verdict
+1. rerun one bounded smoke paired trial via Plan #60 into `.ac14_out/empirical_smoke_gate_repair11/`
+2. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
+3. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
+4. only after full trials exist should Plan #44 interpret the verdict
 
 ## Progress Update
 
@@ -49,29 +44,20 @@ Completed before the current lane:
 14. Plan #56 monolithic failed-source persistence plus prompt hardening for shipping-only classifier stability
 15. Plan #57 repair10 smoke gate, which proved the lane is still `blocked_on_harness` without an infrastructure-only explanation
 16. Plan #58 shipping-only benchmark repair, which made the remaining ORX-101 priority rule explicit across requirements, schemas, component constraints, and repair guidance
+17. Plan #59 generation-stability and pre-emit validation repair, which moved the remaining monolithic invalid-module path into failed-source persistence and hardened the `resolution_assembler` contract around real repair10 failures
 
 Current empirical-gate reality:
 
 1. repair10 stayed `blocked_on_harness`
 2. there is still no infrastructure-only explanation right now
-3. the shared shipping-only semantic blocker is now materially tightened in the benchmark contract
-4. AC14 still wastes some bounded attempts on `resolution_assembler` generation instability, including missing `build_component()` and non-ASCII corruption
-5. one monolithic invalid-module path still fails before the full failed-source persistence path is reached
-6. the next honest move is Plan #59 followed by Plan #60, not the five-trial budget
+3. the shared shipping-only semantic blocker is now tightened in the benchmark contract
+4. the remaining monolithic invalid-module observability gap is now closed in code
+5. AC14 generation guidance now names the real `resolution_assembler` stability failures directly
+6. the next honest move is Plan #60, not the five-trial budget
 
 ## Tactical Phase Summary
 
-### Phase 1: generation-stability and observability repair
-
-- land Plan #59 so the remaining monolithic pre-emit validation path persists invalid source and the AC14 `resolution_assembler` prompt/guidance stops wasting attempts on known contract failures
-- verify the repair through targeted tests before broad verification
-
-Success criteria:
-
-- monolithic invalid-source persistence covers the remaining pre-emit validation path too
-- AC14 generation guidance explicitly names the current `resolution_assembler` stability failures
-
-### Phase 2: bounded smoke rerun and gate lock
+### Phase 1: bounded smoke rerun and gate lock
 
 - rerun one bounded smoke paired trial under the post-58/post-59 lane
 - read the smoke and paired-trial artifacts directly

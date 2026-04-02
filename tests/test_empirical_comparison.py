@@ -32,6 +32,7 @@ from ac14.empirical_comparison import (
     build_experiment_decision_artifact,
     build_smoke_readiness_artifact,
     emit_monolithic_package_with_llm,
+    generate_monolithic_system_with_llm,
     load_benchmark_bundle,
     run_paired_trial,
 )
@@ -401,6 +402,8 @@ def test_component_specific_repair_guidance_targets_resolution_assembler() -> No
     )
 
     assert any("override_action is optional" in line for line in guidance["resolution_assembler"])
+    assert any("real build_component() function" in line for line in guidance["resolution_assembler"])
+    assert any("ASCII Python list and dict operations" in line for line in guidance["resolution_assembler"])
     assert any("override_action" in line for line in guidance["factor_correlator"])
     assert not any("runtime case ORX-101 failed: 'override_action'" in line for line in guidance["case_parser"])
 
@@ -524,6 +527,61 @@ def test_emit_monolithic_package_persists_failed_module_source(
     assert response_path.exists()
     assert "def broken(:" in failed_path.read_text()
     assert json.loads(metadata_path.read_text())["persisted_failed_module_source"] is True
+
+
+def test_generate_monolithic_system_fixture_defers_invalid_module_validation_to_emit_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Fixture-backed monolithic generation should defer invalid-module rejection to the emit path."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    modules = []
+    for component_id in bundle.blueprint.components:
+        module_code = (
+            "class GeneratedComponent:\n"
+            "    def execute(self, inputs):\n"
+            "        return {}\n\n"
+            "def build_component():\n"
+            "    return GeneratedComponent()\n"
+        )
+        if component_id == "exception_classifier":
+            module_code = "def broken(:\n    pass\n"
+        modules.append({"component_id": component_id, "module_code": module_code})
+
+    fixture_path = tmp_path / "monolithic_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "modules": modules,
+                "implementation_notes": ["fixture with invalid exception_classifier"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    monkeypatch.setenv("AC14_MONOLITHIC_CODEGEN_FIXTURE", str(fixture_path))
+
+    response = generate_monolithic_system_with_llm(
+        bundle=bundle,
+        trace_id="test/monolithic_fixture/defer_validation",
+        repair_guidance=[],
+        max_budget=0.1,
+    )
+
+    assert len(response.modules) == len(bundle.blueprint.components)
+    with pytest.raises(ValueError, match="failed module source persisted at"):
+        emit_monolithic_package_with_llm(
+            bundle=bundle,
+            output_dir=tmp_path / "monolithic_from_fixture",
+            trace_id="test/monolithic_fixture/emit",
+            repair_guidance=[],
+            max_budget=0.1,
+        )
+
+    failed_path = tmp_path / "monolithic_from_fixture" / "exception_classifier.failed.py"
+    assert failed_path.exists()
+    assert "def broken(:" in failed_path.read_text()
 
 
 def test_failure_summary_includes_packet_and_recomposition_diff_details() -> None:

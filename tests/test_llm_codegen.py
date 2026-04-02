@@ -140,6 +140,40 @@ def test_llm_codegen_fails_loud_on_missing_build_component(
         )
 
 
+def test_llm_codegen_fails_loud_on_non_ascii_source(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Non-ASCII source should fail loud with a direct contract error."""
+
+    async def _fake_async_call(*args: object, **kwargs: object) -> tuple[GeneratedModuleResponse, object]:
+        return (
+            GeneratedModuleResponse(
+                module_code=(
+                    "class GeneratedComponent:\n"
+                    "    def execute(self, inputs):\n"
+                    "        items = []\n"
+                    "        items.aைppend({})\n"
+                    "        return {}\n\n"
+                    "def build_component():\n"
+                    "    return GeneratedComponent()\n"
+                ),
+                implementation_notes=["non-ascii source"],
+            ),
+            object(),
+        )
+
+    monkeypatch.setattr("ac14.llm_codegen.acall_llm_structured", _fake_async_call)
+
+    with pytest.raises(ValueError, match="contains non-ASCII character"):
+        asyncio.run(
+            agenerate_component_module_with_llm(
+                _digest_assembler_context(),
+                trace_id="test/llm_codegen/non_ascii",
+                max_budget=0.1,
+            ),
+        )
+
+
 def test_generate_component_module_with_llm_uses_fixture_env(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -217,6 +251,8 @@ def test_component_prompt_forbids_preclass_generatedcomponent_annotations_and_un
     assert "never break after `and` / `or` without explicit continuation" in system_message
     assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
     assert "ASCII-only Python source code" in system_message
+    assert "end the file with real executable Python code" in system_message
+    assert "ordinary ASCII Python operations and method names only" in system_message
 
 
 def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(

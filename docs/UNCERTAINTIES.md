@@ -229,19 +229,24 @@ shipping-only `high` priority to escalation.
 artifact proves that shipping-only rule no longer dominates the bounded attempts.
 
 ### U-062: Monolithic invalid-Python failures still lose observability.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** Plan #56 fixed the main failed-source persistence path, but repair10
 showed one remaining pre-emit validation path in `agenerate_monolithic_system_with_llm(...)`
-can still fail before the full failed-source artifact is written.
+that could still fail before the full failed-source artifact was written.
 **Why it matters:** The empirical gate cannot be debugged honestly if one
 condition burns attempts on invalid code that the artifact chain does not
 preserve for direct review.
+**Resolution:** Plan #59 moved module-contract validation fully into
+`emit_monolithic_package_with_llm(...)`, so invalid monolithic module source is
+now preserved before the attempt fails.
+**Date resolved:** 2026-04-02
 
 ### U-063: AC14 still loses bounded attempts to `resolution_assembler` generation instability.
 **Status:** Investigating
 **Context:** In repair10 the AC14 lane still lost bounded attempts to
 `resolution_assembler` failures such as missing `build_component()` and non-ASCII
-corruption.
+corruption. Plan #59 hardened both prompt and validator surfaces around those
+exact failures.
 **Why it matters:** The empirical gate cannot measure benchmark logic honestly
 if one condition continues to waste attempts on known codegen-contract failures.
 

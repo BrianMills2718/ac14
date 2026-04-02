@@ -12,10 +12,6 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
-
-The immediate follow-on repair chain is:
-
 - [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The experiment contract is frozen in:
@@ -58,7 +54,7 @@ The previously active propagation lane remains blocked:
 - [x] Plan #58: repair the shared shipping-only priority and correlator rule exposed by repair10
   - Success criteria: benchmark contract and empirical guidance say directly that shipping-only standard-customer cases may route to logistics, keep `escalation_required=false`, and still remain `priority_band='high'`
 
-- [ ] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap
+- [x] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap
   - Success criteria: the remaining monolithic invalid-module path persists failed source and AC14 `resolution_assembler` guidance explicitly names the current contract failures
 
 - [ ] Plan #60: rerun one bounded smoke gate on the post-58/post-59 lane
@@ -69,13 +65,13 @@ The previously active propagation lane remains blocked:
 - AC14 still lacks a completed five-trial comparison result even though the comparison contract and runner exist
 - the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
 - repair10 proved the current blocker is still harness-local rather than infrastructure-local
-- the remaining blocker set is now concrete: shipping-only standard-customer semantics plus generation-stability/failed-source persistence gaps
+- the shared shipping-only semantic blocker is now tightened in the benchmark contract, but the next smoke artifact must prove it actually stopped dominating failures
 - if repair11 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
 
 ## Latest Verified Baseline
 
 - the most recent fully verified implementation state passed:
-  - `python -m pytest -q` with `242 passed`
+  - `python -m pytest -q` with `244 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - the most recently completed planning lanes are:
