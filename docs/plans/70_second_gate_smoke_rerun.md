@@ -1,6 +1,6 @@
 # Plan #70: Second-Gate Smoke Rerun
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 68, 69
@@ -75,3 +75,18 @@ produces one honest smoke verdict.
 - [ ] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or
   `blocked_on_infrastructure`.
 - [ ] The active docs point to Plan #66 if ready, otherwise Plan #71.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+The rerun artifact at `.ac14_out/full_trials_gate_2_smoke_rerun/` returned
+`ready_for_full_trials`. The decisive facts are:
+
+- `hard_harness_success = true`
+- `infrastructure_failure_detected = false`
+- monolithic produced one full success within the bounded smoke budget
+- AC14 still failed on runtime outputs in all three attempts
+
+That means the empirical gate is now spendable. The next honest lane is Plan
+#66, not another blocker-diagnosis micro-plan.

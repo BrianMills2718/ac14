@@ -12,14 +12,14 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
 
 The explicit active chain is:
 
 - [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) -> complete
 - [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
 - [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
-- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md) -> complete
 - if rerun says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
@@ -60,16 +60,17 @@ The previously active propagation lane remains blocked:
 - [x] Plan #69: add pre-emit monolithic input-port contract validation
   - Result: unknown `inputs[...]` ports now fail before runtime with persisted failed source
 
-- [ ] Plan #70: rerun the smoke gate after the harness fixes
-  - `ready_for_full_trials` -> spend the full five-trial budget and lock the second verdict
-  - blocked -> freeze one blocker-clearing repair plan and keep unrelated lanes blocked
+- [x] Plan #70: rerun the smoke gate after the harness fixes
+  - Result: `.ac14_out/full_trials_gate_2_smoke_rerun/smoke_readiness_report.json` exists with verdict `ready_for_full_trials`
+
+- [ ] Plan #66: spend the full five-trial budget and lock the second verdict
 
 ## Current Open Uncertainties
 
 - the first empirical gate is complete but inconclusive; AC14 still lacks a decisive empirical result in either direction
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
-- the second gate now has a harder benchmark and a blocked smoke artifact; the active question is whether Plans #68 and #69 are sufficient to open the five-trial gate honestly
+- the second gate is now open for full trials on the harder benchmark; the active question is what verdict the five-trial artifact will produce
 
 ## Latest Verified Baseline
 
@@ -80,6 +81,7 @@ The previously active propagation lane remains blocked:
 - latest empirical verification baseline:
   - `.ac14_out/full_trials_gate_1/experiment_decision.json` with verdict `inconclusive`
   - `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` with verdict `blocked_on_harness`
+  - `.ac14_out/full_trials_gate_2_smoke_rerun/smoke_readiness_report.json` with verdict `ready_for_full_trials`
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
 - latest notebook/governance verification baseline:
@@ -89,6 +91,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plans #68–#70 through the corrected smoke branch
+- [ ] complete Plan #66 and lock the second empirical verdict
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

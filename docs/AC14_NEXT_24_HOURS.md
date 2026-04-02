@@ -9,14 +9,14 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
 
 The explicit active chain is:
 
 - [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) -> complete
 - [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
 - [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
-- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md) -> complete
 - if rerun says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
@@ -33,10 +33,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. run Plan #70 and persist one honest rerun smoke verdict after the completed harness fixes
-2. if the rerun says `ready_for_full_trials`, execute Plan #66 immediately
-3. if the rerun says `blocked_on_harness` or `blocked_on_infrastructure`, freeze Plan #71 immediately
-4. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
+1. execute Plan #66 now that the rerun smoke artifact says `ready_for_full_trials`
+2. lock the second empirical verdict from the five-trial gate
+3. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
 
 ## Progress Update
 
@@ -57,33 +56,19 @@ Completed before the current lane:
 13. a runtime-first empirical contract that demotes packet/recomposition failures to diagnostic evidence
 14. a verified second-gate benchmark bundle at `benchmarks/resource_scaling/` with 13 components, four runtime cases, and categorical-only final outputs
 15. a clean second-gate smoke artifact at `.ac14_out/full_trials_gate_2_smoke/` with verdict `blocked_on_harness` and an explicit blocker diagnosis
+16. a corrected smoke rerun at `.ac14_out/full_trials_gate_2_smoke_rerun/` with verdict `ready_for_full_trials`
 
 ## Tactical Phase Summary
 
-### Phase 1: deterministic exact-match semantic-review policy
+### Phase 1: full five-trial gate
 
-- add a benchmark-level semantic-review policy
-- make deterministic exact-match categorical benchmarks advisory rather than blocking
-
-Success criteria:
-
-- exact-match runtime outputs can still pass when the policy is advisory
-- semantic review artifacts are still persisted
-
-### Phase 2: monolithic input-port contract validation
-
-- detect unknown literal `inputs[...]` ports before runtime
-- persist failed source and a precise validation error
+- run the second empirical benchmark for five paired trials
+- keep the runtime-first contract and repaired harness surfaces fixed
 
 Success criteria:
 
-- monolithic modules like `on_compliance` fail pre-emit
-- runtime is no longer the first place this contract class appears
-
-### Phase 3: bounded smoke rerun
-
-- rerun one paired smoke trial after the harness fixes
-- branch immediately to Plan #66 or Plan #71 from the persisted verdict
+- `.ac14_out/full_trials_gate_2/experiment_decision.json` exists
+- the artifact records an honest verdict: `ac14_wins`, `monolithic_wins`, or `inconclusive`
 
 ## Known Uncertainties
 
@@ -93,6 +78,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the rerun may still show genuine AC14 benchmark-local runtime failures even after the two harness-correctness fixes land
+1. AC14 may still lose the second full-trial gate even though the harness is now spendable
 2. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
-3. blocked propagation lanes should stay blocked until the second gate produces either a verdict or an explicit blocker-clearing plan
+3. blocked propagation lanes should stay blocked until the second gate produces a locked five-trial verdict
