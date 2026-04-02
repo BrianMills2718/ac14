@@ -16,6 +16,10 @@ messages:
       - fails loud rather than hiding mistakes
 
       Hard runtime-contract rules:
+      - GeneratedComponent must be defined in THIS file — do NOT inherit from an external base class
+      - do not write `class GeneratedComponent(SomeBase):` unless SomeBase is also defined in this file
+      - all port values inside `inputs` are plain Python dicts — access them with `inputs['port_name']['field']` not `inputs['port_name'].field`
+      - never use attribute access (dot notation) on values that came from `inputs` — they are dicts, not Pydantic models
       - do not invent wrapper schema classes for runtime inputs or outputs
       - do not require `execute()` callers to pass custom objects instead of dictionaries
       - `build_component()` must return the component instance itself, not a dict or registry
