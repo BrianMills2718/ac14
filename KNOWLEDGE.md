@@ -402,4 +402,13 @@ before the LLM judge sees them. Any semantic-evaluation prompt path that renders
 fixture data through Jinja `tojson` must normalize those values first or the
 harness will crash with `Object of type datetime is not JSON serializable`.
 
+### 2026-04-02 — codex — best-practice
+When a smoke rerun narrows the blocker set to concrete generation-contract
+failures, encode those failures directly in both the prompt and the repair
+artifact surface. In this benchmark that meant forbidding unparenthesized
+multiline boolean expressions, forbidding pre-class `GeneratedComponent`
+annotations on `build_component()`, naming the ORX-101 shipping-only rule
+explicitly, and pinning `case_parser.normalized_notes` to lowercasing-only
+normalization.
+
 ---

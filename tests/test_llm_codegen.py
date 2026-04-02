@@ -204,6 +204,20 @@ def test_component_prompt_forbids_comment_only_branches_and_fallback_labels() ->
     assert "keep comments short and rare" in system_message
 
 
+def test_component_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:
+    """The shared component prompt should harden the current import-time and multiline-condition failures."""
+
+    messages = render_prompt(
+        PROMPT_PATH,
+        context=_digest_assembler_context().model_dump(mode="json"),
+    )
+
+    system_message = next(message["content"] for message in messages if message["role"] == "system")
+    assert "wrap the whole expression in parentheses" in system_message
+    assert "never break after `and` / `or` without explicit continuation" in system_message
+    assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
+
+
 def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

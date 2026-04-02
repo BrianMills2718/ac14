@@ -1,6 +1,6 @@
 # Plan #51: Empirical Smoke Gate Refresh III
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 50

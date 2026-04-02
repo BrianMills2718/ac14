@@ -39,11 +39,10 @@ different direction.
 The main current issue is no longer architectural incoherence. It is the lack
 of a completed empirical comparison verdict against a fair monolithic baseline,
 plus the need to state clearly that the current gate is a bounded back-half
-comparison rather than the full end-to-end thesis test. The immediate blocker
-inside that gate is now a narrower benchmark-fidelity repair lane, not
-infrastructure noise: Plan #49 fixed the harness-observability gap, and the
-remaining blocker set is now specific generator-contract and benchmark-local
-fidelity work rather than generic smoke instability.
+comparison rather than the full end-to-end thesis test. Plan #49 fixed the
+harness-observability gap, Plan #50 landed the latest targeted repair slice,
+and the next honest step is now a fresh bounded smoke verdict rather than more
+speculative repair work.
 
 ## What Is Implemented
 

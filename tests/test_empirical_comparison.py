@@ -6,9 +6,12 @@ import json
 from pathlib import Path
 
 import pytest
+from llm_client import render_prompt  # type: ignore[import-not-found]
 
 from ac14.acceptance import AcceptanceReviewResponse
+from ac14.packet_tests import materialize_packet_test_cases
 from ac14.empirical_comparison import (
+    MONOLITHIC_PROMPT_PATH,
     AttemptFailureClassification,
     ConditionAttemptReport,
     ConditionTrialReport,
@@ -392,6 +395,43 @@ def test_component_specific_repair_guidance_targets_resolution_assembler() -> No
     assert any("override_action" in line for line in guidance["factor_correlator"])
     assert not any("runtime case ORX-101 failed: 'override_action'" in line for line in guidance["case_parser"])
 
+
+def test_benchmark_repair_guidance_targets_shipping_only_orx101_and_case_parser_normalization() -> None:
+    """Benchmark-local guidance should name the remaining ORX-101 and parser-fidelity rules."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    guidance = _benchmark_repair_guidance(bundle=bundle, condition="monolithic")
+    component_guidance = _build_component_repair_guidance(bundle=bundle, prior_guidance=[])
+
+    assert any("ORX-101 is a shipping-only benchmark case" in line for line in guidance)
+    assert any("normalize support notes by lowercasing only" in line.lower() for line in component_guidance["case_parser"])
+
+
+def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:
+    """The monolithic prompt should harden the same import-time and multiline-condition failures."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    packet_test_cases_by_component = {
+        component_id: [case.model_dump(mode="json") for case in cases]
+        for component_id, cases in materialize_packet_test_cases(bundle.packet_bundle).items()
+    }
+    messages = render_prompt(
+        MONOLITHIC_PROMPT_PATH,
+        benchmark=bundle.config.model_dump(mode="json"),
+        requirements_text=bundle.requirements_text,
+        blueprint_metadata=bundle.blueprint.metadata.model_dump(mode="json"),
+        schemas={schema_id: schema.model_dump(mode="json") for schema_id, schema in bundle.blueprint.schemas.items()},
+        components={component_id: component.model_dump(mode="json") for component_id, component in bundle.blueprint.components.items()},
+        bindings=[binding.model_dump(mode="json") for binding in bundle.blueprint.bindings],
+        state_stores={store_id: store.model_dump(mode="json") for store_id, store in bundle.blueprint.state_stores.items()},
+        packet_test_cases_by_component=packet_test_cases_by_component,
+        repair_guidance=[],
+    )
+
+    system_message = next(message["content"] for message in messages if message["role"] == "system")
+    assert "wrap the whole expression in parentheses" in system_message
+    assert "never break after `and` / `or` without explicit continuation" in system_message
+    assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
 
 
 def test_benchmark_repair_guidance_excludes_dynamic_generated_at_from_diff() -> None:

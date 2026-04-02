@@ -1,6 +1,6 @@
 # Plan #50: Empirical Contract And Benchmark Fidelity Repair
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation + implementation
 **Priority:** Critical
 **Blocked By:** None
@@ -107,11 +107,11 @@ mistakes and silent parser drift.
 
 ## Acceptance Criteria
 
-- [ ] Prompt hardening explicitly covers the current AC14 generator-contract failure patterns.
-- [ ] Benchmark-local guidance explicitly covers ORX-101 shipping-only handling.
-- [ ] Benchmark-local guidance explicitly says `case_parser.normalized_notes` should lowercase only and not rewrite punctuation.
-- [ ] Focused and full local verification pass.
-- [ ] The active control docs point to Plan #51 for the next smoke rerun.
+- [x] Prompt hardening explicitly covers the current AC14 generator-contract failure patterns.
+- [x] Benchmark-local guidance explicitly covers ORX-101 shipping-only handling.
+- [x] Benchmark-local guidance explicitly says `case_parser.normalized_notes` should lowercase only and not rewrite punctuation.
+- [x] Focused and full local verification pass.
+- [x] The active control docs point to Plan #51 for the next smoke rerun.
 
 ---
 
@@ -119,3 +119,16 @@ mistakes and silent parser drift.
 
 This plan stays benchmark-local where appropriate. The goal is not to broaden
 AC14 policy; it is to clear the exact blocker set revealed by repair7.
+
+## Implementation Summary (2026-04-02)
+
+- The shared component and monolithic prompts now explicitly forbid two active
+  contract-level failure modes: unparenthesized multiline boolean expressions
+  and pre-class `GeneratedComponent` return annotations on `build_component()`.
+- Benchmark-local repair guidance now names the ORX-101 shipping-only rule
+  directly and reinforces that `case_parser.normalized_notes` should lowercase
+  only without rewriting punctuation.
+- Benchmark-local guidance now also reinforces that the digest store must remain
+  deterministic across processed cases instead of resetting every execute call.
+- Verification passed with targeted Plan #50 tests, full `pytest`, `mypy`, and
+  `ruff`.

@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #50: Empirical Contract And Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/50_empirical_contract_and_benchmark_fidelity_repair.md)
+- [Plan #51: Empirical Smoke Gate Refresh III](/home/brian/projects/ac14/docs/plans/51_empirical_smoke_gate_refresh_iii.md)
 
 The experiment contract is frozen in:
 
@@ -21,10 +21,6 @@ The experiment contract is frozen in:
 The parent experiment lane remains:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
-
-The next smoke gate is frozen in:
-
-- [Plan #51: Empirical Smoke Gate Refresh III](/home/brian/projects/ac14/docs/plans/51_empirical_smoke_gate_refresh_iii.md)
 
 The full-trial and interpretation gates remain blocked behind smoke readiness:
 
@@ -46,15 +42,7 @@ The previously active propagation lane remains blocked:
 - [x] Plan #47: prompt and benchmark-guidance hardening landed and passed verification
 - [x] Plan #48: bounded smoke rerun stayed `blocked_on_harness` on the repair7 artifact
 - [x] Plan #49: empirical attempts now persist `packet_test_report.json` and `recomposition_report.json`, and semantic-eval prompt inputs are JSON-safe for datetime-bearing fixtures
-
-- [ ] Plan #50 Phase 1: clear the remaining generator-contract failures
-  - Success criteria: prompt/guidance hardening explicitly covers unparenthesized multiline boolean conditions and pre-class `GeneratedComponent` return annotations
-
-- [ ] Plan #50 Phase 2: clear the remaining benchmark-fidelity misses
-  - Success criteria: benchmark-local guidance explicitly covers ORX-101 shipping-only handling and exact `case_parser.normalized_notes` lowercasing-only behavior
-
-- [ ] Plan #50 Phase 3: verify and lock docs
-  - Success criteria: targeted tests, full `pytest`, `mypy`, and `ruff` pass; the control docs point to Plan #51 for the next smoke rerun
+- [x] Plan #50: prompt and benchmark-local guidance now cover the remaining contract/fidelity blocker set, and the lane passed targeted tests plus full `pytest`, `mypy`, and `ruff`
 
 - [ ] Plan #51 Phase 1: rerun one bounded smoke gate on the repaired lane
   - Success criteria: one fresh smoke artifact exists after Plan #50
@@ -68,19 +56,19 @@ The previously active propagation lane remains blocked:
 - the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
 - the latest bounded smoke artifact is `.ac14_out/empirical_smoke_gate_repair7/`, and it remained `blocked_on_harness`
 - manual reruns should no longer be needed to diagnose packet and recomposition failures because every empirical attempt now persists those reports directly
-- the current remaining blocker set is narrow: multiline boolean syntax without parentheses, pre-class `GeneratedComponent` annotations, ORX-101 shipping-only benchmark fidelity, and `case_parser.normalized_notes` punctuation drift
+- Plan #50 landed, but the next smoke artifact still needs to prove whether those repairs were enough to change the gate outcome
 
 ## Latest Verified Baseline
 
 - the most recent fully verified implementation state passed:
-  - `python -m pytest -q` with `235 passed`
+  - `python -m pytest -q` with `238 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - the most recently completed planning lane was:
-  - [Plan #49: Empirical Attempt Observability And Harness Serialization](/home/brian/projects/ac14/docs/plans/49_empirical_attempt_observability_and_harness_serialization.md)
+  - [Plan #50: Empirical Contract And Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/50_empirical_contract_and_benchmark_fidelity_repair.md)
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #50, then run Plan #51 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
+- [ ] complete Plan #51 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
 - [ ] interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
 - [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis
