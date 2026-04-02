@@ -709,3 +709,119 @@ def test_benchmark_repair_guidance_excludes_dynamic_generated_at_from_diff() -> 
 
     # generated_at must not appear as a mismatch in repair guidance
     assert not any("generated_at" in line for line in summary)
+
+
+def test_trial_success_does_not_require_packet_tests(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Trial passed should be true when runtime outputs are correct, even if packet tests fail."""
+
+    # mock-ok: verifies the success criterion is runtime-primary, not harness behavior.
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    def _fake_good_package(*args: object, **kwargs: object) -> object:
+        from ac14.generated_codegen import GeneratedPackage
+        return GeneratedPackage(output_dir=str(tmp_path / "generated"), generator_kind="llm", module_paths={})
+
+    def _fake_packet_tests_failing(*args: object, **kwargs: object) -> object:
+        from ac14.generated_evidence import PacketTestReport
+        return PacketTestReport(passed=False, results=[])
+
+    def _fake_recomposition_passing(*args: object, **kwargs: object) -> object:
+        from ac14.recomposition import RecompositionReport
+        return RecompositionReport(passed=True, runnable_scenario_count=0, skipped_scenarios=[], results=[])
+
+    def _fake_runtime_cases_all_passing(*args: object, **kwargs: object) -> list[RuntimeCaseExecution]:
+        return [
+            RuntimeCaseExecution(case_id="ORX-100", matched_expected=True, actual_outputs={}, expected_outputs={}),
+            RuntimeCaseExecution(case_id="ORX-101", matched_expected=True, actual_outputs={}, expected_outputs={}),
+            RuntimeCaseExecution(case_id="ORX-102", matched_expected=True, actual_outputs={}, expected_outputs={}),
+        ]
+
+    def _fake_semantic_review_accept(*args: object, **kwargs: object) -> object:
+        from ac14.acceptance import AcceptanceReviewResponse
+        return AcceptanceReviewResponse(
+            overall_verdict="accept", summary="ok", concerns=[], requirement_assessments=[]
+        )
+
+    monkeypatch.setattr("ac14.empirical_comparison.emit_generated_package", _fake_good_package)
+    monkeypatch.setattr("ac14.empirical_comparison.run_generated_packet_tests", _fake_packet_tests_failing)
+    monkeypatch.setattr("ac14.empirical_comparison.run_generated_recomposition_proof", _fake_recomposition_passing)
+    monkeypatch.setattr("ac14.empirical_comparison._execute_runtime_cases", _fake_runtime_cases_all_passing)
+    monkeypatch.setattr("ac14.empirical_comparison._review_runtime_cases", _fake_semantic_review_accept)
+    monkeypatch.setattr("ac14.empirical_comparison._observe_llm_cost", lambda trace_prefix: CostObservation(status="no_rows"))
+
+    report = _run_condition_attempt(
+        bundle=bundle,
+        condition="ac14",
+        trial_id=1,
+        attempt_id=1,
+        output_dir=tmp_path / "attempt_1",
+        model="test-model",
+        max_budget=0.01,
+        repair_guidance=[],
+    )
+
+    assert report.passed is True
+    assert report.packet_tests_passed is False  # packet tests still logged
+    assert report.runtime_outputs_passed is True
+    assert report.failure_classification.category == "success"
+
+
+def test_packet_tests_logged_as_diagnostic(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Packet test results should be persisted in the trial artifact even when not gating success."""
+
+    # mock-ok: verifies that packet test report is persisted as diagnostic regardless of pass/fail.
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    def _fake_good_package(*args: object, **kwargs: object) -> object:
+        from ac14.generated_codegen import GeneratedPackage
+        return GeneratedPackage(output_dir=str(tmp_path / "generated"), generator_kind="llm", module_paths={})
+
+    def _fake_packet_tests_failing(*args: object, **kwargs: object) -> object:
+        from ac14.generated_evidence import PacketTestReport
+        return PacketTestReport(passed=False, results=[])
+
+    def _fake_recomposition_passing(*args: object, **kwargs: object) -> object:
+        from ac14.recomposition import RecompositionReport
+        return RecompositionReport(passed=True, runnable_scenario_count=0, skipped_scenarios=[], results=[])
+
+    def _fake_runtime_cases_all_passing(*args: object, **kwargs: object) -> list[RuntimeCaseExecution]:
+        return [
+            RuntimeCaseExecution(case_id="ORX-100", matched_expected=True, actual_outputs={}, expected_outputs={}),
+        ]
+
+    def _fake_semantic_review_accept(*args: object, **kwargs: object) -> object:
+        from ac14.acceptance import AcceptanceReviewResponse
+        return AcceptanceReviewResponse(
+            overall_verdict="accept", summary="ok", concerns=[], requirement_assessments=[]
+        )
+
+    monkeypatch.setattr("ac14.empirical_comparison.emit_generated_package", _fake_good_package)
+    monkeypatch.setattr("ac14.empirical_comparison.run_generated_packet_tests", _fake_packet_tests_failing)
+    monkeypatch.setattr("ac14.empirical_comparison.run_generated_recomposition_proof", _fake_recomposition_passing)
+    monkeypatch.setattr("ac14.empirical_comparison._execute_runtime_cases", _fake_runtime_cases_all_passing)
+    monkeypatch.setattr("ac14.empirical_comparison._review_runtime_cases", _fake_semantic_review_accept)
+    monkeypatch.setattr("ac14.empirical_comparison._observe_llm_cost", lambda trace_prefix: CostObservation(status="no_rows"))
+
+    report = _run_condition_attempt(
+        bundle=bundle,
+        condition="ac14",
+        trial_id=1,
+        attempt_id=1,
+        output_dir=tmp_path / "attempt_1",
+        model="test-model",
+        max_budget=0.01,
+        repair_guidance=[],
+    )
+
+    # Packet test report should be persisted as a diagnostic artifact
+    assert report.packet_test_report_path is not None
+    packet_report_data = json.loads(Path(report.packet_test_report_path).read_text())
+    assert packet_report_data["passed"] is False  # still logs the failure
+    # But the attempt itself passes because runtime outputs are correct
+    assert report.passed is True
