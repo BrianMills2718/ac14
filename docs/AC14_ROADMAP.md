@@ -77,6 +77,38 @@ Failure signs:
 2. packet sufficiency still depends on hidden global context
 3. recomposition only works on narrow repeated examples
 
+## Horizon 1 Gate: Empirical Comparison
+
+Goal:
+
+Answer the main thesis question before more propagation-proof micro-lanes
+accumulate:
+
+Does AC14's decomposition discipline materially beat a fair monolithic baseline
+on a system complex enough for context management to matter?
+
+Focus areas:
+
+1. define one comparison target that is neither trivial nor unreviewably large
+2. define a fair `monolithic` condition and a fair `AC14` condition
+3. define one explicit primary outcome plus supporting metrics
+4. persist a decision artifact that says whether AC14 wins clearly, loses, or
+   remains inconclusive
+
+Exit criteria:
+
+1. the target system is explicit
+2. the baseline protocol is explicit
+3. the scoring rubric and decision rule are explicit
+4. the result can falsify AC14's stronger thesis claim
+
+Failure signs:
+
+1. the active plan sequence keeps expanding propagation-proof lanes without the
+   comparison gate
+2. AC14 continues to count proof-hygiene progress as thesis validation
+3. the comparison target is too small to stress context or too vague to score
+
 ## Horizon 2: Strengthen The Front Half
 
 Goal:
@@ -156,8 +188,8 @@ Failure signs:
 In order:
 
 1. keep the notebook/story artifacts synchronized with implementation
-2. finish the remaining proof-slice infrastructure, especially suite-level realistic-input default-gate integration
-3. strengthen the front half before making stronger generality claims
+2. design and run the empirical comparison gate before more propagation-proof micro-lanes
+3. strengthen the front half where it materially improves that comparison
 4. broaden proof breadth before expanding scope claims
 
 ## Working Rule
@@ -172,3 +204,7 @@ these:
 5. breadth of evidence
 
 If a lane strengthens none of those, it is probably side machinery.
+
+If a lane only propagates a newly added artifact field but does not materially
+improve the empirical gate, it is probably lower priority than the comparison
+plan.

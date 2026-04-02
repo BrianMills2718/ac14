@@ -258,6 +258,12 @@ propagation rather than more raw discovery features. The summaries now exist at
 the front-half discovery-through-freeze chain without creating a second truth
 surface.
 
+### 2026-04-01 — codex — best-practice
+When AC14 enters a sequence of clean propagation-proof micro-lanes, the next
+honest gate is not automatically the next propagation proof. If the main
+thesis is still unmeasured, insert an explicit empirical comparison gate before
+continuing so plan completion does not masquerade as thesis validation.
+
 ### 2026-04-01 — codex — integration-issue
 AC14's retrieval surface depended on `open_web_retrieval`, but the repo had not
 declared that shared dependency explicitly and the current editable install was

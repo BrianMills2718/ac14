@@ -108,6 +108,7 @@ AC14 now supports:
 
 AC14 is still incomplete on:
 
+- one explicit empirical comparison showing whether AC14 materially beats a fair monolithic baseline
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
 - explicit front-half proof that the new directory schema-divergence concerns survive the discovery-through-freeze chain
@@ -117,6 +118,8 @@ AC14 is still incomplete on:
 - first-class tool/runtime nodes in the blueprint model
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
+
+The next strategic gate is execution of [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md) using the frozen contract from [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
 
 ## Quickstart
 

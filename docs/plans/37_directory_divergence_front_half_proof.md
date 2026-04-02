@@ -1,9 +1,9 @@
 # Plan #37: Directory Divergence Front-Half Proof
 
-**Status:** In Progress
+**Status:** Blocked
 **Type:** implementation
 **Priority:** High
-**Blocked By:** 36
+**Blocked By:** 39
 **Blocks:** None
 
 ---
@@ -108,3 +108,8 @@ chain that AC14 uses to judge pre-freeze reasoning quality.
 
 This lane is about propagation, not new discovery logic. The persisted
 discovery artifact remains the artifact of record for divergence concerns.
+
+This lane is now blocked behind Plan #39's comparison execution lane. It is
+still a reasonable follow-on lane if the comparison plan shows that extra
+front-half proof hygiene would materially strengthen the thesis test, but it is
+no longer the default next step.

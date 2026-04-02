@@ -9,16 +9,16 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #37: Directory Divergence Front-Half Proof](/home/brian/projects/ac14/docs/plans/37_directory_divergence_front_half_proof.md)
+- [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
 
-Plan #36 closed the raw discovery divergence lane. The active 24-hour
-chain is now:
+The empirical gate is now frozen in
+[Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
+The active 24-hour chain is now:
 
-1. prove that the new directory schema-divergence concerns survive the
-   front-half chain
-2. keep one explicit primary structured planning input while preserving the new
-   divergence evidence
-3. keep CLI and Make parity so the propagation proof is reviewable
+1. build the benchmark asset bundle for the frozen comparison target
+2. execute paired `monolithic` and `AC14` trials under the frozen fairness rules
+3. persist one reviewable decision artifact instead of treating experiment
+   results as conversational judgment
 
 ## Progress Update
 
@@ -32,40 +32,39 @@ Completed before this lane:
 6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
 7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 
-Completed in Plan #36:
+Completed before this lane as the immediate predecessor:
 
-1. directory discovery now compares the primary structured candidate against
-   alternate structured candidates explicitly
-2. directory discovery now persists bounded schema-divergence concerns instead
-   of leaving shape drift implicit
-3. CLI and Make discovery surfaces preserve the same divergence concerns
+1. the active control surface now points to an empirical gate instead of
+   another default propagation-proof lane
+2. one AC14-native notebook now freezes the first comparison target, fairness
+   protocol, primary outcome, and decision rule
+3. Plan #37 is now explicitly blocked behind the comparison result
 
-Required in Plan #37:
+Required in Plan #39:
 
-1. one front-half proof that preserves the new divergence concerns
-2. CLI and Make parity for the same divergence propagation story
-3. no duplicate schema-truth surface outside the discovery artifact
+1. one concrete benchmark asset bundle for `order_exception_resolution`
+2. one paired-trial runner that records both conditions explicitly
+3. one decision artifact that applies the frozen success rule
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
-#37.
+#39.
 
-### Phase 1: direct front-half divergence proof
+### Phase 1: benchmark assets
 
-- prove that directory-input front-half acceptance preserves the new
-  schema-divergence concerns
-- keep the divergence evidence inside the persisted discovery artifact
+- create the `order_exception_resolution` benchmark bundle
+- keep requirements, inputs, dependency surface, and evaluation harness explicit
 
-### Phase 2: operator parity
+### Phase 2: paired execution
 
-- prove the same divergence story through CLI
-- prove the same divergence story through Make
+- run one `monolithic` condition and one `AC14` condition per paired trial
+- preserve cost, time, repair-loop, and output artifacts for both
 
-### Phase 3: verification and lock
+### Phase 3: scoring and lock
 
-- run targeted directory-input front-half verification
-- run full verification and lock the docs
+- apply the frozen decision rule to five paired trials
+- lock the docs around the result
 
 ## Known Uncertainties
 
@@ -75,7 +74,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. divergence propagation must not create a second conflicting truth surface
-2. one explicit primary structured planning input must remain visible
-3. the front-half proof should stay on the standard path, not broaden into
-   retry-aware proof yet
+1. the benchmark assets and harness do not exist yet
+2. the paired-trial runner will need to keep both conditions equally bounded
+3. the first experiment may still end inconclusive if five trials do not separate the conditions

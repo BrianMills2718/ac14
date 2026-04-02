@@ -47,7 +47,9 @@ current executable lane.
 | 34 | [Directory Context Summaries](34_directory_context_summaries.md) | High | Complete | 33 |
 | 35 | [Directory Summary Front-Half Proof](35_directory_summary_front_half_proof.md) | High | Complete | 34 |
 | 36 | [Directory Schema Divergence Concerns](36_directory_schema_divergence_concerns.md) | High | Complete | 35 |
-| 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | In Progress | 36 |
+| 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | Blocked | 39 |
+| 38 | [Empirical Comparison Gate](38_empirical_comparison_gate.md) | Critical | Complete | - |
+| 39 | [Monolithic Vs AC14 Comparison Execution](39_monolithic_vs_ac14_comparison_execution.md) | Critical | In Progress | 38 |
 
 ## Status Key
 
@@ -67,6 +69,8 @@ current executable lane.
 4. `TODO.md` is the active checklist, not the long-form plan.
 5. `AC14_NEXT_24_HOURS.md` is the tactical summary, not the source of detailed
    implementation requirements.
+6. When a sequence of propagation-proof plans appears, insert an explicit
+   empirical gate before continuing if the main thesis is still unmeasured.
 
 ## Creating A New Plan
 

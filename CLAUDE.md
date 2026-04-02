@@ -69,6 +69,9 @@ When AC14 has an active next-24-hours plan, execute it aggressively:
   until every planned lane is complete or a real contradiction appears
 - for the active 24-hour chain, keep at least one next numbered plan explicit
   at all times so continuation does not depend on chat memory
+- if the current sequence is mostly propagation-proof work, stop and insert an
+  empirical gate before defining another similar micro-lane when the main
+  thesis is still unmeasured
 
 The default failure mode here is waiting too early. Avoid that.
 
@@ -79,6 +82,9 @@ Treat this as a strong mandatory rule:
 - do not let unlogged uncertainty become an excuse to stop
 - if a concern can be written down and bounded, write it down and keep moving
 - only stop for a real contradiction to the thesis, a real blocker, or a user redirect
+- do not confuse steady plan completion with thesis validation; when the main
+  empirical question is still open, the next plan should usually sharpen that
+  question rather than extend a propagation chain
 
 Treat the active numbered plan as a mandatory execution contract:
 

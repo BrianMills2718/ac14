@@ -96,6 +96,22 @@ outputs, and a structured semantic review.
 
 ## Deferred Project Uncertainties
 
+### U-049: AC14 still lacks an empirical baseline comparison against monolithic generation.
+**Status:** Open
+**Context:** The repo has strong proof machinery and narrow example breadth, but
+no persisted experiment comparing AC14 decomposition against a fair monolithic
+generation condition on a system complex enough for the thesis to matter.
+**Why it matters:** Without this gate, the project can keep validating internal
+machinery while the top-level thesis remains unmeasured.
+
+### U-050: The plan sequence can continue generating propagation-proof micro-lanes without a thesis gate.
+**Status:** Open
+**Context:** Plans #32-#37 formed a coherent pattern of discovery feature ->
+front-half propagation proof. That pattern is locally reasonable but can outrun
+the main empirical question if not interrupted deliberately.
+**Why it matters:** The active planning surface should force the next gate to be
+thesis-relevant rather than merely the next clean propagation story.
+
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred
 **Context:** The current generator remains more of a controlled proof mechanism

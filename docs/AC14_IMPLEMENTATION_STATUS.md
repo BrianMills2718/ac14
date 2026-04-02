@@ -36,6 +36,9 @@ The current implementation is still centered on:
 AC14 is not yet the full long-term general coding agent, but it is not off in a
 different direction.
 
+The main current issue is no longer architectural incoherence. It is the lack
+of an explicit empirical comparison against a fair monolithic baseline.
+
 ## What Is Implemented
 
 ### Frozen Blueprint Spine
@@ -132,6 +135,8 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
+4. proving that the decomposition approach materially beats monolithic
+   generation on a system complex enough for the thesis to matter
 
 ### Semantic Validation
 
@@ -174,15 +179,17 @@ Still missing:
 
 1. broad domain diversity
 2. strong evidence that the decomposition discipline generalizes beyond current examples
+3. one empirical baseline comparison against a fair monolithic condition
 
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. broad automatic dependency installation and post-install verification as a normal lane
-3. real shared-tool execution inside blueprinted components
-4. first-class runtime tool nodes or retrieval nodes in the blueprint model
-5. broad automatic NL-to-blueprint derivation from messy real inputs
-6. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
+2. one explicit monolithic-versus-decomposition comparison experiment
+3. broad automatic dependency installation and post-install verification as a normal lane
+4. real shared-tool execution inside blueprinted components
+5. first-class runtime tool nodes or retrieval nodes in the blueprint model
+6. broad automatic NL-to-blueprint derivation from messy real inputs
+7. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
 
 ## Current Risks
 
@@ -206,13 +213,22 @@ AC14 has strong artifact discipline, but still limited breadth.
 That means the system may look rigorous while still being overfit to a narrow
 set of workflow patterns.
 
-### 3. Front Half Still Weaker Than Back Half
+### 3. No Empirical Baseline Gate Yet
+
+AC14 still does not have one explicit comparison artifact showing whether the
+decomposition approach beats a fair monolithic baseline on a system where
+context collapse should matter.
+
+Without that gate, it is too easy to mistake internal proof-hygiene progress
+for project-level thesis validation.
+
+### 4. Front Half Still Weaker Than Back Half
 
 The repo is now much better at discovery and draft preparation than it was at
 the start, but recomposition/proof is still stronger than real-world blueprint
 derivation from messy inputs.
 
-### 4. Generator Generality
+### 5. Generator Generality
 
 The deterministic lane is still more of a controlled proof mechanism than a
 general synthesis engine. That is acceptable for the proof slice, but it is not
@@ -222,8 +238,9 @@ the long-term end state.
 
 These are rough but honest estimates:
 
-1. first proof slice: 99%
-2. long-term general coding agent vision: 67-71%
+1. proof-slice infrastructure: 99%
+2. proof-slice thesis validation: 70-75%
+3. long-term general coding agent vision: 55-60%
 
 The remaining work is not mainly “more code.” It is:
 
@@ -241,6 +258,7 @@ This attempt still fails if any of the following happen:
 3. decomposition packets still rely on too much hidden context in real use
 4. the front half never becomes strong enough to derive good blueprints from realistic inputs
 5. the operational overhead ends up larger than the decomposition benefit
+6. the project never runs a fair monolithic-versus-decomposition comparison
 
 ## Why This Attempt Is Better Than Prior Restarts
 
@@ -262,5 +280,6 @@ Before more major implementation lanes:
 
 1. keep the AC14-native notebook current
 2. keep this implementation-status document current
-3. continue only when the next lane clearly strengthens the decomposition thesis
-4. do not let side artifacts become disconnected from freeze, packets, and proof
+3. run the empirical comparison gate before defaulting to more propagation-proof micro-lanes
+4. continue only when the next lane clearly strengthens the decomposition thesis
+5. do not let side artifacts become disconnected from freeze, packets, and proof
