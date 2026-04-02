@@ -83,6 +83,7 @@ def emit_generated_package(
     llm_model: str = DEFAULT_LLM_MODEL,
     llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     trace_id_prefix: str = "ac14/generated_codegen",
+    repair_guidance_by_component: dict[str, list[str]] | None = None,
 ) -> GeneratedPackage:
     """Emit standalone Python modules for all components in a packet bundle."""
 
@@ -93,7 +94,15 @@ def emit_generated_package(
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
     for component_id, packet in packet_bundle.packets.items():
-        context = build_codegen_context(packet, packet_cases[component_id])
+        context = build_codegen_context(
+            packet,
+            packet_cases[component_id],
+            repair_guidance=(
+                repair_guidance_by_component.get(component_id, [])
+                if repair_guidance_by_component is not None
+                else []
+            ),
+        )
         module_source = _render_module_source(
             context,
             generator_kind=generator_kind,
@@ -120,6 +129,7 @@ async def aemit_generated_package(
     llm_model: str = DEFAULT_LLM_MODEL,
     llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     trace_id_prefix: str = "ac14/generated_codegen",
+    repair_guidance_by_component: dict[str, list[str]] | None = None,
 ) -> GeneratedPackage:
     """Async package emission for callers already running inside an event loop."""
 
@@ -130,7 +140,15 @@ async def aemit_generated_package(
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
     for component_id, packet in packet_bundle.packets.items():
-        context = build_codegen_context(packet, packet_cases[component_id])
+        context = build_codegen_context(
+            packet,
+            packet_cases[component_id],
+            repair_guidance=(
+                repair_guidance_by_component.get(component_id, [])
+                if repair_guidance_by_component is not None
+                else []
+            ),
+        )
         module_source = await _arender_module_source(
             context,
             generator_kind=generator_kind,

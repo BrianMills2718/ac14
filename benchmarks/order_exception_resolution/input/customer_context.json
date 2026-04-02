@@ -1,0 +1,23 @@
+[
+  {
+    "case_id": "ORX-100",
+    "customer_id": "CUST-PLAT-9",
+    "customer_tier": "platinum",
+    "account_owner": "north-america-enterprise",
+    "open_case_count": 1
+  },
+  {
+    "case_id": "ORX-101",
+    "customer_id": "CUST-STD-2",
+    "customer_tier": "standard",
+    "account_owner": "self-serve",
+    "open_case_count": 0
+  },
+  {
+    "case_id": "ORX-102",
+    "customer_id": "CUST-GOLD-5",
+    "customer_tier": "gold",
+    "account_owner": "commercial-east",
+    "open_case_count": 4
+  }
+]

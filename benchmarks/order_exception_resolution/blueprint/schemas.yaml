@@ -1,0 +1,363 @@
+schemas:
+  - schema_id: RawOrderExceptionCase
+    kind: object
+    description: Aggregated raw order-exception case used by the benchmark runtime.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: received_at
+        type: string
+        required: true
+        description: Timestamp when the case was received.
+      - name: order_id
+        type: string
+        required: true
+        description: Stable order identifier.
+      - name: customer_id
+        type: string
+        required: true
+        description: Stable customer identifier.
+      - name: customer_tier
+        type: string
+        required: true
+        description: Customer service tier.
+      - name: order_value
+        type: integer
+        required: true
+        description: Total order value in whole currency units.
+      - name: sku
+        type: string
+        required: true
+        description: Primary blocked stock keeping unit.
+      - name: quantity_requested
+        type: integer
+        required: true
+        description: Quantity requested on the order.
+      - name: available_quantity
+        type: integer
+        required: true
+        description: Quantity currently available for allocation.
+      - name: inventory_eta_days
+        type: integer
+        required: true
+        description: Days until the next inventory replenishment.
+      - name: shipment_status
+        type: string
+        required: true
+        description: Carrier or shipment status.
+      - name: shipment_delay_hours
+        type: integer
+        required: true
+        description: Current shipment delay in hours.
+      - name: support_notes
+        type: string
+        required: true
+        description: Human-entered support context.
+      - name: open_case_count
+        type: integer
+        required: true
+        description: Current open-case count for the customer.
+      - name: manual_override_action
+        type: string
+        required: false
+        description: Optional override action requested by operations.
+        optional_reason: Most cases do not have a manual override.
+        absence_meaning: Continue with automated factor correlation.
+      - name: manual_override_reason
+        type: string
+        required: false
+        description: Reason recorded for the optional manual override.
+        optional_reason: Only meaningful when an override action exists.
+        absence_meaning: No override rationale was recorded.
+
+  - schema_id: ParsedOrderExceptionCase
+    kind: object
+    description: Normalized order-exception case for downstream reasoning.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: received_at
+        type: string
+        required: true
+        description: Receipt timestamp carried into the digest store.
+      - name: order_id
+        type: string
+        required: true
+        description: Stable order identifier.
+      - name: customer_id
+        type: string
+        required: true
+        description: Stable customer identifier.
+      - name: customer_tier
+        type: string
+        required: true
+        description: Customer service tier.
+      - name: order_value
+        type: integer
+        required: true
+        description: Total order value in whole currency units.
+      - name: sku
+        type: string
+        required: true
+        description: Primary blocked stock keeping unit.
+      - name: quantity_requested
+        type: integer
+        required: true
+        description: Quantity requested on the order.
+      - name: available_quantity
+        type: integer
+        required: true
+        description: Quantity currently available for allocation.
+      - name: shortage_units
+        type: integer
+        required: true
+        description: Derived quantity shortfall.
+      - name: inventory_eta_days
+        type: integer
+        required: true
+        description: Days until the next inventory replenishment.
+      - name: shipment_status
+        type: string
+        required: true
+        description: Carrier or shipment status.
+      - name: shipment_delay_hours
+        type: integer
+        required: true
+        description: Current shipment delay in hours.
+      - name: normalized_notes
+        type: string
+        required: true
+        description: Lowercased support-note summary for deterministic heuristics.
+      - name: open_case_count
+        type: integer
+        required: true
+        description: Current open-case count for the customer.
+      - name: manual_override_action
+        type: string
+        required: false
+        description: Optional override action requested by operations.
+        optional_reason: Most cases do not have a manual override.
+        absence_meaning: Continue with automated factor correlation.
+      - name: manual_override_reason
+        type: string
+        required: false
+        description: Reason recorded for the optional manual override.
+        optional_reason: Only meaningful when an override action exists.
+        absence_meaning: No override rationale was recorded.
+
+  - schema_id: ExceptionTypeLabel
+    kind: object
+    description: Primary exception classification for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: exception_type
+        type: string
+        required: true
+        description: Primary exception type label.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the classification.
+
+  - schema_id: InventoryRisk
+    kind: object
+    description: Inventory-risk summary for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: shortage_units
+        type: integer
+        required: true
+        description: Derived quantity shortfall.
+      - name: inventory_risk_band
+        type: string
+        required: true
+        description: Bucketed inventory risk band.
+      - name: inventory_eta_days
+        type: integer
+        required: true
+        description: Days until the next inventory replenishment.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the inventory-risk decision.
+
+  - schema_id: ShippingRisk
+    kind: object
+    description: Shipping-risk summary for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: shipment_risk_band
+        type: string
+        required: true
+        description: Bucketed shipping risk band.
+      - name: shipment_delay_hours
+        type: integer
+        required: true
+        description: Shipment delay in hours.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the shipping-risk decision.
+
+  - schema_id: CustomerPriorityContext
+    kind: object
+    description: Customer-priority context derived from the parsed case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: priority_lane
+        type: string
+        required: true
+        description: Customer-priority lane used for downstream escalation decisions.
+      - name: escalate_customer
+        type: boolean
+        required: true
+        description: Whether the customer context alone suggests escalation.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the customer-priority decision.
+
+  - schema_id: ManualOverrideDecision
+    kind: object
+    description: Optional manual override for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: override_action
+        type: string
+        required: true
+        description: Override action requested by operations.
+      - name: override_reason
+        type: string
+        required: true
+        description: Reason recorded for the override.
+
+  - schema_id: ResolutionFactors
+    kind: object
+    description: Correlated resolution factors for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: primary_exception_type
+        type: string
+        required: true
+        description: Primary exception type after correlation.
+      - name: blocker_source
+        type: string
+        required: true
+        description: Explicit source of the current blocker or override.
+      - name: recommended_team
+        type: string
+        required: true
+        description: Team that should own the next action.
+      - name: customer_priority_lane
+        type: string
+        required: true
+        description: Customer-priority lane preserved into downstream scoring.
+      - name: escalation_required
+        type: boolean
+        required: true
+        description: Whether the joined factors require escalation.
+      - name: override_action
+        type: string
+        required: false
+        description: Override action when one was provided.
+        optional_reason: Overrides are optional.
+        absence_meaning: No manual override changed the factor correlation.
+
+  - schema_id: ResolutionPriority
+    kind: object
+    description: Final priority decision for one case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: priority_band
+        type: string
+        required: true
+        description: Priority bucket for the case.
+      - name: score
+        type: integer
+        required: true
+        description: Numeric priority score.
+      - name: reason
+        type: string
+        required: true
+        description: Short reason for the priority decision.
+
+  - schema_id: ResolutionDigestEntry
+    kind: object
+    description: Final digest entry for one processed case.
+    fields:
+      - name: case_id
+        type: string
+        required: true
+        description: Stable exception case identifier.
+      - name: order_id
+        type: string
+        required: true
+        description: Stable order identifier.
+      - name: exception_type
+        type: string
+        required: true
+        description: Primary exception type shown to operators.
+      - name: blocker_source
+        type: string
+        required: true
+        description: Explicit blocker source shown to operators.
+      - name: priority_band
+        type: string
+        required: true
+        description: Priority bucket for the case.
+      - name: recommended_team
+        type: string
+        required: true
+        description: Team that should own the next action.
+      - name: customer_priority_lane
+        type: string
+        required: true
+        description: Customer-priority lane shown to operators.
+      - name: action_summary
+        type: string
+        required: true
+        description: Operator-facing summary of the next action.
+      - name: override_applied
+        type: string
+        required: false
+        description: Override action when one was applied.
+        optional_reason: Most cases do not have a manual override.
+        absence_meaning: No manual override changed the final action.
+
+  - schema_id: ResolutionDigestStore
+    kind: object
+    description: Rolling store of resolution digest entries.
+    fields:
+      - name: generated_at
+        type: string
+        required: true
+        description: Timestamp of the latest processed entry.
+      - name: entries
+        type: list[ResolutionDigestEntry]
+        required: true
+        description: Ordered resolution digest entries.

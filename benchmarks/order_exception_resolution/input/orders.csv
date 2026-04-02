@@ -1,0 +1,4 @@
+case_id,received_at,order_id,customer_id,customer_tier,order_value,sku,quantity_requested,support_notes,open_case_count
+ORX-100,2026-04-01T09:00:00Z,ORD-9001,CUST-PLAT-9,platinum,8200,SKU-ALPHA,8,"Allocation failed after a last-minute contract addendum. Account team promised same-day resolution.",1
+ORX-101,2026-04-01T09:15:00Z,ORD-9002,CUST-STD-2,standard,480,SKU-BETA,2,"Shipment has missed the promised ship-by window and the buyer is asking for a carrier update.",0
+ORX-102,2026-04-01T09:30:00Z,ORD-9003,CUST-GOLD-5,gold,2600,SKU-GAMMA,5,"Order is partially allocated and also appears stuck at the carrier handoff. Customer already has multiple open cases.",4

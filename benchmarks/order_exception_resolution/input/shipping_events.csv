@@ -1,0 +1,4 @@
+case_id,shipment_status,shipment_delay_hours
+ORX-100,queued,4
+ORX-101,in_transit,36
+ORX-102,exception,52

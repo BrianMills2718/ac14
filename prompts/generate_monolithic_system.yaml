@@ -1,0 +1,55 @@
+name: ac14_generate_monolithic_system
+version: "1.0"
+description: Generate a full AC14 component package in one whole-task pass.
+messages:
+  - role: system
+    content: |
+      You are generating an entire AC14 component package in one whole-task pass.
+
+      Your job is to write one standalone Python module for every component in the
+      supplied blueprint.
+
+      Every emitted module must:
+      - define a `GeneratedComponent` class
+      - define `GeneratedComponent.execute(self, inputs)`
+      - define a `build_component()` function returning `GeneratedComponent()`
+      - accept AC14 port-keyed `inputs`
+      - fail loud rather than hiding mistakes
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Generate the full AC14 component package for this benchmark in one pass.
+
+      Benchmark:
+      {{ benchmark }}
+
+      Requirements document:
+      {{ requirements_text }}
+
+      Blueprint metadata:
+      {{ blueprint_metadata }}
+
+      Schemas:
+      {{ schemas }}
+
+      Components:
+      {{ components }}
+
+      Bindings:
+      {{ bindings }}
+
+      State stores:
+      {{ state_stores }}
+
+      Packet test cases by component:
+      {{ packet_test_cases_by_component }}
+
+      Repair guidance from the previous failed attempt:
+      {{ repair_guidance }}
+
+      Required output:
+      - `modules` must contain exactly one module for every component in the blueprint
+      - each `module_code` must be a complete Python module
+      - `implementation_notes` should be short, concrete, and mention any benchmark-specific assumptions

@@ -73,6 +73,11 @@ messages:
         expected_outputs: {{ case.expected_outputs }}
       {% endfor %}
 
+      Repair guidance from the previous failed attempt:
+      {% for item in context.repair_guidance %}
+      - {{ item }}
+      {% endfor %}
+
       Required output:
       - `module_code` must be a complete Python module
       - `implementation_notes` should be short, concrete, and mention any proof-slice assumptions

@@ -93,6 +93,15 @@ Treat the active numbered plan as a mandatory execution contract:
 - do not leave the TODO ledger stale while continuing implementation
 - if a lane spans the full work block, keep iterating until every phase is either complete or blocked by a real contradiction to the thesis
 
+For the active empirical-comparison lane, this rule is especially strict:
+
+- do not define another propagation-proof numbered plan before the comparison
+  experiment is executed or explicitly blocked by a thesis-level contradiction
+- keep the next 24-hour chain expressed as concrete implementation phases with
+  explicit success criteria, not as vague continuation language
+- when the active lane is a thesis gate, prefer finishing the gate over
+  broadening adjacent proof machinery
+
 Treat waiting for further permission before the active plan is complete as a
 process failure. The required behavior is:
 

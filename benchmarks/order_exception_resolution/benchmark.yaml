@@ -1,0 +1,32 @@
+benchmark:
+  benchmark_id: order_exception_resolution_v1
+  name: Order Exception Resolution
+  purpose: >
+    First empirical AC14 comparison target for testing whether packetized
+    decomposition materially beats whole-task monolithic generation on a system
+    with fan-in, optional input, stateful updates, and non-trivial business
+    rules.
+  comparison_scope: decomposition_vs_monolithic_back_half
+  blueprint_dir: blueprint
+  requirements_path: requirements.md
+  runtime_input_path: input/runtime_cases.json
+  expected_outputs_path: input/expected_runtime_outputs.json
+  source_artifacts:
+    - input/orders.csv
+    - input/inventory.csv
+    - input/shipping_events.csv
+    - input/customer_context.json
+    - input/manual_override.json
+  allowed_dependencies:
+    - pandas
+  primary_source_component_id: case_parser
+  primary_source_port_name: raw_case
+  final_component_id: resolution_assembler
+  final_output_ports:
+    - resolution_digest_entry
+    - resolution_digest_store
+  system_requirements:
+    - Preserve one bounded source-to-sink flow with explicit fan-in and one optional override path.
+    - Escalate platinum and gold customers more aggressively than standard customers.
+    - Treat manual override as a first-class path that can change blocker source and action summary.
+    - Maintain a deterministic digest store keyed by processed case_id.

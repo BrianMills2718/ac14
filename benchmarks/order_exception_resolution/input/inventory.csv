@@ -1,0 +1,4 @@
+case_id,available_quantity,inventory_eta_days
+ORX-100,1,3
+ORX-101,2,0
+ORX-102,2,4

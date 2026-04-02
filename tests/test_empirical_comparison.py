@@ -1,0 +1,173 @@
+"""Tests for the empirical monolithic-vs-AC14 comparison gate."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from ac14.acceptance import AcceptanceReviewResponse
+from ac14.empirical_comparison import (
+    ConditionAttemptReport,
+    ConditionTrialReport,
+    CostObservation,
+    ExperimentDecisionArtifact,
+    PairedTrialReport,
+    RuntimeCaseExecution,
+    build_experiment_decision_artifact,
+    load_benchmark_bundle,
+    run_paired_trial,
+)
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BENCHMARK_DIR = REPO_ROOT / "benchmarks" / "order_exception_resolution"
+
+
+def test_build_benchmark_bundle_order_exception_resolution() -> None:
+    """The frozen benchmark bundle should load into a coherent comparison target."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    assert bundle.config.benchmark_id == "order_exception_resolution_v1"
+    assert bundle.blueprint.metadata.blueprint_id == "order_exception_resolution_v1"
+    assert len(bundle.packet_bundle.packets) == 9
+    assert [record["case_id"] for record in bundle.runtime_cases] == ["ORX-100", "ORX-101", "ORX-102"]
+    assert [case.case_id for case in bundle.expected_runtime_cases] == ["ORX-100", "ORX-101", "ORX-102"]
+
+
+def test_run_paired_trial_persists_monolithic_and_ac14_artifacts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The paired-trial runner should persist both condition reports explicitly."""
+
+    # mock-ok: this test verifies paired-trial persistence and report wiring, not live generation behavior.
+    def _fake_run_condition_trial(**kwargs: object) -> ConditionTrialReport:
+        condition = kwargs["condition"]
+        return ConditionTrialReport(
+            condition=condition,  # type: ignore[arg-type]
+            passed=condition == "ac14",
+            attempts_used=1,
+            repair_loops_used=0,
+            attempts=[
+                ConditionAttemptReport(
+                    attempt_id=1,
+                    artifact_dir=str(tmp_path / str(condition) / "attempt_1"),
+                    duration_s=0.25,
+                    llm_cost=CostObservation(status="no_rows"),
+                    packet_tests_passed=True,
+                    recomposition_passed=True,
+                    runtime_outputs_passed=condition == "ac14",
+                    semantic_review=None,
+                    semantic_review_passed=condition == "ac14",
+                    generation_error=None,
+                    runtime_cases=[
+                        RuntimeCaseExecution(
+                            case_id="ORX-100",
+                            matched_expected=condition == "ac14",
+                            actual_outputs={},
+                            expected_outputs={},
+                        )
+                    ],
+                    failure_summary=[] if condition == "ac14" else ["runtime mismatch"],
+                    passed=condition == "ac14",
+                )
+            ],
+        )
+
+    monkeypatch.setattr(
+        "ac14.empirical_comparison._run_condition_trial",
+        _fake_run_condition_trial,
+    )
+
+    report = run_paired_trial(
+        BENCHMARK_DIR,
+        tmp_path / "trial_1",
+        trial_id=1,
+    )
+
+    persisted = json.loads((tmp_path / "trial_1" / "paired_trial_report.json").read_text())
+    assert report.benchmark_id == "order_exception_resolution_v1"
+    assert report.monolithic.condition == "monolithic"
+    assert report.ac14.condition == "ac14"
+    assert persisted["monolithic"]["condition"] == "monolithic"
+    assert persisted["ac14"]["condition"] == "ac14"
+
+
+def test_build_experiment_decision_artifact_applies_plan_38_rule() -> None:
+    """The final decision artifact should follow the frozen comparison rule."""
+
+    trial_reports = [
+        PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=trial_id,
+            monolithic=_condition_report("monolithic", passed=trial_id == 1, semantic_score=1.0, repair_loops=2),
+            ac14=_condition_report("ac14", passed=True, semantic_score=2.0, repair_loops=0),
+        )
+        for trial_id in range(1, 6)
+    ]
+
+    decision = build_experiment_decision_artifact(
+        benchmark_id="order_exception_resolution_v1",
+        trial_reports=trial_reports,
+        trial_report_paths=[f"/tmp/trial_{trial_id}.json" for trial_id in range(1, 6)],
+    )
+
+    assert isinstance(decision, ExperimentDecisionArtifact)
+    assert decision.verdict == "ac14_wins"
+    assert decision.ac14.successes == 5
+    assert decision.monolithic.successes == 1
+
+
+def _condition_report(
+    condition: str,
+    *,
+    passed: bool,
+    semantic_score: float,
+    repair_loops: int,
+) -> ConditionTrialReport:
+    """Build one minimal condition report for decision-rule tests."""
+
+    semantic_review: AcceptanceReviewResponse | None = None
+    semantic_review_passed = False
+    if semantic_score >= 2.0:
+        semantic_review = AcceptanceReviewResponse(
+            overall_verdict="accept",
+            summary="accepted",
+            concerns=[],
+            requirement_assessments=[],
+        )
+        semantic_review_passed = True
+    elif semantic_score >= 1.0:
+        semantic_review = AcceptanceReviewResponse(
+            overall_verdict="concern",
+            summary="concern",
+            concerns=["review concern"],
+            requirement_assessments=[],
+        )
+
+    return ConditionTrialReport(
+        condition=condition,  # type: ignore[arg-type]
+        passed=passed,
+        attempts_used=repair_loops + 1,
+        repair_loops_used=repair_loops,
+        attempts=[
+            ConditionAttemptReport(
+                attempt_id=repair_loops + 1,
+                artifact_dir=f"/tmp/{condition}",
+                duration_s=0.5,
+                llm_cost=CostObservation(status="observed", cost_usd=0.12),
+                packet_tests_passed=passed,
+                recomposition_passed=passed,
+                runtime_outputs_passed=passed,
+                semantic_review=semantic_review,
+                semantic_review_passed=semantic_review_passed,
+                generation_error=None,
+                runtime_cases=[],
+                failure_summary=[] if passed else ["failed"],
+                passed=passed,
+            )
+        ],
+    )

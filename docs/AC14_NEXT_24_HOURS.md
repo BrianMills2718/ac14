@@ -15,10 +15,12 @@ The empirical gate is now frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
 The active 24-hour chain is now:
 
-1. build the benchmark asset bundle for the frozen comparison target
-2. execute paired `monolithic` and `AC14` trials under the frozen fairness rules
-3. persist one reviewable decision artifact instead of treating experiment
+1. finalize and validate the benchmark asset bundle for the frozen comparison target
+2. implement the bounded `monolithic` trial path
+3. implement the bounded `AC14` trial path
+4. persist one reviewable decision artifact instead of treating experiment
    results as conversational judgment
+5. run the five fresh paired trials and lock the docs to the result
 
 ## Progress Update
 
@@ -42,29 +44,70 @@ Completed before this lane as the immediate predecessor:
 
 Required in Plan #39:
 
-1. one concrete benchmark asset bundle for `order_exception_resolution`
+1. one validated benchmark asset bundle for `order_exception_resolution`
 2. one paired-trial runner that records both conditions explicitly
 3. one decision artifact that applies the frozen success rule
+4. one five-trial experiment result that is reviewable artifact-by-artifact
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
 #39.
 
-### Phase 1: benchmark assets
+### Phase 1: benchmark assets and validation
 
 - create the `order_exception_resolution` benchmark bundle
 - keep requirements, inputs, dependency surface, and evaluation harness explicit
+- validate that the benchmark blueprint loads and that runtime inputs and
+  expected outputs are structurally coherent
 
-### Phase 2: paired execution
+Success criteria:
 
-- run one `monolithic` condition and one `AC14` condition per paired trial
-- preserve cost, time, repair-loop, and output artifacts for both
+- the bundle is fully reviewable without chat context
+- the benchmark blueprint loads cleanly
+- runtime inputs and expected outputs match the declared source and sink contract
 
-### Phase 3: scoring and lock
+### Phase 2: monolithic condition
+
+- generate the whole benchmark system in one bounded condition
+- keep attempts, cost capture, and output artifacts explicit
+
+Success criteria:
+
+- one `monolithic` trial can run end to end without manual code edits
+- the trial artifact records attempts, outputs, and pass/fail reasons
+
+### Phase 3: AC14 condition
+
+- generate the benchmark system through packetized AC14 codegen
+- preserve packet tests, recomposition proof, realistic-input execution, and
+  output artifacts inside the paired-trial result
+
+Success criteria:
+
+- one `AC14` trial can run end to end without manual code edits
+- the trial artifact records attempts, outputs, and pass/fail reasons
+
+### Phase 4: scoring and decision
 
 - apply the frozen decision rule to five paired trials
+- persist one final decision artifact plus per-trial summaries
+
+Success criteria:
+
+- the decision is traceable back to trial-level evidence
+- the result can be `ac14_wins`, `monolithic_wins`, or `inconclusive` only
+
+### Phase 5: repeated trials and lock
+
+- run the five fresh paired trials under the frozen fairness rules
+- run full verification
 - lock the docs around the result
+
+Success criteria:
+
+- the experiment is complete, verified, and reviewable without chat context
+- the active control surface reflects the actual result instead of a planned one
 
 ## Known Uncertainties
 
@@ -74,6 +117,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the benchmark assets and harness do not exist yet
-2. the paired-trial runner will need to keep both conditions equally bounded
-3. the first experiment may still end inconclusive if five trials do not separate the conditions
+1. the first experiment may still end inconclusive if five trials do not separate the conditions
+2. the monolithic condition must be bounded without silently giving it a looser repair budget
+3. the first ablation should isolate the decomposition claim itself; if the front-half derivation question starts to dominate this lane, that needs to be logged explicitly instead of smuggled in

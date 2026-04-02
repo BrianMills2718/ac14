@@ -1,0 +1,52 @@
+[
+  {
+    "case_id": "ORX-100",
+    "received_at": "2026-04-01T09:00:00Z",
+    "order_id": "ORD-9001",
+    "customer_id": "CUST-PLAT-9",
+    "customer_tier": "platinum",
+    "order_value": 8200,
+    "sku": "SKU-ALPHA",
+    "quantity_requested": 8,
+    "available_quantity": 1,
+    "inventory_eta_days": 3,
+    "shipment_status": "queued",
+    "shipment_delay_hours": 4,
+    "support_notes": "Allocation failed after a last-minute contract addendum. Account team promised same-day resolution.",
+    "open_case_count": 1,
+    "manual_override_action": "expedite_allocation",
+    "manual_override_reason": "contractual launch deadline"
+  },
+  {
+    "case_id": "ORX-101",
+    "received_at": "2026-04-01T09:15:00Z",
+    "order_id": "ORD-9002",
+    "customer_id": "CUST-STD-2",
+    "customer_tier": "standard",
+    "order_value": 480,
+    "sku": "SKU-BETA",
+    "quantity_requested": 2,
+    "available_quantity": 2,
+    "inventory_eta_days": 0,
+    "shipment_status": "in_transit",
+    "shipment_delay_hours": 36,
+    "support_notes": "Shipment has missed the promised ship-by window and the buyer is asking for a carrier update.",
+    "open_case_count": 0
+  },
+  {
+    "case_id": "ORX-102",
+    "received_at": "2026-04-01T09:30:00Z",
+    "order_id": "ORD-9003",
+    "customer_id": "CUST-GOLD-5",
+    "customer_tier": "gold",
+    "order_value": 2600,
+    "sku": "SKU-GAMMA",
+    "quantity_requested": 5,
+    "available_quantity": 2,
+    "inventory_eta_days": 4,
+    "shipment_status": "exception",
+    "shipment_delay_hours": 52,
+    "support_notes": "Order is partially allocated and also appears stuck at the carrier handoff. Customer already has multiple open cases.",
+    "open_case_count": 4
+  }
+]

@@ -1,0 +1,68 @@
+bindings:
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: exception_classifier
+    to_port: parsed_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: inventory_risk_evaluator
+    to_port: parsed_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: shipping_risk_evaluator
+    to_port: parsed_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: customer_context_loader
+    to_port: parsed_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: manual_override_loader
+    to_port: parsed_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: factor_correlator
+    to_port: on_case
+  - from_component: case_parser
+    from_port: parsed_case
+    to_component: resolution_assembler
+    to_port: on_case
+  - from_component: exception_classifier
+    from_port: exception_label
+    to_component: factor_correlator
+    to_port: on_exception
+  - from_component: inventory_risk_evaluator
+    from_port: inventory_risk
+    to_component: factor_correlator
+    to_port: on_inventory
+  - from_component: shipping_risk_evaluator
+    from_port: shipping_risk
+    to_component: factor_correlator
+    to_port: on_shipping
+  - from_component: customer_context_loader
+    from_port: customer_priority_context
+    to_component: factor_correlator
+    to_port: on_customer_context
+  - from_component: manual_override_loader
+    from_port: manual_override_decision
+    to_component: factor_correlator
+    to_port: on_override
+  - from_component: factor_correlator
+    from_port: resolution_factors
+    to_component: priority_scorer
+    to_port: on_factors
+  - from_component: factor_correlator
+    from_port: resolution_factors
+    to_component: resolution_assembler
+    to_port: on_factors
+  - from_component: priority_scorer
+    from_port: resolution_priority
+    to_component: resolution_assembler
+    to_port: on_priority
+
+state_stores:
+  - store_id: resolution_digest_store
+    owner_component: resolution_assembler
+    schema_id: ResolutionDigestStore
+    description: Rolling resolution digest snapshot keyed by processed case_id.
+    update_semantics: replace existing entry on repeated case_id, otherwise append

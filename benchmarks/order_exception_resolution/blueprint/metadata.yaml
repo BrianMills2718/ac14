@@ -1,0 +1,17 @@
+metadata:
+  blueprint_id: order_exception_resolution_v1
+  name: Order Exception Resolution
+  version: 0.1.0
+  purpose: Prove a more entangled decomposition target with real fan-in, optional override handling, and a stateful sink.
+  source_kind: benchmark_fixture
+  created_from: AC14 empirical comparison plan
+
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

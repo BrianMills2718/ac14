@@ -1,0 +1,7 @@
+[
+  {
+    "case_id": "ORX-100",
+    "manual_override_action": "expedite_allocation",
+    "manual_override_reason": "contractual launch deadline"
+  }
+]

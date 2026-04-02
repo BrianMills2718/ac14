@@ -77,16 +77,21 @@ to justify the project's stronger thesis claim.
 
 ### Steps
 
-1. Create the benchmark asset bundle for `order_exception_resolution`,
-   including requirements, input artifacts, allowed dependency surface, and the
-   evaluation harness.
-2. Implement one paired-trial runner that executes the monolithic condition and
-   the AC14 condition under the frozen fairness rules and records cost, time,
-   repair loops, and output artifacts.
-3. Add scoring and decision logic that applies the primary outcome and
+1. Finalize and validate the benchmark asset bundle for
+   `order_exception_resolution`, including requirements, input artifacts,
+   allowed dependency surface, runtime inputs, expected outputs, and the frozen
+   six-file benchmark blueprint.
+2. Implement the bounded monolithic condition so one whole-task generation
+   attempt can run end to end and persist attempts, time, cost, outputs, and
+   pass/fail reasons without manual edits.
+3. Implement the bounded AC14 condition so one packetized generation attempt
+   can run end to end and persist packet tests, recomposition proof,
+   realistic-input execution, attempts, time, cost, outputs, and pass/fail
+   reasons without manual edits.
+4. Add scoring and decision logic that applies the primary outcome and
    secondary metrics from Plan #38 and persists a final experiment-decision
-   artifact.
-4. Run 5 fresh paired trials, then lock the docs and status surface around the
+   artifact plus per-trial summaries.
+5. Run 5 fresh paired trials, then lock the docs and status surface around the
    result.
 
 ---

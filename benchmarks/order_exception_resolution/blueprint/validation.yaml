@@ -1,0 +1,63 @@
+global_invariants:
+  - invariant_id: resolution_digest_entry_case_id_consistency
+    description: ResolutionDigestEntry.case_id must equal the joined upstream case_id.
+  - invariant_id: resolution_digest_store_unique_case_ids
+    description: ResolutionDigestStore must contain at most one entry per case_id.
+
+evaluators:
+  - evaluator_id: exact_outputs
+    kind: programmatic_exact
+    description: Compare actual outputs to declared fixture outputs exactly.
+  - evaluator_id: negative_failure
+    kind: programmatic_failure
+    description: Confirm that a negative scenario fails loudly rather than silently succeeding.
+  - evaluator_id: requirements_acceptance
+    kind: llm_requirements_acceptance
+    description: Review outputs against scenario requirements and business logic.
+
+scenarios:
+  - scenario_id: override_inventory_critical
+    kind: semantic_acceptance
+    description: Inventory shortage plus a manual override should produce a critical account-operations action.
+    evaluator_ids:
+      - exact_outputs
+      - requirements_acceptance
+    realistic_input: true
+    requirements:
+      - The system should preserve the manual override instead of burying it inside an implicit priority score.
+      - Platinum customers with a manual override should produce a critical action and an account-operations recommendation.
+      - The final digest entry should keep the blocker source explicit as override.
+    fixture_ids:
+      - override_inventory_case_parser
+      - override_inventory_exception_classifier
+      - override_inventory_inventory_risk_evaluator
+      - override_inventory_shipping_risk_evaluator
+      - override_inventory_customer_context_loader
+      - override_inventory_manual_override_loader
+      - override_inventory_factor_correlator
+      - override_inventory_priority_scorer
+      - override_inventory_resolution_assembler
+  - scenario_id: shipping_delay_join
+    kind: full_recomposition
+    description: Shipping delay should still join cleanly when no manual override is present.
+    evaluator_ids:
+      - exact_outputs
+    realistic_input: false
+    fixture_ids:
+      - shipping_delay_case_parser
+      - shipping_delay_exception_classifier
+      - shipping_delay_inventory_risk_evaluator
+      - shipping_delay_shipping_risk_evaluator
+      - shipping_delay_customer_context_loader
+      - shipping_delay_manual_override_loader
+      - shipping_delay_factor_correlator
+      - shipping_delay_priority_scorer
+      - shipping_delay_resolution_assembler
+  - scenario_id: mismatched_case_rejected
+    kind: negative
+    description: Factor correlator must reject required inputs that do not share the same case_id.
+    evaluator_ids:
+      - negative_failure
+    realistic_input: false
+    fixture_ids:
+      - mismatched_case_factor_correlator

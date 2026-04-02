@@ -1,0 +1,231 @@
+components:
+  - component_id: case_parser
+    kind: transform
+    purpose: Normalize one raw order-exception case for downstream reasoning.
+    semantic_responsibility: parse_order_exception_case
+    input_ports:
+      - name: raw_case
+        schema_id: RawOrderExceptionCase
+        description: Raw case payload aggregated from the benchmark input bundle.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Normalized case for downstream components.
+    local_invariants:
+      - parsed_case.case_id must equal raw_case.case_id
+      - parsed_case.shortage_units must equal max(raw_case.quantity_requested - raw_case.available_quantity, 0)
+    failure_semantics:
+      - fail loud if required raw case fields are absent
+    implementation_constraints:
+      - keep the parser deterministic in the first comparison gate
+
+  - component_id: exception_classifier
+    kind: transform
+    purpose: Label the primary exception type for one parsed case.
+    semantic_responsibility: classify_exception_type
+    input_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case used for exception classification.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: exception_label
+        schema_id: ExceptionTypeLabel
+        description: Primary exception label.
+    local_invariants:
+      - exception_label.case_id must equal parsed_case.case_id
+    failure_semantics:
+      - fail loud on missing parsed_case fields used for classification
+    implementation_constraints:
+      - classify compound cases explicitly when both shortage and shipping risk are material
+
+  - component_id: inventory_risk_evaluator
+    kind: transform
+    purpose: Score the inventory risk associated with one parsed case.
+    semantic_responsibility: evaluate_inventory_risk
+    input_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case used for inventory evaluation.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: inventory_risk
+        schema_id: InventoryRisk
+        description: Inventory risk output.
+    local_invariants:
+      - inventory_risk.case_id must equal parsed_case.case_id
+    failure_semantics:
+      - fail loud on missing parsed_case fields used for risk scoring
+    implementation_constraints:
+      - compute shortage_units deterministically from the parsed case
+
+  - component_id: shipping_risk_evaluator
+    kind: transform
+    purpose: Score the shipping risk associated with one parsed case.
+    semantic_responsibility: evaluate_shipping_risk
+    input_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case used for shipping evaluation.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: shipping_risk
+        schema_id: ShippingRisk
+        description: Shipping risk output.
+    local_invariants:
+      - shipping_risk.case_id must equal parsed_case.case_id
+    failure_semantics:
+      - fail loud on missing parsed_case fields used for risk scoring
+    implementation_constraints:
+      - keep shipping thresholds deterministic in the first comparison gate
+
+  - component_id: customer_context_loader
+    kind: transform
+    purpose: Convert customer-related fields into a priority context.
+    semantic_responsibility: load_customer_priority_context
+    input_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case used to derive customer priority context.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: customer_priority_context
+        schema_id: CustomerPriorityContext
+        description: Derived customer priority context.
+    local_invariants:
+      - customer_priority_context.case_id must equal parsed_case.case_id
+    failure_semantics:
+      - fail loud on missing parsed_case fields used for customer-priority reasoning
+    implementation_constraints:
+      - do not call external services
+
+  - component_id: manual_override_loader
+    kind: transform
+    purpose: Convert an optional manual override into an explicit decision artifact.
+    semantic_responsibility: parse_manual_override
+    input_ports:
+      - name: parsed_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case that may contain override fields.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: manual_override_decision
+        schema_id: ManualOverrideDecision
+        description: Optional manual override decision.
+    local_invariants:
+      - manual_override_decision.case_id must equal parsed_case.case_id when emitted
+    failure_semantics:
+      - omit output rather than synthesizing placeholder override data
+    implementation_constraints:
+      - emit nothing when no override action is present
+
+  - component_id: factor_correlator
+    kind: join
+    purpose: Correlate parsed case, risk signals, customer context, and optional override into one resolution factor bundle.
+    semantic_responsibility: correlate_resolution_factors
+    input_ports:
+      - name: on_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_exception
+        schema_id: ExceptionTypeLabel
+        description: Primary exception label.
+        required: true
+        arrival_policy: required_latest
+      - name: on_inventory
+        schema_id: InventoryRisk
+        description: Inventory risk input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_shipping
+        schema_id: ShippingRisk
+        description: Shipping risk input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_customer_context
+        schema_id: CustomerPriorityContext
+        description: Customer priority input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_override
+        schema_id: ManualOverrideDecision
+        description: Optional manual override input.
+        required: false
+        arrival_policy: optional_latest
+    output_ports:
+      - name: resolution_factors
+        schema_id: ResolutionFactors
+        description: Joined resolution factors.
+    local_invariants:
+      - all required inputs must share the same case_id
+      - resolution_factors.case_id must equal the joined case_id
+    failure_semantics:
+      - fail loud on required port schema mismatch
+      - omit override_action when the optional override input is absent
+    implementation_constraints:
+      - keep blocker_source explicit instead of hiding override effects in downstream scoring
+
+  - component_id: priority_scorer
+    kind: transform
+    purpose: Convert joined resolution factors into one priority decision.
+    semantic_responsibility: score_resolution_priority
+    input_ports:
+      - name: on_factors
+        schema_id: ResolutionFactors
+        description: Joined resolution factors.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: resolution_priority
+        schema_id: ResolutionPriority
+        description: Priority decision for the case.
+    local_invariants:
+      - resolution_priority.case_id must equal resolution_factors.case_id
+    failure_semantics:
+      - fail loud on missing joined factors
+    implementation_constraints:
+      - keep the scorer deterministic in the first comparison gate
+
+  - component_id: resolution_assembler
+    kind: join
+    purpose: Join parsed case, correlated factors, and priority into a digest entry and rolling store.
+    semantic_responsibility: assemble_resolution_digest_and_update_store
+    input_ports:
+      - name: on_case
+        schema_id: ParsedOrderExceptionCase
+        description: Parsed case input.
+        required: true
+        arrival_policy: required_latest
+      - name: on_factors
+        schema_id: ResolutionFactors
+        description: Joined resolution factors.
+        required: true
+        arrival_policy: required_latest
+      - name: on_priority
+        schema_id: ResolutionPriority
+        description: Priority decision.
+        required: true
+        arrival_policy: required_latest
+    output_ports:
+      - name: resolution_digest_entry
+        schema_id: ResolutionDigestEntry
+        description: Final digest entry.
+      - name: resolution_digest_store
+        schema_id: ResolutionDigestStore
+        description: Rolling digest store snapshot.
+    local_invariants:
+      - all required inputs must share the same case_id
+      - resolution_digest_entry.case_id must equal the joined case_id
+    failure_semantics:
+      - fail loud on required port schema mismatch
+    implementation_constraints:
+      - update the resolution digest store deterministically

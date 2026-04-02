@@ -1,0 +1,126 @@
+[
+  {
+    "case_id": "ORX-100",
+    "expected_outputs": {
+      "resolution_digest_entry": {
+        "case_id": "ORX-100",
+        "order_id": "ORD-9001",
+        "exception_type": "inventory_shortage",
+        "blocker_source": "override",
+        "priority_band": "critical",
+        "recommended_team": "account_operations",
+        "customer_priority_lane": "expedite",
+        "action_summary": "expedite allocation and notify account team",
+        "override_applied": "expedite_allocation"
+      },
+      "resolution_digest_store": {
+        "generated_at": "2026-04-01T09:00:00Z",
+        "entries": [
+          {
+            "case_id": "ORX-100",
+            "order_id": "ORD-9001",
+            "exception_type": "inventory_shortage",
+            "blocker_source": "override",
+            "priority_band": "critical",
+            "recommended_team": "account_operations",
+            "customer_priority_lane": "expedite",
+            "action_summary": "expedite allocation and notify account team",
+            "override_applied": "expedite_allocation"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "ORX-101",
+    "expected_outputs": {
+      "resolution_digest_entry": {
+        "case_id": "ORX-101",
+        "order_id": "ORD-9002",
+        "exception_type": "shipping_delay",
+        "blocker_source": "shipping",
+        "priority_band": "high",
+        "recommended_team": "logistics",
+        "customer_priority_lane": "standard",
+        "action_summary": "open carrier escalation"
+      },
+      "resolution_digest_store": {
+        "generated_at": "2026-04-01T09:15:00Z",
+        "entries": [
+          {
+            "case_id": "ORX-100",
+            "order_id": "ORD-9001",
+            "exception_type": "inventory_shortage",
+            "blocker_source": "override",
+            "priority_band": "critical",
+            "recommended_team": "account_operations",
+            "customer_priority_lane": "expedite",
+            "action_summary": "expedite allocation and notify account team",
+            "override_applied": "expedite_allocation"
+          },
+          {
+            "case_id": "ORX-101",
+            "order_id": "ORD-9002",
+            "exception_type": "shipping_delay",
+            "blocker_source": "shipping",
+            "priority_band": "high",
+            "recommended_team": "logistics",
+            "customer_priority_lane": "standard",
+            "action_summary": "open carrier escalation"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "ORX-102",
+    "expected_outputs": {
+      "resolution_digest_entry": {
+        "case_id": "ORX-102",
+        "order_id": "ORD-9003",
+        "exception_type": "compound_exception",
+        "blocker_source": "compound",
+        "priority_band": "critical",
+        "recommended_team": "exception_desk",
+        "customer_priority_lane": "expedite",
+        "action_summary": "coordinate exception desk escalation"
+      },
+      "resolution_digest_store": {
+        "generated_at": "2026-04-01T09:30:00Z",
+        "entries": [
+          {
+            "case_id": "ORX-100",
+            "order_id": "ORD-9001",
+            "exception_type": "inventory_shortage",
+            "blocker_source": "override",
+            "priority_band": "critical",
+            "recommended_team": "account_operations",
+            "customer_priority_lane": "expedite",
+            "action_summary": "expedite allocation and notify account team",
+            "override_applied": "expedite_allocation"
+          },
+          {
+            "case_id": "ORX-101",
+            "order_id": "ORD-9002",
+            "exception_type": "shipping_delay",
+            "blocker_source": "shipping",
+            "priority_band": "high",
+            "recommended_team": "logistics",
+            "customer_priority_lane": "standard",
+            "action_summary": "open carrier escalation"
+          },
+          {
+            "case_id": "ORX-102",
+            "order_id": "ORD-9003",
+            "exception_type": "compound_exception",
+            "blocker_source": "compound",
+            "priority_band": "critical",
+            "recommended_team": "exception_desk",
+            "customer_priority_lane": "expedite",
+            "action_summary": "coordinate exception desk escalation"
+          }
+        ]
+      }
+    }
+  }
+]

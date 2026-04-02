@@ -37,11 +37,16 @@ class CodegenContext(BaseModel):
     packet_test_cases: list[PacketTestCase] = Field(
         description="Packet-local test cases derived from fixtures.",
     )
+    repair_guidance: list[str] = Field(
+        default_factory=list,
+        description="Bounded guidance from the previous failed attempt when a repair loop is active.",
+    )
 
 
 def build_codegen_context(
     packet: ComponentPacket,
     packet_test_cases: list[PacketTestCase],
+    repair_guidance: list[str] | None = None,
 ) -> CodegenContext:
     """Project one component packet into the bounded code-generation context."""
 
@@ -61,6 +66,7 @@ def build_codegen_context(
         downstream_components=dict(packet.downstream_components),
         owned_state_stores=dict(packet.owned_state_stores),
         packet_test_cases=list(packet_test_cases),
+        repair_guidance=list(repair_guidance or []),
     )
 
 
