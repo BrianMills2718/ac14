@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import ast
+import copy
 import json
 import os
 import sqlite3
@@ -712,11 +713,12 @@ def _execute_runtime_cases(
                 port_name: final_outputs[port_name]
                 for port_name in bundle.config.final_output_ports
             }
+            frozen_outputs = copy.deepcopy(selected_outputs)
             results.append(
                 RuntimeCaseExecution(
                     case_id=case_id,
-                    matched_expected=selected_outputs == expected_outputs,
-                    actual_outputs=selected_outputs,
+                    matched_expected=frozen_outputs == expected_outputs,
+                    actual_outputs=frozen_outputs,
                     expected_outputs=expected_outputs,
                 ),
             )
@@ -924,3 +926,28 @@ def _validate_module_contract(module_code: str, *, component_id: str) -> None:
         raise ValueError(f"generated module for {component_id} is missing GeneratedComponent class")
     if not has_build_component:
         raise ValueError(f"generated module for {component_id} is missing build_component function")
+
+    namespace: dict[str, object] = {}
+    try:
+        exec(module_code, namespace)
+    except Exception as exc:  # pragma: no cover - fail-loud validation path
+        raise ValueError(
+            f"generated module for {component_id} failed during import-time validation: {exc}",
+        ) from exc
+
+    build_component = namespace.get("build_component")
+    if not callable(build_component):
+        raise ValueError(
+            f"generated module for {component_id} has a non-callable build_component",
+        )
+    try:
+        component = build_component()
+    except Exception as exc:  # pragma: no cover - fail-loud validation path
+        raise ValueError(
+            f"generated module for {component_id} failed when build_component() was called: {exc}",
+        ) from exc
+    execute = getattr(component, "execute", None)
+    if not callable(execute):
+        raise ValueError(
+            f"generated module for {component_id} build_component() did not return a runtime component",
+        )

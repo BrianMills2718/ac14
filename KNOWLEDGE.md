@@ -319,4 +319,17 @@ breadth step is a suite artifact that stays opt-in and preserves per-example
 retry artifact paths. AC14 now aggregates retry-attempted and retry-approved
 counts without collapsing the per-example provenance.
 
+### 2026-04-01 — codex — integration-issue
+The empirical-comparison runtime harness initially persisted mutable references
+to the stateful digest store, so later cases mutated earlier runtime artifacts.
+Deep-copy final outputs when recording runtime-case evidence or the smoke-trial
+reports become internally inconsistent.
+
+### 2026-04-01 — codex — best-practice
+Do not spend the full five-trial empirical-comparison budget until one bounded
+smoke paired trial produces a hard-harness success or the benchmark/generator
+setup is explicitly documented as the blocker. The runner is real now, but
+provider instability and zero-success smoke runs are themselves part of the
+gate evidence.
+
 ---

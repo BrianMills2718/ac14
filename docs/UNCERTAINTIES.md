@@ -112,6 +112,22 @@ the main empirical question if not interrupted deliberately.
 **Why it matters:** The active planning surface should force the next gate to be
 thesis-relevant rather than merely the next clean propagation story.
 
+### U-051: The empirical comparison runner exists, but bounded smoke trials still have zero hard-harness successes.
+**Status:** Investigating
+**Context:** The benchmark bundle, paired-trial runner, and decision artifact
+now exist, and multiple bounded live smoke runs have been executed.
+**Why it matters:** A five-trial gate is not worth running yet if one smoke
+trial cannot produce a single hard-harness success in either condition.
+
+### U-052: Provider instability is currently mixed into the empirical gate.
+**Status:** Investigating
+**Context:** Live smoke trials observed repeated Gemini disconnects, DNS/API
+connection failures, and `503` demand errors while the empirical comparison was
+running.
+**Why it matters:** A five-trial result under unstable provider conditions would
+mix thesis evidence with transport instability unless the issue is recorded and
+bounded explicitly.
+
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred
 **Context:** The current generator remains more of a controlled proof mechanism

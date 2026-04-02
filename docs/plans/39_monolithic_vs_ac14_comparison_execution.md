@@ -131,3 +131,11 @@ to justify the project's stronger thesis claim.
 This plan is the first direct thesis test. It is intentionally higher priority
 than blocked propagation plans unless the experiment itself shows that one of
 those blocked lanes is required for a fair comparison.
+
+Current live-execution note:
+
+- the benchmark bundle, paired-trial runner, and decision artifact now exist
+- bounded live smoke trials have been executed
+- the full five-trial gate should not proceed until one smoke paired trial
+  produces a hard-harness success or the benchmark/generator setup is
+  explicitly documented as the blocker

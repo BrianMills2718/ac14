@@ -11,7 +11,17 @@ messages:
       - defines `GeneratedComponent.execute(self, inputs)`
       - defines a `build_component()` function returning `GeneratedComponent()`
       - uses only the provided local context
+      - treats `inputs` as plain port-keyed dictionaries
+      - returns plain dictionary payloads keyed by output port
       - fails loud rather than hiding mistakes
+
+      Hard runtime-contract rules:
+      - do not invent wrapper schema classes for runtime inputs or outputs
+      - do not require `execute()` callers to pass custom objects instead of dictionaries
+      - `build_component()` must return the component instance itself, not a dict or registry
+      - keep owned state on `self` when the component owns a state store
+      - define `GeneratedComponent` before `build_component()`, or avoid forward references that break import-time evaluation
+      - the safest pattern is: class first, then `def build_component(): return GeneratedComponent()`
 
       Do not add markdown fences. Return only structured fields.
 

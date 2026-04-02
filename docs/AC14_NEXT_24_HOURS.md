@@ -49,6 +49,18 @@ Required in Plan #39:
 3. one decision artifact that applies the frozen success rule
 4. one five-trial experiment result that is reviewable artifact-by-artifact
 
+Current empirical-gate reality:
+
+1. the benchmark bundle exists and validates
+2. the paired-trial runner and decision artifact exist
+3. bounded live smoke trials have been run
+4. no smoke run has yet produced a hard-harness success in either condition
+5. repeated provider disconnects and `503` demand errors were observed during live runs
+
+That means Phase 5 is not ready yet. The immediate next step is to get one
+successful smoke paired trial or document a benchmark/generator blocker clearly
+enough to justify stopping the five-trial execution.
+
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
@@ -109,6 +121,13 @@ Success criteria:
 - the experiment is complete, verified, and reviewable without chat context
 - the active control surface reflects the actual result instead of a planned one
 
+Current blocker before Phase 5:
+
+- one bounded smoke paired trial has not yet produced a hard-harness success
+- live provider instability is currently mixed into the experiment surface
+- do not spend the full five-trial budget until one smoke trial either succeeds
+  or proves that the current benchmark/prompt setup is itself the blocker
+
 ## Known Uncertainties
 
 The detailed uncertainty ledger now lives in:
@@ -120,3 +139,5 @@ Current lane-specific uncertainties:
 1. the first experiment may still end inconclusive if five trials do not separate the conditions
 2. the monolithic condition must be bounded without silently giving it a looser repair budget
 3. the first ablation should isolate the decomposition claim itself; if the front-half derivation question starts to dominate this lane, that needs to be logged explicitly instead of smuggled in
+4. current live smoke trials have not yet produced a single hard-harness success
+5. provider disconnects and demand errors may contaminate the empirical gate unless they are recorded explicitly
