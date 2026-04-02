@@ -49,14 +49,16 @@ current executable lane.
 | 36 | [Directory Schema Divergence Concerns](36_directory_schema_divergence_concerns.md) | High | Complete | 35 |
 | 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | Blocked | 39 |
 | 38 | [Empirical Comparison Gate](38_empirical_comparison_gate.md) | Critical | Complete | - |
-| 39 | [Monolithic Vs AC14 Comparison Execution](39_monolithic_vs_ac14_comparison_execution.md) | Critical | Blocked | 46 |
+| 39 | [Monolithic Vs AC14 Comparison Execution](39_monolithic_vs_ac14_comparison_execution.md) | Critical | Blocked | 48 |
 | 40 | [Empirical Smoke Stabilization](40_empirical_smoke_stabilization.md) | Critical | Complete | - |
 | 41 | [Empirical Harness Repair](41_empirical_harness_repair.md) | Critical | Complete | 40 |
 | 42 | [Empirical Benchmark Fidelity Repair](42_empirical_benchmark_fidelity_repair.md) | Critical | Complete | - |
-| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | Blocked | 46 |
+| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | Blocked | 48 |
 | 44 | [Verdict Interpretation and Next Horizon](44_verdict_interpretation_and_next_horizon.md) | Critical | Blocked | 43 |
 | 45 | [Schema-Aware Empirical Repair](45_schema_aware_empirical_repair.md) | Critical | Complete | - |
-| 46 | [Empirical Smoke Gate Refresh](46_empirical_smoke_gate_refresh.md) | Critical | In Progress | 45 |
+| 46 | [Empirical Smoke Gate Refresh](46_empirical_smoke_gate_refresh.md) | Critical | Complete | 45 |
+| 47 | [Syntax-Stable Empirical Benchmark Repair](47_syntax_stable_empirical_benchmark_repair.md) | Critical | Complete | - |
+| 48 | [Empirical Smoke Gate Refresh II](48_empirical_smoke_gate_refresh_ii.md) | Critical | In Progress | 47 |
 
 ## Status Key
 

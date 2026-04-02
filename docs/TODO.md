@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #46: Empirical Smoke Gate Refresh](/home/brian/projects/ac14/docs/plans/46_empirical_smoke_gate_refresh.md)
+- [Plan #48: Empirical Smoke Gate Refresh II](/home/brian/projects/ac14/docs/plans/48_empirical_smoke_gate_refresh_ii.md)
 
 The experiment contract is frozen in:
 
@@ -24,7 +24,7 @@ The parent experiment lane remains:
 
 The next smoke gate is frozen in:
 
-- [Plan #46: Empirical Smoke Gate Refresh](/home/brian/projects/ac14/docs/plans/46_empirical_smoke_gate_refresh.md)
+- [Plan #48: Empirical Smoke Gate Refresh II](/home/brian/projects/ac14/docs/plans/48_empirical_smoke_gate_refresh_ii.md)
 
 The full-trial and interpretation gates remain blocked behind smoke readiness:
 
@@ -56,11 +56,27 @@ The previously active propagation lane remains blocked:
 - [x] Plan #45 Phase 3: verify and lock docs
   - Success criteria: local tests pass and the control docs point to Plan #46 for the smoke rerun
 
-- [ ] Plan #46 Phase 1: rerun one bounded smoke gate on the repaired lane
+- [x] Plan #46 Phase 1: rerun one bounded smoke gate on the repaired lane
   - Success criteria: one fresh smoke artifact exists
 
-- [ ] Plan #46 Phase 2: decide whether Plan #43 is unblocked
+- [x] Plan #46 Phase 2: decide whether Plan #43 is unblocked
   - Success criteria: the active docs say clearly whether the five-trial budget is justified
+  - Result: the fresh smoke artifact persisted at `.ac14_out/empirical_smoke_gate_repair6/` and remained `blocked_on_harness`
+
+- [x] Plan #47 Phase 1: harden prompts against the classifier syntax pathology and schema-invalid fallback labels
+  - Success criteria: shared prompts explicitly discourage comment-only branches, speculative fallback labels, and essay-style branch commentary
+
+- [x] Plan #47 Phase 2: add benchmark-local repair guidance for the exact repair6 blockers
+  - Success criteria: AC14 guidance names the classifier direct-rule requirement; monolithic guidance names the missing `shipping_risk.shipment_status` field and forbids out-of-schema labels
+
+- [x] Plan #47 Phase 3: verify and lock docs
+  - Success criteria: targeted tests, full tests, mypy, and ruff pass; the control docs point to Plan #48 for the next smoke rerun
+
+- [ ] Plan #48 Phase 1: rerun one bounded smoke gate on the repaired lane
+  - Success criteria: one fresh smoke artifact exists after Plan #47
+
+- [ ] Plan #48 Phase 2: decide whether Plan #43 is unblocked
+  - Success criteria: the active docs say clearly whether the five-trial budget is justified after the fresh smoke artifact
 
 ## Current Open Uncertainties
 
@@ -70,20 +86,23 @@ The previously active propagation lane remains blocked:
 - the current empirical comparison is a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
 - current bounded smoke trials have not yet produced a hard-harness success in either condition
 - the latest explicit smoke verdict is still `blocked_on_harness`, not `blocked_on_infrastructure`
-- the current queued lane is the fresh smoke rerun, not immediate five-trial execution
+- the latest bounded smoke artifact is `.ac14_out/empirical_smoke_gate_repair6/`
+- AC14 is still losing early attempts to syntax-invalid `exception_classifier` modules before the benchmark harness can judge the logic cleanly
+- the monolithic lane is still violating benchmark-local schema fidelity by reading `shipping_risk['shipment_status']` and by inventing fallback labels outside the schema
+- the current queued lane is Plan #47 benchmark repair, then Plan #48 smoke rerun, not immediate five-trial execution
 
 ## Latest Verified Baseline
 
 - the repo is clean
 - the most recent fully verified implementation state passed:
-  - `python -m pytest -q` with `229 passed`
+  - `python -m pytest -q` with `232 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - the most recently completed planning lane was:
-  - [Plan #45: Schema-Aware Empirical Repair](/home/brian/projects/ac14/docs/plans/45_schema_aware_empirical_repair.md)
+  - [Plan #47: Syntax-Stable Empirical Benchmark Repair](/home/brian/projects/ac14/docs/plans/47_syntax_stable_empirical_benchmark_repair.md)
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #46 and only unblock Plan #43 if the smoke artifact says the five-trial budget is justified
+- [ ] complete Plan #48 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
 - [ ] interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
 - [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis

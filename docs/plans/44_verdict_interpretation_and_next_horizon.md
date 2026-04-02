@@ -61,7 +61,7 @@ the next numbered plan after this one.
 1. Read the experiment-decision artifact from Plan #43.
 2. Write a plain-language interpretation of what it means for the thesis.
 3. Update the roadmap with the next horizon based on the verdict.
-4. Define the next numbered plan (Plan #45) in one sentence.
+4. Define the next numbered plan in one sentence.
 5. Commit the updated docs.
 
 ---

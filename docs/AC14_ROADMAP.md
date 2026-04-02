@@ -1,6 +1,6 @@
 # AC14 Roadmap
 
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 Status: Active roadmap
 
 ## Purpose
@@ -197,8 +197,9 @@ In order:
 2. design and run the empirical comparison gate before more propagation-proof micro-lanes
 3. stabilize the empirical smoke gate before spending the full five-trial budget
 4. repair benchmark-fidelity blockers until a bounded smoke rerun either succeeds or narrows the blocker again
-5. strengthen the front half where it materially improves that comparison
-6. broaden proof breadth before expanding scope claims
+5. right now that means clearing the concrete repair6 blockers: AC14 classifier syntax instability plus monolithic schema-surface violations
+6. strengthen the front half where it materially improves that comparison
+7. broaden proof breadth before expanding scope claims
 
 ## Working Rule
 

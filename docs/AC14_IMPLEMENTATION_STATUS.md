@@ -1,6 +1,6 @@
 # AC14 Implementation Status
 
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 Status: Canonical implementation-reality document
 
 ## Purpose
@@ -40,7 +40,10 @@ The main current issue is no longer architectural incoherence. It is the lack
 of a completed empirical comparison verdict against a fair monolithic baseline,
 plus the need to state clearly that the current gate is a bounded back-half
 comparison rather than the full end-to-end thesis test. The immediate blocker
-inside that gate is now benchmark-fidelity repair, not infrastructure noise.
+inside that gate is now a narrower benchmark-fidelity repair lane, not
+infrastructure noise: AC14 still loses early attempts to syntax-invalid
+`exception_classifier` generation, and the monolithic lane still violates the
+benchmark-local schema surface.
 
 ## What Is Implemented
 

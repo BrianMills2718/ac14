@@ -30,6 +30,10 @@ messages:
       - keep owned state on `self` when the component owns a state store
       - define `GeneratedComponent` before `build_component()`, or avoid forward references that break import-time evaluation
       - keep Python syntax minimal and valid: no incomplete branches, no placeholder ellipses, and no missing parentheses
+      - never leave an `if` / `elif` / `else` branch with comments only; every branch must contain real executable Python statements
+      - for small deterministic transforms, prefer a short direct decision tree over exploratory prose comments or speculative fallback logic
+      - if no schema-valid categorical value applies, raise `ValueError` loudly instead of inventing a fallback label outside the schema
+      - keep comments short and rare; do not paste long reasoning or ambiguity analysis into generated modules
       - the safest pattern is: class first, then `def build_component(): return GeneratedComponent()`
 
       Return only structured fields. Do not add markdown fences.

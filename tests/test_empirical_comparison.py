@@ -315,6 +315,28 @@ def test_benchmark_repair_guidance_targets_override_and_shipping_rules() -> None
     assert any("override_action" in line for line in guidance)
 
 
+def test_benchmark_repair_guidance_marks_missing_schema_fields_and_no_fallback_labels() -> None:
+    """Benchmark-local guidance should name the concrete monolithic schema-surface blocker."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    guidance = _benchmark_repair_guidance(bundle=bundle, condition="monolithic")
+
+    assert any("shipping_risk exposes shipment_risk_band and shipment_delay_hours" in line for line in guidance)
+    assert any("raise ValueError loudly instead of synthesizing a fallback label" in line for line in guidance)
+
+
+def test_component_repair_guidance_targets_classifier_syntax_stability() -> None:
+    """AC14 component guidance should name the direct classifier repair strategy."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    guidance = _build_component_repair_guidance(
+        bundle=bundle,
+        prior_guidance=["generation failed before evaluation: generated module for exception_classifier is not valid Python"],
+    )
+
+    assert any("short direct decision tree" in line for line in guidance["exception_classifier"])
+    assert any("raise ValueError instead of writing speculative fallback logic" in line for line in guidance["exception_classifier"])
+
 
 def test_component_specific_repair_guidance_targets_resolution_assembler() -> None:
     """AC14 repair guidance should target optional override handling to relevant components only."""

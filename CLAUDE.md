@@ -129,6 +129,11 @@ For the active empirical-comparison lane, this rule is especially strict:
 - when the smoke artifact is stale or the control docs lag the latest run,
   update the docs before continuing so another agent can resume without chat
   history
+- after `empirical_smoke_gate_repair6`, the active empirical chain is now:
+  1. Plan #47 targeted benchmark repair
+  2. Plan #48 bounded smoke rerun
+  3. Plan #43 full trials only if the Plan #48 artifact says `ready_for_full_trials`
+  4. another narrower blocker-clearing plan immediately if Plan #48 stays `blocked_on_harness`
 
 Treat waiting for further permission before the active plan is complete as a
 process failure. The required behavior is:

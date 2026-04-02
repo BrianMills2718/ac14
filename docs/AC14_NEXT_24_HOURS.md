@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #46: Empirical Smoke Gate Refresh](/home/brian/projects/ac14/docs/plans/46_empirical_smoke_gate_refresh.md)
+- [Plan #48: Empirical Smoke Gate Refresh II](/home/brian/projects/ac14/docs/plans/48_empirical_smoke_gate_refresh_ii.md)
 
 The empirical gate is now frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -25,9 +25,9 @@ Completed blocker-clearing lanes:
 
 The active 24-hour chain is now:
 
-1. spend one bounded smoke run on the verified schema-aware repair lane
+1. rerun one bounded smoke paired trial on the repaired lane
 2. read the resulting smoke and paired-trial artifacts directly
-3. unblock Plan #43 only if the smoke artifact says `ready_for_full_trials`
+3. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
 4. if smoke stays blocked, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
 5. only after full trials exist should Plan #44 interpret the verdict
 
@@ -65,10 +65,10 @@ Current empirical-gate reality:
 2. the paired-trial runner and decision artifact exist
 3. bounded live smoke trials have been run
 4. no smoke run has yet produced a hard-harness success in either condition
-5. repeated provider disconnects and `503` demand errors were observed during live runs
+5. repeated provider disconnects and `503` demand errors were observed during earlier live runs
 
-That means the next honest step is Plan #40, not Phase 5 of Plan #39 in the
-abstract.
+That means the next honest step is no longer another generic propagation lane.
+It is a narrower benchmark-repair lane followed by another smoke rerun.
 
 Latest blocker-clearing outcomes:
 
@@ -76,8 +76,13 @@ Latest blocker-clearing outcomes:
 2. the current verdict remains `blocked_on_harness`
 3. the latest bounded smoke rerun did not show infrastructure/provider contamination
 4. Plan #42 improved the harness, but the gate still failed on benchmark-specific logic and prompt-context blindness
-5. Plan #45 has now repaired the prompt/context surface and passed full local verification
-6. Plan #46 now exists to refresh the smoke verdict after that verified repair slice
+5. Plan #45 repaired the prompt/context surface and passed full local verification
+6. Plan #46 refreshed the smoke verdict and narrowed the remaining blocker further:
+   - AC14 still loses early attempts to syntax-invalid `exception_classifier` modules
+   - monolithic still reads `shipping_risk['shipment_status']`, which is outside the benchmark-local schema surface
+   - monolithic still invents out-of-schema fallback labels such as `other`
+7. Plan #47 has now landed and passed targeted tests, full `pytest`, `mypy`, and `ruff`
+8. Plan #48 is now the active smoke rerun gate after that verified repair slice
 
 ## Tactical Phase Summary
 
@@ -116,4 +121,4 @@ Current lane-specific uncertainties:
 2. the monolithic condition must stay bounded without silently giving it a looser repair budget
 3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
 4. current bounded smoke trials still have not produced a hard-harness success
-5. the next smoke artifact must show whether the schema-aware repair materially changed the gate outcome
+5. the next smoke artifact must show whether the syntax-stability and schema-fidelity repair materially changed the gate outcome

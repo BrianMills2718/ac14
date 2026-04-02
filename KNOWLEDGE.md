@@ -382,4 +382,12 @@ components produce wrong categorical values (e.g., priority_band='high' instead 
 'critical' for compound_exception cases). The fixture provides the concrete
 input/output contract that guides generation.
 
+### 2026-04-02 — codex — best-practice
+When the empirical smoke gate is blocked by repeated syntax-invalid code, the
+next honest fix is prompt and repair-guidance discipline, not a hidden
+syntax-only retry loop. In the order-exception benchmark, the productive repair
+was to forbid comment-only branches and schema-invalid fallback labels, and to
+name the exact missing-schema-field bug (`shipping_risk` does not expose
+`shipment_status`) directly in benchmark-local guidance.
+
 ---

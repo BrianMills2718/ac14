@@ -3,15 +3,15 @@
 **Status:** Planned
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 42
+**Blocked By:** 48
 **Blocks:** 44
 
 ---
 
 ## Gap
 
-**Current:** Plan #42 stabilizes the benchmark harness and clears the smoke
-blocker. The project has never yet run a full five-trial paired experiment.
+**Current:** The smoke gate is still blocked behind Plan #48. The project has
+never yet run a full five-trial paired experiment.
 
 **Target:** Run five paired monolithic-vs-AC14 trials on the frozen benchmark,
 persist per-trial artifacts, and produce one experiment-decision artifact with
@@ -24,11 +24,11 @@ empirical measurement.
 
 ## Open Questions
 
-### Q1: What if the smoke rerun from Plan #42 still returns `blocked_on_harness`?
+### Q1: What if the smoke rerun from Plan #48 still returns `blocked_on_harness`?
 **Status:** Resolved
-**Decision:** If smoke is still blocked after Plan #42, create Plan #42b with
-the specific remaining blocker rather than proceeding to full trials. Full
-trials require a `ready_for_full_trials` smoke verdict.
+**Decision:** If smoke is still blocked after Plan #48, define the next narrower
+blocker-clearing plan rather than proceeding to full trials. Full trials require
+a `ready_for_full_trials` smoke verdict.
 
 ### Q2: Should the five trials run sequentially or in parallel?
 **Status:** Resolved
@@ -59,7 +59,7 @@ are evidence too.
 
 ### Steps
 
-1. Confirm the smoke verdict from Plan #42 is `ready_for_full_trials`.
+1. Confirm the smoke verdict from Plan #48 is `ready_for_full_trials`.
 2. Run five paired trials via `make run-full-trial-gate` (or equivalent CLI
    command) — each trial persists its own directory and paired report.
 3. After all five trials complete, run `make build-experiment-decision` to

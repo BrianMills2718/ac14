@@ -885,10 +885,12 @@ def _benchmark_repair_guidance(
         return []
     shared = [
         "Keep Python syntax minimal and valid: no incomplete if/elif/else branches, no missing parentheses, and no placeholder code.",
+        "Never leave a branch with comments only. Use short direct logic and executable statements instead of essay-style commentary inside the code.",
         "Treat shipping delay as a material shipping_delay exception at 24+ hours; severe shipping delay is 48+ hours or shipment_status == 'exception'.",
         "When both inventory shortage and severe shipping delay are present, classify compound_exception and route to blocker_source='compound', recommended_team='exception_desk', priority_band='critical'.",
         "Manual override is optional. Preserve it explicitly when present, but never assume override_action exists for every case.",
-        "Use only schema-valid categorical values and never invent fallback labels outside the benchmark schemas.",
+        "Use only schema-valid categorical values and never invent fallback labels outside the benchmark schemas. If no schema-valid category applies, raise ValueError loudly instead of synthesizing a fallback label.",
+        "Read only fields that actually exist on each local schema surface. For this benchmark, shipping_risk exposes shipment_risk_band and shipment_delay_hours, but not shipment_status.",
     ]
     if condition == "monolithic":
         return shared + [
@@ -910,6 +912,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         "exception_classifier": [
             "Classify shipping_delay when shipment_delay_hours >= 24 or shipment_status indicates a shipping problem; do not emit fallback labels outside the schema.",
             "Classify compound_exception only when there is both an inventory shortage and a severe shipping delay (48+ hours or shipment_status == 'exception').",
+            "Implement the classifier as one short direct decision tree: shortage + severe shipping => compound_exception; shortage only => inventory_shortage; otherwise shipping_delay when delay >= 24 or shipment_status indicates a shipping problem. If no schema-valid label applies, raise ValueError instead of writing speculative fallback logic or long ambiguity comments.",
         ],
         "inventory_risk_evaluator": [
             "Keep inventory_risk_band within the schema's categorical values and align high-risk outputs with the benchmark fixtures for large shortages or delayed replenishment.",
@@ -925,6 +928,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         ],
         "factor_correlator": [
             "The on_override input port is optional. Check for its presence before reading override_action.",
+            "Do not read shipment_status from shipping_risk; that field does not exist on the ShippingRisk schema. Use shipment_risk_band and shipment_delay_hours instead.",
             "Override present => blocker_source='override' and recommended_team='account_operations'.",
             "Compound exception => blocker_source='compound' and recommended_team='exception_desk'.",
             "Shipping delay => blocker_source='shipping' and recommended_team='logistics'. Inventory shortage => blocker_source='inventory' and recommended_team='support'.",

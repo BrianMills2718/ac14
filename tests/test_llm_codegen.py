@@ -190,6 +190,20 @@ def test_component_prompt_includes_local_schema_definitions() -> None:
     assert "absence_meaning=" in user_message
 
 
+def test_component_prompt_forbids_comment_only_branches_and_fallback_labels() -> None:
+    """The shared component prompt should harden the current syntax/fallback pathology."""
+
+    messages = render_prompt(
+        PROMPT_PATH,
+        context=_digest_assembler_context().model_dump(mode="json"),
+    )
+
+    system_message = next(message["content"] for message in messages if message["role"] == "system")
+    assert "never leave an `if` / `elif` / `else` branch with comments only" in system_message
+    assert "raise `ValueError` loudly instead of inventing a fallback label" in system_message
+    assert "keep comments short and rare" in system_message
+
+
 def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

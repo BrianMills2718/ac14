@@ -1,6 +1,6 @@
 # Plan #46: Empirical Smoke Gate Refresh
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 45
@@ -82,13 +82,22 @@ No new unit tests. The smoke artifact itself is the acceptance surface for this 
 
 ## Acceptance Criteria
 
-- [ ] One fresh bounded smoke artifact exists after Plan #45 lands.
-- [ ] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
-- [ ] The active control docs reflect that verdict exactly.
-- [ ] Plan #43 is only unblocked if the smoke artifact says `ready_for_full_trials`.
+- [x] One fresh bounded smoke artifact exists after Plan #45 lands.
+- [x] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
+- [x] The active control docs reflect that verdict exactly.
+- [x] Plan #43 is only unblocked if the smoke artifact says `ready_for_full_trials`.
 
 ---
 
 ## Notes
 
 This plan exists to force an explicit go/no-go gate before the five-trial budget.
+
+## Implementation Summary (2026-04-02)
+
+- One fresh bounded smoke artifact now exists at `.ac14_out/empirical_smoke_gate_repair6/`.
+- The smoke verdict remained `blocked_on_harness` with `infrastructure_failure_detected = false`.
+- The blocker narrowed further:
+  - AC14 still lost early attempts to syntax-invalid `exception_classifier` modules.
+  - The monolithic lane still violated benchmark-local schema fidelity by reading `shipping_risk['shipment_status']` and inventing fallback labels outside the schema.
+- Plan #43 remains blocked. The next honest step is a narrower blocker-clearing plan rather than spending the five-trial budget.

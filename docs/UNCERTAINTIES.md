@@ -1,7 +1,7 @@
 # AC14 Uncertainties
 
 Status: Canonical uncertainty tracker
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 Use this file to track open, investigating, resolved, deferred, and blocked
 uncertainties that matter to AC14's architecture, proof slice, or active
@@ -140,12 +140,30 @@ end-to-end front-half-plus-back-half version of the thesis.
 ### U-054: The next blocker is benchmark-fidelity exactness, not infrastructure.
 **Status:** Investigating
 **Context:** The latest bounded smoke rerun stayed `blocked_on_harness` without
-provider contamination. The dominant mismatches are now benchmark-local:
-`generated_at` exactness, required parsed-field omissions, and explicit
-business-rule mismatches.
+provider contamination. The dominant mismatches are now benchmark-local rather
+than provider-local.
 **Why it matters:** The next repair lane should stay benchmark-local and avoid
-turning one empirical benchmark's exactness needs into broad AC14 runtime
-policy by accident.
+turning one empirical benchmark's needs into broad AC14 runtime policy by
+accident.
+
+### U-055: AC14 still loses early smoke attempts to syntax-invalid classifier code.
+**Status:** Investigating
+**Context:** In `.ac14_out/empirical_smoke_gate_repair6/`, the AC14 condition
+spent attempts 1 and 2 on syntax-invalid `exception_classifier` output before
+attempt 3 finally reached the packet-test surface.
+**Why it matters:** The empirical gate cannot measure benchmark logic honestly
+if one condition burns most of its bounded repair budget on one recurring
+syntax pathology.
+
+### U-056: The monolithic lane still violates the benchmark-local schema surface.
+**Status:** Investigating
+**Context:** In `.ac14_out/empirical_smoke_gate_repair6/`, the monolithic lane
+still read `shipping_risk['shipment_status']` even though the `ShippingRisk`
+schema does not expose that field, and it also invented fallback categorical
+labels outside the schema.
+**Why it matters:** The next repair lane should tighten schema-surface fidelity
+rather than spending the five-trial budget on a condition that is still failing
+for avoidable benchmark-local reasons.
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred
