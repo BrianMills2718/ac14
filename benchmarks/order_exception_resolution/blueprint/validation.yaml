@@ -53,6 +53,22 @@ scenarios:
       - shipping_delay_factor_correlator
       - shipping_delay_priority_scorer
       - shipping_delay_resolution_assembler
+  - scenario_id: compound_exception_routing
+    kind: full_recomposition
+    description: Compound exception (inventory shortage + severe shipping delay) must route to exception_desk with critical priority.
+    evaluator_ids:
+      - exact_outputs
+    realistic_input: true
+    fixture_ids:
+      - compound_exception_case_parser
+      - compound_exception_exception_classifier
+      - compound_exception_inventory_risk_evaluator
+      - compound_exception_shipping_risk_evaluator
+      - compound_exception_customer_context_loader
+      - compound_exception_manual_override_loader
+      - compound_exception_factor_correlator
+      - compound_exception_priority_scorer
+      - compound_exception_resolution_assembler
   - scenario_id: mismatched_case_rejected
     kind: negative
     description: Factor correlator must reject required inputs that do not share the same case_id.

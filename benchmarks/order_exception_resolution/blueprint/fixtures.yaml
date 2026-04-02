@@ -666,3 +666,300 @@ fixtures:
         escalate_customer: false
         reason: mismatch
     expected_outputs: {}
+
+  - fixture_id: compound_exception_case_parser
+    scenario_id: compound_exception_routing
+    component_id: case_parser
+    description: Parser normalizes a compound-exception case (inventory shortage AND severe shipping delay, gold customer with high case backlog).
+    inputs:
+      raw_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        support_notes: Order is partially allocated and also appears stuck at the carrier handoff. Customer already has multiple open cases.
+        open_case_count: 4
+    expected_outputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+
+  - fixture_id: compound_exception_exception_classifier
+    scenario_id: compound_exception_routing
+    component_id: exception_classifier
+    description: Classifier detects compound exception when both inventory shortage and severe shipping delay are present.
+    inputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+    expected_outputs:
+      exception_label:
+        case_id: ORX-102
+        exception_type: compound_exception
+        reason: both inventory shortage and severe shipping delay are present
+
+  - fixture_id: compound_exception_inventory_risk_evaluator
+    scenario_id: compound_exception_routing
+    component_id: inventory_risk_evaluator
+    description: Inventory evaluator marks the partial allocation as high risk.
+    inputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+    expected_outputs:
+      inventory_risk:
+        case_id: ORX-102
+        shortage_units: 3
+        inventory_risk_band: high
+        inventory_eta_days: 4
+        reason: shortage requires partial fulfillment or back-order
+
+  - fixture_id: compound_exception_shipping_risk_evaluator
+    scenario_id: compound_exception_routing
+    component_id: shipping_risk_evaluator
+    description: Shipping evaluator marks a carrier exception with 52-hour delay as high risk.
+    inputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+    expected_outputs:
+      shipping_risk:
+        case_id: ORX-102
+        shipment_risk_band: high
+        shipment_delay_hours: 52
+        reason: carrier exception with severe delay triggers escalation
+
+  - fixture_id: compound_exception_customer_context_loader
+    scenario_id: compound_exception_routing
+    component_id: customer_context_loader
+    description: Gold customer with open_case_count >= 3 should be placed on the expedite lane.
+    inputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+    expected_outputs:
+      customer_priority_context:
+        case_id: ORX-102
+        priority_lane: expedite
+        escalate_customer: true
+        reason: gold customer with open_case_count >= 3 treated as expedite
+
+  - fixture_id: compound_exception_manual_override_loader
+    scenario_id: compound_exception_routing
+    component_id: manual_override_loader
+    description: No manual override for this compound exception case.
+    inputs:
+      parsed_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+    expected_outputs: {}
+
+  - fixture_id: compound_exception_factor_correlator
+    scenario_id: compound_exception_routing
+    component_id: factor_correlator
+    description: Correlator routes a compound exception to exception_desk with blocker_source compound.
+    inputs:
+      on_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+      on_exception:
+        case_id: ORX-102
+        exception_type: compound_exception
+        reason: both inventory shortage and severe shipping delay are present
+      on_inventory:
+        case_id: ORX-102
+        shortage_units: 3
+        inventory_risk_band: high
+        inventory_eta_days: 4
+        reason: shortage requires partial fulfillment or back-order
+      on_shipping:
+        case_id: ORX-102
+        shipment_risk_band: high
+        shipment_delay_hours: 52
+        reason: carrier exception with severe delay triggers escalation
+      on_customer_context:
+        case_id: ORX-102
+        priority_lane: expedite
+        escalate_customer: true
+        reason: gold customer with open_case_count >= 3 treated as expedite
+    expected_outputs:
+      resolution_factors:
+        case_id: ORX-102
+        primary_exception_type: compound_exception
+        blocker_source: compound
+        recommended_team: exception_desk
+        customer_priority_lane: expedite
+        escalation_required: true
+
+  - fixture_id: compound_exception_priority_scorer
+    scenario_id: compound_exception_routing
+    component_id: priority_scorer
+    description: Compound exceptions always receive critical priority regardless of other factors.
+    inputs:
+      on_factors:
+        case_id: ORX-102
+        primary_exception_type: compound_exception
+        blocker_source: compound
+        recommended_team: exception_desk
+        customer_priority_lane: expedite
+        escalation_required: true
+    expected_outputs:
+      resolution_priority:
+        case_id: ORX-102
+        priority_band: critical
+        score: 95
+        reason: compound exception requires immediate coordinated escalation
+
+  - fixture_id: compound_exception_resolution_assembler
+    scenario_id: compound_exception_routing
+    component_id: resolution_assembler
+    description: Resolution assembler emits one compound-exception digest entry with exception_desk routing.
+    inputs:
+      on_case:
+        case_id: ORX-102
+        received_at: 2026-04-01T09:30:00Z
+        order_id: ORD-9003
+        customer_id: CUST-GOLD-5
+        customer_tier: gold
+        order_value: 2600
+        sku: SKU-GAMMA
+        quantity_requested: 5
+        available_quantity: 2
+        shortage_units: 3
+        inventory_eta_days: 4
+        shipment_status: exception
+        shipment_delay_hours: 52
+        normalized_notes: order is partially allocated and also appears stuck at the carrier handoff. customer already has multiple open cases
+        open_case_count: 4
+      on_factors:
+        case_id: ORX-102
+        primary_exception_type: compound_exception
+        blocker_source: compound
+        recommended_team: exception_desk
+        customer_priority_lane: expedite
+        escalation_required: true
+      on_priority:
+        case_id: ORX-102
+        priority_band: critical
+        score: 95
+        reason: compound exception requires immediate coordinated escalation
+    expected_outputs:
+      resolution_digest_entry:
+        case_id: ORX-102
+        order_id: ORD-9003
+        exception_type: compound_exception
+        blocker_source: compound
+        priority_band: critical
+        recommended_team: exception_desk
+        customer_priority_lane: expedite
+        action_summary: coordinate exception desk escalation
+      resolution_digest_store:
+        generated_at: "2026-04-01T09:30:00Z"
+        entries:
+          - case_id: ORX-102
+            order_id: ORD-9003
+            exception_type: compound_exception
+            blocker_source: compound
+            priority_band: critical
+            recommended_team: exception_desk
+            customer_priority_lane: expedite
+            action_summary: coordinate exception desk escalation
