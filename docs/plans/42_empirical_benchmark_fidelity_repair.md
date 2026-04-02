@@ -1,6 +1,6 @@
 # Plan #42: Empirical Benchmark Fidelity Repair
 
-**Status:** In Progress
+**Status:** Complete — Pending Smoke Verification
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** None
@@ -125,6 +125,30 @@ blocker than the current mixed packet/runtime failures.
 - [ ] Full local verification passes and the repo stays clean.
 
 ---
+
+## Implementation Summary (2026-04-02)
+
+Root cause found: packet tests and recomposition used exact dict comparison including
+free-form fields (`reason`, `action_summary`, `score`, `generated_at`) that LLMs can
+never reproduce deterministically. This caused BOTH conditions to fail packet tests
+even when generating correct categorical outputs.
+
+**Fix 1 — Two-phase comparison (harness)**:
+- Phase 1: strip free-form fields, compare categorical fields exactly
+- Phase 2: LLM judge evaluates semantic correctness of `reason`/`action_summary`
+- Applied to packet tests (`run_generated_packet_tests`) and recomposition (`run_recomposition_proof`)
+- New prompt: `prompts/evaluate_packet_case.yaml`
+
+**Fix 2 — Compound exception fixtures (blueprint)**:
+- Added 9 fixtures for ORX-102 (compound exception case) to `fixtures.yaml`
+- Added `compound_exception_routing` scenario to `validation.yaml`
+- Without these fixtures, generated components had no examples for compound case
+  and produced `priority_band='high'` instead of `'critical'`
+
+**Fix 3 — Schema description hardening (generation)**:
+- All categorical fields now have valid values in schema descriptions
+- Both prompts hardened against attribute access errors and inheritance patterns
+- Added Business Rules 6-9 to requirements.md
 
 ## Notes
 
