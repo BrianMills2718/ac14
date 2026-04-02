@@ -25,8 +25,11 @@ benchmark:
   final_output_ports:
     - resolution_digest_entry
     - resolution_digest_store
+  dynamic_output_fields:
+    - resolution_digest_store.generated_at
   system_requirements:
     - Preserve one bounded source-to-sink flow with explicit fan-in and one optional override path.
-    - Escalate platinum and gold customers more aggressively than standard customers.
+    - Escalate platinum and gold customers with open_case_count >= 3 as expedite; others as standard.
     - Treat manual override as a first-class path that can change blocker source and action summary.
     - Maintain a deterministic digest store keyed by processed case_id.
+    - Classify compound exceptions (inventory shortage + severe shipping delay) with exception_type compound_exception, blocker_source compound, routed to exception_desk.

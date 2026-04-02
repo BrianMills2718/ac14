@@ -78,6 +78,14 @@ class BenchmarkConfig(BaseModel):
     final_component_id: str = Field(description="Final component that emits the reviewable outputs.")
     final_output_ports: list[str] = Field(description="Final output ports evaluated at runtime.")
     system_requirements: list[str] = Field(description="High-level benchmark requirements.")
+    dynamic_output_fields: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Dot-separated output field paths excluded from exact value comparison. "
+            "Dynamic fields (e.g. wall-clock timestamps) must exist in actual outputs "
+            "but their exact values are not compared to expected outputs."
+        ),
+    )
 
 
 class BenchmarkFile(BaseModel):
@@ -664,6 +672,7 @@ def _run_condition_attempt(
         recomposition_passed=recomposition_passed,
         runtime_cases=runtime_cases,
         semantic_review=semantic_review,
+        dynamic_output_fields=bundle.config.dynamic_output_fields,
     )
     attempt_report = ConditionAttemptReport(
         attempt_id=attempt_id,
@@ -817,6 +826,36 @@ async def agenerate_monolithic_system_with_llm(
     return typed_response
 
 
+def _strip_dynamic_field_paths(
+    data: dict[str, Any],
+    paths: list[str],
+) -> dict[str, Any]:
+    """Return a deep copy of data with each dot-separated dynamic field path removed."""
+    result = copy.deepcopy(data)
+    for path in paths:
+        parts = path.split(".")
+        obj: Any = result
+        for part in parts[:-1]:
+            if not isinstance(obj, dict) or part not in obj:
+                break
+            obj = obj[part]
+        else:
+            if isinstance(obj, dict):
+                obj.pop(parts[-1], None)
+    return result
+
+
+def _dynamic_field_exists(data: dict[str, Any], path: str) -> bool:
+    """Return True if a dot-separated field path exists anywhere in data."""
+    parts = path.split(".")
+    obj: Any = data
+    for part in parts:
+        if not isinstance(obj, dict) or part not in obj:
+            return False
+        obj = obj[part]
+    return True
+
+
 def _execute_runtime_cases(
     *,
     bundle: BenchmarkBundle,
@@ -851,10 +890,18 @@ def _execute_runtime_cases(
                 for port_name in bundle.config.final_output_ports
             }
             frozen_outputs = copy.deepcopy(selected_outputs)
+            dynamic_fields = bundle.config.dynamic_output_fields
+            compare_actual = _strip_dynamic_field_paths(frozen_outputs, dynamic_fields)
+            compare_expected = _strip_dynamic_field_paths(expected_outputs, dynamic_fields)
+            missing_dynamic = [
+                f for f in dynamic_fields
+                if not _dynamic_field_exists(frozen_outputs, f)
+            ]
+            matched = compare_actual == compare_expected and not missing_dynamic
             results.append(
                 RuntimeCaseExecution(
                     case_id=case_id,
-                    matched_expected=frozen_outputs == expected_outputs,
+                    matched_expected=matched,
                     actual_outputs=frozen_outputs,
                     expected_outputs=expected_outputs,
                 ),
@@ -1010,6 +1057,7 @@ def _build_failure_summary(
     recomposition_passed: bool,
     runtime_cases: list[RuntimeCaseExecution],
     semantic_review: AcceptanceReviewResponse | None,
+    dynamic_output_fields: list[str] | None = None,
 ) -> list[str]:
     """Summarize the previous attempt into bounded repair guidance."""
 
@@ -1026,7 +1074,10 @@ def _build_failure_summary(
         if case.error is not None:
             summary.append(f"runtime case {case.case_id} failed: {case.error}")
         else:
-            mismatch_details = _summarize_runtime_output_mismatch(case)
+            mismatch_details = _summarize_runtime_output_mismatch(
+                case,
+                dynamic_output_fields=dynamic_output_fields or [],
+            )
             summary.append(
                 f"runtime case {case.case_id} mismatches: " + "; ".join(mismatch_details),
             )
@@ -1095,24 +1146,31 @@ def _summarize_runtime_output_mismatch(
     case: RuntimeCaseExecution,
     *,
     max_differences: int = 6,
+    dynamic_output_fields: list[str] | None = None,
 ) -> list[str]:
-    """Build bounded field-level mismatch guidance for one runtime case."""
+    """Build bounded field-level mismatch guidance for one runtime case.
 
+    Dynamic output fields (e.g. wall-clock timestamps) are excluded from the
+    diff because their values are intentionally not compared.
+    """
+    excluded: set[str] = set(dynamic_output_fields or [])
     actual_outputs = case.actual_outputs or {}
+    stripped_actual = _strip_dynamic_field_paths(actual_outputs, list(excluded))
+    stripped_expected = _strip_dynamic_field_paths(case.expected_outputs, list(excluded))
     differences: list[str] = []
-    for port_name in sorted(set(case.expected_outputs) | set(actual_outputs)):
+    for port_name in sorted(set(stripped_expected) | set(stripped_actual)):
         if len(differences) >= max_differences:
             break
-        if port_name not in actual_outputs:
+        if port_name not in stripped_actual:
             differences.append(f"{port_name} missing from actual outputs")
             continue
-        if port_name not in case.expected_outputs:
+        if port_name not in stripped_expected:
             differences.append(f"{port_name} unexpectedly present in actual outputs")
             continue
         differences.extend(
             _collect_bounded_differences(
-                expected=case.expected_outputs[port_name],
-                actual=actual_outputs[port_name],
+                expected=stripped_expected[port_name],
+                actual=stripped_actual[port_name],
                 prefix=port_name,
                 limit=max_differences - len(differences),
             ),

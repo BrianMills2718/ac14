@@ -36,14 +36,25 @@ The first slice must prove:
 
 Do not broaden scope before that works.
 
-## Execution Discipline
+## Execution Discipline — MANDATORY, NO EXCEPTIONS
 
-- Continue through planned milestones without pausing for permission.
-- If there is uncertainty, document the lane-specific part in the active plan
-  and the durable/project-level part in `docs/UNCERTAINTIES.md`, then choose
-  the smallest thesis-preserving option.
-- Commit every verified increment.
+**NEVER STOP. This is the primary execution rule.**
+
+- The default behavior is CONTINUE until every active plan in the 24-hour chain
+  is complete or a genuine thesis contradiction appears. There is no other valid
+  stopping condition.
+- Do not stop after one passing test. Do not stop after one completed plan. Do not
+  stop to ask what to do next. The next numbered plan is the answer.
+- If there is uncertainty, document it in `docs/UNCERTAINTIES.md` and keep moving.
+  Documented uncertainty is not a blocker. Only an irresolvable thesis contradiction is.
+- Commit every verified increment. Uncommitted work is invisible and unrecoverable.
 - Do not add fallbacks to hide design mistakes.
+- Do not pause between plans. When one plan completes and passes full verification,
+  immediately advance the TODO state and start the next plan.
+- The 24-hour chain must stay explicit in numbered plans and `AC14_NEXT_24_HOURS.md`
+  at all times. Another agent must be able to continue without reading chat history.
+- Stopping early is a process failure. The only acceptable behavior is to run until
+  the active 24-hour chain is exhausted or a real contradiction appears.
 
 ## Active Overnight Mode
 

@@ -19,6 +19,8 @@ from ac14.empirical_comparison import (
     build_experiment_decision_artifact,
     build_smoke_readiness_artifact,
     _build_failure_summary,
+    _dynamic_field_exists,
+    _strip_dynamic_field_paths,
     load_benchmark_bundle,
     run_paired_trial,
 )
@@ -253,3 +255,82 @@ def test_failure_summary_includes_runtime_port_diffs() -> None:
 
     assert "resolution_digest_entry.priority_band" in summary[0]
     assert "expected='critical' actual='high'" in summary[0]
+
+
+def test_benchmark_bundle_loads_dynamic_output_fields() -> None:
+    """The benchmark bundle should expose dynamic_output_fields from benchmark.yaml."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    assert "resolution_digest_store.generated_at" in bundle.config.dynamic_output_fields
+
+
+def test_strip_dynamic_field_paths_removes_nested_field() -> None:
+    """_strip_dynamic_field_paths should remove a dot-separated path from nested dicts."""
+
+    data = {
+        "resolution_digest_store": {
+            "generated_at": "2026-04-01T09:00:00Z",
+            "entries": [],
+        }
+    }
+    result = _strip_dynamic_field_paths(data, ["resolution_digest_store.generated_at"])
+    assert "generated_at" not in result["resolution_digest_store"]
+    assert "entries" in result["resolution_digest_store"]
+    # Original is not mutated
+    assert "generated_at" in data["resolution_digest_store"]
+
+
+def test_strip_dynamic_field_paths_ignores_missing_path() -> None:
+    """_strip_dynamic_field_paths should not raise when the path is absent."""
+
+    data: dict[str, object] = {"resolution_digest_entry": {"priority_band": "critical"}}
+    result = _strip_dynamic_field_paths(data, ["resolution_digest_store.generated_at"])
+    assert result == data
+
+
+def test_dynamic_field_exists_returns_true_for_present_path() -> None:
+    """_dynamic_field_exists should return True when a dot-separated path exists."""
+
+    data = {"resolution_digest_store": {"generated_at": "2026-04-01T09:00:00Z"}}
+    assert _dynamic_field_exists(data, "resolution_digest_store.generated_at") is True
+
+
+def test_dynamic_field_exists_returns_false_for_absent_path() -> None:
+    """_dynamic_field_exists should return False when the path is absent."""
+
+    data: dict[str, object] = {"resolution_digest_store": {"entries": []}}
+    assert _dynamic_field_exists(data, "resolution_digest_store.generated_at") is False
+
+
+def test_benchmark_repair_guidance_excludes_dynamic_generated_at_from_diff() -> None:
+    """Mismatch guidance should not flag generated_at as a value mismatch."""
+
+    summary = _build_failure_summary(
+        generation_error=None,
+        packet_tests_passed=True,
+        recomposition_passed=True,
+        runtime_cases=[
+            RuntimeCaseExecution(
+                case_id="ORX-100",
+                matched_expected=False,
+                actual_outputs={
+                    "resolution_digest_store": {
+                        "generated_at": "2026-04-02T03:00:00Z",
+                        "entries": [],
+                    }
+                },
+                expected_outputs={
+                    "resolution_digest_store": {
+                        "generated_at": "2026-04-01T09:00:00Z",
+                        "entries": [],
+                    }
+                },
+                error=None,
+            )
+        ],
+        semantic_review=None,
+        dynamic_output_fields=["resolution_digest_store.generated_at"],
+    )
+
+    # generated_at must not appear as a mismatch in repair guidance
+    assert not any("generated_at" in line for line in summary)
