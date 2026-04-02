@@ -53,7 +53,7 @@ current executable lane.
 | 40 | [Empirical Smoke Stabilization](40_empirical_smoke_stabilization.md) | Critical | Complete | - |
 | 41 | [Empirical Harness Repair](41_empirical_harness_repair.md) | Critical | Complete | 40 |
 | 42 | [Empirical Benchmark Fidelity Repair](42_empirical_benchmark_fidelity_repair.md) | Critical | Complete | - |
-| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | Blocked | 48 |
+| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | In Progress | - |
 | 44 | [Verdict Interpretation and Next Horizon](44_verdict_interpretation_and_next_horizon.md) | Critical | Blocked | 43 |
 | 45 | [Schema-Aware Empirical Repair](45_schema_aware_empirical_repair.md) | Critical | Complete | - |
 | 46 | [Empirical Smoke Gate Refresh](46_empirical_smoke_gate_refresh.md) | Critical | Complete | 45 |
@@ -70,7 +70,7 @@ current executable lane.
 | 57 | [Empirical Smoke Gate Refresh V](57_empirical_smoke_gate_refresh_v.md) | Critical | Complete | 55, 56 |
 | 58 | [Shipping-Only Priority And Correlator Repair](58_shipping_only_priority_and_correlator_repair.md) | Critical | Complete | 57 |
 | 59 | [Generation Stability And Pre-Emit Validation Repair](59_generation_stability_and_pre_emit_validation_repair.md) | Critical | Complete | 57 |
-| 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | In Progress | 58, 59 |
+| 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | Complete | 58, 59 |
 
 ## Status Key
 

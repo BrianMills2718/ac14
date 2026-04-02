@@ -9,7 +9,11 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
+- [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+
+The immediate follow-on lane is:
+
+- [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
 
 The empirical gate is frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -19,10 +23,10 @@ The parent experiment lane remains:
 
 ## Active 24-Hour Chain
 
-1. rerun one bounded smoke paired trial via Plan #60 into `.ac14_out/empirical_smoke_gate_repair11/`
-2. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
-3. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
-4. only after full trials exist should Plan #44 interpret the verdict
+1. run five paired trials into `.ac14_out/full_trials_gate_1/` via Plan #43
+2. read the persisted `experiment_decision.json` artifact directly
+3. interpret the verdict through Plan #44 before resuming adjacent lanes
+4. only after verdict interpretation should broader propagation or generality lanes resume
 
 ## Progress Update
 
@@ -45,29 +49,36 @@ Completed before the current lane:
 15. Plan #57 repair10 smoke gate, which proved the lane is still `blocked_on_harness` without an infrastructure-only explanation
 16. Plan #58 shipping-only benchmark repair, which made the remaining ORX-101 priority rule explicit across requirements, schemas, component constraints, and repair guidance
 17. Plan #59 generation-stability and pre-emit validation repair, which moved the remaining monolithic invalid-module path into failed-source persistence and hardened the `resolution_assembler` contract around real repair10 failures
+18. Plan #60 repair11 smoke gate, which cleared with `ready_for_full_trials`, `hard_harness_success = true`, and `infrastructure_failure_detected = false`
 
 Current empirical-gate reality:
 
-1. repair10 stayed `blocked_on_harness`
-2. there is still no infrastructure-only explanation right now
-3. the shared shipping-only semantic blocker is now tightened in the benchmark contract
-4. the remaining monolithic invalid-module observability gap is now closed in code
-5. AC14 generation guidance now names the real `resolution_assembler` stability failures directly
-6. the next honest move is Plan #60, not the five-trial budget
+1. AC14 passed the full smoke harness on attempt 1, including packet tests, recomposition, runtime outputs, and final semantic review
+2. the monolithic condition still failed all three bounded smoke attempts for reviewable reasons: optional-override packet mismatches, negative-case factor correlation, and one persisted syntax-invalid `factor_correlator` module
+3. there is still no infrastructure-only explanation right now
+4. the next honest move is Plan #43, not another micro-repair lane
 
 ## Tactical Phase Summary
 
-### Phase 1: bounded smoke rerun and gate lock
+### Phase 1: full trial execution
 
-- rerun one bounded smoke paired trial under the post-58/post-59 lane
-- read the smoke and paired-trial artifacts directly
-- only then decide whether Plan #43 is unblocked
+- run the full five-trial comparison into `.ac14_out/full_trials_gate_1/`
+- keep every trial artifact reviewable
 
 Success criteria:
 
-- a fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/`
-- the verdict says either `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
-- the active control surface matches that verdict exactly
+- five paired-trial directories exist
+- `experiment_decision.json` exists and follows the Plan #38 decision rule
+
+### Phase 2: verdict interpretation and lock
+
+- read `experiment_decision.json` directly
+- interpret it via Plan #44 before broadening any adjacent lane
+
+Success criteria:
+
+- roadmap, implementation-status doc, TODO, and next-24-hours docs all reflect the verdict exactly
+- the next horizon is explicit and no longer ambiguous
 
 ## Known Uncertainties
 
@@ -77,7 +88,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. repair11 may still block on harness even after the new shipping-only and generation-stability repairs
-2. the monolithic condition must stay bounded without silently receiving a looser repair budget
-3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
-4. if repair11 still blocks, the next plan should be cut from the fresh structured diffs, not from generic packet/recomposition labels
+1. the monolithic condition must stay bounded without silently receiving a looser repair budget during the five-trial run
+2. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
+3. the five-trial result may still be `inconclusive` even after a strong smoke result
+4. if the full five-trial gate regresses into repeated harness-local failures, the next plan should be cut from those fresh artifacts rather than assumed in advance

@@ -12,7 +12,11 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
+- [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+
+The immediate follow-on lane is:
+
+- [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
 
 The experiment contract is frozen in:
 
@@ -57,16 +61,21 @@ The previously active propagation lane remains blocked:
 - [x] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap
   - Success criteria: the remaining monolithic invalid-module path persists failed source and AC14 `resolution_assembler` guidance explicitly names the current contract failures
 
-- [ ] Plan #60: rerun one bounded smoke gate on the post-58/post-59 lane
+- [x] Plan #60: rerun one bounded smoke gate on the post-58/post-59 lane
   - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/` and the next gate is locked honestly
+
+- [ ] Plan #43: run the full five-trial gate now that smoke says `ready_for_full_trials`
+  - Success criteria: five paired trials complete under `.ac14_out/full_trials_gate_1/` and `experiment_decision.json` exists
+
+- [ ] Plan #44: interpret the five-trial verdict and set the next horizon
+  - Success criteria: roadmap, status docs, and active control docs state the verdict plainly and name the next implementation horizon
 
 ## Current Open Uncertainties
 
 - AC14 still lacks a completed five-trial comparison result even though the comparison contract and runner exist
 - the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
-- repair10 proved the current blocker is still harness-local rather than infrastructure-local
-- the shared shipping-only semantic blocker is now tightened in the benchmark contract, but the next smoke artifact must prove it actually stopped dominating failures
-- if repair11 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
+- repair11 cleared the smoke gate, but the five-trial result could still come back `inconclusive` or swing on monolithic recovery in later trials
+- the monolithic condition must stay bounded and fair during the full five-trial run
 
 ## Latest Verified Baseline
 
@@ -83,6 +92,5 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plans #58, #59, and #60 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
-- [ ] interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
+- [ ] complete Plan #43 and then interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
 - [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis

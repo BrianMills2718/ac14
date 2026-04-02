@@ -1,6 +1,6 @@
 # Plan #60: Empirical Smoke Gate Refresh VI
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 58, 59
@@ -64,7 +64,13 @@
 
 ## Acceptance Criteria
 
-- [ ] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/`.
-- [ ] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
-- [ ] The active control docs reflect that verdict exactly.
-- [ ] Plan #43 is only unblocked if the fresh smoke artifact says `ready_for_full_trials`.
+- [x] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/`.
+- [x] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
+- [x] The active control docs reflect that verdict exactly.
+- [x] Plan #43 is unblocked because the fresh smoke artifact says `ready_for_full_trials`.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+Repair11 finally cleared the bounded smoke gate. The new smoke artifact under `.ac14_out/empirical_smoke_gate_repair11/` reported `verdict = ready_for_full_trials`, `hard_harness_success = true`, and `infrastructure_failure_detected = false`. AC14 passed the full benchmark harness on attempt 1, including packet tests, recomposition, runtime outputs, and final semantic review. The monolithic condition still failed all three bounded attempts for reviewable reasons: packet mismatches around optional manual override handling and negative-case factor correlation, then one persisted syntax-invalid `factor_correlator` module. That means the five-trial gate is now worth spending.

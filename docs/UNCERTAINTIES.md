@@ -113,13 +113,15 @@ the main empirical question if not interrupted deliberately.
 thesis-relevant rather than merely the next clean propagation story.
 
 ### U-051: The empirical comparison runner exists, but bounded smoke trials still have zero hard-harness successes.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** The benchmark bundle, paired-trial runner, and decision artifact
-now exist, multiple bounded live smoke runs have been executed, and the latest
-verified smoke baseline remains `.ac14_out/empirical_smoke_gate_repair8/` while
-Plan #54 prepares the fresh `repair9` rerun.
+existed, but earlier smoke baselines still had zero hard-harness successes.
 **Why it matters:** A five-trial gate is not worth running yet if one smoke
 trial cannot produce a single hard-harness success in either condition.
+**Resolution:** Plan #60 produced `.ac14_out/empirical_smoke_gate_repair11/`
+with `hard_harness_success = true`, `verdict = ready_for_full_trials`, and no
+infrastructure-only contamination.
+**Date resolved:** 2026-04-02
 
 ### U-052: Provider instability is currently mixed into the empirical gate.
 **Status:** Investigating
@@ -218,7 +220,7 @@ context using benchmark/trial/attempt provenance.
 **Date resolved:** 2026-04-02
 
 ### U-061: Repair10 still loses bounded attempts to one shared shipping-only semantic mismatch.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** The repair10 smoke artifact remained `blocked_on_harness` without an
 infrastructure-only explanation. The compound inventory and broad shipping-risk
 ambiguities narrowed further, but both conditions still disagreed on the same
@@ -227,6 +229,10 @@ shipping-only standard-customer case: `factor_correlator` kept forcing
 shipping-only `high` priority to escalation.
 **Why it matters:** Plan #60 should only unblock full trials if the next smoke
 artifact proves that shipping-only rule no longer dominates the bounded attempts.
+**Resolution:** Plans #58 and #59 tightened that rule and the repair11 smoke
+artifact cleared the gate. AC14 passed on attempt 1, so the old shared
+shipping-only mismatch no longer dominates the smoke lane.
+**Date resolved:** 2026-04-02
 
 ### U-062: Monolithic invalid-Python failures still lose observability.
 **Status:** Resolved

@@ -1,16 +1,16 @@
 # Plan #43: Full Trial Gate
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 51
+**Blocked By:** None
 **Blocks:** 44
 
 ---
 
 ## Gap
 
-**Current:** The smoke gate is still blocked behind Plan #51. The project has
+**Current:** Plan #60 cleared the smoke gate with `ready_for_full_trials`. The project has
 never yet run a full five-trial paired experiment.
 
 **Target:** Run five paired monolithic-vs-AC14 trials on the frozen benchmark,
@@ -24,11 +24,9 @@ empirical measurement.
 
 ## Open Questions
 
-### Q1: What if the smoke rerun from Plan #51 still returns `blocked_on_harness`?
+### Q1: What if the latest smoke rerun returns `blocked_on_harness`?
 **Status:** Resolved
-**Decision:** If smoke is still blocked after Plan #51, define the next narrower
-blocker-clearing plan rather than proceeding to full trials. Full trials require
-a `ready_for_full_trials` smoke verdict.
+**Decision:** Full trials require a `ready_for_full_trials` smoke verdict. Plan #60 now satisfied that prerequisite, so this plan is unblocked.
 
 ### Q2: Should the five trials run sequentially or in parallel?
 **Status:** Resolved
@@ -45,7 +43,7 @@ are evidence too.
 
 ## Files Affected
 
-- `.ac14_out/full_trials/` (create via CLI)
+- `.ac14_out/full_trials_gate_1/` (create via CLI)
 - `docs/plans/CLAUDE.md` (modify)
 - `docs/TODO.md` (modify)
 - `docs/AC14_NEXT_24_HOURS.md` (modify)
@@ -59,11 +57,9 @@ are evidence too.
 
 ### Steps
 
-1. Confirm the smoke verdict from Plan #51 is `ready_for_full_trials`.
-2. Run five paired trials via `make run-full-trial-gate` (or equivalent CLI
-   command) — each trial persists its own directory and paired report.
-3. After all five trials complete, run `make build-experiment-decision` to
-   produce the final decision artifact.
+1. Confirm the smoke verdict from Plan #60 is `ready_for_full_trials`.
+2. Run five paired trials into `.ac14_out/full_trials_gate_1/` via `python -m ac14 empirical-compare benchmarks/order_exception_resolution --output-dir .ac14_out/full_trials_gate_1 --trial-count 5 --max-attempts 3`.
+3. Read the persisted `experiment_decision.json` artifact directly.
 4. Lock the docs with the verdict.
 
 ---
