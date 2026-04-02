@@ -239,6 +239,20 @@ file-extension precedence stops being an honest policy. AC14 now gives shipped
 examples explicit realistic-input manifests and a shared resolver so both
 acceptance surfaces use the same named default.
 
+### 2026-04-02 — codex — best-practice
+The first real monolithic-vs-AC14 benchmark can finish `inconclusive` even after
+a clean smoke gate. AC14's first five-trial comparison tied `2/5` on success,
+matched on average repair loops and semantic score, and left monolithic faster
+and cheaper on the benchmark. The right next move is diagnosis and a sharper
+next comparison contract, not counting the tie as a soft AC14 win.
+
+### 2026-04-02 — codex — best-practice
+Notebook-shaped status summaries are not executable journey notebooks. AC14's
+current status and empirical notebooks are still closer to governance/design
+memos than artifact-backed journey notebooks, so the notebook surface should be
+remediated explicitly instead of treated as already compliant with the notebook
+planning protocol.
+
 ### 2026-04-01 — codex — best-practice
 Once the manifest exists, alternate profiles need explicit suite/operator
 semantics too. AC14 now records `missing_profile` explicitly instead of
@@ -445,5 +459,61 @@ multiline boolean expressions, forbidding pre-class `GeneratedComponent`
 annotations on `build_component()`, naming the ORX-101 shipping-only rule
 explicitly, and pinning `case_parser.normalized_notes` to lowercasing-only
 normalization.
+
+### 2026-04-02 — claude-code — best-practice
+The packet-level LLM semantic eval adds more noise than signal when used as a
+mandatory trial gate. The first five-trial comparison tied 2/5 for both
+conditions. Analysis of the trial artifacts showed runtime outputs passed in
+virtually all attempts for both conditions, while packet tests failed at similar
+rates due to two causes: (1) categorical mismatches from generation quality
+issues and (2) LLM judge over-strictness rejecting semantically correct but
+differently-phrased reason text. The correct architecture for the next gate is
+runtime-primary success criterion: trial succeeds when generation completes AND
+final runtime outputs are semantically correct. Packet tests are retained as
+logged diagnostic artifacts only.
+
+### 2026-04-02 — claude-code — best-practice
+The first empirical benchmark (`order_exception_resolution`) did not stress
+decomposition advantage because both conditions produced correct runtime outputs
+at similar rates. The next benchmark must emphasize context pressure more
+strongly: more components (12–15), deeper fan-in/fan-out, state accumulation
+across components, and expected outputs that are categorical-dominant so the
+success criterion stays clean. A benchmark where both conditions trivially pass
+runtime tests is not measuring the decomposition thesis.
+
+### 2026-04-02 — claude-code — integration-issue
+Theory-forge (`~/projects/theory-forge`) is the first intended consumer of AC14's
+NL-to-blueprint path (listed as "not implemented yet" in AC14_IMPLEMENTATION_STATUS.md).
+The integration design is: theory-forge feeds its v14 theory schema (JSON, 11 sections)
+plus natural language context (analysis goal, input data type, optionally the paper text)
+into AC14's NL path → AC14 generates the blueprint → AC14 compiles compute.py.
+
+**What theory-forge would provide to AC14's NL path:**
+- `v14_schema` (JSON): full 11-section schema — `algorithms` and `operations` define what
+  functions to generate; `parameters` define their arguments; `constructs`/`categories`
+  define extraction types (AC14 does NOT need to generate these)
+- `analysis_goal` (str): e.g. "analyze news articles for framing devices" or "compute
+  graph tie-strength metrics on social network edge lists"
+- `paper_text` (str, optional): raw academic paper text for richer semantic grounding
+
+**What theory-forge expects back from AC14:**
+- A Python module (`compute.py`) implementing the `algorithms` and computation-phase
+  `operations` from the v14 schema
+- Function names and parameter names must match the operation names in the schema
+- Pure Python only (no os/subprocess/eval/exec — runs in a sandboxed subprocess)
+- Must pass theory-forge's AST structural validator and pytest test suite
+
+**What AC14 does NOT need to generate:**
+- `extract.py` (theory-forge generates from v14 `constructs` + `categories`)
+- `orchestrate.yaml` (theory-forge generates from v14 `operations` wiring)
+- `prompts/stage_*.yaml` (theory-forge generates qualitative stage prompts)
+- `manifest.yaml` (theory-forge owns)
+
+**Why this matters for the NL path design:**
+The v14 schema is already a structured, semantically rich document — not free prose.
+The NL disambiguation loop needs to understand that it is receiving a *theory specification*
+(not a data pipeline spec) and that its job is to generate compute functions, not data
+extraction or orchestration logic. See `theory-forge/docs/plans/08_ac14_codegen_integration.md`
+for the full integration plan.
 
 ---
