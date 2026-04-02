@@ -26,8 +26,10 @@ from ac14.empirical_comparison import (
     _benchmark_repair_guidance,
     _build_component_repair_guidance,
     _build_failure_summary,
+    _classify_attempt_failure,
     _dynamic_field_exists,
     _run_condition_attempt,
+    _semantic_review_passed,
     _strip_dynamic_field_paths,
     build_experiment_decision_artifact,
     build_smoke_readiness_artifact,
@@ -67,6 +69,7 @@ def test_resource_scaling_benchmark_loads() -> None:
     assert [record["case_id"] for record in bundle.runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
     assert [case.case_id for case in bundle.expected_runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
     assert bundle.config.dynamic_output_fields == ["scaling_decision_store.generated_at", "scaling_decision_store.decisions"]
+    assert bundle.config.semantic_review_policy == "advisory_on_exact_match"
     assert bundle.config.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
 
 
@@ -618,6 +621,95 @@ def test_generate_monolithic_system_fixture_defers_invalid_module_validation_to_
     failed_path = tmp_path / "monolithic_from_fixture" / "exception_classifier.failed.py"
     assert failed_path.exists()
     assert "def broken(:" in failed_path.read_text()
+
+
+def test_advisory_semantic_review_policy_preserves_exact_match_success() -> None:
+    """Advisory semantic review should not override exact runtime-output matches."""
+
+    semantic_review = AcceptanceReviewResponse(
+        overall_verdict="concern",
+        summary="exact outputs matched but review raised a concern",
+        concerns=["synthetic concern"],
+        requirement_assessments=[],
+    )
+    runtime_cases = [
+        RuntimeCaseExecution(
+            case_id="RSC-100",
+            matched_expected=True,
+            actual_outputs={"scaling_decision_entry": {}},
+            expected_outputs={"scaling_decision_entry": {}},
+        )
+    ]
+
+    assert _semantic_review_passed(
+        semantic_review=semantic_review,
+        runtime_outputs_passed=True,
+        policy="advisory_on_exact_match",
+    ) is True
+    failure = _classify_attempt_failure(
+        generation_error=None,
+        packet_tests_passed=False,
+        recomposition_passed=False,
+        runtime_cases=runtime_cases,
+        semantic_review=semantic_review,
+        semantic_review_policy="advisory_on_exact_match",
+    )
+    assert failure.category == "success"
+
+
+def test_monolithic_emit_rejects_unknown_literal_input_port(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Monolithic emit should fail loud when a module references an undeclared input port."""
+
+    bundle = load_benchmark_bundle(RESOURCE_SCALING_BENCHMARK_DIR)
+
+    def _fake_monolithic_response(**kwargs: object) -> MonolithicSystemResponse:
+        modules = []
+        for component_id in bundle.blueprint.components:
+            module_code = (
+                "class GeneratedComponent:\n"
+                "    def execute(self, inputs):\n"
+                "        return {}\n\n"
+                "def build_component():\n"
+                "    return GeneratedComponent()\n"
+            )
+            if component_id == "decision_recorder":
+                module_code = (
+                    "class GeneratedComponent:\n"
+                    "    def execute(self, inputs):\n"
+                    "        return {'scaling_decision_entry': inputs['on_compliance']}\n\n"
+                    "def build_component():\n"
+                    "    return GeneratedComponent()\n"
+                )
+            modules.append(
+                MonolithicGeneratedModule(
+                    component_id=component_id,
+                    module_code=module_code,
+                )
+            )
+        return MonolithicSystemResponse(modules=modules, implementation_notes=["unknown port fixture"])
+
+    monkeypatch.setattr(
+        "ac14.empirical_comparison.generate_monolithic_system_with_llm",
+        _fake_monolithic_response,
+    )
+
+    with pytest.raises(ValueError, match="references unknown input ports"):
+        emit_monolithic_package_with_llm(
+            bundle=bundle,
+            output_dir=tmp_path / "monolithic_generated",
+            trace_id="test/monolithic_unknown_port",
+            repair_guidance=[],
+        )
+
+    failed_path = tmp_path / "monolithic_generated" / "decision_recorder.failed.py"
+    metadata_path = tmp_path / "monolithic_generated" / "decision_recorder.validation_error.json"
+    assert failed_path.exists()
+    assert metadata_path.exists()
+    assert "on_compliance" in failed_path.read_text()
+    assert "unknown input ports" in metadata_path.read_text()
 
 
 def test_failure_summary_includes_packet_and_recomposition_diff_details() -> None:

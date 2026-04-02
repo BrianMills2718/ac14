@@ -158,9 +158,10 @@ process failure. The required behavior is:
 - keep the next 24-hour chain explicit as a sequence of numbered plans with
   unambiguous success criteria; do not rely on chat memory for continuation
 - for the current empirical chain specifically, the repo must always make these
-  phases explicit: Plan #64 benchmark bundle, Plan #65 smoke gate, then either
-  Plan #66 full gate or Plan #67 blocker diagnosis based on the persisted smoke
-  verdict; do not collapse those into one oversized plan
+  phases explicit: Plan #65 smoke gate, Plan #67 blocker diagnosis, Plans #68-#69
+  blocker-clearing harness repairs, Plan #70 smoke rerun, then either Plan #66
+  full gate or Plan #71 blocker diagnosis based on the persisted rerun verdict;
+  do not collapse those into one oversized plan
 
 ## Active Proof Expansion Rule
 

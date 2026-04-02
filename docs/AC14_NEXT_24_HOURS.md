@@ -9,12 +9,16 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
 
-The explicit next branch is:
+The explicit active chain is:
 
-- if smoke says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
-- if smoke says `blocked_on_harness` or `blocked_on_infrastructure` -> [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md)
+- [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) -> complete
+- [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
+- [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- if rerun says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -29,9 +33,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. run Plan #65 and persist one honest smoke verdict on the new benchmark
-2. if the smoke artifact says `ready_for_full_trials`, execute Plan #66 immediately
-3. if the smoke artifact says `blocked_on_harness` or `blocked_on_infrastructure`, execute Plan #67 immediately
+1. run Plan #70 and persist one honest rerun smoke verdict after the completed harness fixes
+2. if the rerun says `ready_for_full_trials`, execute Plan #66 immediately
+3. if the rerun says `blocked_on_harness` or `blocked_on_infrastructure`, freeze Plan #71 immediately
 4. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
 
 ## Progress Update
@@ -52,28 +56,34 @@ Completed before the current lane:
 12. notebook remediation that turned the empirical notebook into an artifact-backed journey surface and demoted the status notebook to governance-only
 13. a runtime-first empirical contract that demotes packet/recomposition failures to diagnostic evidence
 14. a verified second-gate benchmark bundle at `benchmarks/resource_scaling/` with 13 components, four runtime cases, and categorical-only final outputs
+15. a clean second-gate smoke artifact at `.ac14_out/full_trials_gate_2_smoke/` with verdict `blocked_on_harness` and an explicit blocker diagnosis
 
 ## Tactical Phase Summary
 
-### Phase 1: bounded smoke gate
+### Phase 1: deterministic exact-match semantic-review policy
 
-- run one bounded paired smoke trial on the new benchmark under the runtime-first contract
-- classify the result honestly as `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
+- add a benchmark-level semantic-review policy
+- make deterministic exact-match categorical benchmarks advisory rather than blocking
 
 Success criteria:
 
-- the smoke artifact exists
-- the next numbered plan is explicit from the verdict itself
+- exact-match runtime outputs can still pass when the policy is advisory
+- semantic review artifacts are still persisted
 
-### Phase 2a: full five-trial gate if smoke is ready
+### Phase 2: monolithic input-port contract validation
 
-- spend the full five-trial budget on the new benchmark
-- lock the verdict docs immediately afterward
+- detect unknown literal `inputs[...]` ports before runtime
+- persist failed source and a precise validation error
 
-### Phase 2b: blocker diagnosis if smoke is blocked
+Success criteria:
 
-- freeze exactly one blocker-clearing repair plan
-- keep unrelated propagation lanes blocked
+- monolithic modules like `on_compliance` fail pre-emit
+- runtime is no longer the first place this contract class appears
+
+### Phase 3: bounded smoke rerun
+
+- rerun one paired smoke trial after the harness fixes
+- branch immediately to Plan #66 or Plan #71 from the persisted verdict
 
 ## Known Uncertainties
 
@@ -83,6 +93,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
-2. the second gate may still be inconclusive even with the harder benchmark and runtime-first criterion
+1. the rerun may still show genuine AC14 benchmark-local runtime failures even after the two harness-correctness fixes land
+2. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
 3. blocked propagation lanes should stay blocked until the second gate produces either a verdict or an explicit blocker-clearing plan

@@ -12,12 +12,16 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
 
-The explicit next branch is:
+The explicit active chain is:
 
-- if smoke says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
-- if smoke says `blocked_on_harness` or `blocked_on_infrastructure` -> [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md)
+- [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) -> complete
+- [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
+- [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
+- [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md)
+- if rerun says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The experiment contract remains frozen in:
 
@@ -44,10 +48,19 @@ The previously active propagation lane remains blocked:
 - [x] Plan #64: build the second-gate benchmark bundle
   - Result: `resource_scaling_v1` now exists with 13 components, four runtime cases, categorical-only final outputs, benchmark-local repair guidance, and full verification green
 
-- [ ] Plan #65: run the bounded smoke gate on the new benchmark
-  - Success criteria: `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` exists and points clearly to Plan #66 or Plan #67
+- [x] Plan #65: run the bounded smoke gate on the new benchmark
+  - Result: `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` exists with verdict `blocked_on_harness`
 
-- [ ] Plan #66 or #67 depending on the smoke verdict
+- [x] Plan #67: diagnose the blocked smoke artifact
+  - Result: the blocker chain is now explicit as Plans #68-#70
+
+- [x] Plan #68: make semantic review advisory for deterministic exact-match benchmarks
+  - Result: exact-match runtime attempts can no longer fail solely because the semantic review says `concern`
+
+- [x] Plan #69: add pre-emit monolithic input-port contract validation
+  - Result: unknown `inputs[...]` ports now fail before runtime with persisted failed source
+
+- [ ] Plan #70: rerun the smoke gate after the harness fixes
   - `ready_for_full_trials` -> spend the full five-trial budget and lock the second verdict
   - blocked -> freeze one blocker-clearing repair plan and keep unrelated lanes blocked
 
@@ -56,18 +69,19 @@ The previously active propagation lane remains blocked:
 - the first empirical gate is complete but inconclusive; AC14 still lacks a decisive empirical result in either direction
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
-- the second gate now has a harder benchmark, but the rerun still needs an honest smoke verdict before the five-trial budget is spendable
+- the second gate now has a harder benchmark and a blocked smoke artifact; the active question is whether Plans #68 and #69 are sufficient to open the five-trial gate honestly
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `247 passed`
+  - `python -m pytest -q` with `250 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:
   - `.ac14_out/full_trials_gate_1/experiment_decision.json` with verdict `inconclusive`
-  - `ac14`: `2/5` successes
-  - `monolithic`: `2/5` successes
+  - `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` with verdict `blocked_on_harness`
+  - `ac14`: `2/5` successes on gate 1
+  - `monolithic`: `2/5` successes on gate 1
 - latest notebook/governance verification baseline:
   - both notebook JSON files parse cleanly
   - both notebooks' code cells execute top-to-bottom
@@ -75,6 +89,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plans #65–#67 through the correct smoke branch
+- [ ] complete Plans #68–#70 through the corrected smoke branch
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

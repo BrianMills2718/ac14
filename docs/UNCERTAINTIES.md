@@ -271,6 +271,20 @@ if one condition continues to waste attempts on known codegen-contract failures.
 **Context:** `.ac14_out/full_trials_gate_1/experiment_decision.json` returned `inconclusive`. Both conditions succeeded on `2/5` trials, both averaged `1.6` repair loops and semantic score `2.0`, and monolithic was faster and cheaper.
 **Why it matters:** The project now has a real baseline artifact, but not yet a decisive empirical answer about whether decomposition helps on a system where context pressure should matter. The next lane must decide whether the current benchmark is too benchmark-local, too back-half-only, or simply not differentiating enough.
 
+### U-065: Deterministic exact-match benchmarks can still fail on under-grounded LLM semantic review.
+**Status:** Resolved
+**Context:** In `.ac14_out/full_trials_gate_2_smoke/trial_1/monolithic/attempt_1/attempt_report.json`, all four runtime cases matched expected outputs exactly, but semantic review still returned `concern` and claimed `RSC-103 request_rate_rps = 60` was `< 20`.
+**Why it matters:** A deterministic categorical benchmark should not remain smoke-blocked because an advisory LLM review contradicts exact outputs.
+**Resolution:** `BenchmarkConfig` now exposes `semantic_review_policy`, and `resource_scaling_v1` uses `advisory_on_exact_match` so exact runtime-output matches remain the primary gate while the review artifact is still persisted.
+**Date resolved:** 2026-04-02
+
+### U-066: Monolithic module validation still misses unknown literal input-port names.
+**Status:** Resolved
+**Context:** In `.ac14_out/full_trials_gate_2_smoke/trial_1/monolithic/attempt_3/generated/`, several modules reference `inputs['on_compliance']` even though that input port is not declared by the affected components. The current validator catches syntax/import failures but not this contract class.
+**Why it matters:** Invalid port references should become precise pre-emit validation failures, not noisy runtime surprises.
+**Resolution:** Monolithic emit now threads the allowed input-port set into module validation and fails loud on literal undeclared `inputs[...]` and `inputs.get(...)` references before runtime, while still persisting failed source and validation metadata.
+**Date resolved:** 2026-04-02
+
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred
 **Context:** The current generator remains more of a controlled proof mechanism

@@ -71,6 +71,7 @@ SmokeReadinessVerdict = Literal[
     "blocked_on_infrastructure",
     "blocked_on_harness",
 ]
+SemanticReviewPolicy = Literal["required", "advisory_on_exact_match"]
 
 
 class BenchmarkConfig(BaseModel):
@@ -97,6 +98,12 @@ class BenchmarkConfig(BaseModel):
             "Dot-separated output field paths excluded from exact value comparison. "
             "Dynamic fields (e.g. wall-clock timestamps) must exist in actual outputs "
             "but their exact values are not compared to expected outputs."
+        ),
+    )
+    semantic_review_policy: SemanticReviewPolicy = Field(
+        default="required",
+        description=(
+            "Whether semantic review is a required gate or advisory once exact runtime outputs already match."
         ),
     )
 
@@ -733,13 +740,18 @@ def _run_condition_attempt(
 
     duration_s = time.perf_counter() - start
     llm_cost = _observe_llm_cost(trace_prefix)
-    semantic_review_passed = semantic_review is not None and semantic_review.overall_verdict == "accept"
+    semantic_review_passed = _semantic_review_passed(
+        semantic_review=semantic_review,
+        runtime_outputs_passed=runtime_outputs_passed,
+        policy=bundle.config.semantic_review_policy,
+    )
     failure_classification = _classify_attempt_failure(
         generation_error=generation_error,
         packet_tests_passed=packet_tests_passed,
         recomposition_passed=recomposition_passed,
         runtime_cases=runtime_cases,
         semantic_review=semantic_review,
+        semantic_review_policy=bundle.config.semantic_review_policy,
     )
     failure_summary = _build_failure_summary(
         generation_error=generation_error,
@@ -812,9 +824,14 @@ def emit_monolithic_package_with_llm(
 
     (destination / "__init__.py").write_text('"""Monolithically generated AC14 components."""\n')
     module_paths: dict[str, str] = {}
+    components_by_id = bundle.blueprint.components
     for component_id, module_code in modules_by_component.items():
         try:
-            _validate_module_contract(module_code, component_id=component_id)
+            _validate_module_contract(
+                module_code,
+                component_id=component_id,
+                allowed_input_ports={port.name for port in components_by_id[component_id].input_ports},
+            )
         except Exception as exc:
             failed_path = _persist_monolithic_failed_module_artifacts(
                 destination,
@@ -833,6 +850,71 @@ def emit_monolithic_package_with_llm(
         generator_kind="llm",
         module_paths=module_paths,
     )
+
+
+def _semantic_review_passed(
+    *,
+    semantic_review: AcceptanceReviewResponse | None,
+    runtime_outputs_passed: bool,
+    policy: SemanticReviewPolicy,
+) -> bool:
+    """Return whether semantic review should gate success for this benchmark."""
+
+    if semantic_review is None:
+        return False
+    if semantic_review.overall_verdict == "accept":
+        return True
+    if policy == "advisory_on_exact_match" and runtime_outputs_passed:
+        return True
+    return False
+
+
+def _validate_literal_input_port_references(
+    tree: ast.Module,
+    *,
+    component_id: str,
+    allowed_input_ports: set[str],
+) -> None:
+    """Fail loud when a generated module reads undeclared literal input ports."""
+
+    referenced_ports: set[str] = set()
+
+    class _Visitor(ast.NodeVisitor):
+        def visit_Subscript(self, node: ast.Subscript) -> None:  # noqa: N802
+            if isinstance(node.value, ast.Name) and node.value.id == "inputs":
+                literal = _extract_string_literal(node.slice)
+                if literal is not None:
+                    referenced_ports.add(literal)
+            self.generic_visit(node)
+
+        def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
+            if (
+                isinstance(node.func, ast.Attribute)
+                and node.func.attr == "get"
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "inputs"
+                and node.args
+            ):
+                literal = _extract_string_literal(node.args[0])
+                if literal is not None:
+                    referenced_ports.add(literal)
+            self.generic_visit(node)
+
+    _Visitor().visit(tree)
+    unknown_ports = sorted(referenced_ports - allowed_input_ports)
+    if unknown_ports:
+        raise ValueError(
+            f"generated module for {component_id} references unknown input ports {unknown_ports}; "
+            f"allowed ports are {sorted(allowed_input_ports)}"
+        )
+
+
+def _extract_string_literal(node: ast.AST) -> str | None:
+    """Return a literal string when one AST node is statically known."""
+
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
 
 
 def _persist_monolithic_failed_module_artifacts(
@@ -1336,6 +1418,7 @@ def _classify_attempt_failure(
     recomposition_passed: bool,
     runtime_cases: list[RuntimeCaseExecution],
     semantic_review: AcceptanceReviewResponse | None,
+    semantic_review_policy: SemanticReviewPolicy,
 ) -> AttemptFailureClassification:
     """Classify one bounded empirical-comparison attempt into a stable failure domain."""
 
@@ -1358,7 +1441,14 @@ def _classify_attempt_failure(
             category="runtime_outputs",
             detail="; ".join(details),
         )
-    if semantic_review is not None and semantic_review.overall_verdict != "accept":
+    if (
+        semantic_review is not None
+        and semantic_review.overall_verdict != "accept"
+        and not (
+            semantic_review_policy == "advisory_on_exact_match"
+            and not failing_runtime_cases
+        )
+    ):
         concerns = "; ".join(semantic_review.concerns) or semantic_review.overall_verdict
         return AttemptFailureClassification(
             category="semantic_review",
@@ -1605,7 +1695,12 @@ def _observe_llm_cost(trace_prefix: str) -> CostObservation:
     return CostObservation(status="observed", cost_usd=float(observed_cost))
 
 
-def _validate_module_contract(module_code: str, *, component_id: str) -> None:
+def _validate_module_contract(
+    module_code: str,
+    *,
+    component_id: str,
+    allowed_input_ports: set[str] | None = None,
+) -> None:
     """Fail loud when one generated module misses the AC14 runtime contract."""
 
     non_ascii = next((character for character in module_code if ord(character) > 127), None)
@@ -1631,6 +1726,13 @@ def _validate_module_contract(module_code: str, *, component_id: str) -> None:
         raise ValueError(f"generated module for {component_id} is missing GeneratedComponent class")
     if not has_build_component:
         raise ValueError(f"generated module for {component_id} is missing build_component function")
+
+    if allowed_input_ports is not None:
+        _validate_literal_input_port_references(
+            tree,
+            component_id=component_id,
+            allowed_input_ports=allowed_input_ports,
+        )
 
     namespace: dict[str, object] = {}
     try:

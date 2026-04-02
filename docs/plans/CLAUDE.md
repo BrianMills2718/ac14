@@ -75,9 +75,12 @@ current executable lane.
 | 62 | [Inconclusive Comparison Diagnosis](62_inconclusive_comparison_diagnosis.md) | Critical | Complete | 63 |
 | 63 | [Runtime-First Comparison Contract](63_runtime_first_comparison_contract.md) | Critical | Complete | 64, 37 |
 | 64 | [Second-Gate Benchmark Bundle](64_second_gate_benchmark_bundle.md) | Critical | Complete | 65 |
-| 65 | [Second-Gate Smoke Run](65_second_gate_smoke.md) | Critical | In Progress | 66, 67 |
+| 65 | [Second-Gate Smoke Run](65_second_gate_smoke.md) | Critical | Complete | 66, 67 |
 | 66 | [Second-Gate Full Trial](66_second_gate_full_trial.md) | Critical | Planned | - |
-| 67 | [Second-Gate Blocker Diagnosis](67_second_gate_blocker_diagnosis.md) | Critical | Planned | 37 |
+| 67 | [Second-Gate Blocker Diagnosis](67_second_gate_blocker_diagnosis.md) | Critical | Complete | 37, 68, 69, 70 |
+| 68 | [Deterministic Exact-Match Semantic Review Policy](68_deterministic_exact_match_semantic_review_policy.md) | Critical | Complete | 70 |
+| 69 | [Monolithic Input-Port Contract Validation](69_monolithic_input_port_contract_validation.md) | Critical | Complete | 70 |
+| 70 | [Second-Gate Smoke Rerun](70_second_gate_smoke_rerun.md) | Critical | In Progress | 66, 71 |
 
 ## Status Key
 

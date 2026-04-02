@@ -33,3 +33,4 @@ benchmark:
     it equals recommendation.action.
   - All final-output fields are categorical, boolean, or integer and should match
     exactly.
+  semantic_review_policy: advisory_on_exact_match
