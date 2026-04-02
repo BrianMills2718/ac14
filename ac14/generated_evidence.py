@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -45,6 +46,30 @@ _PACKET_TEST_NON_CATEGORICAL_FIELDS: frozenset[str] = _FIXTURE_FREE_FORM_FIELDS
 # ``score`` and ``generated_at`` are excluded: score is numeric (exact or not meaningful),
 # generated_at is a timestamp (not semantic).
 _PACKET_TEST_LLM_EVAL_FIELDS: frozenset[str] = frozenset({"reason", "action_summary"})
+
+
+def _json_safe_semantic_eval_value(value: Any) -> Any:
+    """Convert semantic-evaluation prompt inputs into JSON-safe values.
+
+    Blueprint fixtures may legitimately parse ISO timestamps into ``datetime``
+    objects. Semantic-evaluation prompts render those inputs with Jinja
+    ``tojson``, so values must be normalized before templating.
+    """
+
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {
+            str(key): _json_safe_semantic_eval_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_json_safe_semantic_eval_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_json_safe_semantic_eval_value(item) for item in value]
+    return value
 
 
 def _strip_fixture_free_form_fields(data: dict[str, Any]) -> dict[str, Any]:
@@ -116,9 +141,9 @@ async def _aevaluate_packet_case_semantically(
         PACKET_EVALUATE_PROMPT_PATH,
         component_id=component_id,
         fixture_description=fixture_description,
-        inputs=inputs,
-        expected_outputs=expected_outputs,
-        actual_outputs=actual_outputs,
+        inputs=_json_safe_semantic_eval_value(inputs),
+        expected_outputs=_json_safe_semantic_eval_value(expected_outputs),
+        actual_outputs=_json_safe_semantic_eval_value(actual_outputs),
     )
     result, _ = await acall_llm_structured(
         model,
@@ -149,6 +174,10 @@ class PacketTestReport(BaseModel):
 
     passed: bool = Field(description="Whether all packet-local cases passed.")
     results: list[PacketCaseResult] = Field(description="Per-case results.")
+    harness_error: str | None = Field(
+        default=None,
+        description="Attempt-level harness error when packet tests could not run normally.",
+    )
 
 
 class FreshRunTrial(BaseModel):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -77,6 +78,10 @@ class RecompositionReport(BaseModel):
     )
     results: list[RecompositionScenarioResult] = Field(
         description="Per-scenario execution outcomes.",
+    )
+    harness_error: str | None = Field(
+        default=None,
+        description="Attempt-level harness error when recomposition proof could not run normally.",
     )
 
 
@@ -291,6 +296,25 @@ def _source_components(blueprint: FrozenBlueprint) -> list[str]:
     ]
 
 
+def _json_safe_semantic_eval_value(value: Any) -> Any:
+    """Convert semantic-evaluation prompt inputs into JSON-safe values."""
+
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {
+            str(key): _json_safe_semantic_eval_value(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_json_safe_semantic_eval_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_json_safe_semantic_eval_value(item) for item in value]
+    return value
+
+
 _RECOMP_LLM_EVAL_FIELDS: frozenset[str] = frozenset({"reason", "action_summary"})
 """Subset of free-form fields that carry semantic meaning and should be LLM-evaluated."""
 
@@ -381,9 +405,9 @@ async def _aevaluate_recomposition_scenario_semantically(
         _PACKET_EVALUATE_PROMPT_PATH,
         component_id="full_scenario",
         fixture_description=scenario.description,
-        inputs=scenario.initial_inputs,
-        expected_outputs=scenario.expected_outputs_by_component,
-        actual_outputs=actual_outputs_by_component,
+        inputs=_json_safe_semantic_eval_value(scenario.initial_inputs),
+        expected_outputs=_json_safe_semantic_eval_value(scenario.expected_outputs_by_component),
+        actual_outputs=_json_safe_semantic_eval_value(actual_outputs_by_component),
     )
     result, _ = await acall_llm_structured(
         model,

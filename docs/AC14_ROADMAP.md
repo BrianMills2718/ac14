@@ -197,7 +197,7 @@ In order:
 2. design and run the empirical comparison gate before more propagation-proof micro-lanes
 3. stabilize the empirical smoke gate before spending the full five-trial budget
 4. repair benchmark-fidelity blockers until a bounded smoke rerun either succeeds or narrows the blocker again
-5. right now that means clearing the concrete repair6 blockers: AC14 classifier syntax instability plus monolithic schema-surface violations
+5. right now that means clearing the concrete post-repair7 blockers: generator-contract stability plus benchmark-local fidelity on ORX-101 and `case_parser.normalized_notes`
 6. strengthen the front half where it materially improves that comparison
 7. broaden proof breadth before expanding scope claims
 

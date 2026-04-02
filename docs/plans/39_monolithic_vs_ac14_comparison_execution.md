@@ -3,7 +3,7 @@
 **Status:** Blocked
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 48
+**Blocked By:** 51
 **Blocks:** 37
 
 ---
@@ -146,4 +146,4 @@ Current live-execution note:
 - the full five-trial gate should not proceed until Plan #40 either produces a
   smoke verdict of `ready_for_full_trials` or documents a stable blocker
 - the latest bounded smoke rerun remains `blocked_on_harness`
-- Plan #47 is now the next queued blocker-repair lane, followed by Plan #48 for the next smoke rerun
+- The active repair chain is now Plan #50 followed by Plan #51 for the next smoke rerun

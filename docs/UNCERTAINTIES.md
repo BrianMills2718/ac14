@@ -115,15 +115,17 @@ thesis-relevant rather than merely the next clean propagation story.
 ### U-051: The empirical comparison runner exists, but bounded smoke trials still have zero hard-harness successes.
 **Status:** Investigating
 **Context:** The benchmark bundle, paired-trial runner, and decision artifact
-now exist, and multiple bounded live smoke runs have been executed.
+now exist, multiple bounded live smoke runs have been executed, and the latest
+explicit smoke baseline remains `.ac14_out/empirical_smoke_gate_repair7/`.
 **Why it matters:** A five-trial gate is not worth running yet if one smoke
 trial cannot produce a single hard-harness success in either condition.
 
 ### U-052: Provider instability is currently mixed into the empirical gate.
 **Status:** Investigating
-**Context:** Live smoke trials observed repeated Gemini disconnects, DNS/API
-connection failures, and `503` demand errors while the empirical comparison was
-running.
+**Context:** Earlier live smoke trials observed repeated Gemini disconnects,
+DNS/API connection failures, and `503` demand errors while the empirical
+comparison was running. The latest repair7 smoke rerun was not provider-
+contaminated, but the full five-trial gate has not yet been attempted again.
 **Why it matters:** A five-trial result under unstable provider conditions would
 mix thesis evidence with transport instability unless the issue is recorded and
 bounded explicitly.
@@ -140,30 +142,55 @@ end-to-end front-half-plus-back-half version of the thesis.
 ### U-054: The next blocker is benchmark-fidelity exactness, not infrastructure.
 **Status:** Investigating
 **Context:** The latest bounded smoke rerun stayed `blocked_on_harness` without
-provider contamination. The dominant mismatches are now benchmark-local rather
-than provider-local.
+provider contamination. Plan #49 fixed the harness-observability gap, so the
+remaining mismatches are now benchmark-local rather than provider-local.
 **Why it matters:** The next repair lane should stay benchmark-local and avoid
 turning one empirical benchmark's needs into broad AC14 runtime policy by
 accident.
 
-### U-055: AC14 still loses early smoke attempts to syntax-invalid classifier code.
+### U-055: AC14 still loses bounded smoke attempts to syntax-invalid generated modules.
 **Status:** Investigating
-**Context:** In `.ac14_out/empirical_smoke_gate_repair6/`, the AC14 condition
-spent attempts 1 and 2 on syntax-invalid `exception_classifier` output before
-attempt 3 finally reached the packet-test surface.
+**Context:** In `.ac14_out/empirical_smoke_gate_repair7/`, the old classifier
+syntax blocker moved, but the AC14 lane still lost attempts to other
+contract-level generation failures such as multiline boolean conditions without
+parentheses and pre-class `GeneratedComponent` return annotations.
 **Why it matters:** The empirical gate cannot measure benchmark logic honestly
-if one condition burns most of its bounded repair budget on one recurring
-syntax pathology.
+if one condition burns bounded repair budget on recurring codegen-contract
+mistakes.
 
-### U-056: The monolithic lane still violates the benchmark-local schema surface.
+### U-056: The remaining benchmark-local fidelity misses are still narrow and unresolved.
 **Status:** Investigating
-**Context:** In `.ac14_out/empirical_smoke_gate_repair6/`, the monolithic lane
-still read `shipping_risk['shipment_status']` even though the `ShippingRisk`
-schema does not expose that field, and it also invented fallback categorical
-labels outside the schema.
-**Why it matters:** The next repair lane should tighten schema-surface fidelity
-rather than spending the five-trial budget on a condition that is still failing
-for avoidable benchmark-local reasons.
+**Context:** In `.ac14_out/empirical_smoke_gate_repair7/`, the monolithic lane
+moved past the old `shipping_risk['shipment_status']` bug, but the benchmark
+still fails on ORX-101 shipping-only routing/classification fidelity. The AC14
+lane also still drifts on `case_parser.normalized_notes` exactness.
+**Why it matters:** The next repair lane should tighten these explicit
+benchmark-local rules rather than spending the five-trial budget on conditions
+that are still failing for avoidable contract or fidelity reasons.
+
+### U-057: Empirical attempt artifacts were too lossy to diagnose harness failures directly.
+**Status:** Resolved
+**Context:** Repair7 required a manual rerun of packet and recomposition checks
+against a saved attempt package because the attempt artifact only carried a
+coarse failure summary.
+**Why it matters:** The next repair lane should be driven by first-class
+attempt artifacts, not by ad hoc reproduction.
+**Resolution:** Empirical attempts now always persist `packet_test_report.json`
+and `recomposition_report.json`, and the attempt report points directly to both
+paths.
+**Date resolved:** 2026-04-02
+
+### U-058: Semantic-evaluation prompt templating failed on datetime-bearing fixture data.
+**Status:** Resolved
+**Context:** Benchmark fixtures parse ISO timestamps into Python `datetime`
+objects, but packet and recomposition semantic-evaluation prompts rendered
+those values through Jinja `tojson` without normalization.
+**Why it matters:** The empirical harness cannot tell the truth about semantic
+mismatches if the prompt-building path crashes before the LLM judge sees the
+case.
+**Resolution:** Packet and recomposition semantic-evaluation helpers now
+normalize prompt inputs into JSON-safe values before templating.
+**Date resolved:** 2026-04-02
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred

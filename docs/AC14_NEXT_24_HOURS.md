@@ -9,97 +9,81 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #48: Empirical Smoke Gate Refresh II](/home/brian/projects/ac14/docs/plans/48_empirical_smoke_gate_refresh_ii.md)
+- [Plan #50: Empirical Contract And Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/50_empirical_contract_and_benchmark_fidelity_repair.md)
 
-The empirical gate is now frozen in
+The empirical gate is frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
 The parent experiment lane remains:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
 
-Completed blocker-clearing lanes:
+The next bounded smoke rerun is already frozen in:
 
-- [Plan #40: Empirical Smoke Stabilization](/home/brian/projects/ac14/docs/plans/40_empirical_smoke_stabilization.md)
-- [Plan #41: Empirical Harness Repair](/home/brian/projects/ac14/docs/plans/41_empirical_harness_repair.md)
-- [Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md)
+- [Plan #51: Empirical Smoke Gate Refresh III](/home/brian/projects/ac14/docs/plans/51_empirical_smoke_gate_refresh_iii.md)
 
-The active 24-hour chain is now:
+## Active 24-Hour Chain
 
-1. rerun one bounded smoke paired trial on the repaired lane
-2. read the resulting smoke and paired-trial artifacts directly
+1. complete Plan #50 benchmark-contract and fidelity repair
+2. rerun one bounded smoke paired trial via Plan #51
 3. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
-4. if smoke stays blocked, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
+4. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
 5. only after full trials exist should Plan #44 interpret the verdict
 
 ## Progress Update
 
-Completed before this lane:
+Completed before the current lane:
 
 1. six-file frozen blueprint bundle and proof surfaces
 2. pre-freeze discovery, draft planning, authoring, freeze remediation, and promotion
 3. realistic-input front-half acceptance from discovery through freeze decision
-4. realistic-input full-system acceptance in `reference`, `deterministic`, and one bounded `llm` slice
-5. suite-level realistic-input acceptance artifacts across shipped examples for supported non-LLM modes
-6. suite-level realistic-input acceptance artifact in `llm` mode via the fixture-backed breadth lane
-7. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
-
-Completed before this lane as the immediate predecessor:
-
-1. the active control surface now points to an empirical gate instead of
-   another default propagation-proof lane
-2. one AC14-native notebook now freezes the first comparison target, fairness
-   protocol, primary outcome, and decision rule
-3. Plan #37 is now explicitly blocked behind the comparison result
-4. the comparison runner and bounded live smoke findings now exist, but the
-   smoke stage is not yet stable enough to justify the five-trial budget
-
-Completed inside Plan #39 before the current blocker-clearing lane:
-
-1. one validated benchmark asset bundle for `order_exception_resolution`
-2. one paired-trial runner that records both conditions explicitly
-3. one decision artifact that applies the frozen success rule
+4. realistic-input full-system acceptance in `reference`, `deterministic`, and bounded `llm` slices
+5. suite-level realistic-input acceptance artifacts across shipped examples
+6. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
+7. an explicit empirical comparison gate instead of an endless propagation-plan loop
+8. a validated benchmark asset bundle, paired-trial runner, and persisted decision artifact
+9. bounded smoke gates through repair7, which proved the lane is still `blocked_on_harness`
+10. Plan #49 observability hardening so every empirical attempt now persists packet and recomposition reports directly and semantic-eval prompt inputs are JSON-safe for datetime-bearing fixtures
 
 Current empirical-gate reality:
 
 1. the benchmark bundle exists and validates
 2. the paired-trial runner and decision artifact exist
-3. bounded live smoke trials have been run
-4. no smoke run has yet produced a hard-harness success in either condition
-5. repeated provider disconnects and `503` demand errors were observed during earlier live runs
-
-That means the next honest step is no longer another generic propagation lane.
-It is a narrower benchmark-repair lane followed by another smoke rerun.
-
-Latest blocker-clearing outcomes:
-
-1. one bounded smoke gate now persists an explicit verdict
-2. the current verdict remains `blocked_on_harness`
-3. the latest bounded smoke rerun did not show infrastructure/provider contamination
-4. Plan #42 improved the harness, but the gate still failed on benchmark-specific logic and prompt-context blindness
-5. Plan #45 repaired the prompt/context surface and passed full local verification
-6. Plan #46 refreshed the smoke verdict and narrowed the remaining blocker further:
-   - AC14 still loses early attempts to syntax-invalid `exception_classifier` modules
-   - monolithic still reads `shipping_risk['shipment_status']`, which is outside the benchmark-local schema surface
-   - monolithic still invents out-of-schema fallback labels such as `other`
-7. Plan #47 has now landed and passed targeted tests, full `pytest`, `mypy`, and `ruff`
-8. Plan #48 is now the active smoke rerun gate after that verified repair slice
+3. bounded live smoke trials have been run through repair7
+4. the latest explicit smoke verdict remains `blocked_on_harness`
+5. the harness is now substantially more observable: packet and recomposition failures no longer require manual reruns for basic diagnosis
+6. the remaining blocker set is now narrow and concrete:
+   - multiline boolean conditions without parentheses
+   - pre-class `GeneratedComponent` return annotations
+   - ORX-101 shipping-only routing/classification fidelity
+   - exact `case_parser.normalized_notes` lowercasing-only behavior
 
 ## Tactical Phase Summary
 
-Detailed references, write scope, tests, and acceptance criteria live in Plan
-#39.
+Detailed references, write scope, tests, and acceptance criteria live in the numbered plans.
 
-### Phase 1: bounded smoke rerun
+### Phase 1: Plan #50 repair lane
+
+- harden prompts and benchmark-local guidance against the remaining generator-contract failures
+- harden benchmark-local guidance against the remaining business-logic fidelity misses
+- verify locally and update the active control docs
+
+Success criteria:
+
+- the remaining repair7 blocker classes are addressed explicitly in prompt/guidance text
+- targeted tests and full verification pass
+- the active docs point to Plan #51 as the next smoke rerun
+
+### Phase 2: Plan #51 bounded smoke rerun
 
 - rerun one bounded smoke paired trial under the repaired lane
-- keep the smoke output reviewable artifact-by-artifact
+- read the resulting smoke artifact and paired-trial artifact directly
 
 Success criteria:
 
 - AC14 has one fresh smoke verdict tied to one persisted smoke run
 - the verdict says either `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
 
-### Phase 2: gate decision and lock
+### Phase 3: Gate decision and lock
 
 - update the active control docs to reflect the smoke verdict
 - either unblock Plan #43 honestly or keep it blocked with a narrower explicit reason
@@ -117,8 +101,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first experiment may still end inconclusive if five trials do not separate the conditions
-2. the monolithic condition must stay bounded without silently giving it a looser repair budget
+1. the first experiment may still end inconclusive even after the smoke gate clears
+2. the monolithic condition must stay bounded without silently receiving a looser repair budget
 3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
-4. current bounded smoke trials still have not produced a hard-harness success
-5. the next smoke artifact must show whether the syntax-stability and schema-fidelity repair materially changed the gate outcome
+4. the next smoke artifact must show whether the remaining contract/fidelity repair materially changes the gate outcome

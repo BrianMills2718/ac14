@@ -28,9 +28,14 @@ from ac14.generated_codegen import (
     emit_generated_package,
     load_generated_component_builders,
 )
-from ac14.generated_evidence import run_generated_packet_tests, run_generated_recomposition_proof
+from ac14.generated_evidence import (
+    PacketTestReport,
+    run_generated_packet_tests,
+    run_generated_recomposition_proof,
+)
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint, PacketBundle, Scenario
+from ac14.recomposition import RecompositionReport
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
 from ac14.runtime import run_blueprint_once
@@ -174,6 +179,14 @@ class ConditionAttemptReport(BaseModel):
     packet_tests_passed: bool = Field(description="Whether packet-local tests passed.")
     recomposition_passed: bool = Field(description="Whether recomposition proof passed.")
     runtime_outputs_passed: bool = Field(description="Whether runtime outputs matched the expected outputs.")
+    packet_test_report_path: str | None = Field(
+        default=None,
+        description="Persisted packet-test report path for this attempt.",
+    )
+    recomposition_report_path: str | None = Field(
+        default=None,
+        description="Persisted recomposition report path for this attempt.",
+    )
     semantic_review: AcceptanceReviewResponse | None = Field(
         default=None,
         description="Requirements-aware review of the runtime outputs when available.",
@@ -611,6 +624,8 @@ def _run_condition_attempt(
     packet_tests_passed = False
     recomposition_passed = False
     runtime_outputs_passed = False
+    packet_report: PacketTestReport | None = None
+    recomposition_report: RecompositionReport | None = None
 
     try:
         if condition == "monolithic":
@@ -669,6 +684,27 @@ def _run_condition_attempt(
     except Exception as exc:  # pragma: no cover - explicit failure capture
         generation_error = str(exc)
 
+    packet_report_path = output_dir / "packet_test_report.json"
+    recomposition_report_path = output_dir / "recomposition_report.json"
+    packet_report = packet_report or PacketTestReport(
+        passed=False,
+        results=[],
+        harness_error=f"attempt failed before packet tests completed: {generation_error or 'unknown error'}",
+    )
+    recomposition_report = recomposition_report or RecompositionReport(
+        passed=False,
+        runnable_scenario_count=0,
+        skipped_scenarios=[],
+        results=[],
+        harness_error=f"attempt failed before recomposition proof completed: {generation_error or 'unknown error'}",
+    )
+    packet_report_path.write_text(
+        json.dumps(packet_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    recomposition_report_path.write_text(
+        json.dumps(recomposition_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+
     duration_s = time.perf_counter() - start
     llm_cost = _observe_llm_cost(trace_prefix)
     semantic_review_passed = semantic_review is not None and semantic_review.overall_verdict == "accept"
@@ -695,6 +731,8 @@ def _run_condition_attempt(
         packet_tests_passed=packet_tests_passed,
         recomposition_passed=recomposition_passed,
         runtime_outputs_passed=runtime_outputs_passed,
+        packet_test_report_path=str(packet_report_path),
+        recomposition_report_path=str(recomposition_report_path),
         semantic_review=semantic_review,
         semantic_review_passed=semantic_review_passed,
         failure_classification=failure_classification,

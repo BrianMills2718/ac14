@@ -18,11 +18,12 @@ from ac14.empirical_comparison import (
     RuntimeCaseExecution,
     _benchmark_repair_guidance,
     _build_component_repair_guidance,
-    build_experiment_decision_artifact,
-    build_smoke_readiness_artifact,
     _build_failure_summary,
     _dynamic_field_exists,
+    _run_condition_attempt,
     _strip_dynamic_field_paths,
+    build_experiment_decision_artifact,
+    build_smoke_readiness_artifact,
     load_benchmark_bundle,
     run_paired_trial,
 )
@@ -234,6 +235,46 @@ def test_build_smoke_readiness_artifact_detects_harness_blocker() -> None:
 
     assert artifact.verdict == "blocked_on_harness"
     assert artifact.hard_harness_success is False
+
+
+def test_empirical_attempt_persists_packet_and_recomposition_reports(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Empirical attempts should persist detailed harness reports even on generation failure."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+
+    def _raise_generation_failure(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("synthetic generation failure")
+
+    monkeypatch.setattr("ac14.empirical_comparison.emit_generated_package", _raise_generation_failure)
+    monkeypatch.setattr(
+        "ac14.empirical_comparison._observe_llm_cost",
+        lambda trace_prefix: CostObservation(status="no_rows"),
+    )
+
+    report = _run_condition_attempt(
+        bundle=bundle,
+        condition="ac14",
+        trial_id=1,
+        attempt_id=1,
+        output_dir=tmp_path / "attempt_1",
+        model="test-model",
+        max_budget=0.01,
+        repair_guidance=[],
+    )
+
+    assert report.failure_classification.category == "generation"
+    assert report.packet_test_report_path is not None
+    assert report.recomposition_report_path is not None
+
+    packet_report = json.loads(Path(report.packet_test_report_path).read_text())
+    recomposition_report = json.loads(Path(report.recomposition_report_path).read_text())
+    assert packet_report["passed"] is False
+    assert recomposition_report["passed"] is False
+    assert "synthetic generation failure" in packet_report["harness_error"]
+    assert "synthetic generation failure" in recomposition_report["harness_error"]
 
 
 def test_failure_summary_includes_runtime_port_diffs() -> None:

@@ -41,9 +41,9 @@ of a completed empirical comparison verdict against a fair monolithic baseline,
 plus the need to state clearly that the current gate is a bounded back-half
 comparison rather than the full end-to-end thesis test. The immediate blocker
 inside that gate is now a narrower benchmark-fidelity repair lane, not
-infrastructure noise: AC14 still loses early attempts to syntax-invalid
-`exception_classifier` generation, and the monolithic lane still violates the
-benchmark-local schema surface.
+infrastructure noise: Plan #49 fixed the harness-observability gap, and the
+remaining blocker set is now specific generator-contract and benchmark-local
+fidelity work rather than generic smoke instability.
 
 ## What Is Implemented
 
@@ -73,6 +73,8 @@ Implemented:
 5. fresh-run evidence
 6. suite proof and comparison
 7. semantic comparison and acceptance surfaces
+8. per-attempt empirical harness artifacts now persist packet and recomposition reports directly
+9. packet and recomposition semantic-evaluation prompt paths now normalize datetime-bearing fixture values before templating
 
 This means the back half of the proof slice is real, not just planned.
 
@@ -144,6 +146,7 @@ It is not yet strong at:
 4. completing the current back-half empirical gate cleanly
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
+6. closing the remaining Plan #50 blocker set: generator-contract stability plus benchmark-local fidelity
 
 ### Semantic Validation
 

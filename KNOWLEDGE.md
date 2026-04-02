@@ -390,4 +390,16 @@ was to forbid comment-only branches and schema-invalid fallback labels, and to
 name the exact missing-schema-field bug (`shipping_risk` does not expose
 `shipment_status`) directly in benchmark-local guidance.
 
+### 2026-04-02 — codex — best-practice
+If an empirical attempt can fail in packet tests or recomposition, persist those
+reports directly inside the attempt artifact directory before defining the next
+repair lane. Otherwise the project ends up debugging through generic summaries
+and manual reruns instead of first-class harness evidence.
+
+### 2026-04-02 — codex — bug-pattern
+Benchmark fixtures can parse ISO timestamps into Python `datetime` objects long
+before the LLM judge sees them. Any semantic-evaluation prompt path that renders
+fixture data through Jinja `tojson` must normalize those values first or the
+harness will crash with `Object of type datetime is not JSON serializable`.
+
 ---

@@ -58,7 +58,10 @@ current executable lane.
 | 45 | [Schema-Aware Empirical Repair](45_schema_aware_empirical_repair.md) | Critical | Complete | - |
 | 46 | [Empirical Smoke Gate Refresh](46_empirical_smoke_gate_refresh.md) | Critical | Complete | 45 |
 | 47 | [Syntax-Stable Empirical Benchmark Repair](47_syntax_stable_empirical_benchmark_repair.md) | Critical | Complete | - |
-| 48 | [Empirical Smoke Gate Refresh II](48_empirical_smoke_gate_refresh_ii.md) | Critical | In Progress | 47 |
+| 48 | [Empirical Smoke Gate Refresh II](48_empirical_smoke_gate_refresh_ii.md) | Critical | Complete | 47 |
+| 49 | [Empirical Attempt Observability And Harness Serialization](49_empirical_attempt_observability_and_harness_serialization.md) | Critical | Complete | - |
+| 50 | [Empirical Contract And Benchmark Fidelity Repair](50_empirical_contract_and_benchmark_fidelity_repair.md) | Critical | In Progress | - |
+| 51 | [Empirical Smoke Gate Refresh III](51_empirical_smoke_gate_refresh_iii.md) | Critical | Planned | 50 |
 
 ## Status Key
 
