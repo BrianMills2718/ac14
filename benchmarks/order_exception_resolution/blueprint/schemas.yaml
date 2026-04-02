@@ -160,7 +160,11 @@ schemas:
       - name: exception_type
         type: string
         required: true
-        description: Primary exception type label.
+        description: >
+          Primary exception type. Valid values: inventory_shortage (quantity
+          shortage with no severe shipping delay), shipping_delay (shipping
+          issue only, quantity available), compound_exception (both inventory
+          shortage AND severe shipping delay present simultaneously).
       - name: reason
         type: string
         required: true
@@ -223,7 +227,10 @@ schemas:
       - name: priority_lane
         type: string
         required: true
-        description: Customer-priority lane used for downstream escalation decisions.
+        description: >
+          Customer-priority lane used for downstream escalation decisions.
+          Valid values: expedite (platinum customers, or gold with
+          open_case_count >= 3), standard (all others).
       - name: escalate_customer
         type: boolean
         required: true
@@ -261,19 +268,30 @@ schemas:
       - name: primary_exception_type
         type: string
         required: true
-        description: Primary exception type after correlation.
+        description: >
+          Primary exception type after correlation. Valid values:
+          inventory_shortage, shipping_delay, compound_exception.
       - name: blocker_source
         type: string
         required: true
-        description: Explicit source of the current blocker or override.
+        description: >
+          Explicit source of the current blocker or override. Valid values:
+          inventory (inventory shortage only), shipping (shipping delay only),
+          compound (both inventory and shipping), override (manual override
+          present — overrides other sources).
       - name: recommended_team
         type: string
         required: true
-        description: Team that should own the next action.
+        description: >
+          Team that should own the next action. Valid values:
+          account_operations (override/platinum cases), logistics (shipping
+          delay cases), exception_desk (compound exceptions), support (default).
       - name: customer_priority_lane
         type: string
         required: true
-        description: Customer-priority lane preserved into downstream scoring.
+        description: >
+          Customer-priority lane. Valid values: expedite (platinum customers or
+          gold with open_case_count >= 3), standard (all other customers).
       - name: escalation_required
         type: boolean
         required: true
@@ -321,33 +339,54 @@ schemas:
       - name: exception_type
         type: string
         required: true
-        description: Primary exception type shown to operators.
+        description: >
+          Primary exception type. Valid values: inventory_shortage,
+          shipping_delay, compound_exception. Use compound_exception when both
+          inventory shortage and severe shipping delay are present.
       - name: blocker_source
         type: string
         required: true
-        description: Explicit blocker source shown to operators.
+        description: >
+          Explicit blocker source. Valid values: inventory, shipping, compound,
+          override. Use override when manual_override_action is present (even
+          if inventory shortage also exists).
       - name: priority_band
         type: string
         required: true
-        description: Priority bucket for the case.
+        description: >
+          Priority bucket. Valid values: critical (compound exceptions or
+          override on platinum), high (shipping delay on any tier, or severe
+          inventory shortage), medium (moderate risk), standard (low risk).
       - name: recommended_team
         type: string
         required: true
-        description: Team that should own the next action.
+        description: >
+          Team that should own next action. Valid values: account_operations
+          (override cases), logistics (shipping delay cases), exception_desk
+          (compound exceptions), support (default).
       - name: customer_priority_lane
         type: string
         required: true
-        description: Customer-priority lane shown to operators.
+        description: >
+          Customer-priority lane. Valid values: expedite (platinum customers,
+          or gold with open_case_count >= 3), standard (all others).
       - name: action_summary
         type: string
         required: true
-        description: Operator-facing summary of the next action.
+        description: >
+          Operator-facing summary of the next action. Free-form text. Should
+          be concise and actionable. Examples: "expedite allocation and notify
+          account team", "open carrier escalation", "coordinate exception desk
+          escalation".
       - name: override_applied
         type: string
         required: false
-        description: Override action when one was applied.
+        description: >
+          Override action that was applied. Only include this key when
+          manual_override_action was present in the raw case input. Omit this
+          key entirely from the output dict when no manual override exists.
         optional_reason: Most cases do not have a manual override.
-        absence_meaning: No manual override changed the final action.
+        absence_meaning: Omit entirely when no manual override was applied.
 
   - schema_id: ResolutionDigestStore
     kind: object
