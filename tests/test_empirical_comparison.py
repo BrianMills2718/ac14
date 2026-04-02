@@ -16,6 +16,8 @@ from ac14.empirical_comparison import (
     ExperimentDecisionArtifact,
     PairedTrialReport,
     RuntimeCaseExecution,
+    _benchmark_repair_guidance,
+    _build_component_repair_guidance,
     build_experiment_decision_artifact,
     build_smoke_readiness_artifact,
     _build_failure_summary,
@@ -300,6 +302,33 @@ def test_dynamic_field_exists_returns_false_for_absent_path() -> None:
 
     data: dict[str, object] = {"resolution_digest_store": {"entries": []}}
     assert _dynamic_field_exists(data, "resolution_digest_store.generated_at") is False
+
+
+def test_benchmark_repair_guidance_targets_override_and_shipping_rules() -> None:
+    """Benchmark-local repair guidance should name the real order-exception rules."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    guidance = _benchmark_repair_guidance(bundle=bundle, condition="monolithic")
+
+    assert any("24+ hours" in line for line in guidance)
+    assert any("compound_exception" in line for line in guidance)
+    assert any("override_action" in line for line in guidance)
+
+
+
+def test_component_specific_repair_guidance_targets_resolution_assembler() -> None:
+    """AC14 repair guidance should target optional override handling to relevant components only."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    guidance = _build_component_repair_guidance(
+        bundle=bundle,
+        prior_guidance=["runtime case ORX-101 failed: 'override_action'"],
+    )
+
+    assert any("override_action is optional" in line for line in guidance["resolution_assembler"])
+    assert any("override_action" in line for line in guidance["factor_correlator"])
+    assert not any("runtime case ORX-101 failed: 'override_action'" in line for line in guidance["case_parser"])
+
 
 
 def test_benchmark_repair_guidance_excludes_dynamic_generated_at_from_diff() -> None:

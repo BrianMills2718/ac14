@@ -219,6 +219,13 @@ asset through `reference` and `deterministic` final acceptance by keeping the
 required source fields explicit and decoding JSON-like CSV cells for list
 fields, rather than inventing hidden runtime normalization.
 
+### 2026-04-02 — codex — best-practice
+When the empirical lane is blocked on benchmark fidelity, repair guidance must
+not stay as one undifferentiated summary copied to every component. AC14 now
+renders packet-local schema definitions in the component prompt and combines
+benchmark-local component guidance with bounded prior-attempt guidance so the
+repair loop is targeted without changing the attempt-count fairness contract.
+
 ### 2026-04-01 — codex — best-practice
 Once the non-LLM messy-input final gate is explicit, the next honest
 non-deterministic step is one bounded fixture-backed `llm` proof on the same

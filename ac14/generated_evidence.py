@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
 
@@ -128,7 +128,7 @@ async def _aevaluate_packet_case_semantically(
         trace_id=trace_id,
         max_budget=max_budget,
     )
-    return result
+    return cast(PacketCaseSemanticEval, result)
 
 
 class PacketCaseResult(BaseModel):

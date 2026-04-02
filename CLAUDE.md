@@ -117,6 +117,18 @@ For the active empirical-comparison lane, this rule is especially strict:
   execute that plan before resuming the parent gate
 - do not describe a back-half comparison over a fixed decomposition as if it
   were already the full end-to-end thesis test
+- keep the active empirical chain explicit as:
+  1. targeted repair plan
+  2. bounded smoke rerun
+  3. full five-trial gate only if smoke says `ready_for_full_trials`
+  4. verdict interpretation only after the five-trial gate exists
+- do not mark a repair lane complete just because code landed; the empirical
+  gate must still earn the next phase through a persisted smoke artifact
+- if the smoke artifact still says `blocked_on_harness`, freeze a narrower
+  blocker-clearing plan immediately and do not spend the five-trial budget
+- when the smoke artifact is stale or the control docs lag the latest run,
+  update the docs before continuing so another agent can resume without chat
+  history
 
 Treat waiting for further permission before the active plan is complete as a
 process failure. The required behavior is:

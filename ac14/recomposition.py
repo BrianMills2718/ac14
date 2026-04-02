@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
 
@@ -393,7 +393,7 @@ async def _aevaluate_recomposition_scenario_semantically(
         trace_id=trace_id,
         max_budget=max_budget,
     )
-    return result
+    return cast(_RecompSemanticEval, result)
 
 
 def _find_first_mismatch(

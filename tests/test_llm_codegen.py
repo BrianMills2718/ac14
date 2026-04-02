@@ -20,6 +20,7 @@ from ac14.llm_codegen import (
 from ac14.loader import load_blueprint_dir
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
+from llm_client import render_prompt  # type: ignore[import-not-found]
 
 
 EXAMPLE_DIR = Path(__file__).resolve().parents[1] / "examples" / "support_ticket_digest" / "blueprint"
@@ -172,6 +173,21 @@ def test_generate_component_module_with_llm_uses_fixture_env(
 
     assert "class GeneratedComponent" in response.module_code
     assert response.implementation_notes == ["fixture-backed llm codegen"]
+
+
+def test_component_prompt_includes_local_schema_definitions() -> None:
+    """The component prompt should expose packet-local schema definitions explicitly."""
+
+    messages = render_prompt(
+        PROMPT_PATH,
+        context=_digest_assembler_context().model_dump(mode="json"),
+    )
+
+    user_message = next(message["content"] for message in messages if message["role"] == "user")
+    assert "Local schema definitions:" in user_message
+    assert "schema_id:" in user_message
+    assert "required=" in user_message
+    assert "absence_meaning=" in user_message
 
 
 def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(

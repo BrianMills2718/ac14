@@ -1,7 +1,7 @@
 # AC14 Next 24 Hours
 
 Status: In Progress
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 ## Purpose
 
@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md)
+- [Plan #46: Empirical Smoke Gate Refresh](/home/brian/projects/ac14/docs/plans/46_empirical_smoke_gate_refresh.md)
 
 The empirical gate is now frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -21,13 +21,15 @@ Completed blocker-clearing lanes:
 
 - [Plan #40: Empirical Smoke Stabilization](/home/brian/projects/ac14/docs/plans/40_empirical_smoke_stabilization.md)
 - [Plan #41: Empirical Harness Repair](/home/brian/projects/ac14/docs/plans/41_empirical_harness_repair.md)
+- [Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md)
 
 The active 24-hour chain is now:
 
-1. turn current packet/runtime failure patterns into benchmark-local repair guidance
-2. tighten benchmark-local prompt/guidance language around deterministic outputs and required parsed fields
-3. rerun one bounded smoke gate under the tighter benchmark-fidelity guidance
-4. decide whether Plan #39 is still blocked or can finally spend the five-trial budget
+1. spend one bounded smoke run on the verified schema-aware repair lane
+2. read the resulting smoke and paired-trial artifacts directly
+3. unblock Plan #43 only if the smoke artifact says `ready_for_full_trials`
+4. if smoke stays blocked, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
+5. only after full trials exist should Plan #44 interpret the verdict
 
 ## Progress Update
 
@@ -73,54 +75,34 @@ Latest blocker-clearing outcomes:
 1. one bounded smoke gate now persists an explicit verdict
 2. the current verdict remains `blocked_on_harness`
 3. the latest bounded smoke rerun did not show infrastructure/provider contamination
-4. the first repair slice moved AC14 from import-time module failure to later packet-level failure
-5. both conditions now fail later at benchmark-fidelity expectations
-6. that makes Plan #42 the next honest lane
+4. Plan #42 improved the harness, but the gate still failed on benchmark-specific logic and prompt-context blindness
+5. Plan #45 has now repaired the prompt/context surface and passed full local verification
+6. Plan #46 now exists to refresh the smoke verdict after that verified repair slice
 
 ## Tactical Phase Summary
 
 Detailed references, write scope, tests, and acceptance criteria live in Plan
 #39.
 
-### Phase 1: benchmark-local repair guidance
+### Phase 1: bounded smoke rerun
 
-- turn the current packet/runtime failures into benchmark-local repair guidance
-- keep the guidance tied to the empirical benchmark, not to broad AC14 behavior
-
-Success criteria:
-
-- repair guidance names deterministic `generated_at` expectations
-- repair guidance names required parsed fields and key business-rule mismatches
-
-### Phase 2: tighter benchmark-fidelity prompts and repair surface
-
-- apply the tighter benchmark-local guidance to the empirical lane
-- keep the change benchmark-scoped rather than turning it into a broad new abstraction
-
-Success criteria:
-
-- both conditions are more directly aiming at the explicit benchmark contract
-- the next smoke rerun is testing tighter fidelity, not the old loose guidance
-
-### Phase 3: bounded smoke rerun
-
-- rerun one bounded smoke paired trial under the tighter benchmark-fidelity surface
+- rerun one bounded smoke paired trial under the repaired lane
 - keep the smoke output reviewable artifact-by-artifact
 
 Success criteria:
 
-- AC14 has one explicit smoke verdict tied to one persisted smoke run
-- the next blocker is narrower than the current mixed packet/runtime bundle, or one condition now achieves a hard-harness success
+- AC14 has one fresh smoke verdict tied to one persisted smoke run
+- the verdict says either `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
 
-### Phase 4: parent-lane decision and lock
+### Phase 2: gate decision and lock
 
 - update the active control docs to reflect the smoke verdict
-- either resume Plan #39 honestly or keep it blocked with a stable reason
+- either unblock Plan #43 honestly or keep it blocked with a narrower explicit reason
 
 Success criteria:
 
 - the active control surface matches the smoke outcome
-- the next plan step is explicit and no longer ambiguous
+- the next numbered plan is explicit and no longer ambiguous
 
 ## Known Uncertainties
 
@@ -134,4 +116,4 @@ Current lane-specific uncertainties:
 2. the monolithic condition must stay bounded without silently giving it a looser repair budget
 3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
 4. current bounded smoke trials still have not produced a hard-harness success
-5. the next repair lane needs an explicit decision on benchmark-local exactness such as `generated_at`
+5. the next smoke artifact must show whether the schema-aware repair materially changed the gate outcome

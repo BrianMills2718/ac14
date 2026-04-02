@@ -20,11 +20,14 @@ messages:
       - do not write `class GeneratedComponent(SomeBase):` unless SomeBase is also defined in this file
       - all port values inside `inputs` are plain Python dicts — access them with `inputs['port_name']['field']` not `inputs['port_name'].field`
       - never use attribute access (dot notation) on values that came from `inputs` — they are dicts, not Pydantic models
+      - if a schema field is optional, check it with `.get(...)` or `'field' in dict` before reading it; never index an optional field blindly
+      - emit optional output fields only when the upstream optional condition is actually present
       - do not invent wrapper schema classes for runtime inputs or outputs
       - do not require `execute()` callers to pass custom objects instead of dictionaries
       - `build_component()` must return the component instance itself, not a dict or registry
       - keep owned state on `self` when the component owns a state store
       - define `GeneratedComponent` before `build_component()`, or avoid forward references that break import-time evaluation
+      - keep Python syntax minimal and valid: no incomplete branches, no placeholder ellipses, and no missing parentheses
       - the safest pattern is: class first, then `def build_component(): return GeneratedComponent()`
 
       Do not add markdown fences. Return only structured fields.
@@ -46,6 +49,15 @@ messages:
       Output ports:
       {% for port_name, schema_id in context.output_ports.items() %}
       - {{ port_name }}: {{ schema_id }}
+      {% endfor %}
+
+      Local schema definitions:
+      {% for schema_id, schema in context.local_schemas.items() %}
+      - schema_id: {{ schema_id }}
+        description: {{ schema.description }}
+        {% for field in schema.fields %}
+        - field {{ field.name }} (type={{ field.type }}, required={{ field.required }}): {{ field.description }}{% if not field.required %} optional_reason={{ field.optional_reason }} absence_meaning={{ field.absence_meaning }}{% endif %}
+        {% endfor %}
       {% endfor %}
 
       Local invariants:
