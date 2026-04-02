@@ -217,28 +217,33 @@ the thesis gate is weaker and harder to analyze honestly.
 context using benchmark/trial/attempt provenance.
 **Date resolved:** 2026-04-02
 
-### U-061: Repair9 still loses bounded attempts to narrower benchmark-local semantic mismatches.
+### U-061: Repair10 still loses bounded attempts to one shared shipping-only semantic mismatch.
 **Status:** Investigating
-**Context:** The repair9 smoke artifact remained `blocked_on_harness` without an
-infrastructure-only explanation. The shared remaining blockers are shipping
-risk at 24+ hours, factor-correlator escalation semantics on shipping-only
-standard-customer cases, and the compound inventory-risk band/reason mapping.
-**Why it matters:** Plan #57 should only unblock full trials if the next smoke
-artifact proves those narrower benchmark-local failures are no longer dominating
-the bounded attempts.
+**Context:** The repair10 smoke artifact remained `blocked_on_harness` without an
+infrastructure-only explanation. The compound inventory and broad shipping-risk
+ambiguities narrowed further, but both conditions still disagreed on the same
+shipping-only standard-customer case: `factor_correlator` kept forcing
+`escalation_required=true`, while the monolithic `priority_scorer` still tied
+shipping-only `high` priority to escalation.
+**Why it matters:** Plan #60 should only unblock full trials if the next smoke
+artifact proves that shipping-only rule no longer dominates the bounded attempts.
 
 ### U-062: Monolithic invalid-Python failures still lose observability.
-**Status:** Resolved
-**Context:** In repair9 the monolithic condition still lost one bounded attempt
-to syntax-invalid Python, but the failed module source was not persisted in the
-attempt artifact.
+**Status:** Investigating
+**Context:** Plan #56 fixed the main failed-source persistence path, but repair10
+showed one remaining pre-emit validation path in `agenerate_monolithic_system_with_llm(...)`
+can still fail before the full failed-source artifact is written.
 **Why it matters:** The empirical gate cannot be debugged honestly if one
 condition burns attempts on invalid code that the artifact chain does not
 preserve for direct review.
-**Resolution:** Monolithic package emission now persists `monolithic_response.json`
-before validation, writes `<component>.failed.py` plus validation metadata when
-validation fails, and raises an error that points directly to the failed source.
-**Date resolved:** 2026-04-02
+
+### U-063: AC14 still loses bounded attempts to `resolution_assembler` generation instability.
+**Status:** Investigating
+**Context:** In repair10 the AC14 lane still lost bounded attempts to
+`resolution_assembler` failures such as missing `build_component()` and non-ASCII
+corruption.
+**Why it matters:** The empirical gate cannot measure benchmark logic honestly
+if one condition continues to waste attempts on known codegen-contract failures.
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred

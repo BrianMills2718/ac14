@@ -9,7 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
+- [Plan #58: Shipping-Only Priority And Correlator Repair](/home/brian/projects/ac14/docs/plans/58_shipping_only_priority_and_correlator_repair.md)
+
+The immediate follow-on repair chain is:
+
+- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
+- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The empirical gate is frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -19,11 +24,12 @@ The parent experiment lane remains:
 
 ## Active 24-Hour Chain
 
-1. run one bounded smoke paired trial via Plan #57 into `.ac14_out/empirical_smoke_gate_repair10/`
-2. read the smoke and paired-trial artifacts directly
-3. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
-4. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
-5. only after full trials exist should Plan #44 interpret the verdict
+1. land Plan #58 so the shipping-only standard-customer rule is explicit enough for both `factor_correlator` and `priority_scorer`
+2. land Plan #59 so remaining generation-stability and failed-source observability gaps stop wasting bounded smoke attempts
+3. rerun one bounded smoke paired trial via Plan #60 into `.ac14_out/empirical_smoke_gate_repair11/`
+4. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
+5. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
+6. only after full trials exist should Plan #44 interpret the verdict
 
 ## Progress Update
 
@@ -43,36 +49,50 @@ Completed before the current lane:
 12. Plan #54 repair9 smoke gate, which proved the lane is still `blocked_on_harness` but narrowed the remaining blocker set further
 13. Plan #55 shared benchmark-semantic repair for shipping-delay, correlator, and compound-inventory behavior
 14. Plan #56 monolithic failed-source persistence plus prompt hardening for shipping-only classifier stability
+15. Plan #57 repair10 smoke gate, which proved the lane is still `blocked_on_harness` without an infrastructure-only explanation
 
 Current empirical-gate reality:
 
-1. repair9 stayed `blocked_on_harness`
+1. repair10 stayed `blocked_on_harness`
 2. there is still no infrastructure-only explanation right now
-3. the shared benchmark-local semantics are now stated more explicitly in requirements, schemas, components, and repair guidance
-4. monolithic invalid-source failures now persist failed module code instead of disappearing behind an exception-only message
-5. the next honest move is repair10, not the five-trial budget
+3. the remaining shared semantic blocker is now narrow and concrete: shipping-only standard-customer cases must route to logistics, keep `escalation_required=false`, and still remain `priority_band='high'`
+4. AC14 still wastes some bounded attempts on `resolution_assembler` generation instability, including missing `build_component()` and non-ASCII corruption
+5. one monolithic invalid-module path still fails before the full failed-source persistence path is reached
+6. the next honest move is the Plan #58 -> Plan #59 -> Plan #60 repair chain, not the five-trial budget
 
 ## Tactical Phase Summary
 
-### Phase 1: bounded smoke rerun
+### Phase 1: shipping-only semantic repair
 
-- rerun one bounded smoke paired trial under the post-55/post-56 lane
-- keep the smoke output reviewable artifact-by-artifact
+- land Plan #58 so the benchmark contract and repair guidance say directly that shipping-only standard-customer cases may route to logistics, keep `escalation_required=false`, and still remain `high` priority
+- verify the repair through targeted tests before broad verification
 
 Success criteria:
 
-- a fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/`
+- the benchmark contract states the shipping-only rule explicitly enough for both AC14 and monolithic conditions
+- empirical repair guidance names that rule directly for both correlator and priority scoring
+
+### Phase 2: generation-stability and observability repair
+
+- land Plan #59 so the remaining monolithic pre-emit validation path persists invalid source and the AC14 `resolution_assembler` prompt/guidance stops wasting attempts on known contract failures
+- verify the repair through targeted tests before broad verification
+
+Success criteria:
+
+- monolithic invalid-source persistence covers the remaining pre-emit validation path too
+- AC14 generation guidance explicitly names the current `resolution_assembler` stability failures
+
+### Phase 3: bounded smoke rerun and gate lock
+
+- rerun one bounded smoke paired trial under the post-58/post-59 lane
+- read the smoke and paired-trial artifacts directly
+- only then decide whether Plan #43 is unblocked
+
+Success criteria:
+
+- a fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/`
 - the verdict says either `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
-
-### Phase 2: gate decision and lock
-
-- update the active control docs to reflect the fresh smoke verdict
-- either unblock Plan #43 honestly or keep it blocked with a narrower explicit reason
-
-Success criteria:
-
-- the active control surface matches the fresh smoke outcome
-- the next numbered plan is explicit and no longer ambiguous
+- the active control surface matches that verdict exactly
 
 ## Known Uncertainties
 
@@ -82,7 +102,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. repair10 may still block on harness even after the new shipping/correlator and monolithic observability repairs
+1. repair11 may still block on harness even after the new shipping-only and generation-stability repairs
 2. the monolithic condition must stay bounded without silently receiving a looser repair budget
 3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
-4. if repair10 still blocks, the next plan should be cut from the fresh structured diffs, not from generic packet/recomposition labels
+4. if repair11 still blocks, the next plan should be cut from the fresh structured diffs, not from generic packet/recomposition labels

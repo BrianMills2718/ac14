@@ -123,16 +123,16 @@ AC14 is still incomplete on:
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
-The next strategic gate is now a short repair chain:
+The next strategic gate is now the current repair chain:
 
-- [Plan #55: Shared Benchmark Shipping And Escalation Semantics Repair](/home/brian/projects/ac14/docs/plans/55_shared_benchmark_shipping_and_escalation_semantics_repair.md)
-- [Plan #56: Monolithic Syntax And Failure Artifact Repair](/home/brian/projects/ac14/docs/plans/56_monolithic_syntax_and_failure_artifact_repair.md)
-- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
+- [Plan #58: Shipping-Only Priority And Correlator Repair](/home/brian/projects/ac14/docs/plans/58_shipping_only_priority_and_correlator_repair.md)
+- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
+- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
-Repair9 proved the five-trial budget is still not justified. The immediate goal
-is to clear the narrower shared benchmark-semantic blockers plus the monolithic
-failed-source observability gap, then decide honestly whether
-[Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+Repair10 proved the five-trial budget is still not justified. The immediate goal
+is to clear the remaining shared shipping-only semantic blocker plus the
+remaining generation-stability and failed-source observability gaps, then decide
+honestly whether [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
 should be unblocked.
 
 ## Quickstart

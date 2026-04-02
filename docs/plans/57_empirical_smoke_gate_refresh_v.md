@@ -1,6 +1,6 @@
 # Plan #57: Empirical Smoke Gate Refresh V
 
-**Status:** Planned
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 55, 56
@@ -64,7 +64,13 @@
 
 ## Acceptance Criteria
 
-- [ ] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/`.
-- [ ] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
-- [ ] The active control docs reflect that verdict exactly.
-- [ ] Plan #43 is only unblocked if the fresh smoke artifact says `ready_for_full_trials`.
+- [x] A fresh bounded smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/`.
+- [x] The verdict is one of `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`.
+- [x] The active control docs must be updated to reflect that verdict exactly.
+- [x] Plan #43 remains blocked because the fresh smoke artifact says `blocked_on_harness`.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+Repair10 produced a real fresh smoke artifact and kept the empirical lane honest: the verdict remained `blocked_on_harness`, and `infrastructure_failure_detected` stayed `false`. The remaining blocker set narrowed again. Both conditions still disagreed with the benchmark on the shipping-only standard-customer path, where `factor_correlator` kept forcing `escalation_required=true`, and the monolithic lane still coupled shipping-only `high` priority to escalation. The smoke also exposed one remaining observability/stability gap: the AC14 lane still lost bounded attempts to `resolution_assembler` generation failures, and one monolithic invalid-module path still failed before full failed-source persistence. That is why Plans #58 and #59 are now the active repair chain before another bounded smoke rerun.

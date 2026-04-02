@@ -12,7 +12,12 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
+- [Plan #58: Shipping-Only Priority And Correlator Repair](/home/brian/projects/ac14/docs/plans/58_shipping_only_priority_and_correlator_repair.md)
+
+The immediate follow-on repair chain is:
+
+- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
+- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The experiment contract is frozen in:
 
@@ -27,6 +32,7 @@ The full-trial and interpretation gates remain blocked behind smoke readiness:
 - [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
 - [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
 - [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
+- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The previously active propagation lane remains blocked:
 
@@ -47,16 +53,25 @@ The previously active propagation lane remains blocked:
 - [x] Plan #56: repair monolithic invalid-source observability and prompt stability
   - Success criteria: failed monolithic modules are persisted and the monolithic guidance is explicit about shipping-only classification plus syntax discipline
 
-- [ ] Plan #57: rerun one bounded smoke gate on the post-55/post-56 lane
+- [x] Plan #57: rerun one bounded smoke gate on the post-55/post-56 lane
   - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/` and the next gate is locked honestly
+
+- [ ] Plan #58: repair the shared shipping-only priority and correlator rule exposed by repair10
+  - Success criteria: benchmark contract and empirical guidance say directly that shipping-only standard-customer cases may route to logistics, keep `escalation_required=false`, and still remain `priority_band='high'`
+
+- [ ] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap
+  - Success criteria: the remaining monolithic invalid-module path persists failed source and AC14 `resolution_assembler` guidance explicitly names the current contract failures
+
+- [ ] Plan #60: rerun one bounded smoke gate on the post-58/post-59 lane
+  - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/` and the next gate is locked honestly
 
 ## Current Open Uncertainties
 
 - AC14 still lacks a completed five-trial comparison result even though the comparison contract and runner exist
 - the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
-- repair9 proved the current blocker is still harness-local rather than infrastructure-local
-- the next smoke artifact must show whether the narrower repair9 blocker set was actually cleared
-- if repair10 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
+- repair10 proved the current blocker is still harness-local rather than infrastructure-local
+- the remaining blocker set is now concrete: shipping-only standard-customer semantics plus generation-stability/failed-source persistence gaps
+- if repair11 still blocks on harness, the next plan should be driven by the fresh bounded mismatch artifacts rather than by generic packet/recomposition failure labels
 
 ## Latest Verified Baseline
 
@@ -73,6 +88,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #57 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
+- [ ] complete Plans #58, #59, and #60 and only unblock Plan #43 if the fresh smoke artifact says the five-trial budget is justified
 - [ ] interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
 - [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis

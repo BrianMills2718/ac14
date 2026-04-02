@@ -129,12 +129,12 @@ For the active empirical-comparison lane, this rule is especially strict:
 - when the smoke artifact is stale or the control docs lag the latest run,
   update the docs before continuing so another agent can resume without chat
   history
-- after `empirical_smoke_gate_repair9`, the active empirical chain is now:
-  1. Plan #55 shared benchmark repair for shipping-delay, correlator, and compound-inventory semantics
-  2. Plan #56 monolithic syntax and failed-source observability repair
-  3. Plan #57 bounded smoke rerun into `empirical_smoke_gate_repair10`
-  4. Plan #43 full trials only if the Plan #57 artifact says `ready_for_full_trials`
-  5. another narrower blocker-clearing plan immediately if Plan #57 stays `blocked_on_harness`
+- after `empirical_smoke_gate_repair10`, the active empirical chain is now:
+  1. Plan #58 shared shipping-only priority and correlator repair
+  2. Plan #59 generation-stability and pre-emit validation repair
+  3. Plan #60 bounded smoke rerun into `empirical_smoke_gate_repair11`
+  4. Plan #43 full trials only if the Plan #60 artifact says `ready_for_full_trials`
+  5. another narrower blocker-clearing plan immediately if Plan #60 stays `blocked_on_harness`
 - maximize observability and testing protocol inside the empirical lane:
   - every empirical attempt must persist `packet_test_report.json` and `recomposition_report.json`
   - packet and recomposition failures must include bounded field-level mismatch details whenever the harness can derive them
@@ -176,6 +176,9 @@ to carry that realism all the way into the full-system acceptance surface.
   LLM semantic review
 - preserve the AC14-native notebook and implementation-status doc as the
   canonical story surface while implementation continues
+- treat notebooks as executable journey contracts with explicit per-phase
+  `input -> output`, acceptance criteria, `status`, and `execution_mode`; do
+  not use notebooks as retrospective status decks or static dict dumps
 - keep uncertainties logged, but do not treat them as blockers unless they
   contradict the frozen proof slice
 - keep the TODO ledger and active 24-hour plan synchronized with the real lane
