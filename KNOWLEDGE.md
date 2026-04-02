@@ -350,4 +350,29 @@ setup is explicitly documented as the blocker. The runner is real now, but
 provider instability and zero-success smoke runs are themselves part of the
 gate evidence.
 
+### 2026-04-02 — claude-code — best-practice
+Exact string comparison for free-form text fields (reason, action_summary, score) is the
+wrong evaluation method throughout the harness. LLM-generated components will never
+reproduce exact phrasing. The correct architecture is two-phase: (1) strip free-form
+fields and do categorical exact comparison for routing/classification fields; (2) use an
+LLM judge for semantic correctness of free-form fields. This pattern applies at the
+packet-test level, recomposition level, AND the final runtime evaluation level.
+Building this in at every layer prevents repeated harness failures as new benchmarks are
+added.
+
+### 2026-04-02 — claude-code — schema-gotcha
+Blueprint fixtures must not include expected values for free-form fields unless LLM
+evaluation is wired in. The fields `reason`, `action_summary`, and `score` in fixture
+expected_outputs will never exactly match LLM-generated values. Either omit them from
+expected_outputs (existence-only) or use the LLM evaluation path. Keeping them in
+expected_outputs as documentation of intent is fine only if the comparison logic strips
+them before exact comparison.
+
+### 2026-04-02 — claude-code — best-practice
+Compound exception fixtures must be added to the blueprint for the LLM generator to
+handle compound cases correctly. Without a compound exception fixture example, generated
+components produce wrong categorical values (e.g., priority_band='high' instead of
+'critical' for compound_exception cases). The fixture provides the concrete
+input/output contract that guides generation.
+
 ---
