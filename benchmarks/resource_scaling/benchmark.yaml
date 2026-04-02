@@ -1,0 +1,33 @@
+benchmark:
+  benchmark_id: resource_scaling_v1
+  name: Cloud Resource Auto-Scaling Decision System
+  purpose: Second empirical AC14 comparison target with 13 components, multiple join
+    layers, and categorical-only outputs to reduce evaluator-noise confounds.
+  comparison_scope: decomposition_vs_monolithic_back_half
+  blueprint_dir: blueprint
+  requirements_path: requirements.md
+  runtime_input_path: input/runtime_cases.json
+  expected_outputs_path: input/expected_runtime_outputs.json
+  source_artifacts:
+  - input/runtime_cases.json
+  allowed_dependencies: []
+  primary_source_component_id: metrics_normalizer
+  primary_source_port_name: raw_event
+  final_component_id: decision_recorder
+  final_output_ports:
+  - scaling_decision_entry
+  - scaling_decision_store
+  dynamic_output_fields: []
+  system_requirements:
+  - Threshold breaches are deterministic at cpu>=0.80, memory>=0.85, error_rate>=0.05.
+  - scale_out when both cpu and memory breach; scale_up when only cpu breaches; scale_down
+    when no breach and request_rate_rps < 20; none otherwise.
+  - Urgency is critical on error breach or three breaches, high on two breaches, medium
+    on one breach, low otherwise.
+  - bronze maps to budget, silver/gold to standard, platinum to premium.
+  - Compliance blocks any non-none action during maintenance and blocks change-freeze
+    actions unless urgency is critical.
+  - The final decision action is blocked when execution_gate.blocked is true; otherwise
+    it equals recommendation.action.
+  - All final-output fields are categorical, boolean, or integer and should match
+    exactly.

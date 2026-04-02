@@ -1,0 +1,266 @@
+[
+  {
+    "case_id": "RSC-100",
+    "expected_outputs": {
+      "scaling_decision_entry": {
+        "case_id": "RSC-100",
+        "service_id": "svc-premium-api",
+        "action": "scale_out",
+        "urgency": "critical",
+        "strategy": "immediate",
+        "target_adjustment": 3,
+        "approval_tier": "auto",
+        "authorization_mode": "auto",
+        "alert_tier": "critical",
+        "scale_tier": "premium",
+        "blocked": false,
+        "requires_approval": false,
+        "min_healthy_instances": 3,
+        "cooldown_minutes": 5
+      },
+      "scaling_decision_store": {
+        "generated_at": "2026-04-02T08:00:00Z",
+        "decisions": [
+          {
+            "case_id": "RSC-100",
+            "service_id": "svc-premium-api",
+            "action": "scale_out",
+            "urgency": "critical",
+            "strategy": "immediate",
+            "target_adjustment": 3,
+            "approval_tier": "auto",
+            "authorization_mode": "auto",
+            "alert_tier": "critical",
+            "scale_tier": "premium",
+            "blocked": false,
+            "requires_approval": false,
+            "min_healthy_instances": 3,
+            "cooldown_minutes": 5
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "RSC-101",
+    "expected_outputs": {
+      "scaling_decision_entry": {
+        "case_id": "RSC-101",
+        "service_id": "svc-budget-batch",
+        "action": "scale_up",
+        "urgency": "medium",
+        "strategy": "deferred",
+        "target_adjustment": 1,
+        "approval_tier": "manager",
+        "authorization_mode": "manual",
+        "alert_tier": "info",
+        "scale_tier": "budget",
+        "blocked": false,
+        "requires_approval": true,
+        "min_healthy_instances": 1,
+        "cooldown_minutes": 30
+      },
+      "scaling_decision_store": {
+        "generated_at": "2026-04-02T08:05:00Z",
+        "decisions": [
+          {
+            "case_id": "RSC-100",
+            "service_id": "svc-premium-api",
+            "action": "scale_out",
+            "urgency": "critical",
+            "strategy": "immediate",
+            "target_adjustment": 3,
+            "approval_tier": "auto",
+            "authorization_mode": "auto",
+            "alert_tier": "critical",
+            "scale_tier": "premium",
+            "blocked": false,
+            "requires_approval": false,
+            "min_healthy_instances": 3,
+            "cooldown_minutes": 5
+          },
+          {
+            "case_id": "RSC-101",
+            "service_id": "svc-budget-batch",
+            "action": "scale_up",
+            "urgency": "medium",
+            "strategy": "deferred",
+            "target_adjustment": 1,
+            "approval_tier": "manager",
+            "authorization_mode": "manual",
+            "alert_tier": "info",
+            "scale_tier": "budget",
+            "blocked": false,
+            "requires_approval": true,
+            "min_healthy_instances": 1,
+            "cooldown_minutes": 30
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "RSC-102",
+    "expected_outputs": {
+      "scaling_decision_entry": {
+        "case_id": "RSC-102",
+        "service_id": "svc-standard-web",
+        "action": "blocked",
+        "urgency": "high",
+        "strategy": "blocked",
+        "target_adjustment": 2,
+        "approval_tier": "manager",
+        "authorization_mode": "compliance_blocked",
+        "alert_tier": "warning",
+        "scale_tier": "standard",
+        "blocked": true,
+        "requires_approval": true,
+        "min_healthy_instances": 2,
+        "cooldown_minutes": 0
+      },
+      "scaling_decision_store": {
+        "generated_at": "2026-04-02T08:10:00Z",
+        "decisions": [
+          {
+            "case_id": "RSC-100",
+            "service_id": "svc-premium-api",
+            "action": "scale_out",
+            "urgency": "critical",
+            "strategy": "immediate",
+            "target_adjustment": 3,
+            "approval_tier": "auto",
+            "authorization_mode": "auto",
+            "alert_tier": "critical",
+            "scale_tier": "premium",
+            "blocked": false,
+            "requires_approval": false,
+            "min_healthy_instances": 3,
+            "cooldown_minutes": 5
+          },
+          {
+            "case_id": "RSC-101",
+            "service_id": "svc-budget-batch",
+            "action": "scale_up",
+            "urgency": "medium",
+            "strategy": "deferred",
+            "target_adjustment": 1,
+            "approval_tier": "manager",
+            "authorization_mode": "manual",
+            "alert_tier": "info",
+            "scale_tier": "budget",
+            "blocked": false,
+            "requires_approval": true,
+            "min_healthy_instances": 1,
+            "cooldown_minutes": 30
+          },
+          {
+            "case_id": "RSC-102",
+            "service_id": "svc-standard-web",
+            "action": "blocked",
+            "urgency": "high",
+            "strategy": "blocked",
+            "target_adjustment": 2,
+            "approval_tier": "manager",
+            "authorization_mode": "compliance_blocked",
+            "alert_tier": "warning",
+            "scale_tier": "standard",
+            "blocked": true,
+            "requires_approval": true,
+            "min_healthy_instances": 2,
+            "cooldown_minutes": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "RSC-103",
+    "expected_outputs": {
+      "scaling_decision_entry": {
+        "case_id": "RSC-103",
+        "service_id": "svc-standard-worker",
+        "action": "none",
+        "urgency": "low",
+        "strategy": "deferred",
+        "target_adjustment": 0,
+        "approval_tier": "auto",
+        "authorization_mode": "auto",
+        "alert_tier": "info",
+        "scale_tier": "standard",
+        "blocked": false,
+        "requires_approval": false,
+        "min_healthy_instances": 2,
+        "cooldown_minutes": 30
+      },
+      "scaling_decision_store": {
+        "generated_at": "2026-04-02T08:15:00Z",
+        "decisions": [
+          {
+            "case_id": "RSC-100",
+            "service_id": "svc-premium-api",
+            "action": "scale_out",
+            "urgency": "critical",
+            "strategy": "immediate",
+            "target_adjustment": 3,
+            "approval_tier": "auto",
+            "authorization_mode": "auto",
+            "alert_tier": "critical",
+            "scale_tier": "premium",
+            "blocked": false,
+            "requires_approval": false,
+            "min_healthy_instances": 3,
+            "cooldown_minutes": 5
+          },
+          {
+            "case_id": "RSC-101",
+            "service_id": "svc-budget-batch",
+            "action": "scale_up",
+            "urgency": "medium",
+            "strategy": "deferred",
+            "target_adjustment": 1,
+            "approval_tier": "manager",
+            "authorization_mode": "manual",
+            "alert_tier": "info",
+            "scale_tier": "budget",
+            "blocked": false,
+            "requires_approval": true,
+            "min_healthy_instances": 1,
+            "cooldown_minutes": 30
+          },
+          {
+            "case_id": "RSC-102",
+            "service_id": "svc-standard-web",
+            "action": "blocked",
+            "urgency": "high",
+            "strategy": "blocked",
+            "target_adjustment": 2,
+            "approval_tier": "manager",
+            "authorization_mode": "compliance_blocked",
+            "alert_tier": "warning",
+            "scale_tier": "standard",
+            "blocked": true,
+            "requires_approval": true,
+            "min_healthy_instances": 2,
+            "cooldown_minutes": 0
+          },
+          {
+            "case_id": "RSC-103",
+            "service_id": "svc-standard-worker",
+            "action": "none",
+            "urgency": "low",
+            "strategy": "deferred",
+            "target_adjustment": 0,
+            "approval_tier": "auto",
+            "authorization_mode": "auto",
+            "alert_tier": "info",
+            "scale_tier": "standard",
+            "blocked": false,
+            "requires_approval": false,
+            "min_healthy_instances": 2,
+            "cooldown_minutes": 30
+          }
+        ]
+      }
+    }
+  }
+]

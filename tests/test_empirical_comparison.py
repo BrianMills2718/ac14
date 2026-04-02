@@ -40,6 +40,7 @@ from ac14.empirical_comparison import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK_DIR = REPO_ROOT / "benchmarks" / "order_exception_resolution"
+RESOURCE_SCALING_BENCHMARK_DIR = REPO_ROOT / "benchmarks" / "resource_scaling"
 
 
 def test_build_benchmark_bundle_order_exception_resolution() -> None:
@@ -52,6 +53,21 @@ def test_build_benchmark_bundle_order_exception_resolution() -> None:
     assert len(bundle.packet_bundle.packets) == 9
     assert [record["case_id"] for record in bundle.runtime_cases] == ["ORX-100", "ORX-101", "ORX-102"]
     assert [case.case_id for case in bundle.expected_runtime_cases] == ["ORX-100", "ORX-101", "ORX-102"]
+
+
+def test_resource_scaling_benchmark_loads() -> None:
+    """The second-gate benchmark should load and expose the harder comparison surface."""
+
+    bundle = load_benchmark_bundle(RESOURCE_SCALING_BENCHMARK_DIR)
+
+    assert bundle.config.benchmark_id == "resource_scaling_v1"
+    assert bundle.blueprint.metadata.blueprint_id == "resource_scaling_v1"
+    assert len(bundle.blueprint.components) == 13
+    assert len(bundle.packet_bundle.packets) == 13
+    assert [record["case_id"] for record in bundle.runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
+    assert [case.case_id for case in bundle.expected_runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
+    assert bundle.config.dynamic_output_fields == []
+    assert bundle.config.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
 
 
 def test_run_paired_trial_persists_monolithic_and_ac14_artifacts(

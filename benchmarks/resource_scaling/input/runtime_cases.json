@@ -1,0 +1,54 @@
+[
+  {
+    "case_id": "RSC-100",
+    "received_at": "2026-04-02T08:00:00Z",
+    "service_id": "svc-premium-api",
+    "service_tier": "platinum",
+    "cpu_utilization": 0.93,
+    "memory_utilization": 0.94,
+    "error_rate": 0.08,
+    "request_rate_rps": 210,
+    "last_deploy_hours": 96,
+    "in_change_freeze": false,
+    "in_maintenance_window": false
+  },
+  {
+    "case_id": "RSC-101",
+    "received_at": "2026-04-02T08:05:00Z",
+    "service_id": "svc-budget-batch",
+    "service_tier": "bronze",
+    "cpu_utilization": 0.82,
+    "memory_utilization": 0.7,
+    "error_rate": 0.0,
+    "request_rate_rps": 140,
+    "last_deploy_hours": 72,
+    "in_change_freeze": false,
+    "in_maintenance_window": false
+  },
+  {
+    "case_id": "RSC-102",
+    "received_at": "2026-04-02T08:10:00Z",
+    "service_id": "svc-standard-web",
+    "service_tier": "gold",
+    "cpu_utilization": 0.86,
+    "memory_utilization": 0.88,
+    "error_rate": 0.02,
+    "request_rate_rps": 180,
+    "last_deploy_hours": 8,
+    "in_change_freeze": false,
+    "in_maintenance_window": true
+  },
+  {
+    "case_id": "RSC-103",
+    "received_at": "2026-04-02T08:15:00Z",
+    "service_id": "svc-standard-worker",
+    "service_tier": "silver",
+    "cpu_utilization": 0.45,
+    "memory_utilization": 0.55,
+    "error_rate": 0.0,
+    "request_rate_rps": 60,
+    "last_deploy_hours": 36,
+    "in_change_freeze": false,
+    "in_maintenance_window": false
+  }
+]

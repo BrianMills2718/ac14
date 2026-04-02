@@ -12,11 +12,12 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
+- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
 
-The immediate follow-on lane is:
+The explicit next branch is:
 
-- the implementation lane that executes the runtime-first comparison contract after Plan #63 freezes it
+- if smoke says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- if smoke says `blocked_on_harness` or `blocked_on_infrastructure` -> [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md)
 
 The experiment contract remains frozen in:
 
@@ -29,6 +30,7 @@ The completed execution lanes are:
 - [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
 - [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
 - [Plan #62: Inconclusive Comparison Diagnosis](/home/brian/projects/ac14/docs/plans/62_inconclusive_comparison_diagnosis.md)
+- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
 
 The previously active propagation lane remains blocked:
 
@@ -36,32 +38,30 @@ The previously active propagation lane remains blocked:
 
 ## Short-Term Active Lane
 
-- [x] Plan #43: run the full five-trial gate
-  - Result: `.ac14_out/full_trials_gate_1/experiment_decision.json` exists with verdict `inconclusive`
+- [x] Plan #63: freeze the runtime-first empirical comparison contract
+  - Result: runtime outputs are now the primary trial-success gate and the next chain is explicit as Plans #64–#67
 
-- [x] Plan #44: interpret the verdict and set the next horizon
-  - Result: the next honest move is diagnosis and a sharper next comparison direction, not another same-benchmark micro-repair lane
+- [x] Plan #64: build the second-gate benchmark bundle
+  - Result: `resource_scaling_v1` now exists with 13 components, four runtime cases, categorical-only final outputs, benchmark-local repair guidance, and full verification green
 
-- [x] Plan #62: diagnose why the first benchmark failed to separate the conditions
-  - Result: the project now treats `order_exception_resolution` as one completed data point and freezes a sharper next empirical direction instead of defaulting back into the same repair loop
+- [ ] Plan #65: run the bounded smoke gate on the new benchmark
+  - Success criteria: `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` exists and points clearly to Plan #66 or Plan #67
 
-- [x] Plan #61: remediate the notebook surface after the verdict lock
-  - Result: the empirical comparison notebook is artifact-backed, the status notebook is clearly governance-only, and the registry/docs are truthful
-
-- [ ] Plan #63: freeze the runtime-first empirical comparison contract
-  - Success criteria: final runtime output correctness becomes the primary gate, packet/recomposition reports stay explicit secondary evidence, and the comparison stays fair
+- [ ] Plan #66 or #67 depending on the smoke verdict
+  - `ready_for_full_trials` -> spend the full five-trial budget and lock the second verdict
+  - blocked -> freeze one blocker-clearing repair plan and keep unrelated lanes blocked
 
 ## Current Open Uncertainties
 
 - the first empirical gate is complete but inconclusive; AC14 still lacks a decisive empirical result in either direction
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
-- provider `503` demand noise appeared during the full five-trial run and may contaminate time/cost interpretation even though the primary success outcome completed
-- the runtime-first contract still needs to be frozen before the next empirical rerun can begin
+- provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
+- the second gate now has a harder benchmark, but the rerun still needs an honest smoke verdict before the five-trial budget is spendable
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `244 passed`
+  - `python -m pytest -q` with `247 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:
@@ -75,6 +75,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #63 and then execute the runtime-first empirical rerun lane
+- [ ] complete Plans #65–#67 through the correct smoke branch
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
-- [ ] keep blocked propagation lanes blocked until the next empirical contract exists and is executed
+- [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

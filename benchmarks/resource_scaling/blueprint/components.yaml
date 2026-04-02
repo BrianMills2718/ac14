@@ -1,0 +1,364 @@
+components:
+- component_id: metrics_normalizer
+  kind: transform
+  purpose: Normalize one raw metrics event for downstream policy evaluation.
+  semantic_responsibility: normalize_metrics_event
+  input_ports:
+  - name: raw_event
+    schema_id: RawScalingEvent
+    description: Raw metrics event.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: normalized_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics payload.
+  local_invariants:
+  - normalized_metrics.case_id must equal raw_event.case_id
+  failure_semantics:
+  - fail loud if required raw metrics fields are absent
+  implementation_constraints:
+  - keep all normalized fields as plain scalar values; do not invent extra keys
+- component_id: threshold_detector
+  kind: transform
+  purpose: Compute deterministic threshold-breach flags.
+  semantic_responsibility: detect_threshold_breaches
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: breach_summary
+    schema_id: BreachSummary
+    description: Threshold-breach summary.
+  local_invariants:
+  - breach_summary.case_id must equal normalized_metrics.case_id
+  failure_semantics:
+  - fail loud on missing normalized metric fields
+  implementation_constraints:
+  - use the fixed threshold values from the benchmark requirements with no hidden tolerance
+- component_id: urgency_classifier
+  kind: transform
+  purpose: Map breach counts to one urgency level.
+  semantic_responsibility: classify_scaling_urgency
+  input_ports:
+  - name: on_breach
+    schema_id: BreachSummary
+    description: Threshold-breach summary.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: urgency_assessment
+    schema_id: UrgencyAssessment
+    description: Urgency classification.
+  local_invariants:
+  - urgency_assessment.case_id must equal breach_summary.case_id
+  failure_semantics:
+  - fail loud on missing breach-summary fields
+  implementation_constraints:
+  - keep the urgency decision tree short and deterministic
+- component_id: trend_evaluator
+  kind: transform
+  purpose: Convert raw metric levels into trend signals.
+  semantic_responsibility: evaluate_metric_trends
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: trend_signal
+    schema_id: TrendSignal
+    description: Metric-trend summary.
+  local_invariants:
+  - trend_signal.case_id must equal normalized_metrics.case_id
+  failure_semantics:
+  - fail loud on missing normalized metric fields
+  implementation_constraints:
+  - treat cpu and memory trends independently before computing sustained_pressure
+- component_id: deploy_risk_evaluator
+  kind: transform
+  purpose: Classify deploy recency risk.
+  semantic_responsibility: evaluate_deploy_risk
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: deploy_risk
+    schema_id: DeployRisk
+    description: Deploy-risk assessment.
+  local_invariants:
+  - deploy_risk.case_id must equal normalized_metrics.case_id
+  failure_semantics:
+  - fail loud on missing normalized metric fields
+  implementation_constraints:
+  - use only the benchmark recency buckets high/medium/low
+- component_id: service_policy_loader
+  kind: transform
+  purpose: Map service tier to one scaling policy.
+  semantic_responsibility: load_service_scaling_policy
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: service_policy
+    schema_id: ServicePolicy
+    description: Service scaling policy.
+  local_invariants:
+  - service_policy.case_id must equal normalized_metrics.case_id
+  failure_semantics:
+  - fail loud on unknown service tiers
+  implementation_constraints:
+  - bronze maps to budget, silver and gold to standard, platinum to premium
+- component_id: recommendation_generator
+  kind: join
+  purpose: Join breach signals and service policy into one scaling recommendation.
+  semantic_responsibility: generate_scaling_recommendation
+  input_ports:
+  - name: on_breach
+    schema_id: BreachSummary
+    description: Threshold-breach summary.
+    required: true
+    arrival_policy: required_latest
+  - name: on_policy
+    schema_id: ServicePolicy
+    description: Service scaling policy.
+    required: true
+    arrival_policy: required_latest
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: scaling_recommendation
+    schema_id: ScalingRecommendation
+    description: Primary scaling recommendation.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - target_adjustment must be 0 only when action is none
+- component_id: approval_resolver
+  kind: join
+  purpose: Resolve the approval tier for the recommendation.
+  semantic_responsibility: resolve_scaling_approval
+  input_ports:
+  - name: on_urgency
+    schema_id: UrgencyAssessment
+    description: Urgency assessment.
+    required: true
+    arrival_policy: required_latest
+  - name: on_policy
+    schema_id: ServicePolicy
+    description: Service scaling policy.
+    required: true
+    arrival_policy: required_latest
+  - name: on_recommendation
+    schema_id: ScalingRecommendation
+    description: Scaling recommendation.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: approval_decision
+    schema_id: ApprovalDecision
+    description: Approval decision.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - premium stays auto; budget always requires manager review
+- component_id: compliance_checker
+  kind: join
+  purpose: Check whether the recommendation conflicts with freeze or maintenance policy.
+  semantic_responsibility: check_scaling_compliance
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  - name: on_urgency
+    schema_id: UrgencyAssessment
+    description: Urgency assessment.
+    required: true
+    arrival_policy: required_latest
+  - name: on_recommendation
+    schema_id: ScalingRecommendation
+    description: Scaling recommendation.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: compliance_check
+    schema_id: ComplianceCheck
+    description: Compliance result.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - maintenance window blocks any non-none action
+- component_id: scaling_plan_builder
+  kind: join
+  purpose: Build the final execution strategy for the recommendation.
+  semantic_responsibility: build_scaling_plan
+  input_ports:
+  - name: on_urgency
+    schema_id: UrgencyAssessment
+    description: Urgency assessment.
+    required: true
+    arrival_policy: required_latest
+  - name: on_trend
+    schema_id: TrendSignal
+    description: Trend summary.
+    required: true
+    arrival_policy: required_latest
+  - name: on_deploy_risk
+    schema_id: DeployRisk
+    description: Deploy-risk assessment.
+    required: true
+    arrival_policy: required_latest
+  - name: on_recommendation
+    schema_id: ScalingRecommendation
+    description: Scaling recommendation.
+    required: true
+    arrival_policy: required_latest
+  - name: on_compliance
+    schema_id: ComplianceCheck
+    description: Compliance result.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: scaling_plan
+    schema_id: ScalingPlan
+    description: Execution strategy.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - compliance_block always wins over other strategies
+- component_id: alert_planner
+  kind: join
+  purpose: Build the alerting plan for one scaling event.
+  semantic_responsibility: plan_scaling_alerts
+  input_ports:
+  - name: on_breach
+    schema_id: BreachSummary
+    description: Threshold-breach summary.
+    required: true
+    arrival_policy: required_latest
+  - name: on_urgency
+    schema_id: UrgencyAssessment
+    description: Urgency assessment.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: alert_plan
+    schema_id: AlertPlan
+    description: Alert plan.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - create_incident should be true whenever error_breach is true
+- component_id: execution_gate
+  kind: join
+  purpose: Authorize, block, or hand off the final plan.
+  semantic_responsibility: authorize_scaling_execution
+  input_ports:
+  - name: on_compliance
+    schema_id: ComplianceCheck
+    description: Compliance result.
+    required: true
+    arrival_policy: required_latest
+  - name: on_policy
+    schema_id: ServicePolicy
+    description: Service scaling policy.
+    required: true
+    arrival_policy: required_latest
+  - name: on_approval
+    schema_id: ApprovalDecision
+    description: Approval decision.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: execution_gate
+    schema_id: ExecutionGate
+    description: Execution authorization result.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - compliance conflicts always emit authorization_mode=compliance_blocked
+- component_id: decision_recorder
+  kind: join
+  purpose: Record the final scaling decision entry and rolling store.
+  semantic_responsibility: record_scaling_decision
+  input_ports:
+  - name: on_metrics
+    schema_id: NormalizedMetrics
+    description: Normalized metrics input.
+    required: true
+    arrival_policy: required_latest
+  - name: on_urgency
+    schema_id: UrgencyAssessment
+    description: Urgency assessment.
+    required: true
+    arrival_policy: required_latest
+  - name: on_policy
+    schema_id: ServicePolicy
+    description: Service scaling policy.
+    required: true
+    arrival_policy: required_latest
+  - name: on_recommendation
+    schema_id: ScalingRecommendation
+    description: Scaling recommendation.
+    required: true
+    arrival_policy: required_latest
+  - name: on_approval
+    schema_id: ApprovalDecision
+    description: Approval decision.
+    required: true
+    arrival_policy: required_latest
+  - name: on_plan
+    schema_id: ScalingPlan
+    description: Scaling plan.
+    required: true
+    arrival_policy: required_latest
+  - name: on_alert
+    schema_id: AlertPlan
+    description: Alert plan.
+    required: true
+    arrival_policy: required_latest
+  - name: on_gate
+    schema_id: ExecutionGate
+    description: Execution gate.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: scaling_decision_entry
+    schema_id: ScalingDecisionEntry
+    description: Final scaling decision entry.
+  - name: scaling_decision_store
+    schema_id: ScalingDecisionStore
+    description: Rolling scaling decision store.
+  local_invariants:
+  - all inputs must share the same case_id
+  failure_semantics:
+  - fail loud on required port schema mismatch
+  implementation_constraints:
+  - preserve one decision per case_id and append new cases in arrival order

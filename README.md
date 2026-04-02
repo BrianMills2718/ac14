@@ -43,7 +43,7 @@ Dependency-probe behavior is currently governed by:
 - [Plans Index](/home/brian/projects/ac14/docs/plans/CLAUDE.md)
 - [Meta-Process Adoption Plan](/home/brian/projects/ac14/docs/AC14_META_PROCESS_ADOPTION_PLAN.md)
 - [Status Notebook (governance-only today)](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
-- [Empirical Comparison Notebook (needs remediation into a true journey notebook)](/home/brian/projects/ac14/notebooks/02_ac14_empirical_comparison_gate.ipynb)
+- [Empirical Comparison Notebook (artifact-backed journey today)](/home/brian/projects/ac14/notebooks/02_ac14_empirical_comparison_gate.ipynb)
 
 ## What Works Today
 
@@ -132,8 +132,9 @@ The first full empirical gate is now complete:
 
 The next strategic gates are now:
 
-- [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
-- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
+- [Plan #64: Second-Gate Benchmark Bundle](/home/brian/projects/ac14/docs/plans/64_second_gate_benchmark_bundle.md)
+- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
+- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md) or [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) depending on the smoke verdict
 
 The important point is that AC14 now has a real baseline artifact, but the
 current benchmark did not separate the conditions cleanly enough to validate the

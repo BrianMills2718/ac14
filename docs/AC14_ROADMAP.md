@@ -212,14 +212,15 @@ In order:
    packet-test LLM eval noise dominated the signal; runtime outputs passed in
    virtually all attempts for both conditions; next gate needs both a harder
    benchmark and a runtime-primary success criterion
-2. (Plan #61) remediate the notebook surface so the empirical-comparison
+2. (done — Plan #61) remediate the notebook surface so the empirical-comparison
    notebook is a real artifact-backed journey notebook
-3. (Plan #63) second empirical gate with two simultaneous improvements: a
-   harder benchmark (12–15 components, stronger context pressure, categorical-
-   dominant expected outputs) and a runtime-primary success criterion (packet
-   tests logged as diagnostic artifacts only)
-4. interpret the second gate verdict before broadening scope claims
-5. strengthen the front half where it materially improves the next comparison
+3. (done — Plan #63) freeze the runtime-first second-gate contract and split
+   the next chain explicitly into benchmark, smoke, and full-gate/blocker
+   branches
+4. (Plan #64) land the harder second benchmark bundle
+5. (Plan #65) run the bounded smoke gate on that bundle
+6. (Plan #66 or #67) either spend the five-trial budget or freeze one
+   blocker-clearing plan based on the smoke verdict
 
 ## Working Rule
 

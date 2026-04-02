@@ -1,0 +1,851 @@
+fixtures:
+- fixture_id: premium_immediate_scale_out_metrics_normalizer
+  scenario_id: premium_immediate_scale_out
+  component_id: metrics_normalizer
+  description: Normalize one raw metrics event for downstream policy evaluation. for benchmark case RSC-100.
+  inputs:
+    raw_event:
+      case_id: RSC-100
+      received_at: '2026-04-02T08:00:00Z'
+      service_id: svc-premium-api
+      service_tier: platinum
+      cpu_utilization: 0.93
+      memory_utilization: 0.94
+      error_rate: 0.08
+      request_rate_rps: 210
+      last_deploy_hours: 96
+      in_change_freeze: false
+      in_maintenance_window: false
+  expected_outputs:
+    normalized_metrics: &id001
+      case_id: RSC-100
+      received_at: '2026-04-02T08:00:00Z'
+      service_id: svc-premium-api
+      service_tier: platinum
+      cpu_utilization: 0.93
+      memory_utilization: 0.94
+      error_rate: 0.08
+      request_rate_rps: 210
+      last_deploy_hours: 96
+      in_change_freeze: false
+      in_maintenance_window: false
+- fixture_id: premium_immediate_scale_out_threshold_detector
+  scenario_id: premium_immediate_scale_out
+  component_id: threshold_detector
+  description: Compute deterministic threshold-breach flags. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+  expected_outputs:
+    breach_summary: &id002
+      case_id: RSC-100
+      cpu_breach: true
+      memory_breach: true
+      error_breach: true
+      any_breach: true
+      breach_count: 3
+- fixture_id: premium_immediate_scale_out_urgency_classifier
+  scenario_id: premium_immediate_scale_out
+  component_id: urgency_classifier
+  description: Map breach counts to one urgency level. for benchmark case RSC-100.
+  inputs:
+    on_breach: *id002
+  expected_outputs:
+    urgency_assessment: &id004
+      case_id: RSC-100
+      urgency: critical
+      urgency_source: error_or_three_breaches
+- fixture_id: premium_immediate_scale_out_trend_evaluator
+  scenario_id: premium_immediate_scale_out
+  component_id: trend_evaluator
+  description: Convert raw metric levels into trend signals. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+  expected_outputs:
+    trend_signal: &id006
+      case_id: RSC-100
+      cpu_trend: spiking
+      memory_trend: spiking
+      sustained_pressure: true
+- fixture_id: premium_immediate_scale_out_deploy_risk_evaluator
+  scenario_id: premium_immediate_scale_out
+  component_id: deploy_risk_evaluator
+  description: Classify deploy recency risk. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+  expected_outputs:
+    deploy_risk: &id007
+      case_id: RSC-100
+      deploy_risk: low
+      rollback_eligible: false
+      risk_factor: stable_deploy
+- fixture_id: premium_immediate_scale_out_service_policy_loader
+  scenario_id: premium_immediate_scale_out
+  component_id: service_policy_loader
+  description: Map service tier to one scaling policy. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+  expected_outputs:
+    service_policy: &id003
+      case_id: RSC-100
+      scale_tier: premium
+      auto_scale_enabled: true
+      max_scale_adjustment: 4
+      min_healthy_instances: 3
+- fixture_id: premium_immediate_scale_out_recommendation_generator
+  scenario_id: premium_immediate_scale_out
+  component_id: recommendation_generator
+  description: Join breach signals and service policy into one scaling recommendation. for benchmark case RSC-100.
+  inputs:
+    on_breach: *id002
+    on_policy: *id003
+    on_metrics: *id001
+  expected_outputs:
+    scaling_recommendation: &id005
+      case_id: RSC-100
+      action: scale_out
+      target_adjustment: 3
+      recommendation_basis: dual_resource_breach
+- fixture_id: premium_immediate_scale_out_approval_resolver
+  scenario_id: premium_immediate_scale_out
+  component_id: approval_resolver
+  description: Resolve the approval tier for the recommendation. for benchmark case RSC-100.
+  inputs:
+    on_urgency: *id004
+    on_policy: *id003
+    on_recommendation: *id005
+  expected_outputs:
+    approval_decision: &id009
+      case_id: RSC-100
+      requires_approval: false
+      approval_tier: auto
+      budget_risk: high
+- fixture_id: premium_immediate_scale_out_compliance_checker
+  scenario_id: premium_immediate_scale_out
+  component_id: compliance_checker
+  description: Check whether the recommendation conflicts with freeze or maintenance policy. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+    on_urgency: *id004
+    on_recommendation: *id005
+  expected_outputs:
+    compliance_check: &id008
+      case_id: RSC-100
+      conflict: false
+      compliance_tier: clear
+      conflict_source: none
+- fixture_id: premium_immediate_scale_out_scaling_plan_builder
+  scenario_id: premium_immediate_scale_out
+  component_id: scaling_plan_builder
+  description: Build the final execution strategy for the recommendation. for benchmark case RSC-100.
+  inputs:
+    on_urgency: *id004
+    on_trend: *id006
+    on_deploy_risk: *id007
+    on_recommendation: *id005
+    on_compliance: *id008
+  expected_outputs:
+    scaling_plan: &id010
+      case_id: RSC-100
+      strategy: immediate
+      cooldown_minutes: 5
+      plan_basis: critical_low_deploy_risk
+- fixture_id: premium_immediate_scale_out_alert_planner
+  scenario_id: premium_immediate_scale_out
+  component_id: alert_planner
+  description: Build the alerting plan for one scaling event. for benchmark case RSC-100.
+  inputs:
+    on_breach: *id002
+    on_urgency: *id004
+  expected_outputs:
+    alert_plan: &id011
+      case_id: RSC-100
+      notify_oncall: true
+      create_incident: true
+      alert_tier: critical
+      notification_basis: incident_required
+- fixture_id: premium_immediate_scale_out_execution_gate
+  scenario_id: premium_immediate_scale_out
+  component_id: execution_gate
+  description: Authorize, block, or hand off the final plan. for benchmark case RSC-100.
+  inputs:
+    on_compliance: *id008
+    on_policy: *id003
+    on_approval: *id009
+  expected_outputs:
+    execution_gate: &id012
+      case_id: RSC-100
+      authorized: true
+      blocked: false
+      authorization_mode: auto
+- fixture_id: premium_immediate_scale_out_decision_recorder
+  scenario_id: premium_immediate_scale_out
+  component_id: decision_recorder
+  description: Record the final scaling decision entry and rolling store. for benchmark case RSC-100.
+  inputs:
+    on_metrics: *id001
+    on_urgency: *id004
+    on_policy: *id003
+    on_recommendation: *id005
+    on_approval: *id009
+    on_plan: *id010
+    on_alert: *id011
+    on_gate: *id012
+  expected_outputs:
+    scaling_decision_entry: &id013
+      case_id: RSC-100
+      service_id: svc-premium-api
+      action: scale_out
+      urgency: critical
+      strategy: immediate
+      target_adjustment: 3
+      approval_tier: auto
+      authorization_mode: auto
+      alert_tier: critical
+      scale_tier: premium
+      blocked: false
+      requires_approval: false
+      min_healthy_instances: 3
+      cooldown_minutes: 5
+    scaling_decision_store:
+      generated_at: '2026-04-02T08:00:00Z'
+      decisions:
+      - *id013
+- fixture_id: budget_manual_scale_up_metrics_normalizer
+  scenario_id: budget_manual_scale_up
+  component_id: metrics_normalizer
+  description: Normalize one raw metrics event for downstream policy evaluation. for benchmark case RSC-101.
+  inputs:
+    raw_event:
+      case_id: RSC-101
+      received_at: '2026-04-02T08:05:00Z'
+      service_id: svc-budget-batch
+      service_tier: bronze
+      cpu_utilization: 0.82
+      memory_utilization: 0.7
+      error_rate: 0.0
+      request_rate_rps: 140
+      last_deploy_hours: 72
+      in_change_freeze: false
+      in_maintenance_window: false
+  expected_outputs:
+    normalized_metrics: &id014
+      case_id: RSC-101
+      received_at: '2026-04-02T08:05:00Z'
+      service_id: svc-budget-batch
+      service_tier: bronze
+      cpu_utilization: 0.82
+      memory_utilization: 0.7
+      error_rate: 0.0
+      request_rate_rps: 140
+      last_deploy_hours: 72
+      in_change_freeze: false
+      in_maintenance_window: false
+- fixture_id: budget_manual_scale_up_threshold_detector
+  scenario_id: budget_manual_scale_up
+  component_id: threshold_detector
+  description: Compute deterministic threshold-breach flags. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+  expected_outputs:
+    breach_summary: &id015
+      case_id: RSC-101
+      cpu_breach: true
+      memory_breach: false
+      error_breach: false
+      any_breach: true
+      breach_count: 1
+- fixture_id: budget_manual_scale_up_urgency_classifier
+  scenario_id: budget_manual_scale_up
+  component_id: urgency_classifier
+  description: Map breach counts to one urgency level. for benchmark case RSC-101.
+  inputs:
+    on_breach: *id015
+  expected_outputs:
+    urgency_assessment: &id017
+      case_id: RSC-101
+      urgency: medium
+      urgency_source: one_breach
+- fixture_id: budget_manual_scale_up_trend_evaluator
+  scenario_id: budget_manual_scale_up
+  component_id: trend_evaluator
+  description: Convert raw metric levels into trend signals. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+  expected_outputs:
+    trend_signal: &id019
+      case_id: RSC-101
+      cpu_trend: increasing
+      memory_trend: stable
+      sustained_pressure: false
+- fixture_id: budget_manual_scale_up_deploy_risk_evaluator
+  scenario_id: budget_manual_scale_up
+  component_id: deploy_risk_evaluator
+  description: Classify deploy recency risk. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+  expected_outputs:
+    deploy_risk: &id020
+      case_id: RSC-101
+      deploy_risk: low
+      rollback_eligible: false
+      risk_factor: stable_deploy
+- fixture_id: budget_manual_scale_up_service_policy_loader
+  scenario_id: budget_manual_scale_up
+  component_id: service_policy_loader
+  description: Map service tier to one scaling policy. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+  expected_outputs:
+    service_policy: &id016
+      case_id: RSC-101
+      scale_tier: budget
+      auto_scale_enabled: false
+      max_scale_adjustment: 1
+      min_healthy_instances: 1
+- fixture_id: budget_manual_scale_up_recommendation_generator
+  scenario_id: budget_manual_scale_up
+  component_id: recommendation_generator
+  description: Join breach signals and service policy into one scaling recommendation. for benchmark case RSC-101.
+  inputs:
+    on_breach: *id015
+    on_policy: *id016
+    on_metrics: *id014
+  expected_outputs:
+    scaling_recommendation: &id018
+      case_id: RSC-101
+      action: scale_up
+      target_adjustment: 1
+      recommendation_basis: cpu_only_breach
+- fixture_id: budget_manual_scale_up_approval_resolver
+  scenario_id: budget_manual_scale_up
+  component_id: approval_resolver
+  description: Resolve the approval tier for the recommendation. for benchmark case RSC-101.
+  inputs:
+    on_urgency: *id017
+    on_policy: *id016
+    on_recommendation: *id018
+  expected_outputs:
+    approval_decision: &id022
+      case_id: RSC-101
+      requires_approval: true
+      approval_tier: manager
+      budget_risk: low
+- fixture_id: budget_manual_scale_up_compliance_checker
+  scenario_id: budget_manual_scale_up
+  component_id: compliance_checker
+  description: Check whether the recommendation conflicts with freeze or maintenance policy. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+    on_urgency: *id017
+    on_recommendation: *id018
+  expected_outputs:
+    compliance_check: &id021
+      case_id: RSC-101
+      conflict: false
+      compliance_tier: clear
+      conflict_source: none
+- fixture_id: budget_manual_scale_up_scaling_plan_builder
+  scenario_id: budget_manual_scale_up
+  component_id: scaling_plan_builder
+  description: Build the final execution strategy for the recommendation. for benchmark case RSC-101.
+  inputs:
+    on_urgency: *id017
+    on_trend: *id019
+    on_deploy_risk: *id020
+    on_recommendation: *id018
+    on_compliance: *id021
+  expected_outputs:
+    scaling_plan: &id023
+      case_id: RSC-101
+      strategy: deferred
+      cooldown_minutes: 30
+      plan_basis: low_or_medium_urgency
+- fixture_id: budget_manual_scale_up_alert_planner
+  scenario_id: budget_manual_scale_up
+  component_id: alert_planner
+  description: Build the alerting plan for one scaling event. for benchmark case RSC-101.
+  inputs:
+    on_breach: *id015
+    on_urgency: *id017
+  expected_outputs:
+    alert_plan: &id024
+      case_id: RSC-101
+      notify_oncall: false
+      create_incident: false
+      alert_tier: info
+      notification_basis: routine_observation
+- fixture_id: budget_manual_scale_up_execution_gate
+  scenario_id: budget_manual_scale_up
+  component_id: execution_gate
+  description: Authorize, block, or hand off the final plan. for benchmark case RSC-101.
+  inputs:
+    on_compliance: *id021
+    on_policy: *id016
+    on_approval: *id022
+  expected_outputs:
+    execution_gate: &id025
+      case_id: RSC-101
+      authorized: false
+      blocked: false
+      authorization_mode: manual
+- fixture_id: budget_manual_scale_up_decision_recorder
+  scenario_id: budget_manual_scale_up
+  component_id: decision_recorder
+  description: Record the final scaling decision entry and rolling store. for benchmark case RSC-101.
+  inputs:
+    on_metrics: *id014
+    on_urgency: *id017
+    on_policy: *id016
+    on_recommendation: *id018
+    on_approval: *id022
+    on_plan: *id023
+    on_alert: *id024
+    on_gate: *id025
+  expected_outputs:
+    scaling_decision_entry: &id026
+      case_id: RSC-101
+      service_id: svc-budget-batch
+      action: scale_up
+      urgency: medium
+      strategy: deferred
+      target_adjustment: 1
+      approval_tier: manager
+      authorization_mode: manual
+      alert_tier: info
+      scale_tier: budget
+      blocked: false
+      requires_approval: true
+      min_healthy_instances: 1
+      cooldown_minutes: 30
+    scaling_decision_store:
+      generated_at: '2026-04-02T08:05:00Z'
+      decisions:
+      - *id013
+      - *id026
+- fixture_id: standard_blocked_scale_out_metrics_normalizer
+  scenario_id: standard_blocked_scale_out
+  component_id: metrics_normalizer
+  description: Normalize one raw metrics event for downstream policy evaluation. for benchmark case RSC-102.
+  inputs:
+    raw_event:
+      case_id: RSC-102
+      received_at: '2026-04-02T08:10:00Z'
+      service_id: svc-standard-web
+      service_tier: gold
+      cpu_utilization: 0.86
+      memory_utilization: 0.88
+      error_rate: 0.02
+      request_rate_rps: 180
+      last_deploy_hours: 8
+      in_change_freeze: false
+      in_maintenance_window: true
+  expected_outputs:
+    normalized_metrics: &id027
+      case_id: RSC-102
+      received_at: '2026-04-02T08:10:00Z'
+      service_id: svc-standard-web
+      service_tier: gold
+      cpu_utilization: 0.86
+      memory_utilization: 0.88
+      error_rate: 0.02
+      request_rate_rps: 180
+      last_deploy_hours: 8
+      in_change_freeze: false
+      in_maintenance_window: true
+- fixture_id: standard_blocked_scale_out_threshold_detector
+  scenario_id: standard_blocked_scale_out
+  component_id: threshold_detector
+  description: Compute deterministic threshold-breach flags. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+  expected_outputs:
+    breach_summary: &id028
+      case_id: RSC-102
+      cpu_breach: true
+      memory_breach: true
+      error_breach: false
+      any_breach: true
+      breach_count: 2
+- fixture_id: standard_blocked_scale_out_urgency_classifier
+  scenario_id: standard_blocked_scale_out
+  component_id: urgency_classifier
+  description: Map breach counts to one urgency level. for benchmark case RSC-102.
+  inputs:
+    on_breach: *id028
+  expected_outputs:
+    urgency_assessment: &id030
+      case_id: RSC-102
+      urgency: high
+      urgency_source: two_breaches
+- fixture_id: standard_blocked_scale_out_trend_evaluator
+  scenario_id: standard_blocked_scale_out
+  component_id: trend_evaluator
+  description: Convert raw metric levels into trend signals. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+  expected_outputs:
+    trend_signal: &id032
+      case_id: RSC-102
+      cpu_trend: increasing
+      memory_trend: increasing
+      sustained_pressure: true
+- fixture_id: standard_blocked_scale_out_deploy_risk_evaluator
+  scenario_id: standard_blocked_scale_out
+  component_id: deploy_risk_evaluator
+  description: Classify deploy recency risk. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+  expected_outputs:
+    deploy_risk: &id033
+      case_id: RSC-102
+      deploy_risk: medium
+      rollback_eligible: true
+      risk_factor: recent_deploy
+- fixture_id: standard_blocked_scale_out_service_policy_loader
+  scenario_id: standard_blocked_scale_out
+  component_id: service_policy_loader
+  description: Map service tier to one scaling policy. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+  expected_outputs:
+    service_policy: &id029
+      case_id: RSC-102
+      scale_tier: standard
+      auto_scale_enabled: true
+      max_scale_adjustment: 2
+      min_healthy_instances: 2
+- fixture_id: standard_blocked_scale_out_recommendation_generator
+  scenario_id: standard_blocked_scale_out
+  component_id: recommendation_generator
+  description: Join breach signals and service policy into one scaling recommendation. for benchmark case RSC-102.
+  inputs:
+    on_breach: *id028
+    on_policy: *id029
+    on_metrics: *id027
+  expected_outputs:
+    scaling_recommendation: &id031
+      case_id: RSC-102
+      action: scale_out
+      target_adjustment: 2
+      recommendation_basis: dual_resource_breach
+- fixture_id: standard_blocked_scale_out_approval_resolver
+  scenario_id: standard_blocked_scale_out
+  component_id: approval_resolver
+  description: Resolve the approval tier for the recommendation. for benchmark case RSC-102.
+  inputs:
+    on_urgency: *id030
+    on_policy: *id029
+    on_recommendation: *id031
+  expected_outputs:
+    approval_decision: &id035
+      case_id: RSC-102
+      requires_approval: true
+      approval_tier: manager
+      budget_risk: medium
+- fixture_id: standard_blocked_scale_out_compliance_checker
+  scenario_id: standard_blocked_scale_out
+  component_id: compliance_checker
+  description: Check whether the recommendation conflicts with freeze or maintenance policy. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+    on_urgency: *id030
+    on_recommendation: *id031
+  expected_outputs:
+    compliance_check: &id034
+      case_id: RSC-102
+      conflict: true
+      compliance_tier: blocked
+      conflict_source: maintenance_window
+- fixture_id: standard_blocked_scale_out_scaling_plan_builder
+  scenario_id: standard_blocked_scale_out
+  component_id: scaling_plan_builder
+  description: Build the final execution strategy for the recommendation. for benchmark case RSC-102.
+  inputs:
+    on_urgency: *id030
+    on_trend: *id032
+    on_deploy_risk: *id033
+    on_recommendation: *id031
+    on_compliance: *id034
+  expected_outputs:
+    scaling_plan: &id036
+      case_id: RSC-102
+      strategy: blocked
+      cooldown_minutes: 0
+      plan_basis: compliance_block
+- fixture_id: standard_blocked_scale_out_alert_planner
+  scenario_id: standard_blocked_scale_out
+  component_id: alert_planner
+  description: Build the alerting plan for one scaling event. for benchmark case RSC-102.
+  inputs:
+    on_breach: *id028
+    on_urgency: *id030
+  expected_outputs:
+    alert_plan: &id037
+      case_id: RSC-102
+      notify_oncall: true
+      create_incident: false
+      alert_tier: warning
+      notification_basis: high_urgency_notification
+- fixture_id: standard_blocked_scale_out_execution_gate
+  scenario_id: standard_blocked_scale_out
+  component_id: execution_gate
+  description: Authorize, block, or hand off the final plan. for benchmark case RSC-102.
+  inputs:
+    on_compliance: *id034
+    on_policy: *id029
+    on_approval: *id035
+  expected_outputs:
+    execution_gate: &id038
+      case_id: RSC-102
+      authorized: false
+      blocked: true
+      authorization_mode: compliance_blocked
+- fixture_id: standard_blocked_scale_out_decision_recorder
+  scenario_id: standard_blocked_scale_out
+  component_id: decision_recorder
+  description: Record the final scaling decision entry and rolling store. for benchmark case RSC-102.
+  inputs:
+    on_metrics: *id027
+    on_urgency: *id030
+    on_policy: *id029
+    on_recommendation: *id031
+    on_approval: *id035
+    on_plan: *id036
+    on_alert: *id037
+    on_gate: *id038
+  expected_outputs:
+    scaling_decision_entry: &id039
+      case_id: RSC-102
+      service_id: svc-standard-web
+      action: blocked
+      urgency: high
+      strategy: blocked
+      target_adjustment: 2
+      approval_tier: manager
+      authorization_mode: compliance_blocked
+      alert_tier: warning
+      scale_tier: standard
+      blocked: true
+      requires_approval: true
+      min_healthy_instances: 2
+      cooldown_minutes: 0
+    scaling_decision_store:
+      generated_at: '2026-04-02T08:10:00Z'
+      decisions:
+      - *id013
+      - *id026
+      - *id039
+- fixture_id: standard_no_action_metrics_normalizer
+  scenario_id: standard_no_action
+  component_id: metrics_normalizer
+  description: Normalize one raw metrics event for downstream policy evaluation. for benchmark case RSC-103.
+  inputs:
+    raw_event:
+      case_id: RSC-103
+      received_at: '2026-04-02T08:15:00Z'
+      service_id: svc-standard-worker
+      service_tier: silver
+      cpu_utilization: 0.45
+      memory_utilization: 0.55
+      error_rate: 0.0
+      request_rate_rps: 60
+      last_deploy_hours: 36
+      in_change_freeze: false
+      in_maintenance_window: false
+  expected_outputs:
+    normalized_metrics: &id040
+      case_id: RSC-103
+      received_at: '2026-04-02T08:15:00Z'
+      service_id: svc-standard-worker
+      service_tier: silver
+      cpu_utilization: 0.45
+      memory_utilization: 0.55
+      error_rate: 0.0
+      request_rate_rps: 60
+      last_deploy_hours: 36
+      in_change_freeze: false
+      in_maintenance_window: false
+- fixture_id: standard_no_action_threshold_detector
+  scenario_id: standard_no_action
+  component_id: threshold_detector
+  description: Compute deterministic threshold-breach flags. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+  expected_outputs:
+    breach_summary: &id041
+      case_id: RSC-103
+      cpu_breach: false
+      memory_breach: false
+      error_breach: false
+      any_breach: false
+      breach_count: 0
+- fixture_id: standard_no_action_urgency_classifier
+  scenario_id: standard_no_action
+  component_id: urgency_classifier
+  description: Map breach counts to one urgency level. for benchmark case RSC-103.
+  inputs:
+    on_breach: *id041
+  expected_outputs:
+    urgency_assessment: &id043
+      case_id: RSC-103
+      urgency: low
+      urgency_source: no_breach
+- fixture_id: standard_no_action_trend_evaluator
+  scenario_id: standard_no_action
+  component_id: trend_evaluator
+  description: Convert raw metric levels into trend signals. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+  expected_outputs:
+    trend_signal: &id045
+      case_id: RSC-103
+      cpu_trend: stable
+      memory_trend: stable
+      sustained_pressure: false
+- fixture_id: standard_no_action_deploy_risk_evaluator
+  scenario_id: standard_no_action
+  component_id: deploy_risk_evaluator
+  description: Classify deploy recency risk. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+  expected_outputs:
+    deploy_risk: &id046
+      case_id: RSC-103
+      deploy_risk: low
+      rollback_eligible: true
+      risk_factor: stable_deploy
+- fixture_id: standard_no_action_service_policy_loader
+  scenario_id: standard_no_action
+  component_id: service_policy_loader
+  description: Map service tier to one scaling policy. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+  expected_outputs:
+    service_policy: &id042
+      case_id: RSC-103
+      scale_tier: standard
+      auto_scale_enabled: true
+      max_scale_adjustment: 2
+      min_healthy_instances: 2
+- fixture_id: standard_no_action_recommendation_generator
+  scenario_id: standard_no_action
+  component_id: recommendation_generator
+  description: Join breach signals and service policy into one scaling recommendation. for benchmark case RSC-103.
+  inputs:
+    on_breach: *id041
+    on_policy: *id042
+    on_metrics: *id040
+  expected_outputs:
+    scaling_recommendation: &id044
+      case_id: RSC-103
+      action: none
+      target_adjustment: 0
+      recommendation_basis: no_scaling_required
+- fixture_id: standard_no_action_approval_resolver
+  scenario_id: standard_no_action
+  component_id: approval_resolver
+  description: Resolve the approval tier for the recommendation. for benchmark case RSC-103.
+  inputs:
+    on_urgency: *id043
+    on_policy: *id042
+    on_recommendation: *id044
+  expected_outputs:
+    approval_decision: &id048
+      case_id: RSC-103
+      requires_approval: false
+      approval_tier: auto
+      budget_risk: low
+- fixture_id: standard_no_action_compliance_checker
+  scenario_id: standard_no_action
+  component_id: compliance_checker
+  description: Check whether the recommendation conflicts with freeze or maintenance policy. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+    on_urgency: *id043
+    on_recommendation: *id044
+  expected_outputs:
+    compliance_check: &id047
+      case_id: RSC-103
+      conflict: false
+      compliance_tier: clear
+      conflict_source: none
+- fixture_id: standard_no_action_scaling_plan_builder
+  scenario_id: standard_no_action
+  component_id: scaling_plan_builder
+  description: Build the final execution strategy for the recommendation. for benchmark case RSC-103.
+  inputs:
+    on_urgency: *id043
+    on_trend: *id045
+    on_deploy_risk: *id046
+    on_recommendation: *id044
+    on_compliance: *id047
+  expected_outputs:
+    scaling_plan: &id049
+      case_id: RSC-103
+      strategy: deferred
+      cooldown_minutes: 30
+      plan_basis: low_or_medium_urgency
+- fixture_id: standard_no_action_alert_planner
+  scenario_id: standard_no_action
+  component_id: alert_planner
+  description: Build the alerting plan for one scaling event. for benchmark case RSC-103.
+  inputs:
+    on_breach: *id041
+    on_urgency: *id043
+  expected_outputs:
+    alert_plan: &id050
+      case_id: RSC-103
+      notify_oncall: false
+      create_incident: false
+      alert_tier: info
+      notification_basis: routine_observation
+- fixture_id: standard_no_action_execution_gate
+  scenario_id: standard_no_action
+  component_id: execution_gate
+  description: Authorize, block, or hand off the final plan. for benchmark case RSC-103.
+  inputs:
+    on_compliance: *id047
+    on_policy: *id042
+    on_approval: *id048
+  expected_outputs:
+    execution_gate: &id051
+      case_id: RSC-103
+      authorized: true
+      blocked: false
+      authorization_mode: auto
+- fixture_id: standard_no_action_decision_recorder
+  scenario_id: standard_no_action
+  component_id: decision_recorder
+  description: Record the final scaling decision entry and rolling store. for benchmark case RSC-103.
+  inputs:
+    on_metrics: *id040
+    on_urgency: *id043
+    on_policy: *id042
+    on_recommendation: *id044
+    on_approval: *id048
+    on_plan: *id049
+    on_alert: *id050
+    on_gate: *id051
+  expected_outputs:
+    scaling_decision_entry: &id052
+      case_id: RSC-103
+      service_id: svc-standard-worker
+      action: none
+      urgency: low
+      strategy: deferred
+      target_adjustment: 0
+      approval_tier: auto
+      authorization_mode: auto
+      alert_tier: info
+      scale_tier: standard
+      blocked: false
+      requires_approval: false
+      min_healthy_instances: 2
+      cooldown_minutes: 30
+    scaling_decision_store:
+      generated_at: '2026-04-02T08:15:00Z'
+      decisions:
+      - *id013
+      - *id026
+      - *id039
+      - *id052

@@ -9,11 +9,12 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
+- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
 
-The immediate follow-on lane is:
+The explicit next branch is:
 
-- the implementation lane that executes the runtime-first comparison contract after it is frozen
+- if smoke says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- if smoke says `blocked_on_harness` or `blocked_on_infrastructure` -> [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md)
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -24,12 +25,14 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 - [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
 - [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
 - [Plan #62: Inconclusive Comparison Diagnosis](/home/brian/projects/ac14/docs/plans/62_inconclusive_comparison_diagnosis.md)
+- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
 
 ## Active 24-Hour Chain
 
-1. freeze the runtime-first empirical comparison contract so final output correctness becomes the primary success gate
-2. define the exact execution lane for rerunning the benchmark under that new contract
-3. keep blocked propagation lanes blocked until the runtime-first contract exists and the rerun lane is explicit
+1. run Plan #65 and persist one honest smoke verdict on the new benchmark
+2. if the smoke artifact says `ready_for_full_trials`, execute Plan #66 immediately
+3. if the smoke artifact says `blocked_on_harness` or `blocked_on_infrastructure`, execute Plan #67 immediately
+4. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
 
 ## Progress Update
 
@@ -47,37 +50,30 @@ Completed before the current lane:
 10. a first real empirical verdict: `inconclusive`
 11. a diagnosis lane that froze the right lesson: packet-level failures were masking the final-output signal
 12. notebook remediation that turned the empirical notebook into an artifact-backed journey surface and demoted the status notebook to governance-only
-
-Current empirical reality:
-
-1. AC14 succeeded on `2/5` trials
-2. monolithic succeeded on `2/5` trials
-3. both conditions averaged `1.6` repair loops and semantic score `2.0`
-4. monolithic was faster and cheaper on this benchmark
-5. packet-level failures dominated the first verdict even when final runtime outputs often matched expected outputs
+13. a runtime-first empirical contract that demotes packet/recomposition failures to diagnostic evidence
+14. a verified second-gate benchmark bundle at `benchmarks/resource_scaling/` with 13 components, four runtime cases, and categorical-only final outputs
 
 ## Tactical Phase Summary
 
-### Phase 1: runtime-first contract freeze
+### Phase 1: bounded smoke gate
 
-- redefine trial success around final runtime output correctness
-- keep packet and recomposition reports as explicit secondary diagnostic evidence
-- specify how semantic review applies to free-form fields in final outputs
-
-Success criteria:
-
-- the runtime-first success criterion is explicit and reviewable
-- the new contract states clearly how packet-level evidence remains diagnostic rather than primary
-
-### Phase 2: rerun-lane definition
-
-- turn the runtime-first contract into one explicit next execution lane
-- keep the comparison fair across monolithic and AC14 conditions
+- run one bounded paired smoke trial on the new benchmark under the runtime-first contract
+- classify the result honestly as `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
 
 Success criteria:
 
-- the next rerun lane is explicit enough that another agent can execute it without chat history
-- the active docs no longer leave the next empirical rerun implicit
+- the smoke artifact exists
+- the next numbered plan is explicit from the verdict itself
+
+### Phase 2a: full five-trial gate if smoke is ready
+
+- spend the full five-trial budget on the new benchmark
+- lock the verdict docs immediately afterward
+
+### Phase 2b: blocker diagnosis if smoke is blocked
+
+- freeze exactly one blocker-clearing repair plan
+- keep unrelated propagation lanes blocked
 
 ## Known Uncertainties
 
@@ -87,7 +83,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first benchmark tied and may still be too benchmark-local to stress decomposition advantage clearly
-2. provider `503` demand spikes appeared during the full run and may blur secondary time/cost interpretation
-3. the runtime-first contract may materially change the verdict because packet-level failures dominated the first result
-4. blocked propagation lanes should stay blocked until the next empirical rerun contract is frozen
+1. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
+2. the second gate may still be inconclusive even with the harder benchmark and runtime-first criterion
+3. blocked propagation lanes should stay blocked until the second gate produces either a verdict or an explicit blocker-clearing plan

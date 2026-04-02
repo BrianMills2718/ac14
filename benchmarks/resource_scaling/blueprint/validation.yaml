@@ -1,0 +1,90 @@
+global_invariants:
+- invariant_id: scaling_decision_entry_case_id_consistency
+  description: ScalingDecisionEntry.case_id must equal the joined upstream case_id.
+- invariant_id: scaling_decision_store_unique_case_ids
+  description: ScalingDecisionStore.decisions must contain at most one entry per case_id.
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: Compare actual outputs to declared fixture outputs exactly.
+scenarios:
+- scenario_id: premium_immediate_scale_out
+  kind: full_recomposition
+  description: Premium critical breach scales out immediately without approval.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - premium_immediate_scale_out_metrics_normalizer
+  - premium_immediate_scale_out_threshold_detector
+  - premium_immediate_scale_out_urgency_classifier
+  - premium_immediate_scale_out_trend_evaluator
+  - premium_immediate_scale_out_deploy_risk_evaluator
+  - premium_immediate_scale_out_service_policy_loader
+  - premium_immediate_scale_out_recommendation_generator
+  - premium_immediate_scale_out_approval_resolver
+  - premium_immediate_scale_out_compliance_checker
+  - premium_immediate_scale_out_scaling_plan_builder
+  - premium_immediate_scale_out_alert_planner
+  - premium_immediate_scale_out_execution_gate
+  - premium_immediate_scale_out_decision_recorder
+- scenario_id: budget_manual_scale_up
+  kind: full_recomposition
+  description: Budget tier CPU pressure requires manual approval even when policy is otherwise clear.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - budget_manual_scale_up_metrics_normalizer
+  - budget_manual_scale_up_threshold_detector
+  - budget_manual_scale_up_urgency_classifier
+  - budget_manual_scale_up_trend_evaluator
+  - budget_manual_scale_up_deploy_risk_evaluator
+  - budget_manual_scale_up_service_policy_loader
+  - budget_manual_scale_up_recommendation_generator
+  - budget_manual_scale_up_approval_resolver
+  - budget_manual_scale_up_compliance_checker
+  - budget_manual_scale_up_scaling_plan_builder
+  - budget_manual_scale_up_alert_planner
+  - budget_manual_scale_up_execution_gate
+  - budget_manual_scale_up_decision_recorder
+- scenario_id: standard_blocked_scale_out
+  kind: full_recomposition
+  description: Standard tier dual breach is blocked by maintenance-window compliance.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - standard_blocked_scale_out_metrics_normalizer
+  - standard_blocked_scale_out_threshold_detector
+  - standard_blocked_scale_out_urgency_classifier
+  - standard_blocked_scale_out_trend_evaluator
+  - standard_blocked_scale_out_deploy_risk_evaluator
+  - standard_blocked_scale_out_service_policy_loader
+  - standard_blocked_scale_out_recommendation_generator
+  - standard_blocked_scale_out_approval_resolver
+  - standard_blocked_scale_out_compliance_checker
+  - standard_blocked_scale_out_scaling_plan_builder
+  - standard_blocked_scale_out_alert_planner
+  - standard_blocked_scale_out_execution_gate
+  - standard_blocked_scale_out_decision_recorder
+- scenario_id: standard_no_action
+  kind: full_recomposition
+  description: Standard tier healthy service records no scaling action.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - standard_no_action_metrics_normalizer
+  - standard_no_action_threshold_detector
+  - standard_no_action_urgency_classifier
+  - standard_no_action_trend_evaluator
+  - standard_no_action_deploy_risk_evaluator
+  - standard_no_action_service_policy_loader
+  - standard_no_action_recommendation_generator
+  - standard_no_action_approval_resolver
+  - standard_no_action_compliance_checker
+  - standard_no_action_scaling_plan_builder
+  - standard_no_action_alert_planner
+  - standard_no_action_execution_gate
+  - standard_no_action_decision_recorder

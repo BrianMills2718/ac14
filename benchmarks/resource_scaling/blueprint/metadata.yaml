@@ -1,0 +1,16 @@
+metadata:
+  blueprint_id: resource_scaling_v1
+  name: Cloud Resource Auto-Scaling Decision System
+  version: 0.1.0
+  purpose: Deeper empirical comparison target with multi-stage joins and categorical-only
+    outputs.
+  source_kind: benchmark_fixture
+  created_from: AC14 second empirical gate
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

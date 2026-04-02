@@ -972,6 +972,22 @@ def _benchmark_repair_guidance(
 ) -> list[str]:
     """Return bounded benchmark-local guidance for one empirical condition."""
 
+    if bundle.config.benchmark_id == "resource_scaling_v1":
+        shared = [
+            "All benchmark outputs are categorical, boolean, or integer. Do not invent free-form explanation fields or helper prose inside outputs.",
+            "Thresholds are exact: cpu>=0.80, memory>=0.85, error_rate>=0.05. Do not introduce tolerance bands.",
+            "scale_out requires both cpu and memory breach; scale_up requires only cpu breach; none is valid when no threshold breach is present and request rate stays >=20.",
+            "Urgency is critical on error breach or breach_count>=3, high on two breaches, medium on one breach, low otherwise.",
+            "bronze maps to budget, silver/gold to standard, platinum to premium. Budget never auto-executes.",
+            "Maintenance window blocks any non-none action. Change freeze blocks only when urgency is not critical.",
+            "Final decision action and strategy must become blocked whenever execution_gate.blocked is true.",
+            "Keep decision-store entries purely categorical and preserve arrival order across runtime cases.",
+        ]
+        if condition == "monolithic":
+            return shared + [
+                "Emit one direct decision tree per module and keep the whole-package implementation free of helper inheritance or speculative fallback categories.",
+            ]
+        return shared
     if bundle.config.benchmark_id != "order_exception_resolution_v1":
         return []
     shared = [
@@ -1001,6 +1017,42 @@ def _benchmark_repair_guidance(
 def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, list[str]]:
     """Return benchmark-local component guidance for the AC14 empirical lane."""
 
+    if bundle.config.benchmark_id == "resource_scaling_v1":
+        return {
+            "metrics_normalizer": [
+                "Pass through the benchmark fields exactly; do not drop maintenance or freeze flags.",
+            ],
+            "threshold_detector": [
+                "Threshold booleans are exact comparisons at cpu>=0.80, memory>=0.85, and error_rate>=0.05.",
+                "breach_count must equal the count of true breach flags with no extra weighting.",
+            ],
+            "urgency_classifier": [
+                "critical comes from error_breach or three breaches; high from exactly two breaches; medium from one; low from zero.",
+            ],
+            "recommendation_generator": [
+                "scale_out requires both cpu and memory breach, scale_up requires only cpu breach, scale_down only when no breach and request_rate_rps<20, otherwise none.",
+                "target_adjustment must be 0 only when action is none; otherwise use max(1, min(breach_count, max_scale_adjustment)).",
+            ],
+            "approval_resolver": [
+                "premium is always auto; standard is auto only for low/medium urgency; budget always requires manager review.",
+            ],
+            "compliance_checker": [
+                "Maintenance window blocks any non-none action. Change freeze blocks only when urgency is not critical.",
+            ],
+            "scaling_plan_builder": [
+                "compliance_block wins over all other plan branches; do not emit immediate/staged/deferred when compliance says blocked.",
+                "critical plus low deploy risk becomes immediate; deploy medium/high or urgency high becomes staged; otherwise deferred.",
+            ],
+            "execution_gate": [
+                "authorization_mode is compliance_blocked when conflict is true, auto when authorized and no approval is required, otherwise manual.",
+            ],
+            "decision_recorder": [
+                "If execution_gate.blocked is true, final action and strategy must both be blocked even when upstream recommendation/plan say otherwise.",
+                "Keep the rolling store keyed by case_id and append new cases in arrival order.",
+            ],
+        } | {component_id: [] for component_id in bundle.blueprint.components if component_id not in {
+            "metrics_normalizer", "threshold_detector", "urgency_classifier", "recommendation_generator", "approval_resolver", "compliance_checker", "scaling_plan_builder", "execution_gate", "decision_recorder"
+        }}
     if bundle.config.benchmark_id != "order_exception_resolution_v1":
         return {component_id: [] for component_id in bundle.blueprint.components}
     return {

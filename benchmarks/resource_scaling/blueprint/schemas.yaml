@@ -1,0 +1,401 @@
+schemas:
+- schema_id: RawScalingEvent
+  kind: object
+  description: Raw cloud metrics event for one service.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: received_at
+    type: string
+    required: true
+    description: Timestamp when the metrics event was received.
+  - name: service_id
+    type: string
+    required: true
+    description: Stable service identifier.
+  - name: service_tier
+    type: string
+    required: true
+    description: 'Service tier. Valid values: bronze, silver, gold, platinum.'
+  - name: cpu_utilization
+    type: number
+    required: true
+    description: CPU utilization as a 0-1 fraction.
+  - name: memory_utilization
+    type: number
+    required: true
+    description: Memory utilization as a 0-1 fraction.
+  - name: error_rate
+    type: number
+    required: true
+    description: Error-rate fraction.
+  - name: request_rate_rps
+    type: integer
+    required: true
+    description: Current request rate in requests per second.
+  - name: last_deploy_hours
+    type: integer
+    required: true
+    description: Hours since the last deploy.
+  - name: in_change_freeze
+    type: boolean
+    required: true
+    description: Whether the service is currently in a change-freeze window.
+  - name: in_maintenance_window
+    type: boolean
+    required: true
+    description: Whether the service is currently in a maintenance window.
+- schema_id: NormalizedMetrics
+  kind: object
+  description: Normalized metrics payload carried through the benchmark.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: received_at
+    type: string
+    required: true
+    description: Timestamp when the metrics event was received.
+  - name: service_id
+    type: string
+    required: true
+    description: Stable service identifier.
+  - name: service_tier
+    type: string
+    required: true
+    description: Normalized service tier.
+  - name: cpu_utilization
+    type: number
+    required: true
+    description: CPU utilization as a 0-1 fraction.
+  - name: memory_utilization
+    type: number
+    required: true
+    description: Memory utilization as a 0-1 fraction.
+  - name: error_rate
+    type: number
+    required: true
+    description: Error-rate fraction.
+  - name: request_rate_rps
+    type: integer
+    required: true
+    description: Current request rate in requests per second.
+  - name: last_deploy_hours
+    type: integer
+    required: true
+    description: Hours since the last deploy.
+  - name: in_change_freeze
+    type: boolean
+    required: true
+    description: Whether the service is currently in a change-freeze window.
+  - name: in_maintenance_window
+    type: boolean
+    required: true
+    description: Whether the service is currently in a maintenance window.
+- schema_id: BreachSummary
+  kind: object
+  description: Threshold-breach summary for one normalized metrics event.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: cpu_breach
+    type: boolean
+    required: true
+    description: True when cpu_utilization >= 0.80.
+  - name: memory_breach
+    type: boolean
+    required: true
+    description: True when memory_utilization >= 0.85.
+  - name: error_breach
+    type: boolean
+    required: true
+    description: True when error_rate >= 0.05.
+  - name: any_breach
+    type: boolean
+    required: true
+    description: True when any threshold breach is present.
+  - name: breach_count
+    type: integer
+    required: true
+    description: Count of true breach flags.
+- schema_id: UrgencyAssessment
+  kind: object
+  description: Urgency classification derived from the breach summary.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: urgency
+    type: string
+    required: true
+    description: 'Valid values: critical, high, medium, low.'
+  - name: urgency_source
+    type: string
+    required: true
+    description: 'Valid values: error_or_three_breaches, two_breaches, one_breach, no_breach.'
+- schema_id: TrendSignal
+  kind: object
+  description: Metric-trend signals derived from normalized metrics.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: cpu_trend
+    type: string
+    required: true
+    description: 'Valid values: spiking, increasing, stable.'
+  - name: memory_trend
+    type: string
+    required: true
+    description: 'Valid values: spiking, increasing, stable.'
+  - name: sustained_pressure
+    type: boolean
+    required: true
+    description: True when both cpu and memory trends are increasing or spiking.
+- schema_id: DeployRisk
+  kind: object
+  description: Deploy-risk assessment for one service.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: deploy_risk
+    type: string
+    required: true
+    description: 'Valid values: high, medium, low.'
+  - name: rollback_eligible
+    type: boolean
+    required: true
+    description: True when last_deploy_hours < 48.
+  - name: risk_factor
+    type: string
+    required: true
+    description: 'Valid values: fresh_deploy, recent_deploy, stable_deploy.'
+- schema_id: ServicePolicy
+  kind: object
+  description: Scaling policy derived from the service tier.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: scale_tier
+    type: string
+    required: true
+    description: 'Valid values: budget, standard, premium.'
+  - name: auto_scale_enabled
+    type: boolean
+    required: true
+    description: Whether the policy allows automatic scaling execution.
+  - name: max_scale_adjustment
+    type: integer
+    required: true
+    description: Maximum allowed adjustment count for this tier.
+  - name: min_healthy_instances
+    type: integer
+    required: true
+    description: Minimum healthy instances required during scaling.
+- schema_id: ScalingRecommendation
+  kind: object
+  description: Primary scaling recommendation for one event.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: action
+    type: string
+    required: true
+    description: 'Valid values: scale_out, scale_up, scale_down, none.'
+  - name: target_adjustment
+    type: integer
+    required: true
+    description: Requested adjustment size; 0 only when action is none.
+  - name: recommendation_basis
+    type: string
+    required: true
+    description: 'Valid values: dual_resource_breach, cpu_only_breach, low_traffic_scale_down, no_scaling_required.'
+- schema_id: ApprovalDecision
+  kind: object
+  description: Approval requirement for the scaling recommendation.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: requires_approval
+    type: boolean
+    required: true
+    description: Whether a human approval gate is required.
+  - name: approval_tier
+    type: string
+    required: true
+    description: 'Valid values: auto, manager, director.'
+  - name: budget_risk
+    type: string
+    required: true
+    description: 'Valid values: low, medium, high.'
+- schema_id: ComplianceCheck
+  kind: object
+  description: Compliance result for the scaling recommendation.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: conflict
+    type: boolean
+    required: true
+    description: Whether the recommendation conflicts with compliance policy.
+  - name: compliance_tier
+    type: string
+    required: true
+    description: 'Valid values: blocked, clear.'
+  - name: conflict_source
+    type: string
+    required: true
+    description: 'Valid values: maintenance_window, change_freeze, none.'
+- schema_id: ScalingPlan
+  kind: object
+  description: Execution strategy for the scaling recommendation.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: strategy
+    type: string
+    required: true
+    description: 'Valid values: blocked, immediate, staged, deferred.'
+  - name: cooldown_minutes
+    type: integer
+    required: true
+    description: Cooldown window in minutes.
+  - name: plan_basis
+    type: string
+    required: true
+    description: 'Valid values: compliance_block, critical_low_deploy_risk, deploy_risk_or_high_urgency, low_or_medium_urgency.'
+- schema_id: AlertPlan
+  kind: object
+  description: Notification plan for one scaling event.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: notify_oncall
+    type: boolean
+    required: true
+    description: Whether to notify oncall.
+  - name: create_incident
+    type: boolean
+    required: true
+    description: Whether to create an incident.
+  - name: alert_tier
+    type: string
+    required: true
+    description: 'Valid values: critical, warning, info.'
+  - name: notification_basis
+    type: string
+    required: true
+    description: 'Valid values: incident_required, high_urgency_notification, routine_observation.'
+- schema_id: ExecutionGate
+  kind: object
+  description: Authorization gate for executing the scaling plan.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: authorized
+    type: boolean
+    required: true
+    description: True when automatic execution is authorized.
+  - name: blocked
+    type: boolean
+    required: true
+    description: True when compliance blocks execution entirely.
+  - name: authorization_mode
+    type: string
+    required: true
+    description: 'Valid values: auto, manual, compliance_blocked.'
+- schema_id: ScalingDecisionEntry
+  kind: object
+  description: Final categorical scaling decision entry for one event.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: service_id
+    type: string
+    required: true
+    description: Stable service identifier.
+  - name: action
+    type: string
+    required: true
+    description: 'Valid values: blocked, scale_out, scale_up, scale_down, none.'
+  - name: urgency
+    type: string
+    required: true
+    description: 'Valid values: critical, high, medium, low.'
+  - name: strategy
+    type: string
+    required: true
+    description: 'Valid values: blocked, immediate, staged, deferred.'
+  - name: target_adjustment
+    type: integer
+    required: true
+    description: Requested adjustment size after final gating.
+  - name: approval_tier
+    type: string
+    required: true
+    description: 'Valid values: auto, manager, director.'
+  - name: authorization_mode
+    type: string
+    required: true
+    description: 'Valid values: auto, manual, compliance_blocked.'
+  - name: alert_tier
+    type: string
+    required: true
+    description: 'Valid values: critical, warning, info.'
+  - name: scale_tier
+    type: string
+    required: true
+    description: 'Valid values: budget, standard, premium.'
+  - name: blocked
+    type: boolean
+    required: true
+    description: Whether the final action is compliance-blocked.
+  - name: requires_approval
+    type: boolean
+    required: true
+    description: Whether human approval is required.
+  - name: min_healthy_instances
+    type: integer
+    required: true
+    description: Minimum healthy instances required during scaling.
+  - name: cooldown_minutes
+    type: integer
+    required: true
+    description: Cooldown window in minutes.
+- schema_id: ScalingDecisionStore
+  kind: object
+  description: Rolling store of scaling decision entries.
+  fields:
+  - name: generated_at
+    type: string
+    required: true
+    description: Timestamp of the latest processed event.
+  - name: decisions
+    type: list[ScalingDecisionEntry]
+    required: true
+    description: Ordered scaling decision entries.
