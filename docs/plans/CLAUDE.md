@@ -61,7 +61,10 @@ current executable lane.
 | 48 | [Empirical Smoke Gate Refresh II](48_empirical_smoke_gate_refresh_ii.md) | Critical | Complete | 47 |
 | 49 | [Empirical Attempt Observability And Harness Serialization](49_empirical_attempt_observability_and_harness_serialization.md) | Critical | Complete | - |
 | 50 | [Empirical Contract And Benchmark Fidelity Repair](50_empirical_contract_and_benchmark_fidelity_repair.md) | Critical | Complete | - |
-| 51 | [Empirical Smoke Gate Refresh III](51_empirical_smoke_gate_refresh_iii.md) | Critical | In Progress | 50 |
+| 51 | [Empirical Smoke Gate Refresh III](51_empirical_smoke_gate_refresh_iii.md) | Critical | Complete | 50 |
+| 52 | [Structured Empirical Harness Diffs](52_structured_empirical_harness_diffs.md) | Critical | Complete | 51 |
+| 53 | [Benchmark-Local Contract Hardening IV](53_benchmark_local_contract_hardening_iv.md) | Critical | Complete | 51 |
+| 54 | [Empirical Smoke Gate Refresh IV](54_empirical_smoke_gate_refresh_iv.md) | Critical | In Progress | 52, 53 |
 
 ## Status Key
 

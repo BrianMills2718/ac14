@@ -16,10 +16,12 @@ components:
     local_invariants:
       - parsed_case.case_id must equal raw_case.case_id
       - parsed_case.shortage_units must equal max(raw_case.quantity_requested - raw_case.available_quantity, 0)
+      - parsed_case.normalized_notes must equal raw_case.support_notes lowercased with at most one trailing sentence period removed
     failure_semantics:
       - fail loud if required raw case fields are absent
     implementation_constraints:
       - keep the parser deterministic in the first comparison gate
+      - omit manual_override_action and manual_override_reason when they are absent on the raw input
 
   - component_id: exception_classifier
     kind: transform
@@ -194,6 +196,7 @@ components:
       - fail loud on missing joined factors
     implementation_constraints:
       - keep the scorer deterministic in the first comparison gate
+      - keep override and compound priority branches distinct in the first comparison gate
 
   - component_id: resolution_assembler
     kind: join

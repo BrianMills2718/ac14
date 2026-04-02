@@ -14,6 +14,7 @@ from typing import Any, Literal, cast
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
+from llm_client.io_log import activate_feature_profile, experiment_run  # type: ignore[import-not-found]
 
 from ac14.acceptance import (
     ACCEPTANCE_PROMPT_PATH,
@@ -35,6 +36,7 @@ from ac14.generated_evidence import (
 )
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint, PacketBundle, Scenario
+from ac14.output_diff import collect_bounded_differences
 from ac14.recomposition import RecompositionReport
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
@@ -45,6 +47,12 @@ from ac14.structured_inputs import load_structured_input_records
 MONOLITHIC_PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "generate_monolithic_system.yaml"
 DEFAULT_TRIAL_COUNT = 5
 DEFAULT_MAX_ATTEMPTS = 3
+EMPIRICAL_FEATURE_PROFILE: dict[str, Any] = {
+    "name": "ac14_empirical_benchmark",
+    "features": {
+        "experiment_context": True,
+    },
+}
 
 TrialCondition = Literal["monolithic", "ac14"]
 DecisionVerdict = Literal["ac14_wins", "monolithic_wins", "inconclusive"]
@@ -628,59 +636,77 @@ def _run_condition_attempt(
     recomposition_report: RecompositionReport | None = None
 
     try:
-        if condition == "monolithic":
-            generated_package = emit_monolithic_package_with_llm(
-                bundle=bundle,
-                output_dir=output_dir / "generated",
-                model=model,
-                max_budget=max_budget,
-                trace_id=trace_prefix,
-                repair_guidance=_build_condition_repair_guidance(
+        with activate_feature_profile(EMPIRICAL_FEATURE_PROFILE), experiment_run(
+            dataset=bundle.config.benchmark_id,
+            model=model,
+            run_id=trace_prefix.replace("/", "__"),
+            condition_id=condition,
+            seed=trial_id,
+            replicate=attempt_id,
+            scenario_id=f"trial_{trial_id}",
+            phase="empirical_attempt",
+            feature_profile=EMPIRICAL_FEATURE_PROFILE,
+            project="ac14",
+            provenance={
+                "benchmark_dir": bundle.benchmark_dir,
+                "trial_id": trial_id,
+                "attempt_id": attempt_id,
+                "condition": condition,
+            },
+        ):
+            if condition == "monolithic":
+                generated_package = emit_monolithic_package_with_llm(
                     bundle=bundle,
-                    condition=condition,
+                    output_dir=output_dir / "generated",
+                    model=model,
+                    max_budget=max_budget,
+                    trace_id=trace_prefix,
+                    repair_guidance=_build_condition_repair_guidance(
+                        bundle=bundle,
+                        condition=condition,
+                        prior_guidance=repair_guidance,
+                    ),
+                )
+            else:
+                repair_guidance_by_component = _build_component_repair_guidance(
+                    bundle=bundle,
                     prior_guidance=repair_guidance,
-                ),
-            )
-        else:
-            repair_guidance_by_component = _build_component_repair_guidance(
-                bundle=bundle,
-                prior_guidance=repair_guidance,
-            )
-            generated_package = emit_generated_package(
+                )
+                generated_package = emit_generated_package(
+                    bundle.packet_bundle,
+                    output_dir / "generated",
+                    generator_kind="llm",
+                    llm_model=model,
+                    llm_max_budget=max_budget,
+                    trace_id_prefix=trace_prefix,
+                    repair_guidance_by_component=repair_guidance_by_component,
+                )
+            packet_report = run_generated_packet_tests(
                 bundle.packet_bundle,
-                output_dir / "generated",
-                generator_kind="llm",
+                generated_package,
                 llm_model=model,
+                trace_id=f"{trace_prefix}/packet_eval",
                 llm_max_budget=max_budget,
-                trace_id_prefix=trace_prefix,
-                repair_guidance_by_component=repair_guidance_by_component,
             )
-        packet_report = run_generated_packet_tests(
-            bundle.packet_bundle,
-            generated_package,
-            llm_model=model,
-            trace_id=f"{trace_prefix}/packet_eval",
-            llm_max_budget=max_budget,
-        )
-        packet_tests_passed = packet_report.passed
-        recomposition_report = run_generated_recomposition_proof(
-            Path(bundle.benchmark_dir) / bundle.config.blueprint_dir,
-            generated_package,
-            llm_model=model,
-            trace_id=f"{trace_prefix}/recomp_eval",
-            llm_max_budget=max_budget,
-        )
-        recomposition_passed = recomposition_report.passed
-        runtime_cases = _execute_runtime_cases(bundle=bundle, generated_package=generated_package)
-        runtime_outputs_passed = all(case.matched_expected for case in runtime_cases)
-        if runtime_cases:
-            semantic_review = _review_runtime_cases(
-                bundle=bundle,
-                runtime_cases=runtime_cases,
-                model=model,
-                max_budget=max_budget,
-                trace_id=f"{trace_prefix}/semantic_review",
+            packet_tests_passed = packet_report.passed
+            recomposition_report = run_generated_recomposition_proof(
+                Path(bundle.benchmark_dir) / bundle.config.blueprint_dir,
+                generated_package,
+                llm_model=model,
+                trace_id=f"{trace_prefix}/recomp_eval",
+                llm_max_budget=max_budget,
             )
+            recomposition_passed = recomposition_report.passed
+            runtime_cases = _execute_runtime_cases(bundle=bundle, generated_package=generated_package)
+            runtime_outputs_passed = all(case.matched_expected for case in runtime_cases)
+            if runtime_cases:
+                semantic_review = _review_runtime_cases(
+                    bundle=bundle,
+                    runtime_cases=runtime_cases,
+                    model=model,
+                    max_budget=max_budget,
+                    trace_id=f"{trace_prefix}/semantic_review",
+                )
     except Exception as exc:  # pragma: no cover - explicit failure capture
         generation_error = str(exc)
 
@@ -721,6 +747,8 @@ def _run_condition_attempt(
         recomposition_passed=recomposition_passed,
         runtime_cases=runtime_cases,
         semantic_review=semantic_review,
+        packet_report=packet_report,
+        recomposition_report=recomposition_report,
         dynamic_output_fields=bundle.config.dynamic_output_fields,
     )
     attempt_report = ConditionAttemptReport(
@@ -950,7 +978,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         "case_parser": [
             "Preserve manual_override_action and manual_override_reason when present on raw input, but do not synthesize them when absent.",
             "Compute shortage_units as max(quantity_requested - available_quantity, 0) and normalize support notes deterministically.",
-            "Normalize support notes by lowercasing only; preserve the existing punctuation and wording instead of appending, trimming, or rewriting punctuation.",
+            "Normalize support notes by lowercasing and stripping one trailing sentence period when present. Preserve the existing internal punctuation and wording; do not append new punctuation.",
         ],
         "exception_classifier": [
             "Classify shipping_delay when shipment_delay_hours >= 24 or shipment_status indicates a shipping problem; do not emit fallback labels outside the schema.",
@@ -960,6 +988,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         ],
         "inventory_risk_evaluator": [
             "Keep inventory_risk_band within the schema's categorical values and align high-risk outputs with the benchmark fixtures for large shortages or delayed replenishment.",
+            "For the ORX-100-style high-risk shortage case, use the benchmark-local rationale 'shortage is large enough to threaten the order promise' instead of a generic back-order explanation.",
         ],
         "shipping_risk_evaluator": [
             "Treat 24+ hour delays as material and 48+ hour or shipment_status == 'exception' as severe, with schema-valid risk-band outputs.",
@@ -980,6 +1009,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         ],
         "priority_scorer": [
             "Override and compound exceptions must score as critical. Shipping-delay cases should remain high. Use schema-valid categorical values only.",
+            "Do not merge override and compound logic into one branch. blocker_source='override' => priority_band='critical', score=96, reason='override and expedite lane require immediate action'. primary_exception_type='compound_exception' => priority_band='critical', score=95, reason='compound exception requires immediate coordinated escalation'.",
         ],
         "resolution_assembler": [
             "override_action is optional on resolution_factors. Use .get or membership checks before reading it.",
@@ -1273,6 +1303,8 @@ def _build_failure_summary(
     recomposition_passed: bool,
     runtime_cases: list[RuntimeCaseExecution],
     semantic_review: AcceptanceReviewResponse | None,
+    packet_report: PacketTestReport | None = None,
+    recomposition_report: RecompositionReport | None = None,
     dynamic_output_fields: list[str] | None = None,
 ) -> list[str]:
     """Summarize the previous attempt into bounded repair guidance."""
@@ -1283,8 +1315,10 @@ def _build_failure_summary(
         return summary
     if not packet_tests_passed:
         summary.append("packet-local tests failed in the previous attempt")
+        summary.extend(_summarize_packet_report(packet_report))
     if not recomposition_passed:
         summary.append("recomposition proof failed in the previous attempt")
+        summary.extend(_summarize_recomposition_report(recomposition_report))
     failing_runtime_cases = [case for case in runtime_cases if not case.matched_expected]
     for case in failing_runtime_cases:
         if case.error is not None:
@@ -1303,6 +1337,58 @@ def _build_failure_summary(
             or [f"semantic review verdict was {semantic_review.overall_verdict}"]
         )
     return summary or ["previous attempt failed without a more specific summary"]
+
+
+def _summarize_packet_report(packet_report: PacketTestReport | None, *, limit: int = 4) -> list[str]:
+    """Extract bounded component-local guidance from one packet-test report."""
+
+    if packet_report is None:
+        return []
+    lines: list[str] = []
+    for result in packet_report.results:
+        if result.passed:
+            continue
+        if result.mismatch_details:
+            lines.append(
+                f"packet fixture {result.fixture_id} on {result.component_id} mismatches: "
+                + "; ".join(result.mismatch_details[:3])
+            )
+        elif result.error:
+            lines.append(
+                f"packet fixture {result.fixture_id} on {result.component_id} failed: {result.error}"
+            )
+        if len(lines) >= limit:
+            break
+    if not lines and packet_report.harness_error:
+        lines.append(f"packet harness error: {packet_report.harness_error}")
+    return lines
+
+
+def _summarize_recomposition_report(
+    recomposition_report: RecompositionReport | None,
+    *,
+    limit: int = 4,
+) -> list[str]:
+    """Extract bounded scenario-local guidance from one recomposition report."""
+
+    if recomposition_report is None:
+        return []
+    lines: list[str] = []
+    for result in recomposition_report.results:
+        if result.passed:
+            continue
+        if result.mismatch_details and result.mismatch_component_id is not None:
+            lines.append(
+                f"recomposition scenario {result.scenario_id} on {result.mismatch_component_id} mismatches: "
+                + "; ".join(result.mismatch_details[:3])
+            )
+        elif result.error:
+            lines.append(f"recomposition scenario {result.scenario_id} failed: {result.error}")
+        if len(lines) >= limit:
+            break
+    if not lines and recomposition_report.harness_error:
+        lines.append(f"recomposition harness error: {recomposition_report.harness_error}")
+    return lines
 
 
 def _aggregate_condition(
@@ -1403,36 +1489,12 @@ def _collect_bounded_differences(
 ) -> list[str]:
     """Collect bounded path-level differences between expected and actual outputs."""
 
-    if limit <= 0:
-        return []
-    if isinstance(expected, dict) and isinstance(actual, dict):
-        differences: list[str] = []
-        for key in sorted(set(expected) | set(actual)):
-            if len(differences) >= limit:
-                break
-            path = f"{prefix}.{key}"
-            if key not in actual:
-                differences.append(f"{path} missing from actual output")
-                continue
-            if key not in expected:
-                differences.append(f"{path} unexpectedly present in actual output")
-                continue
-            differences.extend(
-                _collect_bounded_differences(
-                    expected=expected[key],
-                    actual=actual[key],
-                    prefix=path,
-                    limit=limit - len(differences),
-                ),
-            )
-        return differences
-    if isinstance(expected, list) and isinstance(actual, list):
-        if expected != actual:
-            return [f"{prefix} list mismatch"]
-        return []
-    if expected != actual:
-        return [f"{prefix} expected={expected!r} actual={actual!r}"]
-    return []
+    return collect_bounded_differences(
+        expected=expected,
+        actual=actual,
+        prefix=prefix,
+        limit=limit,
+    )
 
 
 def _observe_llm_cost(trace_prefix: str) -> CostObservation:

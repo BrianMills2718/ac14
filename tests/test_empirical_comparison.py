@@ -9,7 +9,9 @@ import pytest
 from llm_client import render_prompt  # type: ignore[import-not-found]
 
 from ac14.acceptance import AcceptanceReviewResponse
+from ac14.generated_evidence import PacketCaseResult, PacketTestReport
 from ac14.packet_tests import materialize_packet_test_cases
+from ac14.recomposition import RecompositionReport, RecompositionScenarioResult
 from ac14.empirical_comparison import (
     MONOLITHIC_PROMPT_PATH,
     AttemptFailureClassification,
@@ -404,7 +406,9 @@ def test_benchmark_repair_guidance_targets_shipping_only_orx101_and_case_parser_
     component_guidance = _build_component_repair_guidance(bundle=bundle, prior_guidance=[])
 
     assert any("ORX-101 is a shipping-only benchmark case" in line for line in guidance)
-    assert any("normalize support notes by lowercasing only" in line.lower() for line in component_guidance["case_parser"])
+    assert any("stripping one trailing sentence period" in line.lower() for line in component_guidance["case_parser"])
+    assert any("override and compound logic into one branch" in line for line in component_guidance["priority_scorer"])
+    assert any("threaten the order promise" in line for line in component_guidance["inventory_risk_evaluator"])
 
 
 def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:
@@ -432,6 +436,100 @@ def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_u
     assert "wrap the whole expression in parentheses" in system_message
     assert "never break after `and` / `or` without explicit continuation" in system_message
     assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
+    assert "ASCII-only Python source code" in system_message
+
+
+def test_failure_summary_includes_packet_and_recomposition_diff_details() -> None:
+    """Packet and recomposition reports should feed bounded diff details into repair guidance."""
+
+    summary = _build_failure_summary(
+        generation_error=None,
+        packet_tests_passed=False,
+        recomposition_passed=False,
+        runtime_cases=[],
+        semantic_review=None,
+        packet_report=PacketTestReport(
+            passed=False,
+            results=[
+                PacketCaseResult(
+                    component_id="case_parser",
+                    fixture_id="shipping_delay_case_parser",
+                    passed=False,
+                    error="categorical fields did not match expected outputs",
+                    mismatch_details=[
+                        "parsed_case.normalized_notes expected='expected' actual='actual'"
+                    ],
+                )
+            ],
+        ),
+        recomposition_report=RecompositionReport(
+            passed=False,
+            runnable_scenario_count=1,
+            skipped_scenarios=[],
+            results=[
+                RecompositionScenarioResult(
+                    scenario_id="shipping_delay_join",
+                    passed=False,
+                    error="component case_parser outputs did not match expected outputs",
+                    mismatch_component_id="case_parser",
+                    mismatch_details=[
+                        "parsed_case.normalized_notes expected='expected' actual='actual'"
+                    ],
+                )
+            ],
+        ),
+    )
+
+    assert any("packet fixture shipping_delay_case_parser on case_parser mismatches" in line for line in summary)
+    assert any("recomposition scenario shipping_delay_join on case_parser mismatches" in line for line in summary)
+
+
+def test_run_condition_attempt_activates_empirical_experiment_context(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Empirical attempts should run under llm_client experiment and feature-profile context."""
+
+    bundle = load_benchmark_bundle(BENCHMARK_DIR)
+    entered: list[str] = []
+
+    class _Context:
+        def __init__(self, label: str) -> None:
+            self.label = label
+
+        def __enter__(self) -> None:
+            entered.append(f"enter:{self.label}")
+            return None
+
+        def __exit__(
+            self,
+            exc_type: object | None,
+            exc: object | None,
+            tb: object | None,
+        ) -> None:
+            entered.append(f"exit:{self.label}")
+            return None
+
+    def _raise_generation_failure(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("synthetic generation failure")
+
+    monkeypatch.setattr("ac14.empirical_comparison.emit_generated_package", _raise_generation_failure)
+    monkeypatch.setattr("ac14.empirical_comparison._observe_llm_cost", lambda trace_prefix: CostObservation(status="no_rows"))
+    monkeypatch.setattr("ac14.empirical_comparison.activate_feature_profile", lambda profile: _Context("feature_profile"))
+    monkeypatch.setattr("ac14.empirical_comparison.experiment_run", lambda **kwargs: _Context("experiment_run"))
+
+    _run_condition_attempt(
+        bundle=bundle,
+        condition="ac14",
+        trial_id=1,
+        attempt_id=1,
+        output_dir=tmp_path / "attempt_1",
+        model="test-model",
+        max_budget=0.01,
+        repair_guidance=[],
+    )
+
+    assert entered == ["enter:feature_profile", "enter:experiment_run", "exit:experiment_run", "exit:feature_profile"]
 
 
 def test_benchmark_repair_guidance_excludes_dynamic_generated_at_from_diff() -> None:

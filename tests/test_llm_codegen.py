@@ -216,6 +216,7 @@ def test_component_prompt_forbids_preclass_generatedcomponent_annotations_and_un
     assert "wrap the whole expression in parentheses" in system_message
     assert "never break after `and` / `or` without explicit continuation" in system_message
     assert "do not annotate `build_component()` with `GeneratedComponent`" in system_message
+    assert "ASCII-only Python source code" in system_message
 
 
 def test_generate_component_module_with_llm_uses_blueprint_aware_fixture_env(

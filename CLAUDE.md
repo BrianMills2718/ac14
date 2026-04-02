@@ -129,15 +129,17 @@ For the active empirical-comparison lane, this rule is especially strict:
 - when the smoke artifact is stale or the control docs lag the latest run,
   update the docs before continuing so another agent can resume without chat
   history
-- after `empirical_smoke_gate_repair7`, the active empirical chain is now:
-  1. Plan #49 observability and harness-serialization repair
-  2. Plan #50 targeted contract and benchmark-fidelity repair
-  3. Plan #51 bounded smoke rerun
-  4. Plan #43 full trials only if the Plan #51 artifact says `ready_for_full_trials`
-  5. another narrower blocker-clearing plan immediately if Plan #51 stays `blocked_on_harness`
+- after `empirical_smoke_gate_repair8`, the active empirical chain is now:
+  1. Plan #52 structured packet/recomposition diff observability plus real `llm_client` experiment context
+  2. Plan #53 benchmark-local contract hardening for the repair8 blocker set
+  3. Plan #54 bounded smoke rerun into `empirical_smoke_gate_repair9`
+  4. Plan #43 full trials only if the Plan #54 artifact says `ready_for_full_trials`
+  5. another narrower blocker-clearing plan immediately if Plan #54 stays `blocked_on_harness`
 - maximize observability and testing protocol inside the empirical lane:
   - every empirical attempt must persist `packet_test_report.json` and `recomposition_report.json`
-  - do not accept generic packet/recomposition failure summaries when first-class harness artifacts can exist
+  - packet and recomposition failures must include bounded field-level mismatch details whenever the harness can derive them
+  - empirical retry guidance must consume those structured diffs rather than collapsing them into generic failure labels
+  - empirical attempts must run inside a real `llm_client` experiment context and feature profile instead of relying on warning-only guardrails
   - if a semantic-eval prompt path crashes on fixture data types such as `datetime`, fix the harness before tuning more benchmark logic
 
 Treat waiting for further permission before the active plan is complete as a

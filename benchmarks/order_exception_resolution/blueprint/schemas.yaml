@@ -131,7 +131,7 @@ schemas:
       - name: normalized_notes
         type: string
         required: true
-        description: Lowercased support-note summary for deterministic heuristics.
+        description: Lowercased support-note summary for deterministic heuristics, with one trailing sentence period removed when present and all other wording preserved.
       - name: open_case_count
         type: integer
         required: true

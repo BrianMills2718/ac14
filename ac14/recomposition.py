@@ -11,6 +11,7 @@ from typing import Any, cast
 from pydantic import BaseModel, Field
 
 from ac14.models import FrozenBlueprint
+from ac14.output_diff import summarize_mapping_mismatch
 from ac14.runtime import RuntimeComponent, run_blueprint_once
 
 
@@ -55,6 +56,14 @@ class RecompositionScenarioResult(BaseModel):
     scenario_id: str = Field(description="Scenario identifier.")
     passed: bool = Field(description="Whether the scenario passed.")
     error: str | None = Field(default=None, description="Failure explanation when the scenario fails.")
+    mismatch_component_id: str | None = Field(
+        default=None,
+        description="Component whose outputs first mismatched expected outputs, when applicable.",
+    )
+    mismatch_details: list[str] = Field(
+        default_factory=list,
+        description="Bounded field-level mismatch details when a scenario fails on output comparison.",
+    )
 
 
 class RecompositionScenarioExecution(BaseModel):
@@ -197,11 +206,17 @@ def run_recomposition_proof(
             scenario.expected_outputs_by_component,
         )
         if mismatch is not None:
+            component_id, mismatch_details = mismatch
             results.append(
                 RecompositionScenarioResult(
                     scenario_id=execution.scenario_id,
                     passed=False,
-                    error=mismatch,
+                    error=(
+                        f"component {component_id} outputs did not match expected outputs: "
+                        + "; ".join(mismatch_details)
+                    ),
+                    mismatch_component_id=component_id,
+                    mismatch_details=mismatch_details,
                 ),
             )
             continue
@@ -413,7 +428,7 @@ async def _aevaluate_recomposition_scenario_semantically(
         model,
         messages,
         response_model=_RecompSemanticEval,
-        task="ac14_evaluate_packet_case_semantics",
+        task="ac14_evaluate_recomposition_semantics",
         trace_id=trace_id,
         max_budget=max_budget,
     )
@@ -423,8 +438,8 @@ async def _aevaluate_recomposition_scenario_semantically(
 def _find_first_mismatch(
     actual_outputs: dict[str, dict[str, dict[str, Any]]],
     expected_outputs_by_component: dict[str, dict[str, dict[str, Any]]],
-) -> str | None:
-    """Return a compact mismatch description or ``None`` when outputs match.
+) -> tuple[str, list[str]] | None:
+    """Return the first structured component mismatch or ``None`` when outputs match.
 
     Free-form text fields (reason strings, action summaries, timestamps) are
     stripped from both sides before comparison so that only categorical routing
@@ -441,8 +456,11 @@ def _find_first_mismatch(
         stripped_expected = _strip_recomp_free_form_fields(expected_outputs)
         if stripped_actual != stripped_expected:
             return (
-                f"component {component_id} outputs did not match expected outputs: "
-                f"expected {stripped_expected!r}, got {stripped_actual!r}"
+                component_id,
+                summarize_mapping_mismatch(
+                    expected=stripped_expected,
+                    actual=stripped_actual,
+                ),
             )
     return None
 

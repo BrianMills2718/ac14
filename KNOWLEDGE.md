@@ -258,6 +258,27 @@ same explicit directory-input story through front-half acceptance, while the
 next honest gap is bounded summaries for alternate candidates and supporting
 context rather than only their file paths.
 
+### 2026-04-02 — codex — best-practice
+Empirical harness observability must stay structured all the way into retry
+guidance. AC14 now persists bounded field-level mismatch details inside packet
+and recomposition reports and threads those details into empirical failure
+summaries instead of collapsing them into generic labels like `packet-local
+tests failed`.
+
+### 2026-04-02 — codex — best-practice
+The empirical thesis gate should use real `llm_client` experiment context, not
+warning-only observability. AC14 now wraps each empirical attempt in
+`experiment_run(...)` plus `activate_feature_profile(...)` with benchmark,
+trial, attempt, and condition provenance.
+
+### 2026-04-02 — codex — schema-gotcha
+The order-exception benchmark was still underspecified in narrow ways even
+after the larger harness repairs. The benchmark now states the
+`case_parser.normalized_notes` trailing-period rule, keeps absent override
+fields omitted, distinguishes override-vs-compound priority branches, and the
+shared generation prompts now require ASCII-only Python source so bounded smoke
+attempts do not burn retries on non-Python identifiers.
+
 ### 2026-04-01 — codex — best-practice
 Once directory discovery grows bounded summaries, the next honest proof is
 propagation rather than more raw discovery features. The summaries now exist at

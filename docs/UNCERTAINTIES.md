@@ -116,7 +116,8 @@ thesis-relevant rather than merely the next clean propagation story.
 **Status:** Investigating
 **Context:** The benchmark bundle, paired-trial runner, and decision artifact
 now exist, multiple bounded live smoke runs have been executed, and the latest
-explicit smoke baseline remains `.ac14_out/empirical_smoke_gate_repair7/`.
+verified smoke baseline remains `.ac14_out/empirical_smoke_gate_repair8/` while
+Plan #54 prepares the fresh `repair9` rerun.
 **Why it matters:** A five-trial gate is not worth running yet if one smoke
 trial cannot produce a single hard-harness success in either condition.
 
@@ -160,10 +161,11 @@ mistakes.
 
 ### U-056: The remaining benchmark-local fidelity misses are still narrow and unresolved.
 **Status:** Investigating
-**Context:** In `.ac14_out/empirical_smoke_gate_repair7/`, the monolithic lane
-moved past the old `shipping_risk['shipment_status']` bug, but the benchmark
-still fails on ORX-101 shipping-only routing/classification fidelity. The AC14
-lane also still drifts on `case_parser.normalized_notes` exactness.
+**Context:** In `.ac14_out/empirical_smoke_gate_repair8/`, the AC14 lane moved
+past the old broad packet/recomposition opacity and showed a narrower blocker
+set: `case_parser.normalized_notes` exactness plus benchmark-local rationale and
+priority-branch fidelity. Plans #52 and #53 hardened observability and contract
+text, but the fresh repair9 smoke artifact does not exist yet.
 **Why it matters:** The next repair lane should tighten these explicit
 benchmark-local rules rather than spending the five-trial budget on conditions
 that are still failing for avoidable contract or fidelity reasons.
@@ -191,6 +193,40 @@ case.
 **Resolution:** Packet and recomposition semantic-evaluation helpers now
 normalize prompt inputs into JSON-safe values before templating.
 **Date resolved:** 2026-04-02
+
+### U-059: Packet and recomposition failures were still too lossy for retry guidance.
+**Status:** Resolved
+**Context:** Repair8 still required reading packet and recomposition artifacts by
+hand because empirical failure summaries compressed benchmark-local mismatches
+into generic labels such as `packet-local tests failed`.
+**Why it matters:** The retry loop cannot spend its bounded attempts well if the
+repair guidance discards field-level mismatch evidence the harness already has.
+**Resolution:** AC14 now persists bounded mismatch details in packet and
+recomposition results, threads those details into empirical failure summaries,
+and uses the same bounded diff helper across those surfaces.
+**Date resolved:** 2026-04-02
+
+### U-060: Empirical comparison calls were missing explicit experiment context.
+**Status:** Resolved
+**Context:** The empirical lane emitted `llm_client` warnings that evaluation
+and benchmark calls lacked experiment context and feature-profile activation.
+**Why it matters:** Without real experiment context, the observability story for
+the thesis gate is weaker and harder to analyze honestly.
+**Resolution:** Empirical attempts now execute inside a real
+`llm_client.io_log.experiment_run(...)` plus `activate_feature_profile(...)`
+context using benchmark/trial/attempt provenance.
+**Date resolved:** 2026-04-02
+
+### U-061: Repair8 still loses bounded attempts to benchmark-local codegen and contract fidelity.
+**Status:** Investigating
+**Context:** The repair8 smoke artifact remained `blocked_on_harness` even when
+AC14 attempt 2 passed runtime outputs and semantic review. The remaining
+blockers were syntax-invalid code in one attempt plus narrower benchmark-local
+exactness around `case_parser.normalized_notes`, inventory-risk rationale, and
+override-vs-compound priority handling.
+**Why it matters:** Plan #54 should only unblock full trials if the repair9
+smoke artifact proves those benchmark-local failures are no longer dominating
+the bounded attempts.
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred

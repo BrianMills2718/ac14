@@ -18,6 +18,7 @@ from ac14.generated_codegen import (
 )
 from ac14.loader import load_blueprint_dir
 from ac14.models import PacketBundle
+from ac14.output_diff import summarize_mapping_mismatch
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
 from ac14.recomposition import RecompositionReport, run_recomposition_proof
@@ -163,6 +164,10 @@ class PacketCaseResult(BaseModel):
     fixture_id: str = Field(description="Fixture identifier.")
     passed: bool = Field(description="Whether the case passed.")
     error: str | None = Field(default=None, description="Failure message when the case fails.")
+    mismatch_details: list[str] = Field(
+        default_factory=list,
+        description="Bounded field-level categorical mismatch details when available.",
+    )
     semantic_eval: PacketCaseSemanticEval | None = Field(
         default=None,
         description="LLM semantic evaluation of free-form output fields when LLM evaluation was requested.",
@@ -223,6 +228,7 @@ def run_generated_packet_tests(
         for case in cases:
             component = builders[component_id]()
             error: str | None
+            mismatch_details: list[str] = []
             semantic_eval: PacketCaseSemanticEval | None = None
             try:
                 outputs = component.execute(case.inputs)
@@ -237,7 +243,14 @@ def run_generated_packet_tests(
 
                     if not categorical_passed:
                         passed = False
-                        error = "categorical fields did not match expected outputs"
+                        mismatch_details = summarize_mapping_mismatch(
+                            expected=stripped_expected,
+                            actual=stripped_actual,
+                        )
+                        error = (
+                            "categorical fields did not match expected outputs: "
+                            + "; ".join(mismatch_details)
+                        )
                     elif llm_model is not None and _has_llm_eval_fields(case.expected_outputs):
                         # Phase 2: LLM semantic eval for free-form fields
                         semantic_eval = asyncio.run(
@@ -270,6 +283,7 @@ def run_generated_packet_tests(
                     fixture_id=case.fixture_id,
                     passed=passed,
                     error=error,
+                    mismatch_details=mismatch_details,
                     semantic_eval=semantic_eval,
                 ),
             )

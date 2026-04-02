@@ -124,11 +124,12 @@ AC14 is still incomplete on:
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
 The next strategic gate is
-[Plan #42: Empirical Benchmark Fidelity Repair](/home/brian/projects/ac14/docs/plans/42_empirical_benchmark_fidelity_repair.md),
-which follows completed smoke stabilization and first harness-repair work. The
-goal now is to make the next bounded smoke rerun benchmark-fidelity-focused
-enough to justify spending the full five-trial budget in
-[Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md).
+[Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md),
+which reruns one bounded smoke trial after the Plan #52 observability hardening
+and Plan #53 benchmark-local contract repairs. The immediate goal is to decide
+honestly whether the full five-trial budget in
+[Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+is justified.
 
 ## Quickstart
 

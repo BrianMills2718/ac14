@@ -30,6 +30,7 @@ messages:
       - keep owned state on `self` when the component owns a state store
       - define `GeneratedComponent` before `build_component()`, or avoid forward references that break import-time evaluation
       - keep Python syntax minimal and valid: no incomplete branches, no placeholder ellipses, and no missing parentheses
+      - emit ASCII-only Python source code; never invent non-ASCII identifiers, attribute names, or method names
       - if a boolean condition spans multiple lines, wrap the whole expression in parentheses or keep it on one line; never break after `and` / `or` without explicit continuation
       - never leave an `if` / `elif` / `else` branch with comments only; every branch must contain real executable Python statements
       - for small deterministic transforms, prefer a short direct decision tree over exploratory prose comments or speculative fallback logic

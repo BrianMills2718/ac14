@@ -39,10 +39,10 @@ different direction.
 The main current issue is no longer architectural incoherence. It is the lack
 of a completed empirical comparison verdict against a fair monolithic baseline,
 plus the need to state clearly that the current gate is a bounded back-half
-comparison rather than the full end-to-end thesis test. Plan #49 fixed the
-harness-observability gap, Plan #50 landed the latest targeted repair slice,
-and the next honest step is now a fresh bounded smoke verdict rather than more
-speculative repair work.
+comparison rather than the full end-to-end thesis test. Plans #52 and #53
+landed the latest observability and benchmark-contract repair slice, and the
+next honest step is now the fresh Plan #54 bounded smoke verdict rather than
+more speculative repair work.
 
 ## What Is Implemented
 
@@ -145,7 +145,7 @@ It is not yet strong at:
 4. completing the current back-half empirical gate cleanly
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
-6. closing the remaining Plan #50 blocker set: generator-contract stability plus benchmark-local fidelity
+6. closing the remaining Plan #54 blocker set: syntax-stable generation plus benchmark-local contract fidelity on the repair9 smoke lane
 
 ### Semantic Validation
 
@@ -194,11 +194,12 @@ Still missing:
 
 1. directory schema-divergence propagation through the front-half chain
 2. a completed monolithic-versus-decomposition comparison verdict
-3. broad automatic dependency installation and post-install verification as a normal lane
-4. real shared-tool execution inside blueprinted components
-5. first-class runtime tool nodes or retrieval nodes in the blueprint model
-6. broad automatic NL-to-blueprint derivation from messy real inputs
-7. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
+3. a verified repair9 smoke artifact proving whether the five-trial budget is justified
+4. broad automatic dependency installation and post-install verification as a normal lane
+5. real shared-tool execution inside blueprinted components
+6. first-class runtime tool nodes or retrieval nodes in the blueprint model
+7. broad automatic NL-to-blueprint derivation from messy real inputs
+8. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
 
 ## Current Risks
 
@@ -254,7 +255,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. proof-slice infrastructure: 99%
-2. proof-slice thesis validation: 70-75%
+2. proof-slice thesis validation: 70-75% pending the repair9 smoke verdict and the full paired-trial gate
 3. long-term general coding agent vision: 55-60%
 
 The remaining work is not mainly “more code.” It is:

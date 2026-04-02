@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #51: Empirical Smoke Gate Refresh III](/home/brian/projects/ac14/docs/plans/51_empirical_smoke_gate_refresh_iii.md)
+- [Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md)
 
 The empirical gate is frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -19,11 +19,12 @@ The parent experiment lane remains:
 
 ## Active 24-Hour Chain
 
-1. run one bounded smoke paired trial via Plan #51
-2. read the resulting smoke and paired-trial artifacts directly
-3. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
-4. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
-5. only after full trials exist should Plan #44 interpret the verdict
+1. finish full verification on the post-52/post-53 code/doc lane
+2. run one bounded smoke paired trial via Plan #54 into `.ac14_out/empirical_smoke_gate_repair9/`
+3. read the smoke and paired-trial artifacts directly
+4. unblock Plan #43 only if the fresh smoke artifact says `ready_for_full_trials`
+5. if the smoke artifact still says `blocked_on_harness`, freeze the next narrower blocker-clearing plan immediately instead of spending the five-trial budget
+6. only after full trials exist should Plan #44 interpret the verdict
 
 ## Progress Update
 
@@ -37,41 +38,46 @@ Completed before the current lane:
 6. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 7. an explicit empirical comparison gate instead of an endless propagation-plan loop
 8. a validated benchmark asset bundle, paired-trial runner, and persisted decision artifact
-9. bounded smoke gates through repair7, which proved the lane is still `blocked_on_harness`
-10. Plan #49 observability hardening so every empirical attempt now persists packet and recomposition reports directly and semantic-eval prompt inputs are JSON-safe for datetime-bearing fixtures
-11. Plan #50 contract and benchmark-fidelity hardening so the prompts and benchmark-local guidance now cover the remaining repair7 blocker set
+9. bounded smoke gates through repair8, which proved the lane is still `blocked_on_harness`
+10. Plan #52 observability hardening so packet/recomposition failures now persist bounded structured diffs and empirical attempts run inside a real `llm_client` experiment context
+11. Plan #53 benchmark-local contract hardening so the parser normalization, override omission, rationale, and priority-branch rules are stated explicitly
 
 Current empirical-gate reality:
 
-1. the benchmark bundle exists and validates
-2. the paired-trial runner and decision artifact exist
-3. bounded live smoke trials have been run through repair7
-4. the latest explicit smoke verdict remains `blocked_on_harness`
-5. the harness is now substantially more observable: packet and recomposition failures no longer require manual reruns for diagnosis
-6. the latest targeted repair slice is now fully verified, so the next honest move is to spend one more bounded smoke run rather than extend the repair lane speculatively
+1. repair8 stayed `blocked_on_harness`
+2. there is no infrastructure-only explanation right now
+3. AC14 attempt 2 in repair8 passed runtime outputs and final semantic review, but packet/recomposition still failed on benchmark-local component contract details
+4. the retry loop now has better structural evidence and better benchmark-local contract text, so the next honest move is a fresh bounded smoke rerun rather than another speculative repair lane
 
 ## Tactical Phase Summary
 
-Detailed references, write scope, tests, and acceptance criteria live in the numbered plans.
+### Phase 1: verify the post-52/post-53 lane
 
-### Phase 1: bounded smoke rerun
+- run full `pytest`, `mypy`, and `ruff`
+- do not start repair9 until the current lane is green
+
+Success criteria:
+
+- the repo is green on full verification before the fresh smoke rerun
+
+### Phase 2: bounded smoke rerun
 
 - rerun one bounded smoke paired trial under the repaired lane
 - keep the smoke output reviewable artifact-by-artifact
 
 Success criteria:
 
-- AC14 has one fresh smoke verdict tied to one persisted smoke run
+- a fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair9/`
 - the verdict says either `ready_for_full_trials`, `blocked_on_harness`, or `blocked_on_infrastructure`
 
-### Phase 2: gate decision and lock
+### Phase 3: gate decision and lock
 
-- update the active control docs to reflect the smoke verdict
+- update the active control docs to reflect the fresh smoke verdict
 - either unblock Plan #43 honestly or keep it blocked with a narrower explicit reason
 
 Success criteria:
 
-- the active control surface matches the smoke outcome
+- the active control surface matches the fresh smoke outcome
 - the next numbered plan is explicit and no longer ambiguous
 
 ## Known Uncertainties
@@ -82,7 +88,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the first experiment may still end inconclusive even after the smoke gate clears
+1. repair9 may still block on harness even after the new observability and contract hardening
 2. the monolithic condition must stay bounded without silently receiving a looser repair budget
 3. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
-4. the next smoke artifact must show whether the latest contract/fidelity repair materially changes the gate outcome
+4. if repair9 still blocks, the next plan should be cut from the fresh structured diffs, not from generic packet/recomposition labels
