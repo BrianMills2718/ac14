@@ -12,11 +12,10 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #58: Shipping-Only Priority And Correlator Repair](/home/brian/projects/ac14/docs/plans/58_shipping_only_priority_and_correlator_repair.md)
+- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
 
 The immediate follow-on repair chain is:
 
-- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
 - [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
 
 The experiment contract is frozen in:
@@ -56,7 +55,7 @@ The previously active propagation lane remains blocked:
 - [x] Plan #57: rerun one bounded smoke gate on the post-55/post-56 lane
   - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/` and the next gate is locked honestly
 
-- [ ] Plan #58: repair the shared shipping-only priority and correlator rule exposed by repair10
+- [x] Plan #58: repair the shared shipping-only priority and correlator rule exposed by repair10
   - Success criteria: benchmark contract and empirical guidance say directly that shipping-only standard-customer cases may route to logistics, keep `escalation_required=false`, and still remain `priority_band='high'`
 
 - [ ] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap

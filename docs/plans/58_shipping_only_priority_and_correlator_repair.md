@@ -1,6 +1,6 @@
 # Plan #58: Shipping-Only Priority And Correlator Repair
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 57
@@ -63,7 +63,13 @@
 
 ## Acceptance Criteria
 
-- [ ] The benchmark contract states that shipping-only standard cases remain `high` priority even with `escalation_required=false`.
-- [ ] Empirical repair guidance names that rule directly for both correlator and priority scoring.
-- [ ] Targeted tests prove the new contract/guidance text exists.
-- [ ] Full `pytest`, `mypy`, and `ruff` pass.
+- [x] The benchmark contract states that shipping-only standard cases remain `high` priority even with `escalation_required=false`.
+- [x] Empirical repair guidance names that rule directly for both correlator and priority scoring.
+- [x] Targeted tests prove the new contract/guidance text exists.
+- [x] Full `pytest`, `mypy`, and `ruff` pass.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+This lane made the remaining shipping-only rule explicit across every benchmark-facing surface that matters. The requirements now say directly that shipping-only standard-customer cases stay `priority_band='high'` even when `escalation_required=false`. The blueprint contract now repeats that rule in `priority_scorer` constraints and the `ResolutionPriority`/`ResolutionDigestEntry` schema descriptions. The empirical repair guidance now names the same rule at both the whole-condition and component-local levels, so both AC14 and monolithic generation stop coupling shipping-delay priority to escalation.

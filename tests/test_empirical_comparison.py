@@ -364,6 +364,7 @@ def test_benchmark_repair_guidance_targets_override_and_shipping_rules() -> None
     assert any("override_action" in line for line in guidance)
     assert any("Shipping risk is already high at the 24-hour materiality threshold" in line for line in guidance)
     assert any("escalation_required=false" in line for line in guidance)
+    assert any("priority_band='high' even when escalation_required=false" in line for line in guidance)
     assert any("partial-fulfillment/back-order family" in line for line in guidance)
 
 
@@ -418,6 +419,7 @@ def test_benchmark_repair_guidance_targets_shipping_only_orx101_and_case_parser_
     assert any("ORX-102-style moderate shortage" in line for line in component_guidance["inventory_risk_evaluator"])
     assert any("Do not emit a medium band" in line for line in component_guidance["shipping_risk_evaluator"])
     assert any("escalation_required=False" in line for line in component_guidance["factor_correlator"])
+    assert any("remain high priority even when escalation_required=False" in line for line in component_guidance["priority_scorer"])
 
 
 def test_benchmark_schema_descriptions_state_shipping_and_escalation_contracts() -> None:
@@ -428,16 +430,19 @@ def test_benchmark_schema_descriptions_state_shipping_and_escalation_contracts()
     shipping_schema = bundle.blueprint.schemas["ShippingRisk"]
     inventory_schema = bundle.blueprint.schemas["InventoryRisk"]
     factors_schema = bundle.blueprint.schemas["ResolutionFactors"]
+    priority_schema = bundle.blueprint.schemas["ResolutionPriority"]
 
     shipping_band = next(field for field in shipping_schema.fields if field.name == "shipment_risk_band")
     shipping_reason = next(field for field in shipping_schema.fields if field.name == "reason")
     inventory_reason = next(field for field in inventory_schema.fields if field.name == "reason")
     escalation_required = next(field for field in factors_schema.fields if field.name == "escalation_required")
+    priority_band = next(field for field in priority_schema.fields if field.name == "priority_band")
 
     assert "24+ hour delays as `high`" in shipping_band.description
     assert "manual override may be present elsewhere" in shipping_reason.description
     assert "partial" in inventory_reason.description.lower()
     assert "shipping-only standard-customer case" in escalation_required.description
+    assert "remain `high` even when `escalation_required=false`" in priority_band.description
 
 
 def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:

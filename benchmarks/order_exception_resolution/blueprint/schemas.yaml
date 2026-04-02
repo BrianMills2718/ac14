@@ -331,7 +331,10 @@ schemas:
       - name: priority_band
         type: string
         required: true
-        description: Priority bucket for the case.
+        description: >
+          Priority bucket for the case. Shipping-only standard-customer cases
+          remain `high` even when `escalation_required=false`; do not gate
+          shipping-delay priority on the escalation flag.
       - name: score
         type: integer
         required: true
@@ -372,8 +375,10 @@ schemas:
         required: true
         description: >
           Priority bucket. Valid values: critical (compound exceptions or
-          override on platinum), high (shipping delay on any tier, or severe
-          inventory shortage), medium (moderate risk), standard (low risk).
+          override on platinum), high (shipping delay on any tier, including
+          shipping-only standard-customer cases even when
+          `escalation_required=false`, or severe inventory shortage), medium
+          (moderate risk), standard (low risk).
       - name: recommended_team
         type: string
         required: true

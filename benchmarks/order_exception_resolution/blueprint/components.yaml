@@ -203,6 +203,7 @@ components:
     implementation_constraints:
       - keep the scorer deterministic in the first comparison gate
       - keep override and compound priority branches distinct in the first comparison gate
+      - shipping-only standard-customer cases remain high priority even when escalation_required=false; do not gate shipping-delay priority on the escalation flag
 
   - component_id: resolution_assembler
     kind: join

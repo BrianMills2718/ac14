@@ -990,6 +990,7 @@ def _benchmark_repair_guidance(
         "Treat shipping delay as a material shipping_delay exception at 24+ hours; severe shipping delay is 48+ hours or shipment_status == 'exception'.",
         "Shipping risk is already high at the 24-hour materiality threshold; 48+ hours or shipment_status == 'exception' is the severe subset of that same high-risk bucket, not a separate medium/high split.",
         "ORX-101 is a shipping-only benchmark case: no shortage plus a 24-47 hour shipping delay still means shipping_delay, blocker_source='shipping', recommended_team='logistics', priority_band='high', and escalation_required=false for the standard-customer path.",
+        "Shipping-only high priority is independent of escalation_required. Keep ORX-101-style cases at priority_band='high' even when escalation_required=false.",
         "When both inventory shortage and severe shipping delay are present, classify compound_exception and route to blocker_source='compound', recommended_team='exception_desk', priority_band='critical'.",
         "Manual override is optional. Preserve it explicitly when present, but never assume override_action exists for every case.",
         "Manual override can change blocker_source downstream, but it does not replace the low-risk shipping rationale when shipment delay remains below threshold.",
@@ -1050,6 +1051,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
         ],
         "priority_scorer": [
             "Override and compound exceptions must score as critical. Shipping-delay cases should remain high. Use schema-valid categorical values only.",
+            "Shipping-only standard-customer cases remain high priority even when escalation_required=False. Do not gate shipping-delay priority on the escalation flag.",
             "Do not merge override and compound logic into one branch. blocker_source='override' => priority_band='critical', score=96, reason='override and expedite lane require immediate action'. primary_exception_type='compound_exception' => priority_band='critical', score=95, reason='compound exception requires immediate coordinated escalation'.",
         ],
         "resolution_assembler": [
