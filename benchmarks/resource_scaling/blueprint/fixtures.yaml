@@ -420,7 +420,6 @@ fixtures:
     scaling_decision_store:
       generated_at: '2026-04-02T08:05:00Z'
       decisions:
-      - *id013
       - *id026
 - fixture_id: standard_blocked_scale_out_metrics_normalizer
   scenario_id: standard_blocked_scale_out
@@ -632,8 +631,6 @@ fixtures:
     scaling_decision_store:
       generated_at: '2026-04-02T08:10:00Z'
       decisions:
-      - *id013
-      - *id026
       - *id039
 - fixture_id: standard_no_action_metrics_normalizer
   scenario_id: standard_no_action
@@ -845,7 +842,4 @@ fixtures:
     scaling_decision_store:
       generated_at: '2026-04-02T08:15:00Z'
       decisions:
-      - *id013
-      - *id026
-      - *id039
       - *id052

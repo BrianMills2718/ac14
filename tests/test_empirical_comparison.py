@@ -66,8 +66,28 @@ def test_resource_scaling_benchmark_loads() -> None:
     assert len(bundle.packet_bundle.packets) == 13
     assert [record["case_id"] for record in bundle.runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
     assert [case.case_id for case in bundle.expected_runtime_cases] == ["RSC-100", "RSC-101", "RSC-102", "RSC-103"]
-    assert bundle.config.dynamic_output_fields == []
+    assert bundle.config.dynamic_output_fields == ["scaling_decision_store.generated_at", "scaling_decision_store.decisions"]
     assert bundle.config.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
+
+
+def test_resource_scaling_decision_recorder_packet_fixtures_are_single_case() -> None:
+    """State-owning packet fixtures should only expect the current case entry."""
+
+    bundle = load_benchmark_bundle(RESOURCE_SCALING_BENCHMARK_DIR)
+    cases = {
+        case.fixture_id: case
+        for case in materialize_packet_test_cases(bundle.packet_bundle)["decision_recorder"]
+    }
+
+    expected = {
+        "budget_manual_scale_up_decision_recorder": "RSC-101",
+        "standard_blocked_scale_out_decision_recorder": "RSC-102",
+        "standard_no_action_decision_recorder": "RSC-103",
+    }
+    for fixture_id, expected_case_id in expected.items():
+        decisions = cases[fixture_id].expected_outputs["scaling_decision_store"]["decisions"]
+        assert len(decisions) == 1
+        assert decisions[0]["case_id"] == expected_case_id
 
 
 def test_run_paired_trial_persists_monolithic_and_ac14_artifacts(

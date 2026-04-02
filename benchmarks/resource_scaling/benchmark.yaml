@@ -17,7 +17,9 @@ benchmark:
   final_output_ports:
   - scaling_decision_entry
   - scaling_decision_store
-  dynamic_output_fields: []
+  dynamic_output_fields:
+  - scaling_decision_store.generated_at
+  - scaling_decision_store.decisions
   system_requirements:
   - Threshold breaches are deterministic at cpu>=0.80, memory>=0.85, error_rate>=0.05.
   - scale_out when both cpu and memory breach; scale_up when only cpu breaches; scale_down
