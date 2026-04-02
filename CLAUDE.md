@@ -129,12 +129,12 @@ For the active empirical-comparison lane, this rule is especially strict:
 - when the smoke artifact is stale or the control docs lag the latest run,
   update the docs before continuing so another agent can resume without chat
   history
-- after `empirical_smoke_gate_repair10`, the active empirical chain is now:
-  1. Plan #58 shared shipping-only priority and correlator repair
-  2. Plan #59 generation-stability and pre-emit validation repair
-  3. Plan #60 bounded smoke rerun into `empirical_smoke_gate_repair11`
-  4. Plan #43 full trials only if the Plan #60 artifact says `ready_for_full_trials`
-  5. another narrower blocker-clearing plan immediately if Plan #60 stays `blocked_on_harness`
+- after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
+- the active empirical chain is now:
+  1. Plan #44 verdict interpretation and doc lock
+  2. Plan #62 inconclusive-comparison diagnosis
+  3. freeze the next empirical direction before resuming unrelated blocked lanes
+  4. keep notebook remediation explicit as Plan #61 instead of leaving the notebook surface misleading
 - maximize observability and testing protocol inside the empirical lane:
   - every empirical attempt must persist `packet_test_report.json` and `recomposition_report.json`
   - packet and recomposition failures must include bounded field-level mismatch details whenever the harness can derive them

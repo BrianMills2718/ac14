@@ -47,7 +47,7 @@ AC14 does not yet have:
 
 1. broad proof breadth
 2. strong messy-input blueprint derivation
-3. a completed empirical verdict against a fair monolithic baseline
+3. a decisive empirical verdict against a fair monolithic baseline
 4. first-class tool/runtime nodes in the blueprint model
 5. a completed long-term front half
 
@@ -86,6 +86,21 @@ accumulate:
 
 Does AC14's decomposition discipline materially beat a fair monolithic baseline
 on a system complex enough for context management to matter?
+
+Current result:
+
+The first benchmark gate completed under `.ac14_out/full_trials_gate_1/` and
+returned `inconclusive`.
+
+- AC14: `2/5` successful trials
+- monolithic: `2/5` successful trials
+- secondary metrics did not separate them cleanly
+- monolithic was faster and cheaper on this benchmark
+
+That means the project now has a real baseline artifact, but not yet a
+benchmark result that validates the stronger thesis claim. Plan #62 concluded
+that the next empirical contract should make final runtime correctness primary
+and treat packet-level failures as explicit secondary evidence.
 
 Focus areas:
 
@@ -193,13 +208,18 @@ Failure signs:
 
 In order:
 
-1. keep the notebook/story artifacts synchronized with implementation
-2. design and run the empirical comparison gate before more propagation-proof micro-lanes
-3. stabilize the empirical smoke gate before spending the full five-trial budget
-4. repair benchmark-fidelity blockers until a bounded smoke rerun either succeeds or narrows the blocker again
-5. right now that means clearing the concrete post-repair7 blockers: generator-contract stability plus benchmark-local fidelity on ORX-101 and `case_parser.normalized_notes`
-6. strengthen the front half where it materially improves that comparison
-7. broaden proof breadth before expanding scope claims
+1. (done — Plan #62) diagnose why the first benchmark ended `inconclusive`:
+   packet-test LLM eval noise dominated the signal; runtime outputs passed in
+   virtually all attempts for both conditions; next gate needs both a harder
+   benchmark and a runtime-primary success criterion
+2. (Plan #61) remediate the notebook surface so the empirical-comparison
+   notebook is a real artifact-backed journey notebook
+3. (Plan #63) second empirical gate with two simultaneous improvements: a
+   harder benchmark (12–15 components, stronger context pressure, categorical-
+   dominant expected outputs) and a runtime-primary success criterion (packet
+   tests logged as diagnostic artifacts only)
+4. interpret the second gate verdict before broadening scope claims
+5. strengthen the front half where it materially improves the next comparison
 
 ## Working Rule
 

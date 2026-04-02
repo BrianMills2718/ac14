@@ -1,129 +1,106 @@
 journeys:
-  - journey_id: ac14_execution_status_journey
-    title: AC14 Execution Status And Alignment Journey
-    notebook: notebooks/01_ac14_execution_status_journey.ipynb
-    status: partial
-    purpose: >
-      Keep the AC14 implementation, notebook story, and anti-drift hierarchy
-      synchronized after the implementation moved beyond the original bootstrap
-      notebook in ac12.
-    related_docs:
-      - docs/AC14_ANTI_DRIFT_DOCTRINE.md
-      - docs/AC14_IMPLEMENTATION_STATUS.md
-      - docs/UNCERTAINTIES.md
-      - docs/AC14_NEXT_24_HOURS.md
-      - docs/TODO.md
-      - docs/plans/CLAUDE.md
-      - docs/plans/38_empirical_comparison_gate.md
-      - docs/plans/39_monolithic_vs_ac14_comparison_execution.md
-      - CLAUDE.md
-    related_code:
-      - ac14/blueprint_planning.py
-      - ac14/draft_authoring.py
-      - ac14/dependency_planning.py
-      - ac14/discovery.py
-      - ac14/retrieval.py
-    related_tests:
-      - tests/test_blueprint_planning.py
-      - tests/test_draft_authoring.py
-      - tests/test_dependency_planning.py
-      - tests/test_discovery.py
-      - tests/test_retrieval.py
-    related_evidence: []
-    phases:
-      - phase_id: phase_01_thesis_alignment
-        title: Thesis Alignment Check
-        status: proven
-        execution_mode: fixture
-        input_artifact: anti-drift doctrine + current implementation
-        output_artifact: explicit statement of what is aligned and what is not
-        acceptance_criteria:
-          - The notebook distinguishes vision, proof slice, implementation, and heuristics.
-          - The notebook states whether current work is still on-thesis.
-      - phase_id: phase_02_implemented_surface
-        title: Implemented Surface
-        status: proven
-        execution_mode: fixture
-        input_artifact: current ac14 code and tests
-        output_artifact: blunt summary of implemented capabilities
-        acceptance_criteria:
-          - The notebook states what is implemented in the front half and back half.
-          - The notebook identifies the strongest completed surfaces.
-      - phase_id: phase_03_gaps_and_risks
-        title: Gaps And Risks
-        status: proven
-        execution_mode: fixture
-        input_artifact: implementation status and control docs
-        output_artifact: explicit missing capabilities and failure risks
-        acceptance_criteria:
-          - The notebook names the main risks without euphemism.
-          - The notebook distinguishes partial implementation from missing implementation.
-      - phase_id: phase_04_next_gates
-        title: Next Gates
-        status: partial
-        execution_mode: live
-        input_artifact: current implementation + active plan + uncertainty tracker
-        output_artifact: explicit next decision gates plus governance-surface check
-        acceptance_criteria:
-          - The notebook proves the active plan and uncertainty tracker exist.
-          - The notebook states what should happen before more broad implementation.
-          - The notebook ties next lanes back to the decomposition thesis.
-  - journey_id: ac14_empirical_comparison_gate
-    title: AC14 Empirical Comparison Gate
-    notebook: notebooks/02_ac14_empirical_comparison_gate.ipynb
-    status: partial
-    purpose: >
-      Define the first explicit monolithic-versus-decomposition comparison gate
-      so AC14 can test its thesis before defaulting to more propagation-proof
-      micro-lanes.
-    related_docs:
-      - docs/AC14_ANTI_DRIFT_DOCTRINE.md
-      - docs/AC14_ROADMAP.md
-      - docs/AC14_IMPLEMENTATION_STATUS.md
-      - docs/UNCERTAINTIES.md
-      - docs/TODO.md
-      - docs/AC14_NEXT_24_HOURS.md
-      - docs/plans/CLAUDE.md
-      - docs/plans/38_empirical_comparison_gate.md
-      - docs/plans/39_monolithic_vs_ac14_comparison_execution.md
-      - CLAUDE.md
-    related_code: []
-    related_tests: []
-    related_evidence: []
-    phases:
-      - phase_id: phase_01_target_system
-        title: Target System Definition
-        status: partial
-        execution_mode: planning
-        input_artifact: thesis + current proof-slice limits
-        output_artifact: target-system contract for the first comparison
-        acceptance_criteria:
-          - The target system is clearly more demanding than the shipped examples.
-          - The target system remains reviewable and bounded for a first experiment.
-      - phase_id: phase_02_comparison_protocol
-        title: Comparison Protocol
-        status: partial
-        execution_mode: planning
-        input_artifact: target-system contract + active uncertainties
-        output_artifact: explicit monolithic and AC14 conditions
-        acceptance_criteria:
-          - The monolithic baseline is fair.
-          - The AC14 condition uses the same underlying model family when practical.
-      - phase_id: phase_03_scoring
-        title: Metrics And Decision Rule
-        status: partial
-        execution_mode: planning
-        input_artifact: protocol + project thesis
-        output_artifact: primary outcome, supporting metrics, and decision rule
-        acceptance_criteria:
-          - The experiment has one explicit primary outcome.
-          - The result can falsify AC14's stronger thesis claim.
-      - phase_id: phase_04_execution_readiness
-        title: Execution Readiness
-        status: partial
-        execution_mode: planning
-        input_artifact: target system + protocol + scoring
-        output_artifact: explicit go/no-go judgment for running the experiment
-        acceptance_criteria:
-          - The next implementation plan can execute the experiment without redefining the question.
-          - Blocked follow-on micro-lanes remain clearly subordinate to the gate.
+- journey_id: ac14_execution_status_journey
+  title: AC14 Governance Status Surface
+  notebook: notebooks/01_ac14_execution_status_journey.ipynb
+  status: partial
+  purpose: Governance-only notebook that exposes the active AC14 control surface.
+    This is not the canonical end-to-end journey notebook.
+  related_docs:
+  - docs/AC14_ANTI_DRIFT_DOCTRINE.md
+  - docs/AC14_IMPLEMENTATION_STATUS.md
+  - docs/UNCERTAINTIES.md
+  - docs/AC14_NEXT_24_HOURS.md
+  - docs/TODO.md
+  - docs/plans/CLAUDE.md
+  - docs/plans/38_empirical_comparison_gate.md
+  - docs/plans/39_monolithic_vs_ac14_comparison_execution.md
+  - CLAUDE.md
+  related_code:
+  - ac14/blueprint_planning.py
+  - ac14/draft_authoring.py
+  - ac14/dependency_planning.py
+  - ac14/discovery.py
+  - ac14/retrieval.py
+  related_tests:
+  - tests/test_blueprint_planning.py
+  - tests/test_draft_authoring.py
+  - tests/test_dependency_planning.py
+  - tests/test_discovery.py
+  - tests/test_retrieval.py
+  related_evidence:
+  - .ac14_out/full_trials_gate_1/experiment_decision.json
+  phases:
+  - phase_id: phase_01_governance_summary
+    title: Governance Summary
+    status: proven
+    execution_mode: live
+    input_artifact: TODO + NEXT_24_HOURS + plan index + experiment decision artifact
+    output_artifact: compact governance summary
+    acceptance_criteria:
+    - The notebook proves the active plan and follow-on plan are explicit.
+    - The notebook states the latest empirical verdict without inventing new claims.
+- journey_id: ac14_empirical_comparison_gate
+  title: AC14 Empirical Comparison Evidence Journey
+  notebook: notebooks/02_ac14_empirical_comparison_gate.ipynb
+  status: partial
+  purpose: Artifact-backed empirical comparison journey notebook that loads the real
+    five-trial decision artifact, paired-trial reports, and active governance docs.
+  related_docs:
+  - docs/plans/38_empirical_comparison_gate.md
+  - docs/plans/43_full_trial_gate.md
+  - docs/plans/44_verdict_interpretation_and_next_horizon.md
+  - docs/plans/62_inconclusive_comparison_diagnosis.md
+  - docs/plans/63_runtime_first_comparison_contract.md
+  - docs/TODO.md
+  - docs/AC14_NEXT_24_HOURS.md
+  - docs/AC14_ROADMAP.md
+  - docs/AC14_IMPLEMENTATION_STATUS.md
+  related_code:
+  - ac14/empirical_comparison.py
+  related_tests:
+  - tests/test_empirical_comparison.py
+  related_evidence:
+  - .ac14_out/full_trials_gate_1/experiment_decision.json
+  - .ac14_out/full_trials_gate_1/trial_1/paired_trial_report.json
+  - .ac14_out/full_trials_gate_1/trial_2/paired_trial_report.json
+  - .ac14_out/full_trials_gate_1/trial_3/paired_trial_report.json
+  - .ac14_out/full_trials_gate_1/trial_4/paired_trial_report.json
+  - .ac14_out/full_trials_gate_1/trial_5/paired_trial_report.json
+  phases:
+  - phase_id: phase_01_contract_and_verdict
+    title: Comparison Contract And Verdict
+    status: proven
+    execution_mode: live
+    input_artifact: frozen comparison plans + experiment_decision.json
+    output_artifact: reviewable experiment summary
+    acceptance_criteria:
+    - The decision artifact exists and the verdict is explicit.
+    - The experiment summary reflects the real persisted artifact.
+  - phase_id: phase_02_trial_artifact_load
+    title: Per-Trial Artifact Load
+    status: proven
+    execution_mode: live
+    input_artifact: experiment decision artifact + paired trial reports
+    output_artifact: compact per-trial summary rows
+    acceptance_criteria:
+    - Every paired trial report path resolves.
+    - The notebook exposes pass/fail state for both conditions per trial.
+  - phase_id: phase_03_failure_diagnosis
+    title: Failure-Pattern Diagnosis
+    status: proven
+    execution_mode: live
+    input_artifact: attempt reports
+    output_artifact: bounded failure-pattern summary
+    acceptance_criteria:
+    - The notebook distinguishes shared and condition-specific failure patterns.
+    - The diagnosis is derived from persisted attempt artifacts rather than static
+      narration.
+  - phase_id: phase_04_governance_lock
+    title: Governance Lock
+    status: proven
+    execution_mode: live
+    input_artifact: TODO + NEXT_24_HOURS + verdict artifact
+    output_artifact: governance check for current and next plans
+    acceptance_criteria:
+    - The notebook proves the active docs point to the current post-verdict lanes.
+    - The notebook does not leave the next empirical direction implicit.

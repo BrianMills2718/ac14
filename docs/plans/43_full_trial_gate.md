@@ -1,6 +1,6 @@
 # Plan #43: Full Trial Gate
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** None
@@ -10,7 +10,7 @@
 
 ## Gap
 
-**Current:** Plan #60 cleared the smoke gate with `ready_for_full_trials`. The project has
+**Current:** Plan #60 cleared the smoke gate with `ready_for_full_trials`. The project had
 never yet run a full five-trial paired experiment.
 
 **Target:** Run five paired monolithic-vs-AC14 trials on the frozen benchmark,
@@ -26,7 +26,7 @@ empirical measurement.
 
 ### Q1: What if the latest smoke rerun returns `blocked_on_harness`?
 **Status:** Resolved
-**Decision:** Full trials require a `ready_for_full_trials` smoke verdict. Plan #60 now satisfied that prerequisite, so this plan is unblocked.
+**Decision:** Full trials require a `ready_for_full_trials` smoke verdict. Plan #60 satisfied that prerequisite.
 
 ### Q2: Should the five trials run sequentially or in parallel?
 **Status:** Resolved
@@ -36,14 +36,15 @@ parallelism needed for five trials.
 ### Q3: What if a trial hits infrastructure/provider failures mid-run?
 **Status:** Resolved
 **Decision:** Persist the failure classification and count the trial as failed
-for that condition. Do not retry with a new trial ID — infrastructure failures
+for that condition. Do not retry with a new trial ID. Infrastructure failures
 are evidence too.
 
 ---
 
 ## Files Affected
 
-- `.ac14_out/full_trials_gate_1/` (create via CLI)
+- `.ac14_out/full_trials_gate_1/` (created via CLI)
+- `docs/plans/43_full_trial_gate.md` (modify)
 - `docs/plans/CLAUDE.md` (modify)
 - `docs/TODO.md` (modify)
 - `docs/AC14_NEXT_24_HOURS.md` (modify)
@@ -72,15 +73,40 @@ No new unit tests. The full trials are the acceptance criterion.
 
 ## Acceptance Criteria
 
-- [ ] Five paired trials complete and persist reviewable per-trial artifacts.
-- [ ] One experiment-decision artifact exists with a verdict of
+- [x] Five paired trials completed and persisted reviewable per-trial artifacts.
+- [x] One experiment-decision artifact exists with a verdict of
   `ac14_wins`, `monolithic_wins`, or `inconclusive`.
-- [ ] The verdict is based on the Plan #38 decision rule without modification.
-- [ ] The active control docs reflect the verdict.
+- [x] The verdict is based on the Plan #38 decision rule without modification.
+- [x] The active control docs reflect the verdict.
+
+---
+
+## Implementation Summary (2026-04-02)
+
+The full five-trial gate completed under `.ac14_out/full_trials_gate_1/` and
+produced `experiment_decision.json` with verdict `inconclusive`.
+
+Observed result:
+
+- `ac14`: 2/5 successful trials
+- `monolithic`: 2/5 successful trials
+- both conditions averaged `1.6` repair loops
+- both conditions averaged semantic score `2.0`
+- `monolithic` was faster and cheaper on this benchmark
+
+The decision artifact rationale is explicit:
+
+- `The conditions tied on success and the secondary metrics did not separate them cleanly.`
+
+This completes the first honest monolithic-vs-AC14 benchmark gate, but it does
+not validate the stronger AC14 thesis. The next honest step is diagnosis and a
+sharper next comparison contract, not another local benchmark repair loop.
 
 ---
 
 ## Notes
 
-This plan does not reopen the decision rule. The rule was frozen in Plan #38.
-Whatever the verdict says, it says.
+This plan did what it needed to do: it produced a real empirical result. The
+important outcome is not that AC14 “won” or “lost”; it is that the project now
+has a bounded, reviewable baseline result instead of relying only on internal
+proof machinery.

@@ -1,9 +1,9 @@
 # Plan #61: Executable Journey Notebook Remediation
 
-**Status:** Planned
+**Status:** Complete
 **Type:** documentation + planning
 **Priority:** High
-**Blocked By:** 44
+**Blocked By:** None
 **Blocks:** None
 
 ---
@@ -92,21 +92,37 @@ freeze the migration map for the remaining journey notebooks.
 ## Required Tests
 
 - notebook JSON parses for every modified notebook
-- `python ~/projects/project-meta/scripts/meta/check_notebook_registry.py --journey-id ac14_empirical_comparison_gate`
+- notebook code cells execute top-to-bottom for every modified notebook
+- local `notebook_registry.yaml` parses cleanly
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] The empirical comparison notebook is artifact-backed and runnable
+- [x] The empirical comparison notebook is artifact-backed and runnable
   top-to-bottom in planning/proof terms instead of relying on static dict
   summaries.
-- [ ] The notebook registry describes notebook roles truthfully.
-- [ ] The execution-status notebook is either demoted clearly or rewritten so it
+- [x] The notebook registry describes notebook roles truthfully.
+- [x] The execution-status notebook is either demoted clearly or rewritten so it
   is not mistaken for the canonical journey notebook.
-- [ ] AC14 docs describe the notebook surface without ambiguity.
+- [x] AC14 docs describe the notebook surface without ambiguity.
 
 ---
+
+## Implementation Summary (2026-04-02)
+
+What changed:
+
+- `02_ac14_empirical_comparison_gate.ipynb` is now an artifact-backed notebook that loads the real decision artifact, paired trial reports, failure-pattern diagnostics, and active governance docs
+- `01_ac14_execution_status_journey.ipynb` is now explicitly a governance-only status surface rather than a fake canonical journey notebook
+- `notebook_registry.yaml` now describes those roles truthfully
+- README and the active control docs now stop implying that the status notebook is the canonical journey surface
+
+Verification:
+
+- both notebook JSON files parse cleanly
+- both notebooks' code cells execute top-to-bottom
+- the local `notebook_registry.yaml` parses cleanly
 
 ## Notes
 

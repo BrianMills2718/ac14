@@ -47,14 +47,14 @@ current executable lane.
 | 34 | [Directory Context Summaries](34_directory_context_summaries.md) | High | Complete | 33 |
 | 35 | [Directory Summary Front-Half Proof](35_directory_summary_front_half_proof.md) | High | Complete | 34 |
 | 36 | [Directory Schema Divergence Concerns](36_directory_schema_divergence_concerns.md) | High | Complete | 35 |
-| 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | Blocked | 39 |
+| 37 | [Directory Divergence Front-Half Proof](37_directory_divergence_front_half_proof.md) | High | Blocked | 63 |
 | 38 | [Empirical Comparison Gate](38_empirical_comparison_gate.md) | Critical | Complete | - |
-| 39 | [Monolithic Vs AC14 Comparison Execution](39_monolithic_vs_ac14_comparison_execution.md) | Critical | Blocked | 48 |
+| 39 | [Monolithic Vs AC14 Comparison Execution](39_monolithic_vs_ac14_comparison_execution.md) | Critical | Complete | - |
 | 40 | [Empirical Smoke Stabilization](40_empirical_smoke_stabilization.md) | Critical | Complete | - |
 | 41 | [Empirical Harness Repair](41_empirical_harness_repair.md) | Critical | Complete | 40 |
 | 42 | [Empirical Benchmark Fidelity Repair](42_empirical_benchmark_fidelity_repair.md) | Critical | Complete | - |
-| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | In Progress | - |
-| 44 | [Verdict Interpretation and Next Horizon](44_verdict_interpretation_and_next_horizon.md) | Critical | Blocked | 43 |
+| 43 | [Full Trial Gate](43_full_trial_gate.md) | Critical | Complete | - |
+| 44 | [Verdict Interpretation and Next Horizon](44_verdict_interpretation_and_next_horizon.md) | Critical | Complete | - |
 | 45 | [Schema-Aware Empirical Repair](45_schema_aware_empirical_repair.md) | Critical | Complete | - |
 | 46 | [Empirical Smoke Gate Refresh](46_empirical_smoke_gate_refresh.md) | Critical | Complete | 45 |
 | 47 | [Syntax-Stable Empirical Benchmark Repair](47_syntax_stable_empirical_benchmark_repair.md) | Critical | Complete | - |
@@ -71,7 +71,9 @@ current executable lane.
 | 58 | [Shipping-Only Priority And Correlator Repair](58_shipping_only_priority_and_correlator_repair.md) | Critical | Complete | 57 |
 | 59 | [Generation Stability And Pre-Emit Validation Repair](59_generation_stability_and_pre_emit_validation_repair.md) | Critical | Complete | 57 |
 | 60 | [Empirical Smoke Gate Refresh VI](60_empirical_smoke_gate_refresh_vi.md) | Critical | Complete | 58, 59 |
-| 61 | [Executable Journey Notebook Remediation](61_executable_journey_notebook_remediation.md) | High | Planned | 44 |
+| 61 | [Executable Journey Notebook Remediation](61_executable_journey_notebook_remediation.md) | High | Complete | - |
+| 62 | [Inconclusive Comparison Diagnosis](62_inconclusive_comparison_diagnosis.md) | Critical | Complete | 63 |
+| 63 | [Runtime-First Comparison Contract](63_runtime_first_comparison_contract.md) | Critical | In Progress | - |
 
 ## Status Key
 

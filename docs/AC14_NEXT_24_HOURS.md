@@ -9,24 +9,27 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
 
 The immediate follow-on lane is:
 
-- [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
+- the implementation lane that executes the runtime-first comparison contract after it is frozen
 
-The empirical gate is frozen in
+The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
-The parent experiment lane remains:
+The completed execution, interpretation, and notebook-remediation lanes are:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
+- [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+- [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
+- [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
+- [Plan #62: Inconclusive Comparison Diagnosis](/home/brian/projects/ac14/docs/plans/62_inconclusive_comparison_diagnosis.md)
 
 ## Active 24-Hour Chain
 
-1. run five paired trials into `.ac14_out/full_trials_gate_1/` via Plan #43
-2. read the persisted `experiment_decision.json` artifact directly
-3. interpret the verdict through Plan #44 before resuming adjacent lanes
-4. only after verdict interpretation should broader propagation or generality lanes resume
+1. freeze the runtime-first empirical comparison contract so final output correctness becomes the primary success gate
+2. define the exact execution lane for rerunning the benchmark under that new contract
+3. keep blocked propagation lanes blocked until the runtime-first contract exists and the rerun lane is explicit
 
 ## Progress Update
 
@@ -40,45 +43,41 @@ Completed before the current lane:
 6. blueprint-aware fixture-backed LLM codegen so repeated component IDs no longer collide across blueprints
 7. an explicit empirical comparison gate instead of an endless propagation-plan loop
 8. a validated benchmark asset bundle, paired-trial runner, and persisted decision artifact
-9. bounded smoke gates through repair8, which proved the lane is still `blocked_on_harness`
-10. Plan #52 observability hardening so packet/recomposition failures now persist bounded structured diffs and empirical attempts run inside a real `llm_client` experiment context
-11. Plan #53 benchmark-local contract hardening so the parser normalization, override omission, rationale, and priority-branch rules are stated explicitly
-12. Plan #54 repair9 smoke gate, which proved the lane is still `blocked_on_harness` but narrowed the remaining blocker set further
-13. Plan #55 shared benchmark-semantic repair for shipping-delay, correlator, and compound-inventory behavior
-14. Plan #56 monolithic failed-source persistence plus prompt hardening for shipping-only classifier stability
-15. Plan #57 repair10 smoke gate, which proved the lane is still `blocked_on_harness` without an infrastructure-only explanation
-16. Plan #58 shipping-only benchmark repair, which made the remaining ORX-101 priority rule explicit across requirements, schemas, component constraints, and repair guidance
-17. Plan #59 generation-stability and pre-emit validation repair, which moved the remaining monolithic invalid-module path into failed-source persistence and hardened the `resolution_assembler` contract around real repair10 failures
-18. Plan #60 repair11 smoke gate, which cleared with `ready_for_full_trials`, `hard_harness_success = true`, and `infrastructure_failure_detected = false`
+9. the full five-trial empirical gate under `.ac14_out/full_trials_gate_1/`
+10. a first real empirical verdict: `inconclusive`
+11. a diagnosis lane that froze the right lesson: packet-level failures were masking the final-output signal
+12. notebook remediation that turned the empirical notebook into an artifact-backed journey surface and demoted the status notebook to governance-only
 
-Current empirical-gate reality:
+Current empirical reality:
 
-1. AC14 passed the full smoke harness on attempt 1, including packet tests, recomposition, runtime outputs, and final semantic review
-2. the monolithic condition still failed all three bounded smoke attempts for reviewable reasons: optional-override packet mismatches, negative-case factor correlation, and one persisted syntax-invalid `factor_correlator` module
-3. there is still no infrastructure-only explanation right now
-4. the next honest move is Plan #43, not another micro-repair lane
+1. AC14 succeeded on `2/5` trials
+2. monolithic succeeded on `2/5` trials
+3. both conditions averaged `1.6` repair loops and semantic score `2.0`
+4. monolithic was faster and cheaper on this benchmark
+5. packet-level failures dominated the first verdict even when final runtime outputs often matched expected outputs
 
 ## Tactical Phase Summary
 
-### Phase 1: full trial execution
+### Phase 1: runtime-first contract freeze
 
-- run the full five-trial comparison into `.ac14_out/full_trials_gate_1/`
-- keep every trial artifact reviewable
-
-Success criteria:
-
-- five paired-trial directories exist
-- `experiment_decision.json` exists and follows the Plan #38 decision rule
-
-### Phase 2: verdict interpretation and lock
-
-- read `experiment_decision.json` directly
-- interpret it via Plan #44 before broadening any adjacent lane
+- redefine trial success around final runtime output correctness
+- keep packet and recomposition reports as explicit secondary diagnostic evidence
+- specify how semantic review applies to free-form fields in final outputs
 
 Success criteria:
 
-- roadmap, implementation-status doc, TODO, and next-24-hours docs all reflect the verdict exactly
-- the next horizon is explicit and no longer ambiguous
+- the runtime-first success criterion is explicit and reviewable
+- the new contract states clearly how packet-level evidence remains diagnostic rather than primary
+
+### Phase 2: rerun-lane definition
+
+- turn the runtime-first contract into one explicit next execution lane
+- keep the comparison fair across monolithic and AC14 conditions
+
+Success criteria:
+
+- the next rerun lane is explicit enough that another agent can execute it without chat history
+- the active docs no longer leave the next empirical rerun implicit
 
 ## Known Uncertainties
 
@@ -88,7 +87,7 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. the monolithic condition must stay bounded without silently receiving a looser repair budget during the five-trial run
-2. the current comparison gate is back-half only and should not be mistaken for full end-to-end thesis validation
-3. the five-trial result may still be `inconclusive` even after a strong smoke result
-4. if the full five-trial gate regresses into repeated harness-local failures, the next plan should be cut from those fresh artifacts rather than assumed in advance
+1. the first benchmark tied and may still be too benchmark-local to stress decomposition advantage clearly
+2. provider `503` demand spikes appeared during the full run and may blur secondary time/cost interpretation
+3. the runtime-first contract may materially change the verdict because packet-level failures dominated the first result
+4. blocked propagation lanes should stay blocked until the next empirical rerun contract is frozen

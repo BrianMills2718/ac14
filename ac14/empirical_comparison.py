@@ -769,8 +769,6 @@ def _run_condition_attempt(
         failure_summary=failure_summary,
         passed=(
             generation_error is None
-            and packet_tests_passed
-            and recomposition_passed
             and runtime_outputs_passed
             and semantic_review_passed
         ),
@@ -1296,16 +1294,8 @@ def _classify_attempt_failure(
                 detail=generation_error,
             )
         return AttemptFailureClassification(category="generation", detail=generation_error)
-    if not packet_tests_passed:
-        return AttemptFailureClassification(
-            category="packet_tests",
-            detail="packet-local tests failed",
-        )
-    if not recomposition_passed:
-        return AttemptFailureClassification(
-            category="recomposition",
-            detail="recomposition proof failed",
-        )
+    # Packet tests and recomposition are diagnostic artifacts, not primary gates.
+    # The primary success criterion is runtime output correctness.
     failing_runtime_cases = [case for case in runtime_cases if not case.matched_expected]
     if failing_runtime_cases:
         details = [

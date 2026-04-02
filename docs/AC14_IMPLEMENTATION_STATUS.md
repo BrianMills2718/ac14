@@ -36,14 +36,17 @@ The current implementation is still centered on:
 AC14 is not yet the full long-term general coding agent, but it is not off in a
 different direction.
 
-The main current issue is no longer architectural incoherence. It is the lack
-of a completed empirical comparison verdict against a fair monolithic baseline,
-plus the need to state clearly that the current gate is a bounded back-half
-comparison rather than the full end-to-end thesis test. Plans #52 and #53
-landed the observability and benchmark-contract repair slice, Plan #57 proved
-that repair10 is still `blocked_on_harness`, and the next honest step is now
-a narrow shipping-only semantic-repair lane plus one generation-stability and
-observability lane before another bounded smoke verdict.
+The main current issue is no longer the absence of a baseline comparison. AC14
+now has a completed five-trial empirical gate against a fair monolithic
+baseline, and the result is `inconclusive`. Plan #62 diagnosed the cause:
+(1) packet-test LLM eval noise dominated the verdict signal; (2) runtime
+outputs passed in virtually all attempts for both conditions, meaning the
+benchmark did not stress decomposition enough. The next empirical gate (Plan
+#63) fixes both simultaneously: a harder benchmark (12–15 components, stronger
+context pressure, categorical-dominant expected outputs) and a runtime-primary
+success criterion (packet tests as logged diagnostic artifacts only). The first
+benchmark remains one honest data point; the second gate is designed to produce
+a cleaner measurement.
 
 ## What Is Implemented
 
@@ -143,10 +146,10 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. completing the current back-half empirical gate cleanly
+4. diagnosing why the first back-half empirical gate ended in a tie
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
-6. closing the remaining post-repair10 blocker set: one shared shipping-only semantic mismatch plus one generation-stability/failed-source observability gap
+6. freezing a sharper next empirical comparison direction instead of drifting back into benchmark-local micro-repairs
 
 ### Semantic Validation
 
@@ -194,13 +197,13 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a completed monolithic-versus-decomposition comparison verdict
-3. a verified repair11 smoke artifact proving whether the five-trial budget is justified
+2. a decisive monolithic-versus-decomposition comparison verdict
+3. a stronger second empirical gate or benchmark that separates the conditions more clearly than the first one
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model
 7. broad automatic NL-to-blueprint derivation from messy real inputs
-8. strong notebook-driven execution parity inside the AC14 repo itself until this resynchronization
+8. strong notebook-driven execution parity inside the AC14 repo itself until notebook remediation lands
 
 ## Current Risks
 
@@ -224,14 +227,14 @@ AC14 has strong artifact discipline, but still limited breadth.
 That means the system may look rigorous while still being overfit to a narrow
 set of workflow patterns.
 
-### 3. No Empirical Baseline Gate Yet
+### 3. The First Empirical Gate Is Real But Inconclusive
 
-AC14 still does not have one explicit comparison artifact showing whether the
-decomposition approach beats a fair monolithic baseline on a system where
-context collapse should matter.
+AC14 now has one explicit comparison artifact showing whether the decomposition
+approach beats a fair monolithic baseline on a system where context collapse
+should matter. The result is `inconclusive`, not absent.
 
-Without that gate, it is too easy to mistake internal proof-hygiene progress
-for project-level thesis validation.
+That is better than no gate, but it is still not project-level thesis
+validation.
 
 ### 3a. The current empirical gate is only a first back-half gate
 
@@ -256,7 +259,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. proof-slice infrastructure: 99%
-2. proof-slice thesis validation: 70-75% pending the repair11 smoke verdict and the full paired-trial gate
+2. proof-slice thesis validation: 75-80% with one real empirical gate now complete but inconclusive
 3. long-term general coding agent vision: 55-60%
 
 The remaining work is not mainly “more code.” It is:

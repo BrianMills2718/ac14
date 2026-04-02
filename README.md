@@ -42,7 +42,8 @@ Dependency-probe behavior is currently governed by:
 - [TODO](/home/brian/projects/ac14/docs/TODO.md)
 - [Plans Index](/home/brian/projects/ac14/docs/plans/CLAUDE.md)
 - [Meta-Process Adoption Plan](/home/brian/projects/ac14/docs/AC14_META_PROCESS_ADOPTION_PLAN.md)
-- [Execution Notebook](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
+- [Status Notebook (governance-only today)](/home/brian/projects/ac14/notebooks/01_ac14_execution_status_journey.ipynb)
+- [Empirical Comparison Notebook (needs remediation into a true journey notebook)](/home/brian/projects/ac14/notebooks/02_ac14_empirical_comparison_gate.ipynb)
 
 ## What Works Today
 
@@ -112,7 +113,7 @@ AC14 now supports:
 
 AC14 is still incomplete on:
 
-- one explicit empirical comparison showing whether AC14 materially beats a fair monolithic baseline
+- one decisive empirical comparison showing whether AC14 materially beats a fair monolithic baseline
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
 - explicit front-half proof that the new directory schema-divergence concerns survive the discovery-through-freeze chain
@@ -123,17 +124,22 @@ AC14 is still incomplete on:
 
 The blunt state-of-project summary is in [AC14_IMPLEMENTATION_STATUS.md](/home/brian/projects/ac14/docs/AC14_IMPLEMENTATION_STATUS.md).
 
-The next strategic gate is now the current repair chain:
+The first full empirical gate is now complete:
 
-- [Plan #58: Shipping-Only Priority And Correlator Repair](/home/brian/projects/ac14/docs/plans/58_shipping_only_priority_and_correlator_repair.md)
-- [Plan #59: Generation Stability And Pre-Emit Validation Repair](/home/brian/projects/ac14/docs/plans/59_generation_stability_and_pre_emit_validation_repair.md)
-- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
+- `.ac14_out/full_trials_gate_1/experiment_decision.json` -> `inconclusive`
+- `ac14`: `2/5` successes
+- `monolithic`: `2/5` successes
 
-Repair10 proved the five-trial budget is still not justified. The immediate goal
-is to clear the remaining shared shipping-only semantic blocker plus the
-remaining generation-stability and failed-source observability gaps, then decide
-honestly whether [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
-should be unblocked.
+The next strategic gates are now:
+
+- [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
+- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
+
+The important point is that AC14 now has a real baseline artifact, but the
+current benchmark did not separate the conditions cleanly enough to validate the
+stronger thesis claim. Plan #62's diagnosis concluded that the next empirical
+contract should make final runtime correctness primary and demote packet-level
+failures to explicit secondary evidence.
 
 ## Quickstart
 

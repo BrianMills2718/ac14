@@ -97,20 +97,24 @@ outputs, and a structured semantic review.
 ## Deferred Project Uncertainties
 
 ### U-049: AC14 still lacks an empirical baseline comparison against monolithic generation.
-**Status:** Open
-**Context:** The repo has strong proof machinery and narrow example breadth, but
+**Status:** Resolved
+**Context:** The repo had strong proof machinery and narrow example breadth, but
 no persisted experiment comparing AC14 decomposition against a fair monolithic
 generation condition on a system complex enough for the thesis to matter.
-**Why it matters:** Without this gate, the project can keep validating internal
-machinery while the top-level thesis remains unmeasured.
+**Why it matters:** Without this gate, the project could keep validating internal
+machinery while the top-level thesis remained unmeasured.
+**Resolution:** `.ac14_out/full_trials_gate_1/experiment_decision.json` now exists and records the first five-trial comparison against a fair monolithic baseline. The verdict is `inconclusive`, but the baseline artifact is real.
+**Date resolved:** 2026-04-02
 
 ### U-050: The plan sequence can continue generating propagation-proof micro-lanes without a thesis gate.
-**Status:** Open
+**Status:** Resolved
 **Context:** Plans #32-#37 formed a coherent pattern of discovery feature ->
-front-half propagation proof. That pattern is locally reasonable but can outrun
+front-half propagation proof. That pattern was locally reasonable but could outrun
 the main empirical question if not interrupted deliberately.
 **Why it matters:** The active planning surface should force the next gate to be
 thesis-relevant rather than merely the next clean propagation story.
+**Resolution:** Plan #38 inserted an explicit empirical gate, Plans #39 and #43 executed it, and Plan #44 locked the first verdict before resuming adjacent lanes.
+**Date resolved:** 2026-04-02
 
 ### U-051: The empirical comparison runner exists, but bounded smoke trials still have zero hard-harness successes.
 **Status:** Resolved
@@ -127,11 +131,11 @@ infrastructure-only contamination.
 **Status:** Investigating
 **Context:** Earlier live smoke trials observed repeated Gemini disconnects,
 DNS/API connection failures, and `503` demand errors while the empirical
-comparison was running. The latest repair7 smoke rerun was not provider-
-contaminated, but the full five-trial gate has not yet been attempted again.
-**Why it matters:** A five-trial result under unstable provider conditions would
-mix thesis evidence with transport instability unless the issue is recorded and
-bounded explicitly.
+comparison was running. The full five-trial gate did complete, but it still saw
+provider `503` demand spikes during live execution.
+**Why it matters:** The primary success outcome is now real, but provider noise
+may still contaminate time/cost interpretation and some attempt-level failure
+paths.
 
 ### U-053: The current empirical gate is narrower than the full AC14 thesis.
 **Status:** Open
@@ -143,16 +147,18 @@ would still validate a bounded back-half claim rather than the strongest
 end-to-end front-half-plus-back-half version of the thesis.
 
 ### U-054: The next blocker is benchmark-fidelity exactness, not infrastructure.
-**Status:** Investigating
-**Context:** The latest bounded smoke rerun stayed `blocked_on_harness` without
-provider contamination. Plan #49 fixed the harness-observability gap, so the
-remaining mismatches are now benchmark-local rather than provider-local.
-**Why it matters:** The next repair lane should stay benchmark-local and avoid
+**Status:** Resolved
+**Context:** The late smoke lane stayed `blocked_on_harness` without provider
+contamination. Plan #49 fixed the harness-observability gap, so the remaining
+mismatches were benchmark-local rather than provider-local.
+**Why it matters:** The next repair lane needed to stay benchmark-local and avoid
 turning one empirical benchmark's needs into broad AC14 runtime policy by
 accident.
+**Resolution:** The benchmark-local repair chain completed, repair11 cleared the smoke gate, and the full five-trial gate ran to completion.
+**Date resolved:** 2026-04-02
 
 ### U-055: AC14 still loses bounded smoke attempts to syntax-invalid generated modules.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** In `.ac14_out/empirical_smoke_gate_repair7/`, the old classifier
 syntax blocker moved, but the AC14 lane still lost attempts to other
 contract-level generation failures such as multiline boolean conditions without
@@ -160,17 +166,19 @@ parentheses and pre-class `GeneratedComponent` return annotations.
 **Why it matters:** The empirical gate cannot measure benchmark logic honestly
 if one condition burns bounded repair budget on recurring codegen-contract
 mistakes.
+**Resolution:** The later repair chain hardened prompt and validator surfaces enough that the five-trial gate no longer failed on this syntax class. AC14's decisive failures in the completed comparison were packet/recomposition semantics, not syntax-invalid modules.
+**Date resolved:** 2026-04-02
 
 ### U-056: The remaining benchmark-local fidelity misses are still narrow and unresolved.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** In `.ac14_out/empirical_smoke_gate_repair8/`, the AC14 lane moved
 past the old broad packet/recomposition opacity and showed a narrower blocker
 set: `case_parser.normalized_notes` exactness plus benchmark-local rationale and
-priority-branch fidelity. Plans #52 and #53 hardened observability and contract
-text, but the fresh repair9 smoke artifact does not exist yet.
-**Why it matters:** The next repair lane should tighten these explicit
-benchmark-local rules rather than spending the five-trial budget on conditions
-that are still failing for avoidable contract or fidelity reasons.
+priority-branch fidelity.
+**Why it matters:** The repair lane needed to tighten those explicit
+benchmark-local rules before spending the five-trial budget.
+**Resolution:** The benchmark-local repair chain culminated in repair11, which cleared the smoke gate, and then the full five-trial comparison completed. The first benchmark result is now `inconclusive`, so the open question is no longer whether the narrow repair chain exists but what the benchmark result means.
+**Date resolved:** 2026-04-02
 
 ### U-057: Empirical attempt artifacts were too lossy to diagnose harness failures directly.
 **Status:** Resolved
@@ -248,13 +256,20 @@ now preserved before the attempt fails.
 **Date resolved:** 2026-04-02
 
 ### U-063: AC14 still loses bounded attempts to `resolution_assembler` generation instability.
-**Status:** Investigating
+**Status:** Resolved
 **Context:** In repair10 the AC14 lane still lost bounded attempts to
 `resolution_assembler` failures such as missing `build_component()` and non-ASCII
 corruption. Plan #59 hardened both prompt and validator surfaces around those
 exact failures.
 **Why it matters:** The empirical gate cannot measure benchmark logic honestly
 if one condition continues to waste attempts on known codegen-contract failures.
+**Resolution:** The completed five-trial gate no longer showed `resolution_assembler` contract instability as a dominant failure mode. AC14's remaining failures were benchmark-semantic packet and recomposition mismatches.
+**Date resolved:** 2026-04-02
+
+### U-064: The first empirical benchmark did not separate the conditions clearly enough.
+**Status:** Open
+**Context:** `.ac14_out/full_trials_gate_1/experiment_decision.json` returned `inconclusive`. Both conditions succeeded on `2/5` trials, both averaged `1.6` repair loops and semantic score `2.0`, and monolithic was faster and cheaper.
+**Why it matters:** The project now has a real baseline artifact, but not yet a decisive empirical answer about whether decomposition helps on a system where context pressure should matter. The next lane must decide whether the current benchmark is too benchmark-local, too back-half-only, or simply not differentiating enough.
 
 ### U-004: The generated component logic is still semantic-responsibility-specific.
 **Status:** Deferred

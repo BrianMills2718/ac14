@@ -12,26 +12,23 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
+- [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
 
 The immediate follow-on lane is:
 
-- [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
+- the implementation lane that executes the runtime-first comparison contract after Plan #63 freezes it
 
-The experiment contract is frozen in:
+The experiment contract remains frozen in:
 
 - [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md)
 
-The parent experiment lane remains:
+The completed execution lanes are:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
-
-The full-trial and interpretation gates remain blocked behind smoke readiness:
-
 - [Plan #43: Full Trial Gate](/home/brian/projects/ac14/docs/plans/43_full_trial_gate.md)
 - [Plan #44: Verdict Interpretation and Next Horizon](/home/brian/projects/ac14/docs/plans/44_verdict_interpretation_and_next_horizon.md)
-- [Plan #57: Empirical Smoke Gate Refresh V](/home/brian/projects/ac14/docs/plans/57_empirical_smoke_gate_refresh_v.md)
-- [Plan #60: Empirical Smoke Gate Refresh VI](/home/brian/projects/ac14/docs/plans/60_empirical_smoke_gate_refresh_vi.md)
+- [Plan #61: Executable Journey Notebook Remediation](/home/brian/projects/ac14/docs/plans/61_executable_journey_notebook_remediation.md)
+- [Plan #62: Inconclusive Comparison Diagnosis](/home/brian/projects/ac14/docs/plans/62_inconclusive_comparison_diagnosis.md)
 
 The previously active propagation lane remains blocked:
 
@@ -39,58 +36,45 @@ The previously active propagation lane remains blocked:
 
 ## Short-Term Active Lane
 
-- [x] Plan #39 foundation: benchmark bundle, paired-trial runner, and decision artifact exist
-- [x] Plans #40-#50: smoke stabilization, harness repair, schema-aware repair, and repair7 follow-up landed
-- [x] Plan #51: fresh repair8 smoke artifact exists and honestly stayed `blocked_on_harness`
-- [x] Plan #52: packet/recomposition reports now persist bounded mismatch details and empirical attempts run inside a real `llm_client` experiment context
-- [x] Plan #53: benchmark-local parser, rationale, priority-branch, and ASCII-source contract hardening landed
-- [x] Plan #54: repair9 smoke artifact exists and honestly stayed `blocked_on_harness` without an infrastructure-only explanation
+- [x] Plan #43: run the full five-trial gate
+  - Result: `.ac14_out/full_trials_gate_1/experiment_decision.json` exists with verdict `inconclusive`
 
-- [x] Plan #55: repair the shared benchmark-local shipping, correlator, and compound-inventory semantics now exposed by repair9
-  - Success criteria: benchmark contract plus empirical guidance state those rules explicitly enough to target both conditions
+- [x] Plan #44: interpret the verdict and set the next horizon
+  - Result: the next honest move is diagnosis and a sharper next comparison direction, not another same-benchmark micro-repair lane
 
-- [x] Plan #56: repair monolithic invalid-source observability and prompt stability
-  - Success criteria: failed monolithic modules are persisted and the monolithic guidance is explicit about shipping-only classification plus syntax discipline
+- [x] Plan #62: diagnose why the first benchmark failed to separate the conditions
+  - Result: the project now treats `order_exception_resolution` as one completed data point and freezes a sharper next empirical direction instead of defaulting back into the same repair loop
 
-- [x] Plan #57: rerun one bounded smoke gate on the post-55/post-56 lane
-  - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair10/` and the next gate is locked honestly
+- [x] Plan #61: remediate the notebook surface after the verdict lock
+  - Result: the empirical comparison notebook is artifact-backed, the status notebook is clearly governance-only, and the registry/docs are truthful
 
-- [x] Plan #58: repair the shared shipping-only priority and correlator rule exposed by repair10
-  - Success criteria: benchmark contract and empirical guidance say directly that shipping-only standard-customer cases may route to logistics, keep `escalation_required=false`, and still remain `priority_band='high'`
-
-- [x] Plan #59: repair generation stability and the remaining monolithic pre-emit validation observability gap
-  - Success criteria: the remaining monolithic invalid-module path persists failed source and AC14 `resolution_assembler` guidance explicitly names the current contract failures
-
-- [x] Plan #60: rerun one bounded smoke gate on the post-58/post-59 lane
-  - Success criteria: one fresh smoke artifact exists under `.ac14_out/empirical_smoke_gate_repair11/` and the next gate is locked honestly
-
-- [ ] Plan #43: run the full five-trial gate now that smoke says `ready_for_full_trials`
-  - Success criteria: five paired trials complete under `.ac14_out/full_trials_gate_1/` and `experiment_decision.json` exists
-
-- [ ] Plan #44: interpret the five-trial verdict and set the next horizon
-  - Success criteria: roadmap, status docs, and active control docs state the verdict plainly and name the next implementation horizon
+- [ ] Plan #63: freeze the runtime-first empirical comparison contract
+  - Success criteria: final runtime output correctness becomes the primary gate, packet/recomposition reports stay explicit secondary evidence, and the comparison stays fair
 
 ## Current Open Uncertainties
 
-- AC14 still lacks a completed five-trial comparison result even though the comparison contract and runner exist
-- the first ablation is still a back-half gate over a fixed decomposition and should not be mistaken for the full end-to-end thesis test
-- repair11 cleared the smoke gate, but the five-trial result could still come back `inconclusive` or swing on monolithic recovery in later trials
-- the monolithic condition must stay bounded and fair during the full five-trial run
+- the first empirical gate is complete but inconclusive; AC14 still lacks a decisive empirical result in either direction
+- the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
+- provider `503` demand noise appeared during the full five-trial run and may contaminate time/cost interpretation even though the primary success outcome completed
+- the runtime-first contract still needs to be frozen before the next empirical rerun can begin
 
 ## Latest Verified Baseline
 
-- the most recent fully verified implementation state passed:
+- latest full code verification baseline:
   - `python -m pytest -q` with `244 passed`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
-- the most recently completed planning lanes are:
-  - [Plan #52: Structured Empirical Harness Diffs](/home/brian/projects/ac14/docs/plans/52_structured_empirical_harness_diffs.md)
-  - [Plan #53: Benchmark-Local Contract Hardening IV](/home/brian/projects/ac14/docs/plans/53_benchmark_local_contract_hardening_iv.md)
-  - [Plan #54: Empirical Smoke Gate Refresh IV](/home/brian/projects/ac14/docs/plans/54_empirical_smoke_gate_refresh_iv.md)
-  - [Plan #55: Shared Benchmark Shipping And Escalation Semantics Repair](/home/brian/projects/ac14/docs/plans/55_shared_benchmark_shipping_and_escalation_semantics_repair.md)
-  - [Plan #56: Monolithic Syntax And Failure Artifact Repair](/home/brian/projects/ac14/docs/plans/56_monolithic_syntax_and_failure_artifact_repair.md)
+- latest empirical verification baseline:
+  - `.ac14_out/full_trials_gate_1/experiment_decision.json` with verdict `inconclusive`
+  - `ac14`: `2/5` successes
+  - `monolithic`: `2/5` successes
+- latest notebook/governance verification baseline:
+  - both notebook JSON files parse cleanly
+  - both notebooks' code cells execute top-to-bottom
+  - `notebooks/notebook_registry.yaml` parses cleanly
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #43 and then interpret the full-trial verdict via Plan #44 before broadening adjacent lanes
-- [ ] only then resume blocked propagation lanes such as Plan #37 if they still matter to the thesis
+- [ ] complete Plan #63 and then execute the runtime-first empirical rerun lane
+- [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
+- [ ] keep blocked propagation lanes blocked until the next empirical contract exists and is executed

@@ -1,9 +1,9 @@
 # Plan #39: Monolithic Vs AC14 Comparison Execution
 
-**Status:** Blocked
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 51
+**Blocked By:** None
 **Blocks:** 37
 
 ---
@@ -127,8 +127,8 @@ caller-specified experiment output root, with separate `monolithic/` and
 - [x] The benchmark asset bundle exists under `benchmarks/order_exception_resolution/`.
 - [x] AC14 can run paired monolithic and AC14 trials under the frozen fairness rules.
 - [x] The project persists one final experiment-decision artifact with `ac14_wins`, `monolithic_wins`, or `inconclusive`.
-- [ ] Five fresh paired trials complete and are reviewable artifact-by-artifact.
-- [ ] Full local verification passes and the docs match the result.
+- [x] Five fresh paired trials completed and are reviewable artifact-by-artifact.
+- [x] Full local verification passed and the docs now match the result.
 
 ---
 
@@ -138,12 +138,10 @@ This plan is the first direct thesis test. It is intentionally higher priority
 than blocked propagation plans unless the experiment itself shows that one of
 those blocked lanes is required for a fair comparison.
 
-Current live-execution note:
+Implementation outcome:
 
-- the benchmark bundle, paired-trial runner, and decision artifact now exist
-- bounded live smoke trials have been executed
-- Plans #40 and #41 are complete
-- the full five-trial gate should not proceed until Plan #40 either produces a
-  smoke verdict of `ready_for_full_trials` or documents a stable blocker
-- the latest bounded smoke rerun remains `blocked_on_harness`
-- The active repair chain is now Plan #50 followed by Plan #51 for the next smoke rerun
+- the benchmark bundle, paired-trial runner, and decision artifact exist
+- bounded smoke trials were executed and Plan #60 cleared the gate with `ready_for_full_trials`
+- the five-trial gate completed under `.ac14_out/full_trials_gate_1/`
+- the resulting decision artifact is `inconclusive`
+- the next active lane is diagnosis of the inconclusive result, not more same-benchmark repair by default
