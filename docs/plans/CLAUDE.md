@@ -96,7 +96,10 @@ current executable lane.
 | 83 | [Structured Spec Input Contract](83_structured_spec_input_contract.md) | Critical | Complete | 84 |
 | 84 | [Structured-Spec Front-Half Acceptance](84_structured_spec_front_half_acceptance.md) | Critical | Complete | 85 |
 | 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | Complete | 86 |
-| 86 | [Front-Half-First Smoke Gate](86_front_half_first_smoke_gate.md) | Critical | In Progress | - |
+| 86 | [Front-Half-First Smoke Gate Contract And Runner](86_front_half_first_smoke_gate.md) | Critical | In Progress | 87 |
+| 87 | [Front-Half-First Smoke Execution](87_front_half_first_smoke_execution.md) | Critical | Planned | 88, 89 |
+| 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | Planned | - |
+| 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Planned | - |
 
 ## Status Key
 

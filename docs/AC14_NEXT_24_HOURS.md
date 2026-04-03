@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
+- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
 
 The explicit active chain is:
 
@@ -32,7 +32,10 @@ The explicit active chain is:
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
 - [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
-- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
+- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> next
+- [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> conditional on smoke `ready_for_full_trials`
+- [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> conditional on smoke `blocked_*`
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -47,9 +50,12 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. decide and implement what the first front-half-first smoke gate should judge
-2. spend one bounded front-half-first smoke trial in Plan #86 only after that contract is explicit
-3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+1. implement the front-half-first smoke runner with an explicit staged-combined success contract
+2. spend one bounded front-half-first smoke trial
+3. branch immediately from the verdict:
+   - full trial if `ready_for_full_trials`
+   - blocker diagnosis if `blocked_on_front_half`, `blocked_on_harness`, or `blocked_on_infrastructure`
+4. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
 
@@ -137,10 +143,22 @@ Success criteria:
   - Result: the bundle now exists and points at the existing `resource_scaling`
     runtime evaluation assets
 - decide the exact success surface for the first smoke gate before spending it
+  - Result: the smoke gate now requires AC14 front-half approval plus at least
+    one runtime hard-harness success without infrastructure contamination
 
 Success criteria:
 
 - the next empirical smoke gate consumes a shared structured-spec input contract
+
+### Phase 7: front-half-first smoke chain
+
+- implement the dedicated front-half-first smoke runner
+- spend one bounded smoke trial
+- branch immediately to either full trials or blocker diagnosis from the verdict
+
+Success criteria:
+
+- the next 24-hour chain is executable without chat interpretation
 
 ## Known Uncertainties
 
@@ -151,5 +169,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is what the first front-half-first smoke gate should actually judge
+2. the current runner still needs to prove whether AC14 front-half approval is easy enough to keep the first smoke gate inexpensive
 3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is executed explicitly

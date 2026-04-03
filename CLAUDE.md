@@ -148,7 +148,17 @@ For the active empirical-comparison lane, this rule is especially strict:
   chain is:
   1. structured-spec front-half acceptance
   2. structured-spec benchmark bundle
-  3. front-half-first smoke gate
+  3. front-half-first smoke contract and runner
+  4. one bounded front-half-first smoke execution
+  5. either a full front-half-first trial gate or a blocker diagnosis directly
+     from the smoke verdict
+- for the active front-half-first empirical chain, keep the contract explicit:
+  - AC14 must first produce an approved structured-spec front-half artifact
+  - runtime hard-harness success remains the end-to-end success surface
+  - monolithic stays runtime-only; do not invent a fake monolithic front-half
+    artifact for symmetry theater
+  - do not spend the full-trial budget until the new smoke artifact exists and
+    says `ready_for_full_trials`
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock
