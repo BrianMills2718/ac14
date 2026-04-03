@@ -1,6 +1,6 @@
 # Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 118
@@ -30,17 +30,18 @@ direction at each blocker boundary.
 
 ## Acceptance Criteria
 
-- [ ] Final-output inference excludes non-final bound outputs when choosing
+- [x] Final-output inference excludes non-final bound outputs when choosing
       structured-spec final outputs.
-- [ ] Front-half-first AC14 attempts fail before runtime when a generated
+- [x] Front-half-first AC14 attempts fail before runtime when a generated
       blueprint leaves extra required inputs unbound.
-- [ ] Draft-plan validation rejects generic unknown port schema aliases like
+- [x] Draft-plan validation rejects generic unknown port schema aliases like
       `record` and `dict`.
-- [ ] Targeted tests prove the repair before the rerun.
-- [ ] One fresh smoke artifact exists after the repair at
+- [x] Targeted tests prove the repair before the rerun.
+- [x] One fresh smoke artifact exists after the repair at
       `.ac14_out/front_half_first_smoke_13/`.
-- [ ] The next branch is explicit from the new artifact as Plan #88 + #100,
-      Plan #120 + #121, or Plan #122 + #123.
+- [x] The next branch is explicit from the new artifact as Plan #88 + #100,
+      Plan #120 + #121, Plan #122 + #123, Plan #124 + #125, or
+      Plan #128 + #129.
 
 ---
 
@@ -57,3 +58,13 @@ This plan must stay bounded:
    Plan #120 then Plan #121
 6. if the rerun still returns `blocked_on_harness`, immediately continue into
    Plan #122 then Plan #123
+
+## Result
+
+The code repair landed and verified cleanly, but smoke_13 did not reach the
+expected runtime-output or harness boundary. The rerun artifact at
+`.ac14_out/front_half_first_smoke_13/` returned `blocked_on_front_half`
+because both AC14 and monolithic generation failed immediately in the
+repo-local environment with `No module named 'instructor'`. That artifact
+closed Plan #119's pre-runtime contract lane and opened the new dependency
+boundary in Plan #124.

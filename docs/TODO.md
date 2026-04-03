@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI](/home/brian/projects/ac14/docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md)
+- [Plan #125: Front-Half Structured-Dependency Repair And Smoke Rerun XIV](/home/brian/projects/ac14/docs/plans/125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md)
 
 The explicit active chain is:
 
@@ -65,11 +65,17 @@ The explicit active chain is:
 - [Plan #116: Front-Half Runtime-Harness Boundary V](/home/brian/projects/ac14/docs/plans/116_front_half_runtime_harness_boundary_v.md) -> complete, smoke_11 shows both conditions now fail in `runtime_outputs`
 - [Plan #117: Front-Half Runtime-Harness Repair V And Smoke Rerun X](/home/brian/projects/ac14/docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md) -> complete, smoke_12 still `blocked_on_harness`
 - [Plan #118: Front-Half Runtime-Output Boundary I](/home/brian/projects/ac14/docs/plans/118_front_half_runtime_output_boundary_i.md) -> complete, smoke_12 froze the pre-runtime contract blocker mix
-- [Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI](/home/brian/projects/ac14/docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md) -> active
-- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_13 says `blocked_on_runtime_outputs`
+- [Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI](/home/brian/projects/ac14/docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md) -> complete, smoke_13 exposed a repo-local structured dependency blocker
+- [Plan #124: Front-Half Structured Dependency Boundary](/home/brian/projects/ac14/docs/plans/124_front_half_structured_dependency_boundary.md) -> complete, smoke_13 froze the missing `llm_client[structured]` / `instructor` contract
+- [Plan #125: Front-Half Structured-Dependency Repair And Smoke Rerun XIV](/home/brian/projects/ac14/docs/plans/125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md) -> active
+- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_14 says `blocked_on_runtime_outputs`
 - [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> planned
-- [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> planned if smoke_13 still says `blocked_on_harness`
+- [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> planned if smoke_14 says `blocked_on_harness`
 - [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> planned
+- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_14 still says `blocked_on_front_half`
+- [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
+- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_14 says `blocked_on_infrastructure`
+- [Plan #129: Front-Half Provider Fallback And Smoke Rerun XVI](/home/brian/projects/ac14/docs/plans/129_front_half_provider_fallback_and_smoke_rerun_xvi.md) -> planned
 
 The experiment contract remains frozen in:
 
@@ -86,10 +92,14 @@ The experiment contract remains frozen in:
 - [x] Prove the verdict split with targeted tests.
 - [x] Run smoke_12 at `.ac14_out/front_half_first_smoke_12`.
 - [x] Lock the next branch immediately from the smoke_12 verdict.
-- [ ] Repair the smoke_12 pre-runtime contract blocker mix inside Plan #119.
-- [ ] Prove the Plan #119 repair with targeted tests plus `mypy` and `ruff`.
-- [ ] Run smoke_13 at `.ac14_out/front_half_first_smoke_13`.
-- [ ] Branch immediately from the smoke_13 verdict into Plan #88 + #100, Plan #120 + #121, or Plan #122 + #123.
+- [x] Repair the smoke_12 pre-runtime contract blocker mix inside Plan #119.
+- [x] Prove the Plan #119 repair with targeted tests plus `mypy` and `ruff`.
+- [x] Run smoke_13 at `.ac14_out/front_half_first_smoke_13`.
+- [x] Lock the smoke_13 verdict as a new dependency boundary instead of pretending the old branch tree still fits.
+- [ ] Repair the repo-local structured dependency contract inside Plan #125.
+- [ ] Prove the Plan #125 repair with a repo-local import check plus targeted tests, `mypy`, and `ruff`.
+- [ ] Run smoke_14 at `.ac14_out/front_half_first_smoke_14`.
+- [ ] Branch immediately from the smoke_14 verdict into Plan #88 + #100, Plan #120 + #121, Plan #122 + #123, Plan #126 + #127, or Plan #128 + #129.
 
 The completed execution lanes are:
 
