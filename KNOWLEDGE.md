@@ -561,4 +561,11 @@ structured-spec contract plus one full front-half lane, not broad free-prose
 NL-to-blueprint. That gives the project a real consumer-aligned input surface
 without pretending the full front-half problem is already solved.
 
+### 2026-04-03 — codex — best-practice
+Structured-spec front-half artifacts should resolve output and source paths to
+absolute paths before any downstream review or freeze work. Smoke reruns use
+relative `.ac14_out/...` directories, and a later cwd shift or interrupted-run
+rename can otherwise turn a valid `draft_blueprint_plan.json` into a false
+file-not-found harness failure.
+
 ---

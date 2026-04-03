@@ -300,12 +300,12 @@ async def abuild_front_half_acceptance_report(
     if not requirements:
         raise ValueError("front-half acceptance requires at least one requirement")
 
-    destination = Path(output_dir)
+    destination = Path(output_dir).resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    normalized_input_path = Path(input_path)
-    normalized_project_root = Path(project_root) if project_root is not None else None
+    normalized_input_path = Path(input_path).resolve()
+    normalized_project_root = Path(project_root).resolve() if project_root is not None else None
     normalized_requested_packages = requested_packages or []
-    normalized_retrieval_paths = [Path(path) for path in retrieval_artifact_paths or []]
+    normalized_retrieval_paths = [Path(path).resolve() for path in retrieval_artifact_paths or []]
 
     discovery_artifact = build_discovery_artifact(
         input_path=normalized_input_path,
@@ -469,7 +469,7 @@ async def abuild_structured_spec_front_half_acceptance_report(
 ) -> StructuredSpecFrontHalfAcceptanceArtifact:
     """Build a persisted structured-spec front-half acceptance artifact."""
 
-    destination = Path(output_dir)
+    destination = Path(output_dir).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     fixture_path = os.environ.get("AC14_STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_FIXTURE")
     if fixture_path:
@@ -480,7 +480,7 @@ async def abuild_structured_spec_front_half_acceptance_report(
             json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
         )
         return artifact
-    artifact_path = Path(structured_spec_artifact_path)
+    artifact_path = Path(structured_spec_artifact_path).resolve()
     structured_spec_artifact = StructuredSpecArtifact.model_validate_json(artifact_path.read_text())
 
     await abuild_draft_blueprint_plan_from_structured_spec(

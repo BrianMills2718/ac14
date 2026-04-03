@@ -645,6 +645,126 @@ def test_build_structured_spec_front_half_acceptance_report_propagates_explicit_
     }
 
 
+def test_build_structured_spec_front_half_acceptance_report_survives_cwd_shift(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec front-half paths should stay valid even if cwd changes mid-pipeline."""
+
+    source_path = (
+        REPO_ROOT
+        / "benchmarks"
+        / "resource_scaling_structured_spec"
+        / "structured_spec_input.yaml"
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+    monkeypatch.chdir(tmp_path)
+
+    async def _fake_plan_writer(
+        structured_spec_artifact_path: Path | str,
+        output_dir: Path | str,
+        *,
+        model: str,
+        max_budget: float,
+        task: str = "ac14_draft_blueprint_plan_from_structured_spec",
+    ) -> None:
+        del structured_spec_artifact_path, model, max_budget, task
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        payload = json.loads(
+            _write_blueprint_plan_fixture(destination / "draft_blueprint_plan_fixture.json").read_text(),
+        )
+        payload.update(
+            {
+                "planning_input_kind": "structured_spec",
+                "planning_input_name": "Resource Scaling Decision System",
+                "planning_input_artifact_path": str(
+                    (tmp_path / "structured_spec" / "structured_spec_artifact.json").resolve(),
+                ),
+                "structured_spec_artifact_path": str(
+                    (tmp_path / "structured_spec" / "structured_spec_artifact.json").resolve(),
+                ),
+                "requirements": [
+                    "produce one exact scaling_decision_entry and rolling scaling_decision_store for each event",
+                ],
+                "planning_input_open_concerns": [],
+                "discovery_open_concerns": [],
+            },
+        )
+        (destination / "draft_blueprint_plan.json").write_text(
+            json.dumps(payload, indent=2, sort_keys=True),
+        )
+        monkeypatch.chdir(tmp_path.parent)
+
+    async def _fake_freeze_decision(
+        bundle_dir: Path | str,
+        output_dir: Path | str,
+        *,
+        readiness_report_path: Path | str | None = None,
+        semantic_review_model: str,
+        semantic_review_max_budget: float,
+    ) -> FreezeDecisionArtifact:
+        del bundle_dir, readiness_report_path, semantic_review_model, semantic_review_max_budget
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        review_path = destination / "freeze_semantic_review.json"
+        review_path.write_text(
+            _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json").read_text(),
+        )
+        decision = FreezeDecisionArtifact(
+            source_bundle_dir=str((tmp_path / "structured_spec_front_half" / "draft_bundle").resolve()),
+            readiness_report_path=str(
+                (tmp_path / "structured_spec_front_half" / "draft_bundle" / "freeze_readiness_report.json").resolve(),
+            ),
+            approved=True,
+            decision_summary="bundle approved for freeze",
+            findings=[],
+            promoted_bundle_dir=str((tmp_path / "structured_spec_front_half" / "draft_bundle").resolve()),
+            semantic_review_path=str(review_path),
+            remediation_plan_path=str(destination / "freeze_remediation_plan.json"),
+        )
+        (destination / "freeze_decision.json").write_text(
+            json.dumps(decision.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        return decision
+
+    async def _fake_review(*args: object, **kwargs: object) -> FrontHalfReviewResponse:
+        draft_plan_path = kwargs["draft_plan_path"]
+        assert isinstance(draft_plan_path, Path)
+        assert draft_plan_path.is_absolute()
+        assert draft_plan_path.exists()
+        return FrontHalfReviewResponse.model_validate_json(
+            _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json").read_text(),
+        )
+
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance.abuild_draft_blueprint_plan_from_structured_spec",
+        _fake_plan_writer,
+    )
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance.materialize_draft_blueprint_bundle",
+        lambda plan_artifact_path, output_dir: SimpleNamespace(
+            draft_bundle_dir=str(Path(output_dir)),
+            freeze_readiness_report_path=str(Path(output_dir) / "freeze_readiness_report.json"),
+        ),
+    )
+    monkeypatch.setattr("ac14.front_half_acceptance.abuild_freeze_decision", _fake_freeze_decision)
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance._review_structured_spec_front_half_acceptance",
+        _fake_review,
+    )
+
+    artifact = build_structured_spec_front_half_acceptance_report(
+        structured_spec_artifact_path=Path("structured_spec") / "structured_spec_artifact.json",
+        output_dir=Path("structured_spec_front_half"),
+        max_budget=0.1,
+    )
+
+    assert artifact.freeze_approved is True
+    assert Path(artifact.artifact_paths.draft_blueprint_plan_path).is_absolute()
+    assert Path(artifact.artifact_paths.draft_blueprint_plan_path).exists()
+
+
 def test_build_front_half_acceptance_report_supports_retry_freeze(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
