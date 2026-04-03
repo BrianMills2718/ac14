@@ -97,7 +97,7 @@ def _write_plan_artifact(path: Path) -> Path:
 
 
 def test_materialize_draft_blueprint_bundle_persists_bundle_and_report(tmp_path: Path) -> None:
-    """Draft authoring should write the bundle files and a readiness report."""
+    """Draft authoring should write a freeze-ready draft bundle with synthetic coverage."""
 
     plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
 
@@ -118,12 +118,110 @@ def test_materialize_draft_blueprint_bundle_persists_bundle_and_report(tmp_path:
     assert report_path.exists()
 
     report = json.loads(report_path.read_text())
-    assert report["ready"] is False
+    assert report["ready"] is True
     codes = {finding["code"] for finding in report["findings"]}
-    assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
     assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
     assert "W-DRAFT-OPEN-QUESTION" in codes
     assert "W-DRAFT-DEPENDENCY-QUESTION" in codes
+    assert "W-DRAFT-SYNTHETIC-FIXTURE-COVERAGE" in codes
+
+    schemas_payload = yaml.safe_load((bundle_dir / "schemas.yaml").read_text())
+    raw_ticket_fields = schemas_payload["schemas"][0]["fields"]
+    assert raw_ticket_fields[0]["type"] == "string"
+
+    fixtures_payload = yaml.safe_load((bundle_dir / "fixtures.yaml").read_text())
+    assert len(fixtures_payload["fixtures"]) == 1
+    fixture = fixtures_payload["fixtures"][0]
+    assert fixture["fixture_id"] == "happy_path_ticket_ingest"
+    assert fixture["expected_outputs"]["raw_ticket"]["ticket_id"] == "draft_ticket_id"
+
+    validation_payload = yaml.safe_load((bundle_dir / "validation.yaml").read_text())
+    assert validation_payload["scenarios"][0]["fixture_ids"] == ["happy_path_ticket_ingest"]
+
+
+def test_materialize_draft_blueprint_bundle_blocks_without_scenarios(
+    tmp_path: Path,
+) -> None:
+    """Draft authoring should still block when no scenario/fixture path exists."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.proposed_scenarios = []
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+
+    report = json.loads(Path(manifest.freeze_readiness_report_path).read_text())
+    assert report["ready"] is False
+    codes = {finding["code"] for finding in report["findings"]}
+    assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
+    assert "E-B1-FULL-SCENARIO-MISSING" in codes
+
+
+def test_materialize_draft_blueprint_bundle_normalizes_structured_spec_field_aliases(
+    tmp_path: Path,
+) -> None:
+    """Structured-spec compact aliases should normalize into blueprint field types."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.proposed_schemas = [
+        PlannedSchema(
+            schema_name="MetricsSnapshot",
+            kind="record",
+            description="Structured-spec input schema.",
+            fields=[
+                PlannedSchemaField(
+                    field_name="service_name",
+                    field_type="str",
+                    description="Stable service identifier.",
+                ),
+                PlannedSchemaField(
+                    field_name="cpu_utilization",
+                    field_type="float",
+                    description="CPU ratio.",
+                ),
+                PlannedSchemaField(
+                    field_name="request_rate_rps",
+                    field_type="int",
+                    description="Requests per second.",
+                ),
+                PlannedSchemaField(
+                    field_name="maintenance_mode",
+                    field_type="bool",
+                    description="Maintenance flag.",
+                ),
+                PlannedSchemaField(
+                    field_name="decisions",
+                    field_type="list[record]",
+                    description="Anonymous decision history records.",
+                ),
+            ],
+        ),
+    ]
+    artifact.proposed_components[0].output_ports[0].schema_name = "MetricsSnapshot"
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+
+    schemas_payload = yaml.safe_load((Path(manifest.draft_bundle_dir) / "schemas.yaml").read_text())
+    fields_by_name = {
+        field["name"]: field["type"]
+        for field in schemas_payload["schemas"][0]["fields"]
+    }
+    assert fields_by_name == {
+        "service_name": "string",
+        "cpu_utilization": "number",
+        "request_rate_rps": "integer",
+        "maintenance_mode": "boolean",
+        "decisions": "list[object]",
+    }
 
 
 def test_materialize_draft_blueprint_bundle_blocks_on_dependency_probe_results(

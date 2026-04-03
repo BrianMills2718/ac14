@@ -127,6 +127,32 @@ def test_validate_blueprint_requires_component_fixture_coverage() -> None:
     )
 
 
+def test_validate_blueprint_tolerates_structured_spec_primitive_aliases() -> None:
+    """Compact structured-spec aliases should not be misread as missing schema refs."""
+
+    blueprint = load_blueprint_dir(EXAMPLE_DIR)
+    raw_ticket = blueprint.schemas["RawTicket"]
+    alias_fields = [
+        field.model_copy(update={"type": "str"})
+        if field.name in {"ticket_id", "submitted_at", "subject", "body"}
+        else field.model_copy(update={"type": "list[str]"})
+        if field.name == "tags"
+        else field
+        for field in raw_ticket.fields
+    ]
+    broken_blueprint = blueprint.model_copy(
+        update={
+            "schemas": {
+                **blueprint.schemas,
+                "RawTicket": raw_ticket.model_copy(update={"fields": alias_fields}),
+            },
+        },
+    )
+
+    result = validate_blueprint(broken_blueprint)
+    assert not any(finding.code == "E-B1-SCHEMA-FIELD-REF-MISSING" for finding in result.findings)
+
+
 def test_validate_blueprint_requires_llm_evaluator_for_semantic_acceptance() -> None:
     """Semantic-acceptance scenarios must declare an LLM evaluator."""
 

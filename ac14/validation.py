@@ -455,7 +455,7 @@ def _is_named_schema_reference(field_type: str) -> bool:
     if field_type.startswith("enum:"):
         return False
     stripped = _strip_container(field_type)
-    primitives = {"string", "integer", "number", "boolean"}
+    primitives = {"string", "integer", "number", "boolean", "object", "str", "int", "float", "bool", "record", "dict"}
     return stripped not in primitives
 
 

@@ -140,6 +140,9 @@ def test_build_freeze_decision_blocks_draft_bundle(
     """Draft bundles with readiness blockers should produce blocked worklists."""
 
     plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(plan_path.read_text())
+    artifact.proposed_scenarios = []
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
     monkeypatch.setenv(
         "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
         str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
@@ -159,7 +162,7 @@ def test_build_freeze_decision_blocks_draft_bundle(
     assert decision.promoted_bundle_dir is None
     codes = {finding.code for finding in decision.findings}
     assert "E-B1-COMPONENT-FIXTURE-COVERAGE-MISSING" in codes
-    assert "W-DRAFT-PLACEHOLDER-INVARIANT" in codes
+    assert "E-B1-FULL-SCENARIO-MISSING" in codes
     assert (tmp_path / "freeze_decision" / "freeze_decision.json").exists()
     assert decision.semantic_review_path is not None
     semantic_review_payload = json.loads(Path(decision.semantic_review_path).read_text())

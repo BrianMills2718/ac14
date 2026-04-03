@@ -6,7 +6,7 @@ import json
 import re
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
@@ -24,6 +24,7 @@ from ac14.models import (
     ComponentDefinition,
     ComponentsFile,
     EvaluatorDefinition,
+    Fixture,
     FixturesFile,
     GenerationPolicy,
     GlobalInvariant,
@@ -44,6 +45,14 @@ from ac14.validation import validate_blueprint
 PLACEHOLDER_INVARIANT = "TODO: confirm local invariants before blueprint freeze"
 PLACEHOLDER_FAILURE = "TODO: confirm failure semantics before blueprint freeze"
 PLACEHOLDER_CONSTRAINT = "TODO: confirm implementation constraints before blueprint freeze"
+_FIELD_TYPE_ALIASES = {
+    "str": "string",
+    "int": "integer",
+    "float": "number",
+    "bool": "boolean",
+    "record": "object",
+    "dict": "object",
+}
 
 
 class FreezeReadinessReport(BaseModel):
@@ -83,9 +92,13 @@ def materialize_draft_blueprint_bundle(
     schema_findings: list[ValidationFinding] = []
     schemas_file = _build_schemas_file(plan, schema_findings)
     components_file = _build_components_file(plan)
+    fixtures_file, fixture_ids_by_scenario = _build_fixtures_file(
+        plan,
+        schemas_file=schemas_file,
+        components_file=components_file,
+    )
     architecture_file = _build_architecture_file(plan)
-    validation_file = _build_validation_file(plan)
-    fixtures_file = FixturesFile(fixtures=[])
+    validation_file = _build_validation_file(plan, fixture_ids_by_scenario=fixture_ids_by_scenario)
 
     _write_yaml(destination / "metadata.yaml", metadata_file.model_dump(mode="json", exclude_none=True))
     _write_yaml(destination / "schemas.yaml", schemas_file.model_dump(mode="json", exclude_none=True))
@@ -138,7 +151,7 @@ def build_freeze_readiness_report(
         *(extra_findings or []),
         *authoring_findings,
     ]
-    ready = validation_result.passed and not extra_findings and not authoring_findings
+    ready = not any(_is_blocking_finding(finding) for finding in findings)
     return FreezeReadinessReport(
         ready=ready,
         validation_passed=validation_result.passed,
@@ -188,12 +201,16 @@ def _build_schemas_file(
     """Build draft schema definitions from planned schemas."""
 
     schemas: list[SchemaDefinition] = []
+    schema_names = {planned_schema.schema_name for planned_schema in plan.proposed_schemas}
     for planned_schema in plan.proposed_schemas:
         if planned_schema.kind == "record":
             fields = [
                 SchemaField(
                     name=field.field_name,
-                    type=field.field_type,
+                    type=_normalize_schema_field_type(
+                        field.field_type,
+                        schema_names=schema_names,
+                    ),
                     required=True,
                     description=field.description,
                     optional_reason="DRAFT: requiredness not confirmed yet.",
@@ -222,6 +239,27 @@ def _build_schemas_file(
             ),
         )
     return SchemasFile(schemas=schemas)
+
+
+def _normalize_schema_field_type(
+    field_type: str,
+    *,
+    schema_names: set[str],
+) -> str:
+    """Normalize structured-spec compact field types into blueprint field types."""
+
+    normalized = field_type.strip()
+    if not normalized:
+        return normalized
+    if normalized.startswith("enum:"):
+        return normalized
+    if normalized in schema_names:
+        return normalized
+    if normalized.startswith("list[") and normalized.endswith("]"):
+        inner = normalized[5:-1].strip()
+        return f"list[{_normalize_schema_field_type(inner, schema_names=schema_names)}]"
+    alias = _FIELD_TYPE_ALIASES.get(normalized.lower())
+    return alias if alias is not None else normalized
 
 
 def _build_components_file(plan: DraftBlueprintPlanArtifact) -> ComponentsFile:
@@ -277,7 +315,11 @@ def _build_architecture_file(plan: DraftBlueprintPlanArtifact) -> ArchitectureFi
     )
 
 
-def _build_validation_file(plan: DraftBlueprintPlanArtifact) -> ValidationFile:
+def _build_validation_file(
+    plan: DraftBlueprintPlanArtifact,
+    *,
+    fixture_ids_by_scenario: dict[str, list[str]],
+) -> ValidationFile:
     """Build draft scenarios and evaluators from the planning artifact."""
 
     evaluators = [
@@ -302,7 +344,7 @@ def _build_validation_file(plan: DraftBlueprintPlanArtifact) -> ValidationFile:
             scenario_id=scenario.scenario_id,
             kind=scenario.kind,
             description=scenario.description,
-            fixture_ids=[],
+            fixture_ids=fixture_ids_by_scenario.get(scenario.scenario_id, []),
             evaluator_ids=_default_evaluators_for_kind(scenario.kind),
             realistic_input=scenario.kind == "semantic_acceptance",
             requirements=(
@@ -316,6 +358,121 @@ def _build_validation_file(plan: DraftBlueprintPlanArtifact) -> ValidationFile:
         evaluators=evaluators,
         scenarios=scenarios,
     )
+
+
+def _build_fixtures_file(
+    plan: DraftBlueprintPlanArtifact,
+    *,
+    schemas_file: SchemasFile,
+    components_file: ComponentsFile,
+) -> tuple[FixturesFile, dict[str, list[str]]]:
+    """Build synthetic typed fixture coverage for draft bundles."""
+
+    schema_lookup = {schema.schema_id: schema for schema in schemas_file.schemas}
+    fixtures = []
+    fixture_ids_by_scenario: dict[str, list[str]] = {}
+    for scenario in plan.proposed_scenarios:
+        scenario_fixture_ids: list[str] = []
+        for component in components_file.components:
+            fixture_id = f"{scenario.scenario_id}_{component.component_id}".lower()
+            scenario_fixture_ids.append(fixture_id)
+            fixtures.append(
+                Fixture(
+                    fixture_id=fixture_id,
+                    scenario_id=scenario.scenario_id,
+                    component_id=component.component_id,
+                    description=(
+                        f"Draft synthetic fixture for {component.component_id} under "
+                        f"{scenario.scenario_id}; replace with benchmark- or data-backed "
+                        "examples before claiming strong packet evidence."
+                    ),
+                    inputs={
+                        port.name: _draft_payload_for_schema_id(
+                            port.schema_id,
+                            schema_lookup=schema_lookup,
+                        )
+                        for port in component.input_ports
+                    },
+                    expected_outputs={
+                        port.name: _draft_payload_for_schema_id(
+                            port.schema_id,
+                            schema_lookup=schema_lookup,
+                        )
+                        for port in component.output_ports
+                    },
+                ),
+            )
+        fixture_ids_by_scenario[scenario.scenario_id] = scenario_fixture_ids
+    return FixturesFile(fixtures=fixtures), fixture_ids_by_scenario
+
+
+def _draft_payload_for_schema_id(
+    schema_id: str,
+    *,
+    schema_lookup: dict[str, SchemaDefinition],
+    visited: set[str] | None = None,
+) -> dict[str, Any]:
+    """Build one bounded synthetic payload for a named schema."""
+
+    schema = schema_lookup.get(schema_id)
+    if schema is None:
+        return {}
+    next_visited = set(visited or set())
+    if schema_id in next_visited:
+        return {}
+    next_visited.add(schema_id)
+    payload: dict[str, Any] = {}
+    for field in schema.fields:
+        if field.required:
+            payload[field.name] = _draft_value_for_field_type(
+                field.type,
+                field_name=field.name,
+                schema_lookup=schema_lookup,
+                visited=next_visited,
+            )
+    return payload
+
+
+def _draft_value_for_field_type(
+    field_type: str,
+    *,
+    field_name: str,
+    schema_lookup: dict[str, SchemaDefinition],
+    visited: set[str],
+) -> Any:
+    """Build one deterministic synthetic value for a normalized field type."""
+
+    normalized = field_type.strip()
+    if normalized.startswith("enum:"):
+        members = [member.strip() for member in normalized[5:].split(",") if member.strip()]
+        return members[0] if members else f"draft_{field_name}"
+    if normalized.startswith("list[") and normalized.endswith("]"):
+        inner = normalized[5:-1].strip()
+        return [
+            _draft_value_for_field_type(
+                inner,
+                field_name=field_name,
+                schema_lookup=schema_lookup,
+                visited=visited,
+            ),
+        ]
+    if normalized == "string":
+        return f"draft_{field_name}"
+    if normalized == "integer":
+        return 0
+    if normalized == "number":
+        return 0.0
+    if normalized == "boolean":
+        return False
+    if normalized == "object":
+        return {}
+    if normalized in schema_lookup:
+        return _draft_payload_for_schema_id(
+            normalized,
+            schema_lookup=schema_lookup,
+            visited=visited,
+        )
+    return f"draft_{field_name}"
 
 
 def _default_evaluators_for_kind(
@@ -406,7 +563,25 @@ def _authoring_findings(
                     path="plan.blocked_dependency_probes",
                 ),
             )
+    if plan.proposed_scenarios and resolved_component_ids:
+        findings.append(
+            ValidationFinding(
+                code="W-DRAFT-SYNTHETIC-FIXTURE-COVERAGE",
+                message=(
+                    "draft bundle uses synthetic typed fixtures generated from planned "
+                    "schemas and ports; replace them with benchmark- or data-backed "
+                    "fixtures before claiming strong packet evidence"
+                ),
+                path="fixtures",
+            ),
+        )
     return findings
+
+
+def _is_blocking_finding(finding: ValidationFinding) -> bool:
+    """Return whether one readiness finding should block freeze approval."""
+
+    return finding.code.startswith("E-")
 
 
 def _write_yaml(path: Path, payload: dict[str, object]) -> None:

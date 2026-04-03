@@ -107,14 +107,16 @@ current executable lane.
 | 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | Complete | 95 |
 | 95 | [Front-Half Infrastructure Boundary](95_front_half_infrastructure_boundary.md) | Critical | Complete | 96 |
 | 96 | [Front-Half-First Smoke Rerun III](96_front_half_first_smoke_rerun_iii.md) | Critical | Complete | 88, 97, 98, 99 |
-| 97 | [Front-Half Freeze Fidelity Boundary](97_front_half_freeze_fidelity_boundary.md) | Critical | Planned | - |
+| 97 | [Front-Half Freeze Fidelity Boundary](97_front_half_freeze_fidelity_boundary.md) | Critical | Complete | 104 |
 | 98 | [Front-Half Runtime-Harness Boundary](98_front_half_runtime_harness_boundary.md) | Critical | Planned | - |
 | 99 | [Front-Half Infrastructure Boundary For Hidden Default Model Paths](99_front_half_infrastructure_availability_boundary.md) | Critical | Complete | 106 |
 | 100 | [Front-Half-First Verdict Interpretation And Next Horizon](100_front_half_first_verdict_interpretation.md) | Critical | Planned | - |
-| 104 | [Front-Half Freeze-Fidelity Repair And Smoke Rerun IV](104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) | Critical | Planned | - |
+| 104 | [Front-Half Freeze-Fidelity Repair And Smoke Rerun V](104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) | Critical | In Progress | 88, 98, 107, 108 |
 | 105 | [Front-Half Runtime-Harness Repair And Smoke Rerun IV](105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) | Critical | Planned | - |
-| 106 | [Front-Half Model Propagation Repair And Smoke Rerun IV](106_front_half_provider_fallback_and_smoke_rerun_iv.md) | Critical | In Progress | 88, 97, 98, 107 |
+| 106 | [Front-Half Model Propagation Repair And Smoke Rerun IV](106_front_half_provider_fallback_and_smoke_rerun_iv.md) | Critical | Complete | 97 |
 | 107 | [Front-Half External Provider Boundary II](107_front_half_external_provider_boundary_ii.md) | Critical | Planned | - |
+| 108 | [Front-Half Freeze Fidelity Boundary II](108_front_half_freeze_fidelity_boundary_ii.md) | Critical | Planned | 109 |
+| 109 | [Front-Half Freeze-Fidelity Repair II And Smoke Rerun VI](109_front_half_freeze_fidelity_repair_ii_and_smoke_rerun_vi.md) | Critical | Planned | - |
 
 ## Status Key
 

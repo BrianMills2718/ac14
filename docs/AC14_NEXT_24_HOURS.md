@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md)
+- [Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun V](/home/brian/projects/ac14/docs/plans/104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md)
 
 The explicit active chain is:
 
@@ -43,14 +43,16 @@ The explicit active chain is:
 - [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> complete, verdict `blocked_on_infrastructure`
 - [Plan #95: Front-Half Infrastructure Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_infrastructure_boundary.md) -> complete
 - [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md) -> complete, verdict `blocked_on_infrastructure`
-- [Plan #97: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/97_front_half_freeze_fidelity_boundary.md) -> conditional on rerun `blocked_on_front_half`
+- [Plan #97: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/97_front_half_freeze_fidelity_boundary.md) -> complete
 - [Plan #98: Front-Half Runtime-Harness Boundary](/home/brian/projects/ac14/docs/plans/98_front_half_runtime_harness_boundary.md) -> conditional on rerun `blocked_on_harness`
 - [Plan #99: Front-Half Infrastructure Boundary For Hidden Default Model Paths](/home/brian/projects/ac14/docs/plans/99_front_half_infrastructure_availability_boundary.md) -> complete
 - [Plan #100: Front-Half-First Verdict Interpretation And Next Horizon](/home/brian/projects/ac14/docs/plans/100_front_half_first_verdict_interpretation.md) -> conditional on Plan #88 completion
-- [Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) -> conditional on Plan #97 completion
+- [Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun V](/home/brian/projects/ac14/docs/plans/104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) -> active
 - [Plan #105: Front-Half Runtime-Harness Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) -> conditional on Plan #98 completion
-- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md) -> active
-- [Plan #107: Front-Half External Provider Boundary II](/home/brian/projects/ac14/docs/plans/107_front_half_external_provider_boundary_ii.md) -> conditional on Plan #106 verdict `blocked_on_infrastructure`
+- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md) -> complete, verdict `blocked_on_front_half`
+- [Plan #107: Front-Half External Provider Boundary II](/home/brian/projects/ac14/docs/plans/107_front_half_external_provider_boundary_ii.md) -> conditional on a later rerun verdict `blocked_on_infrastructure`
+- [Plan #108: Front-Half Freeze Fidelity Boundary II](/home/brian/projects/ac14/docs/plans/108_front_half_freeze_fidelity_boundary_ii.md) -> conditional on Plan #104 verdict `blocked_on_front_half`
+- [Plan #109: Front-Half Freeze-Fidelity Repair II And Smoke Rerun VI](/home/brian/projects/ac14/docs/plans/109_front_half_freeze_fidelity_repair_ii_and_smoke_rerun_vi.md) -> conditional on Plan #108 completion
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -65,14 +67,17 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. lock the smoke_5 infrastructure boundary as hidden front-half default-model plumbing
-2. repair explicit model propagation through the active AC14 front-half subcalls
+1. lock smoke_6 as the clean front-half freeze-fidelity boundary
+2. repair the dominant blocker class inside Plan #104:
+   - normalize structured-spec field aliases into blueprint field types
+   - synthesize scenario-linked component fixtures
+   - make readiness block only on `E-*` findings
 3. rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini`
 4. branch immediately from the rerun verdict with no permission pause:
    - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
-   - if `blocked_on_front_half`: execute Plan #97, then execute Plan #104
    - if `blocked_on_harness`: execute Plan #98, then execute Plan #105
    - if `blocked_on_infrastructure`: execute Plan #107
+   - if `blocked_on_front_half`: execute Plan #108, then execute Plan #109
 5. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen unless a new front-half-first artifact changes that state
 
 ## Branch Matrix
@@ -83,21 +88,21 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 2. Plan #88 implements any missing front-half-first full-trial runner surface, spends the five-trial budget, and persists the verdict artifact
 3. Plan #100 locks the verdict across docs and freezes the next horizon from the actual result
 
-### Branch B: front half still blocked
+### Branch B: front half repaired enough to reach runtime but still blocked there
 
-1. Plan #96 produces `blocked_on_front_half`
-2. Plan #97 freezes the dominant front-half blocker from the new artifact
-3. Plan #104 repairs that blocker and reruns one bounded smoke trial immediately
-
-### Branch C: front half passes but runtime still blocked
-
-1. Plan #96 produces `blocked_on_harness`
+1. Plan #104 produces `blocked_on_harness`
 2. Plan #98 freezes the dominant runtime or harness blocker from the new artifact
 3. Plan #105 repairs that blocker and reruns one bounded smoke trial immediately
 
-### Branch D: infrastructure still dominates after propagation repair
+### Branch C: front half still blocked after Plan #104
 
-1. Plan #106 produces `blocked_on_infrastructure`
+1. Plan #104 produces `blocked_on_front_half`
+2. Plan #108 freezes the dominant remaining front-half blocker from the new artifact
+3. Plan #109 repairs that blocker and reruns one bounded smoke trial immediately
+
+### Branch D: infrastructure still dominates after the new rerun
+
+1. Plan #104 produces `blocked_on_infrastructure`
 2. Plan #107 freezes the next external-provider boundary from the new artifact
 
 ## Progress Update
@@ -136,6 +141,7 @@ Completed before the current lane:
 30. a second bounded front-half-first smoke artifact at `.ac14_out/front_half_first_smoke_2/` with verdict `blocked_on_front_half`, showing that the original planning blocker moved and the next blocker is async wrapper reentry inside the retry-enabled front-half path
 31. a third smoke rerun at `.ac14_out/front_half_first_smoke_4/` with verdict `blocked_on_infrastructure`, which means Plan #93's async-safe fix is still not empirically judged
 32. a fourth smoke rerun at `.ac14_out/front_half_first_smoke_5/` with verdict `blocked_on_infrastructure`, but this time the blocker sharpened: monolithic reached runtime evaluation while AC14 still hit hidden Gemini-default subcalls after draft planning and freeze remediation
+33. a fifth smoke rerun at `.ac14_out/front_half_first_smoke_6/` with verdict `blocked_on_front_half`, proving the infrastructure blocker is cleared and the active lane is now front-half freeze fidelity
 
 ## Tactical Phase Summary
 
@@ -245,5 +251,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the second smoke verdict is now known; the active question is whether the async-safe retry repair is enough to reopen the gate once the smoke target stops defaulting into Gemini quota exhaustion
+2. the hidden-default-model blocker is now resolved; the active question is whether Plan #104 is enough to move AC14 from front-half approval failure into the next honest runtime branch
 3. blocked propagation lanes should stay blocked until the repaired front-half-first empirical direction is rerun explicitly

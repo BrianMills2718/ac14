@@ -424,6 +424,15 @@ def _write_front_half_blueprint_plan_fixture(path: Path) -> Path:
     return path
 
 
+def _write_blocked_front_half_blueprint_plan_fixture(path: Path) -> Path:
+    """Persist one deterministic blocked front-half plan fixture for subprocess tests."""
+
+    payload = json.loads(_write_front_half_blueprint_plan_fixture(path).read_text())
+    payload["proposed_scenarios"] = []
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return path
+
+
 def _write_front_half_review_fixture(path: Path) -> Path:
     """Persist one deterministic front-half review fixture for subprocess tests."""
 
@@ -2489,7 +2498,7 @@ def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
-    assert payload["freeze_approved"] is False
+    assert payload["freeze_approved"] is True
     assert payload["review"]["freeze_verdict"] == "promising_but_blocked"
     assert payload["artifact_paths"]["freeze_semantic_review_path"] is not None
     assert (tmp_path / "front_half" / "front_half_acceptance_report.json").exists()
@@ -2520,7 +2529,7 @@ def test_cli_front_half_acceptance_supports_input_directory(tmp_path: Path) -> N
     (input_dir / "notes.md").write_text("# Intake notes\n\nLatest support batch.\n")
 
     dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
-    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    blueprint_fixture = _write_blocked_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
     review_fixture = _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")
 
     env = os.environ.copy()
@@ -2664,7 +2673,7 @@ def test_cli_front_half_acceptance_preserves_directory_context_summaries(tmp_pat
     (input_dir / "notes.md").write_text("# Notes\n\nLatest support batch.\n")
 
     dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
-    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    blueprint_fixture = _write_blocked_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
     review_fixture = _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")
 
     env = os.environ.copy()
@@ -2717,7 +2726,7 @@ def test_cli_front_half_acceptance_supports_retry_freeze(tmp_path: Path) -> None
     """Front-half acceptance CLI should optionally persist one retry-chain artifact."""
 
     dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
-    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    blueprint_fixture = _write_blocked_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
     refine_fixture = tmp_path / "refine_blueprint_plan_fixture.json"
     refine_payload = json.loads(blueprint_fixture.read_text())
     refine_payload["refinement_summary"] = "Clarified dependency scope after the blocked freeze."
@@ -2772,7 +2781,7 @@ def test_cli_front_half_acceptance_supports_retry_freeze_on_messy_input(tmp_path
     """Front-half acceptance CLI should keep retry-aware messy-input proof explicit."""
 
     dependency_fixture = _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json")
-    blueprint_fixture = _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
+    blueprint_fixture = _write_blocked_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")
     refine_fixture = tmp_path / "refine_blueprint_plan_fixture.json"
     refine_payload = json.loads(blueprint_fixture.read_text())
     refine_payload["refinement_summary"] = "Clarified dependency scope after the blocked freeze."
@@ -2862,7 +2871,8 @@ def test_cli_front_half_acceptance_suite_runs_end_to_end(tmp_path: Path) -> None
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert payload["example_count"] >= 3
-    assert payload["freeze_blocked_examples"] == payload["example_count"]
+    assert payload["freeze_blocked_examples"] == 0
+    assert payload["freeze_approved_examples"] == payload["example_count"]
     assert (tmp_path / "front_half_suite" / "front_half_acceptance_suite_report.json").exists()
 
 
@@ -2873,7 +2883,7 @@ def test_cli_front_half_acceptance_suite_supports_retry_freeze(tmp_path: Path) -
     env["AC14_DEPENDENCY_PLAN_FIXTURE"] = str(
         _write_front_half_dependency_plan_fixture(tmp_path / "dependency_plan_fixture.json"),
     )
-    blueprint_fixture = _write_front_half_blueprint_plan_fixture(
+    blueprint_fixture = _write_blocked_front_half_blueprint_plan_fixture(
         tmp_path / "blueprint_plan_fixture.json",
     )
     env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(blueprint_fixture)

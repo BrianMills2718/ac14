@@ -148,6 +148,24 @@ def _write_refine_blueprint_plan_fixture(path: Path) -> Path:
     return path
 
 
+def _write_blocked_blueprint_plan_fixture(path: Path) -> Path:
+    """Persist a deterministic draft plan that remains structurally blocked."""
+
+    payload = json.loads(_write_blueprint_plan_fixture(path).read_text())
+    payload["proposed_scenarios"] = []
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return path
+
+
+def _write_blocked_refine_blueprint_plan_fixture(path: Path) -> Path:
+    """Persist a deterministic blocked refinement fixture for retry-path tests."""
+
+    payload = json.loads(_write_blocked_blueprint_plan_fixture(path).read_text())
+    payload["refinement_summary"] = "The retry did not recover missing scenario coverage yet."
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return path
+
+
 def _write_front_half_review_fixture(path: Path) -> Path:
     """Persist a deterministic front-half review fixture."""
 
@@ -433,11 +451,11 @@ def test_async_structured_spec_front_half_acceptance_supports_retry_freeze(
     build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
     monkeypatch.setenv(
         "AC14_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+        str(_write_blocked_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+        str(_write_blocked_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
@@ -652,11 +670,11 @@ def test_build_front_half_acceptance_report_supports_retry_freeze(
     )
     monkeypatch.setenv(
         "AC14_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+        str(_write_blocked_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+        str(_write_blocked_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
@@ -703,7 +721,7 @@ def test_build_front_half_acceptance_suite_report_runs_for_shipped_examples(
     )
     monkeypatch.setenv(
         "AC14_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+        str(_write_blocked_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
@@ -741,11 +759,11 @@ def test_build_front_half_acceptance_suite_report_supports_retry_freeze(
     )
     monkeypatch.setenv(
         "AC14_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+        str(_write_blocked_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+        str(_write_blocked_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
@@ -959,11 +977,11 @@ def test_build_front_half_acceptance_report_supports_retry_freeze_on_messy_input
     )
     monkeypatch.setenv(
         "AC14_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+        str(_write_blocked_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
-        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+        str(_write_blocked_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
     )
     monkeypatch.setenv(
         "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
