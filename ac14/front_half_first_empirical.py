@@ -55,7 +55,7 @@ from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint
 from ac14.packets import compile_packets
 from ac14.recomposition import RecompositionReport
-from ac14.runtime import run_blueprint_once
+from ac14.runtime import RuntimeComponent, run_blueprint_once
 from ac14.structured_spec import (
     StructuredSpecDocument,
     StructuredSpecInterface,
@@ -101,7 +101,11 @@ class FrontHalfRuntimeContract(BaseModel):
     """Runtime contract inferred from a generated AC14 draft bundle."""
 
     source_component_id: str = Field(description="Generated source component used for runtime execution.")
-    source_port_name: str = Field(description="Top-level input port consumed at runtime.")
+    source_port_name: str = Field(description="Top-level input or source-output port used at runtime.")
+    source_mode: Literal["input_port", "source_output"] = Field(
+        default="input_port",
+        description="Whether runtime records are injected into one input port or one zero-input source component output.",
+    )
     final_component_id: str | None = Field(
         default=None,
         description="Single generated final component when all reviewable outputs come from one component.",
@@ -227,6 +231,19 @@ class FrontHalfFirstSmokeReadinessArtifact(BaseModel):
     ac14_failure_categories: list[FrontHalfFirstFailureCategory] = Field(
         description="Observed failure categories across AC14 attempts.",
     )
+
+
+class _RuntimeInjectedSourceComponent:
+    """Synthetic runtime source used when a generated draft emits a zero-input source node."""
+
+    def __init__(self, *, output_port_name: str, payload: dict[str, Any]) -> None:
+        self._output_port_name = output_port_name
+        self._payload = copy.deepcopy(payload)
+
+    def execute(self, inputs: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        if inputs:
+            raise ValueError("runtime-injected source component must not receive bound inputs")
+        return {self._output_port_name: copy.deepcopy(self._payload)}
 
 
 def run_front_half_first_smoke_gate(
@@ -790,12 +807,48 @@ def infer_runtime_contract_from_structured_spec(
             structured_input=structured_input,
         )
     ]
-    selected_source = _select_structured_spec_source_candidate(
-        structured_input_name=structured_input.name,
-        unbound_input_candidates=unbound_input_candidates,
-        exact_name_candidates=exact_name_candidates,
-        schema_match_candidates=schema_match_candidates,
-    )
+    if exact_name_candidates or schema_match_candidates or len(unbound_input_candidates) == 1:
+        selected_source = _select_structured_spec_source_candidate(
+            structured_input_name=structured_input.name,
+            candidate_kind="input port",
+            candidates=unbound_input_candidates,
+            exact_name_candidates=exact_name_candidates,
+            schema_match_candidates=schema_match_candidates,
+        )
+        source_mode: Literal["input_port", "source_output"] = "input_port"
+    else:
+        source_output_candidates = sorted(
+            (
+                component_id,
+                port.name,
+                port.schema_id,
+            )
+            for component_id, component in blueprint.components.items()
+            if component.kind == "source" and not component.input_ports
+            for port in component.output_ports
+        )
+        source_output_exact_name_candidates = [
+            candidate
+            for candidate in source_output_candidates
+            if candidate[1] == structured_input.name
+        ]
+        source_output_schema_match_candidates = [
+            candidate
+            for candidate in source_output_candidates
+            if _schema_matches_structured_spec_input(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_input=structured_input,
+            )
+        ]
+        selected_source = _select_structured_spec_source_candidate(
+            structured_input_name=structured_input.name,
+            candidate_kind="source output",
+            candidates=source_output_candidates,
+            exact_name_candidates=source_output_exact_name_candidates,
+            schema_match_candidates=source_output_schema_match_candidates,
+        )
+        source_mode = "source_output"
 
     final_output_ports = [item.name for item in structured_spec.outputs]
     final_output_components = _infer_final_output_components(
@@ -808,6 +861,7 @@ def infer_runtime_contract_from_structured_spec(
     return FrontHalfRuntimeContract(
         source_component_id=selected_source[0],
         source_port_name=selected_source[1],
+        source_mode=source_mode,
         final_component_id=final_component_id,
         final_output_ports=final_output_ports,
         final_output_components=final_output_components,
@@ -817,7 +871,8 @@ def infer_runtime_contract_from_structured_spec(
 def _select_structured_spec_source_candidate(
     *,
     structured_input_name: str,
-    unbound_input_candidates: list[tuple[str, str, str]],
+    candidate_kind: str,
+    candidates: list[tuple[str, str, str]],
     exact_name_candidates: list[tuple[str, str, str]],
     schema_match_candidates: list[tuple[str, str, str]],
 ) -> tuple[str, str, str]:
@@ -828,7 +883,7 @@ def _select_structured_spec_source_candidate(
     if len(exact_name_candidates) > 1:
         raise ValueError(
             "unable to infer one unique source component from structured spec input "
-            f"{structured_input_name!r}: multiple exact-name candidates "
+            f"{structured_input_name!r}: multiple exact-name {candidate_kind} candidates "
             f"{_format_runtime_source_candidates(exact_name_candidates)}",
         )
     if len(schema_match_candidates) == 1:
@@ -836,17 +891,17 @@ def _select_structured_spec_source_candidate(
     if len(schema_match_candidates) > 1:
         raise ValueError(
             "unable to infer one unique source component from structured spec input "
-            f"{structured_input_name!r}: multiple schema-matched candidates "
+            f"{structured_input_name!r}: multiple schema-matched {candidate_kind} candidates "
             f"{_format_runtime_source_candidates(schema_match_candidates)}",
         )
-    if len(unbound_input_candidates) == 1:
-        return unbound_input_candidates[0]
+    if len(candidates) == 1:
+        return candidates[0]
     raise ValueError(
         "unable to infer one unique source component from structured spec input "
         f"{structured_input_name!r}: exact-name candidates "
         f"{_format_runtime_source_candidates(exact_name_candidates)}, schema-matched "
         f"candidates {_format_runtime_source_candidates(schema_match_candidates)}, "
-        f"all unbound candidates {_format_runtime_source_candidates(unbound_input_candidates)}",
+        f"all {candidate_kind} candidates {_format_runtime_source_candidates(candidates)}",
     )
 
 
@@ -1151,7 +1206,7 @@ def _execute_generated_blueprint_runtime_cases(
     """Execute reference runtime cases against one generated AC14 blueprint."""
 
     builders = load_generated_component_builders(generated_package)
-    implementations = {
+    base_implementations = {
         component_id: builders[component_id]()
         for component_id in blueprint.components
     }
@@ -1164,14 +1219,15 @@ def _execute_generated_blueprint_runtime_cases(
         case_id = cast(str, record["case_id"])
         expected_outputs = expected_by_case[case_id]
         try:
+            implementations, initial_inputs = _prepare_generated_runtime_execution(
+                base_implementations=base_implementations,
+                runtime_contract=runtime_contract,
+                record=record,
+            )
             outputs_by_component = run_blueprint_once(
                 blueprint,
                 implementations,
-                {
-                    runtime_contract.source_component_id: {
-                        runtime_contract.source_port_name: record,
-                    },
-                },
+                initial_inputs,
             )
             selected_outputs = {
                 port_name: outputs_by_component[runtime_contract.final_output_components[port_name]][port_name]
@@ -1195,6 +1251,29 @@ def _execute_generated_blueprint_runtime_cases(
                 ),
             )
     return results
+
+
+def _prepare_generated_runtime_execution(
+    *,
+    base_implementations: dict[str, RuntimeComponent],
+    runtime_contract: FrontHalfRuntimeContract,
+    record: dict[str, Any],
+) -> tuple[dict[str, RuntimeComponent], dict[str, dict[str, dict[str, Any]]]]:
+    """Prepare one bounded runtime execution from the inferred source contract."""
+
+    implementations = dict(base_implementations)
+    payload = copy.deepcopy(record)
+    if runtime_contract.source_mode == "source_output":
+        implementations[runtime_contract.source_component_id] = _RuntimeInjectedSourceComponent(
+            output_port_name=runtime_contract.source_port_name,
+            payload=payload,
+        )
+        return implementations, {}
+    return implementations, {
+        runtime_contract.source_component_id: {
+            runtime_contract.source_port_name: payload,
+        },
+    }
 
 
 def _execute_monolithic_runtime_cases(

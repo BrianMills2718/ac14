@@ -1,31 +1,47 @@
 system_name: Resource Scaling Decision System
 purpose: >
-  Decide whether cloud resources should scale for each incoming metrics snapshot
-  while preserving threshold rules, compliance constraints, and a deterministic
-  rolling decision record.
+  Decide whether cloud resources should scale for each incoming raw scaling
+  event while preserving the exact categorical runtime decision contract reused
+  by the existing resource_scaling benchmark assets.
 requirements:
-  - produce one scaling decision for each metrics snapshot
-  - keep threshold logic explicit and reviewable
-  - preserve compliance blocking rules instead of hiding them in prompts
-  - record a deterministic decision entry and rolling decision store
+  - consume the raw resource_scaling runtime-case shape directly without alias-only wrappers
+  - keep threshold, service-policy, compliance, and execution rules explicit and reviewable
+  - produce one exact scaling_decision_entry and rolling scaling_decision_store for each event
+  - preserve categorical, boolean, and integer final fields required by the existing runtime evaluation
+  - remain decomposable into bounded reviewable components instead of one opaque whole-task module
 success_criteria:
-  - each decision includes categorical action, urgency, team routing, and rationale
+  - generated systems can consume the reused runtime cases directly
+  - final outputs match the exact reviewable fields required by the resource_scaling benchmark
   - blocked actions remain explicit instead of silently downgrading to no-op
-  - the final system can be evaluated against the existing resource_scaling runtime cases
+  - the bundle stays truthful to the runtime assets it reuses
 business_rules:
   - cpu>=0.80, memory>=0.85, error_rate>=0.05 are deterministic threshold breaches
-  - scale_out when both cpu and memory breach; scale_up when only cpu breaches
-  - scale_down when no breach and request_rate_rps < 20; none otherwise
+  - scale_out when both cpu and memory breach; scale_up when only cpu breaches; scale_down when no breach and request_rate_rps < 20; none otherwise
+  - urgency is critical on error breach or three breaches, high on two breaches, medium on one breach, low otherwise
+  - bronze maps to budget, silver/gold to standard, platinum to premium
   - compliance blocks non-none actions during maintenance and blocks change-freeze actions unless urgency is critical
-  - the final decision action is blocked when execution gate evaluation says blocked; otherwise it equals the recommendation action
+  - the final decision action is blocked when execution_gate.blocked is true; otherwise it equals the recommendation action
+  - all final-output fields are categorical, boolean, or integer and should match exactly
 inputs:
-  - name: metrics_snapshot
+  - name: raw_scaling_event
     kind: record
-    description: Current service metrics, account tier, and compliance context for one scaling decision.
+    description: Raw cloud metrics event for one scaling decision, matching the reused runtime cases exactly.
     fields:
-      - field_name: service_name
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier.
+        required: true
+      - field_name: received_at
+        field_type: str
+        description: Timestamp when the metrics event was received.
+        required: true
+      - field_name: service_id
         field_type: str
         description: Stable service identifier under review.
+        required: true
+      - field_name: service_tier
+        field_type: str
+        description: Service tier. Valid values are bronze, silver, gold, and platinum.
         required: true
       - field_name: cpu_utilization
         field_type: float
@@ -43,23 +59,31 @@ inputs:
         field_type: int
         description: Current request rate in requests per second.
         required: true
-      - field_name: account_tier
-        field_type: str
-        description: Customer account tier that affects routing and urgency.
+      - field_name: last_deploy_hours
+        field_type: int
+        description: Hours since the last deploy.
         required: true
-      - field_name: maintenance_mode
-        field_type: bool
-        description: Whether the service is in maintenance mode.
-        required: true
-      - field_name: change_freeze
+      - field_name: in_change_freeze
         field_type: bool
         description: Whether non-critical scaling changes are blocked.
+        required: true
+      - field_name: in_maintenance_window
+        field_type: bool
+        description: Whether the service is in a maintenance window.
         required: true
 outputs:
   - name: scaling_decision_entry
     kind: record
-    description: Final single-case scaling decision emitted for one metrics snapshot.
+    description: Final exact single-case scaling decision emitted for one raw scaling event.
     fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier.
+        required: true
+      - field_name: service_id
+        field_type: str
+        description: Stable service identifier under review.
+        required: true
       - field_name: action
         field_type: str
         description: Final categorical scaling action.
@@ -68,45 +92,83 @@ outputs:
         field_type: str
         description: Final urgency band for the decision.
         required: true
-      - field_name: recommended_team
+      - field_name: strategy
         field_type: str
-        description: Final team or queue that should handle the decision.
+        description: Final categorical scaling strategy.
         required: true
-      - field_name: correlator
+      - field_name: target_adjustment
+        field_type: int
+        description: Final requested adjustment count.
+        required: true
+      - field_name: approval_tier
         field_type: str
-        description: One categorical explanation of the dominant decision factor.
+        description: Final approval tier. Valid values are auto, manager, and director.
+        required: true
+      - field_name: authorization_mode
+        field_type: str
+        description: Final authorization mode. Valid values are auto, manual, and compliance_blocked.
+        required: true
+      - field_name: alert_tier
+        field_type: str
+        description: Final alert tier. Valid values are critical, warning, and info.
+        required: true
+      - field_name: scale_tier
+        field_type: str
+        description: Final scale tier. Valid values are budget, standard, and premium.
+        required: true
+      - field_name: blocked
+        field_type: bool
+        description: Whether the final decision is blocked.
+        required: true
+      - field_name: requires_approval
+        field_type: bool
+        description: Whether human approval is required before execution.
+        required: true
+      - field_name: min_healthy_instances
+        field_type: int
+        description: Minimum healthy instances required during scaling.
+        required: true
+      - field_name: cooldown_minutes
+        field_type: int
+        description: Cooldown window for the final scaling strategy.
         required: true
   - name: scaling_decision_store
     kind: record
-    description: Rolling deterministic store of prior emitted scaling decisions.
+    description: Rolling deterministic store of exact scaling decisions.
     fields:
+      - field_name: generated_at
+        field_type: str
+        description: Timestamp associated with the current rolling store snapshot.
+        required: true
       - field_name: decisions
         field_type: list[record]
-        description: Ordered decision entries accumulated over time.
+        description: Ordered exact decision entries accumulated over time.
         required: true
 workflow_hints:
-  - hint_id: normalize_metrics
-    summary: Normalize raw snapshot fields into one bounded source schema.
-    input_names: [metrics_snapshot]
+  - hint_id: normalize_scaling_event
+    summary: Normalize the raw scaling event without dropping benchmark fields that later exact outputs depend on.
+    input_names: [raw_scaling_event]
     output_names: [scaling_decision_entry]
     business_rules:
-      - Preserve account tier and compliance flags explicitly for later decision steps.
-  - hint_id: evaluate_thresholds
-    summary: Determine threshold breaches and urgency without hiding categorical rules.
-    input_names: [metrics_snapshot]
+      - Preserve case_id, service_id, tier, deploy timing, and compliance flags explicitly for later stages.
+  - hint_id: evaluate_thresholds_and_policy
+    summary: Keep threshold, urgency, service-policy, and approval rules explicit and reviewable.
+    input_names: [raw_scaling_event]
     output_names: [scaling_decision_entry]
     business_rules:
-      - Scale action and urgency follow deterministic threshold combinations.
-  - hint_id: apply_compliance_gate
-    summary: Apply maintenance and change-freeze blocking rules before recording the final decision.
-    input_names: [metrics_snapshot]
+      - Map service_tier to scale_tier exactly as bronze->budget, silver/gold->standard, platinum->premium.
+      - Keep target_adjustment, approval_tier, and min_healthy_instances deterministic and exact.
+  - hint_id: apply_compliance_and_execution
+    summary: Apply maintenance and change-freeze blocking rules before emitting the final decision.
+    input_names: [raw_scaling_event]
     output_names: [scaling_decision_entry]
     business_rules:
-      - Compliance can block the recommendation even when thresholds suggest scaling.
+      - If the execution gate blocks, action must be explicit as blocked and strategy must be blocked.
   - hint_id: record_decision
-    summary: Emit one decision entry and update a deterministic rolling store.
+    summary: Emit one exact decision entry and update a deterministic rolling store.
     input_names: [scaling_decision_entry]
     output_names: [scaling_decision_store]
 human_context_notes:
+  - This front-half-first bundle intentionally mirrors the reused runtime cases and expected outputs so the benchmark contract stays truthful.
   - Keep the component graph bounded and reviewable; do not collapse all rules into one opaque function.
-  - The later empirical smoke gate should compare AC14 and a monolithic baseline from this same structured spec.
+  - The later empirical smoke gate should compare AC14 and a monolithic baseline from this same exact structured-spec contract.

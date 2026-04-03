@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-
 import pytest
 
 from ac14.front_half_first_empirical import (
@@ -12,6 +11,8 @@ from ac14.front_half_first_empirical import (
     FrontHalfFirstConditionTrialReport,
     FrontHalfFirstFailureClassification,
     FrontHalfFirstPairedTrialReport,
+    FrontHalfRuntimeContract,
+    _prepare_generated_runtime_execution,
     build_front_half_first_smoke_readiness_artifact,
     generate_monolithic_runtime_system_with_llm,
     infer_runtime_contract_from_structured_spec,
@@ -21,6 +22,7 @@ from ac14.front_half_first_empirical import (
 from ac14.empirical_comparison import CostObservation
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.loader import load_blueprint_dir
+from ac14.runtime import RuntimeComponent
 from ac14.structured_spec import build_structured_spec_artifact, load_structured_spec_document
 from ac14.structured_spec_benchmark import load_structured_spec_benchmark_bundle
 from tests.front_half_first_fixtures import (
@@ -151,6 +153,7 @@ def test_infer_runtime_contract_from_generated_bundle(tmp_path: Path) -> None:
     assert contract.source_component_id == "decision_engine"
     assert contract.final_component_id == "decision_engine"
     assert contract.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
+    assert contract.source_mode == "input_port"
     assert contract.final_output_components == {
         "scaling_decision_entry": "decision_engine",
         "scaling_decision_store": "decision_engine",
@@ -179,6 +182,7 @@ def test_infer_runtime_contract_accepts_unique_renamed_root_input_port(tmp_path:
 
     assert contract.source_component_id == "decision_engine"
     assert contract.source_port_name == "metrics_snapshot_in"
+    assert contract.source_mode == "input_port"
     assert contract.final_component_id == "decision_engine"
     assert contract.final_output_components == {
         "scaling_decision_entry": "decision_engine",
@@ -245,10 +249,132 @@ def test_infer_runtime_contract_supports_split_final_outputs(tmp_path: Path) -> 
     )
 
     assert contract.source_component_id == "decision_engine"
+    assert contract.source_mode == "input_port"
     assert contract.final_component_id is None
     assert contract.final_output_components == {
         "scaling_decision_entry": "decision_engine",
         "scaling_decision_store": "decision_store",
+    }
+
+
+def test_infer_runtime_contract_supports_zero_input_source_component(tmp_path: Path) -> None:
+    """Runtime contract inference should support one unique zero-input source component."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"] = [
+        {
+            "component_id": "metrics_source",
+            "semantic_responsibility": "ingest_metrics_snapshot",
+            "purpose": "Represent the top-level structured-spec input as one source node.",
+            "kind": "source",
+            "input_ports": [],
+            "output_ports": [
+                {
+                    "port_name": "metrics_out",
+                    "schema_name": "MetricsSnapshot",
+                    "description": "Raw metrics snapshot emitted from the top-level source.",
+                }
+            ],
+            "packet_focus": ["preserve the top-level input contract exactly"],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "decision_engine",
+            "semantic_responsibility": "compute_scaling_decision",
+            "purpose": "Turn one metrics snapshot into final benchmark outputs.",
+            "input_ports": [
+                {
+                    "port_name": "metrics_snapshot",
+                    "schema_name": "MetricsSnapshot",
+                    "description": "Incoming metrics snapshot.",
+                }
+            ],
+            "output_ports": [
+                {
+                    "port_name": "scaling_decision_entry",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Final single-case decision.",
+                },
+                {
+                    "port_name": "scaling_decision_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Rolling decision store.",
+                },
+            ],
+            "packet_focus": ["preserve the benchmark output contract"],
+            "dependency_notes": [],
+        },
+    ]
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "metrics_source",
+            "from_port": "metrics_out",
+            "rationale": "The decision engine consumes the emitted raw metrics snapshot.",
+            "to_component": "decision_engine",
+            "to_port": "metrics_snapshot",
+        }
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.source_component_id == "metrics_source"
+    assert contract.source_port_name == "metrics_out"
+    assert contract.source_mode == "source_output"
+    assert contract.final_component_id == "decision_engine"
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_engine",
+        "scaling_decision_store": "decision_engine",
+    }
+
+
+class _DummyRuntimeComponent:
+    """Minimal runtime component for source-injection tests."""
+
+    def execute(self, inputs: dict[str, dict[str, object]]) -> dict[str, dict[str, object]]:
+        return {}
+
+
+def test_prepare_generated_runtime_execution_supports_source_output_mode() -> None:
+    """Runtime execution prep should wrap one zero-input source component with injected payload."""
+
+    source_impl: RuntimeComponent = _DummyRuntimeComponent()
+    decision_impl: RuntimeComponent = _DummyRuntimeComponent()
+    base_implementations = {
+        "metrics_source": source_impl,
+        "decision_engine": decision_impl,
+    }
+    contract = FrontHalfRuntimeContract(
+        source_component_id="metrics_source",
+        source_port_name="metrics_out",
+        source_mode="source_output",
+        final_component_id="decision_engine",
+        final_output_ports=["scaling_decision_entry"],
+        final_output_components={"scaling_decision_entry": "decision_engine"},
+    )
+
+    implementations, initial_inputs = _prepare_generated_runtime_execution(
+        base_implementations=base_implementations,
+        runtime_contract=contract,
+        record={"case_id": "RSC-100", "service_id": "svc-premium-api"},
+    )
+
+    assert initial_inputs == {}
+    assert implementations["decision_engine"] is decision_impl
+    assert implementations["metrics_source"] is not source_impl
+    assert implementations["metrics_source"].execute({}) == {
+        "metrics_out": {"case_id": "RSC-100", "service_id": "svc-premium-api"}
     }
 
 
