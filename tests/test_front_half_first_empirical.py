@@ -79,6 +79,47 @@ def test_build_front_half_first_smoke_readiness_artifact_ready_for_full_trials()
     assert artifact.runtime_hard_harness_success is True
 
 
+def test_build_front_half_first_smoke_readiness_artifact_blocks_on_runtime_outputs() -> None:
+    """Smoke readiness should surface runtime-output failures separately once both sides reach runtime."""
+
+    monolithic = _condition_report(
+        "monolithic",
+        passed=False,
+        front_half_passed=None,
+        category="runtime_outputs",
+    )
+    ac14 = _condition_report(
+        "ac14",
+        passed=False,
+        front_half_passed=True,
+        category="runtime_outputs",
+    )
+    ac14.attempts[0].packet_tests_passed = False
+    ac14.attempts[0].recomposition_passed = False
+    ac14.attempts[0].failure_classification.detail = "RSC-100 outputs mismatched expected outputs"
+    monolithic.attempts[0].failure_classification.detail = (
+        "RSC-100 outputs mismatched expected outputs"
+    )
+
+    artifact = build_front_half_first_smoke_readiness_artifact(
+        benchmark_id="mini_scaling_structured_spec_v1",
+        paired_trial_report=FrontHalfFirstPairedTrialReport(
+            benchmark_id="mini_scaling_structured_spec_v1",
+            trial_id=1,
+            monolithic=monolithic,
+            ac14=ac14,
+        ),
+        trial_report_path="/tmp/front_half_trial.json",
+    )
+
+    assert artifact.verdict == "blocked_on_runtime_outputs"
+    assert artifact.ac14_front_half_success is True
+    assert artifact.runtime_hard_harness_success is False
+    assert artifact.ac14_pre_runtime_proof_failed is True
+    assert artifact.ac14_failure_details == ["RSC-100 outputs mismatched expected outputs"]
+    assert artifact.monolithic_failure_details == ["RSC-100 outputs mismatched expected outputs"]
+
+
 def test_build_front_half_first_smoke_readiness_artifact_detects_provider_noise_from_generation_error() -> None:
     """Front-half smoke readiness should block on infra when raw provider noise survives category drift."""
 

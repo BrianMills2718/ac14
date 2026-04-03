@@ -85,6 +85,7 @@ FrontHalfFirstFailureCategory = Literal[
 FrontHalfFirstSmokeReadinessVerdict = Literal[
     "ready_for_full_trials",
     "blocked_on_front_half",
+    "blocked_on_runtime_outputs",
     "blocked_on_harness",
     "blocked_on_infrastructure",
 ]
@@ -237,6 +238,18 @@ class FrontHalfFirstSmokeReadinessArtifact(BaseModel):
     ac14_failure_categories: list[FrontHalfFirstFailureCategory] = Field(
         description="Observed failure categories across AC14 attempts.",
     )
+    monolithic_failure_details: list[str] = Field(
+        description="Observed attempt-level failure details across monolithic attempts.",
+    )
+    ac14_failure_details: list[str] = Field(
+        description="Observed attempt-level failure details across AC14 attempts.",
+    )
+    ac14_pre_runtime_proof_failed: bool = Field(
+        description=(
+            "Whether any AC14 attempt also failed packet tests or recomposition proof "
+            "before the runtime-output verdict was finalized."
+        ),
+    )
 
 
 class _RuntimeInjectedSourceComponent:
@@ -343,8 +356,16 @@ def build_front_half_first_smoke_readiness_artifact(
         attempt.failure_classification.category
         for attempt in paired_trial_report.monolithic.attempts
     ]
+    monolithic_details = [
+        attempt.failure_classification.detail
+        for attempt in paired_trial_report.monolithic.attempts
+    ]
     ac14_categories = [
         attempt.failure_classification.category
+        for attempt in paired_trial_report.ac14.attempts
+    ]
+    ac14_details = [
+        attempt.failure_classification.detail
         for attempt in paired_trial_report.ac14.attempts
     ]
     infrastructure_failure_detected = any(
@@ -359,6 +380,21 @@ def build_front_half_first_smoke_readiness_artifact(
     )
     runtime_hard_harness_success = (
         paired_trial_report.monolithic.passed or paired_trial_report.ac14.passed
+    )
+    ac14_pre_runtime_proof_failed = any(
+        attempt.packet_tests_passed is False or attempt.recomposition_passed is False
+        for attempt in paired_trial_report.ac14.attempts
+    )
+    runtime_output_failure_detected = (
+        ac14_front_half_success
+        and not infrastructure_failure_detected
+        and not runtime_hard_harness_success
+        and bool(monolithic_categories)
+        and bool(ac14_categories)
+        and all(
+            category == "runtime_outputs"
+            for category in [*monolithic_categories, *ac14_categories]
+        )
     )
     if infrastructure_failure_detected:
         verdict: FrontHalfFirstSmokeReadinessVerdict = "blocked_on_infrastructure"
@@ -381,6 +417,14 @@ def build_front_half_first_smoke_readiness_artifact(
             "achieved an end-to-end runtime hard-harness success without "
             "infrastructure contamination."
         )
+    elif runtime_output_failure_detected:
+        verdict = "blocked_on_runtime_outputs"
+        rationale = (
+            "AC14 front-half approval now exists and both conditions reached runtime "
+            "evaluation, but no bounded attempt matched the benchmark runtime outputs, "
+            "so the next lane should diagnose runtime-output or benchmark fidelity rather "
+            "than the old harness bug."
+        )
     else:
         verdict = "blocked_on_harness"
         rationale = (
@@ -398,6 +442,9 @@ def build_front_half_first_smoke_readiness_artifact(
         infrastructure_failure_detected=infrastructure_failure_detected,
         monolithic_failure_categories=monolithic_categories,
         ac14_failure_categories=ac14_categories,
+        monolithic_failure_details=monolithic_details,
+        ac14_failure_details=ac14_details,
+        ac14_pre_runtime_proof_failed=ac14_pre_runtime_proof_failed,
     )
 
 
