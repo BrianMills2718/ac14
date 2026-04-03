@@ -1449,6 +1449,11 @@ INFRASTRUCTURE_ERROR_MARKERS = (
     "connection failure",
     "timed out",
     "timeout",
+    "429",
+    "ratelimit",
+    "rate limit",
+    "rate_limit",
+    "resource_exhausted",
 )
 
 
