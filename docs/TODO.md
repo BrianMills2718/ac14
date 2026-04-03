@@ -102,15 +102,19 @@ The experiment contract remains frozen in:
 - [x] Prove the Plan #125 repair with a repo-local import check plus targeted tests, `mypy`, and `ruff`.
 - [x] Run smoke_14 at `.ac14_out/front_half_first_smoke_14`.
 - [x] Lock the smoke_14 verdict as a harness boundary instead of leaving the dependency lane active.
-- [ ] Repair repeated ambiguous final-output inference inside Plan #123.
-- [ ] Prove the Plan #123 repair with targeted tests plus `mypy` and `ruff`.
+- [x] Repair repeated ambiguous final-output inference inside Plan #123.
+- [x] Prove the Plan #123 repair with targeted tests plus `mypy` and `ruff`.
 - [ ] Run smoke_15 at `.ac14_out/front_half_first_smoke_15`.
 - [ ] Branch immediately from the smoke_15 verdict into Plan #88 + #100, Plan #120 + #121, Plan #130 + #131, Plan #126 + #127, or Plan #128 + #129.
 
-Live note: the first `smoke_15` rerun was terminated after repeated OpenRouter
-timeouts before attempt 1 persisted. Do not branch from that aborted run. The
-next move is to rerun Plan #123 under stable provider conditions and only
-branch from a persisted `smoke_readiness_report.json`.
+Live note: two `smoke_15` reruns have been preserved as invalid branch inputs.
+The first died on repeated OpenRouter timeouts before attempt 1 persisted. The
+second advanced through all three monolithic attempts and AC14 attempt 1's
+structured-spec artifact, then the outer interactive control session
+terminated before `paired_trial_report.json` or
+`smoke_readiness_report.json` existed. Do not branch from either aborted run.
+The next move is one owned detached rerun and branching only from a persisted
+`smoke_readiness_report.json`.
 
 The completed execution lanes are:
 

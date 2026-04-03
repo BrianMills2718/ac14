@@ -21,20 +21,25 @@ This file is not the active checklist. That remains in [TODO.md](/home/brian/pro
 
 ## Active Lane Uncertainties
 
-### U-063: Can smoke_15 produce a truthful artifact under the current OpenRouter instability?
+### U-063: Can smoke_15 produce a truthful artifact under the current execution instability?
 **Status:** Investigating
 **Context:** After Plan #123's leaf-output repair landed and verified, the fresh
-`smoke_15` rerun hit repeated OpenRouter timeouts before it persisted even the
-first attempt artifact. The live process was terminated rather than allowed to
-masquerade as a harness verdict.
+`smoke_15` lane has now failed twice without a final
+`smoke_readiness_report.json`. The first rerun hit repeated OpenRouter
+timeouts before it persisted even the first attempt artifact. The second rerun
+progressed much farther, persisted all three monolithic attempts plus AC14
+attempt 1's `structured_spec_artifact.json`, and then the outer interactive
+control session terminated before the paired or top-level smoke report
+persisted.
 **Why it matters:** The next branch after Plan #123 depends on a truthful
 `smoke_readiness_report.json`. A rerun that never persists attempt 1 cannot be
 used to choose between the runtime-output, harness, or infrastructure branches.
 **Current handling:** Keep Plan #123 active, preserve the verified code/doc
-state, and treat the next rerun as infrastructure-sensitive. Only branch from a
-persisted `smoke_readiness_report.json`; if the next rerun dies the same way,
-activate the explicit infrastructure branch rather than pretending the harness
-lane is still being measured.
+state, preserve interrupted smoke directories as evidence, and rerun in one
+owned detached shell rather than an interactive PTY. Only branch from a
+persisted `smoke_readiness_report.json`; if the next rerun still dies before a
+report exists, freeze that as an explicit execution/infrastructure boundary
+instead of pretending the harness lane was measured.
 **Date opened:** 2026-04-03
 
 ### U-062: Can the bounded smoke runner finish under the current interactive tool session?
