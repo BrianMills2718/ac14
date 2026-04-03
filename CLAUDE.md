@@ -167,9 +167,13 @@ For the active empirical-comparison lane, this rule is especially strict:
     5. Plan #91 smoke rerun -> complete with `blocked_on_front_half`
     6. Plan #92 second blocker boundary -> complete
     7. Plan #93 async-safe freeze review repair -> complete
-    8. Plan #94 smoke rerun II -> active
-    9. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
-    10. Plan #95 front-half freeze-fidelity boundary otherwise
+    8. Plan #94 smoke rerun II -> complete with `blocked_on_infrastructure`
+    9. Plan #95 front-half infrastructure boundary -> complete
+    10. Plan #96 smoke rerun III with explicit `MODEL=gpt-5-mini` -> active
+    11. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
+    12. Plan #97 front-half freeze-fidelity boundary if the rerun verdict is `blocked_on_front_half`
+    13. Plan #98 runtime-harness boundary if the rerun verdict is `blocked_on_harness`
+    14. Plan #99 infrastructure-availability boundary if the rerun verdict is `blocked_on_infrastructure`
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

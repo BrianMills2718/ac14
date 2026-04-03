@@ -29,6 +29,7 @@ from ac14.empirical_comparison import (
     BenchmarkBundle,
     CostObservation,
     RuntimeCaseExecution,
+    _attempt_indicates_infrastructure_provider_failure,
     _build_failure_summary,
     _dynamic_field_exists,
     _is_infrastructure_provider_error,
@@ -314,8 +315,11 @@ def build_front_half_first_smoke_readiness_artifact(
         for attempt in paired_trial_report.ac14.attempts
     ]
     infrastructure_failure_detected = any(
-        category == "infrastructure_provider"
-        for category in [*monolithic_categories, *ac14_categories]
+        _attempt_indicates_infrastructure_provider_failure(
+            category=attempt.failure_classification.category,
+            generation_error=attempt.generation_error,
+        )
+        for attempt in [*paired_trial_report.monolithic.attempts, *paired_trial_report.ac14.attempts]
     )
     ac14_front_half_success = any(
         attempt.front_half_passed is True for attempt in paired_trial_report.ac14.attempts
@@ -550,12 +554,15 @@ def _run_ac14_attempt(
         if front_half_artifact is not None
         else None
     )
-    failure_classification = _classify_front_half_first_failure(
-        front_half_passed=front_half_passed,
+    failure_classification = _normalize_front_half_first_failure_classification(
+        classification=_classify_front_half_first_failure(
+            front_half_passed=front_half_passed,
+            generation_error=generation_error,
+            runtime_cases=runtime_cases,
+            semantic_review=semantic_review,
+            semantic_review_passed=semantic_review_passed,
+        ),
         generation_error=generation_error,
-        runtime_cases=runtime_cases,
-        semantic_review=semantic_review,
-        semantic_review_passed=semantic_review_passed,
     )
     failure_summary = _build_ac14_failure_summary(
         front_half_artifact=front_half_artifact,
@@ -684,12 +691,15 @@ def _run_monolithic_attempt(
 
     duration_s = time.perf_counter() - start
     llm_cost = _observe_llm_cost(trace_prefix)
-    failure_classification = _classify_front_half_first_failure(
-        front_half_passed=True,
+    failure_classification = _normalize_front_half_first_failure_classification(
+        classification=_classify_front_half_first_failure(
+            front_half_passed=True,
+            generation_error=generation_error,
+            runtime_cases=runtime_cases,
+            semantic_review=semantic_review,
+            semantic_review_passed=semantic_review_passed,
+        ),
         generation_error=generation_error,
-        runtime_cases=runtime_cases,
-        semantic_review=semantic_review,
-        semantic_review_passed=semantic_review_passed,
     )
     failure_summary = _build_monolithic_failure_summary(
         generation_error=generation_error,
@@ -1158,6 +1168,24 @@ def _classify_front_half_first_failure(
         category="success",
         detail="attempt passed the front-half-first harness",
     )
+
+
+def _normalize_front_half_first_failure_classification(
+    *,
+    classification: FrontHalfFirstFailureClassification,
+    generation_error: str | None,
+) -> FrontHalfFirstFailureClassification:
+    """Guarantee that detectable provider noise persists as infrastructure failure."""
+
+    if _attempt_indicates_infrastructure_provider_failure(
+        category=classification.category,
+        generation_error=generation_error,
+    ):
+        return FrontHalfFirstFailureClassification(
+            category="infrastructure_provider",
+            detail=generation_error or classification.detail,
+        )
+    return classification
 
 
 def _build_ac14_failure_summary(

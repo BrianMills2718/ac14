@@ -104,8 +104,12 @@ current executable lane.
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
 | 92 | [Front-Half-First Second Blocker Boundary](92_front_half_first_second_blocker_boundary.md) | Critical | Complete | 93 |
 | 93 | [Async-Safe Freeze Review Repair](93_async_safe_freeze_review_repair.md) | Critical | Complete | 94 |
-| 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | Complete | 88, 95 |
-| 95 | [Front-Half Freeze Fidelity Boundary](95_front_half_freeze_fidelity_boundary.md) | Critical | In Progress | - |
+| 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | Complete | 95 |
+| 95 | [Front-Half Infrastructure Boundary](95_front_half_infrastructure_boundary.md) | Critical | Complete | 96 |
+| 96 | [Front-Half-First Smoke Rerun III](96_front_half_first_smoke_rerun_iii.md) | Critical | In Progress | 88, 97, 98, 99 |
+| 97 | [Front-Half Freeze Fidelity Boundary](97_front_half_freeze_fidelity_boundary.md) | Critical | Planned | - |
+| 98 | [Front-Half Runtime-Harness Boundary](98_front_half_runtime_harness_boundary.md) | Critical | Planned | - |
+| 99 | [Front-Half Infrastructure Availability Boundary](99_front_half_infrastructure_availability_boundary.md) | Critical | Planned | - |
 
 ## Status Key
 

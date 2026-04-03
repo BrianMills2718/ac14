@@ -522,8 +522,11 @@ def build_smoke_readiness_artifact(
         for attempt in paired_trial_report.ac14.attempts
     ]
     infrastructure_failure_detected = any(
-        category == "infrastructure_provider"
-        for category in [*monolithic_categories, *ac14_categories]
+        _attempt_indicates_infrastructure_provider_failure(
+            category=attempt.failure_classification.category,
+            generation_error=attempt.generation_error,
+        )
+        for attempt in [*paired_trial_report.monolithic.attempts, *paired_trial_report.ac14.attempts]
     )
     hard_harness_success = paired_trial_report.monolithic.passed or paired_trial_report.ac14.passed
     if infrastructure_failure_detected:
@@ -757,13 +760,16 @@ def _run_condition_attempt(
         runtime_outputs_passed=runtime_outputs_passed,
         policy=bundle.config.semantic_review_policy,
     )
-    failure_classification = _classify_attempt_failure(
+    failure_classification = _normalize_attempt_failure_classification(
+        classification=_classify_attempt_failure(
+            generation_error=generation_error,
+            packet_tests_passed=packet_tests_passed,
+            recomposition_passed=recomposition_passed,
+            runtime_cases=runtime_cases,
+            semantic_review=semantic_review,
+            semantic_review_policy=bundle.config.semantic_review_policy,
+        ),
         generation_error=generation_error,
-        packet_tests_passed=packet_tests_passed,
-        recomposition_passed=recomposition_passed,
-        runtime_cases=runtime_cases,
-        semantic_review=semantic_review,
-        semantic_review_policy=bundle.config.semantic_review_policy,
     )
     failure_summary = _build_failure_summary(
         generation_error=generation_error,
@@ -1455,6 +1461,38 @@ INFRASTRUCTURE_ERROR_MARKERS = (
     "rate_limit",
     "resource_exhausted",
 )
+
+
+def _attempt_indicates_infrastructure_provider_failure(
+    *,
+    category: str,
+    generation_error: str | None,
+) -> bool:
+    """Detect provider noise from explicit classification or raw generation error text."""
+
+    if category == "infrastructure_provider":
+        return True
+    if generation_error is None:
+        return False
+    return _is_infrastructure_provider_error(generation_error)
+
+
+def _normalize_attempt_failure_classification(
+    *,
+    classification: AttemptFailureClassification,
+    generation_error: str | None,
+) -> AttemptFailureClassification:
+    """Guarantee that detectable provider noise persists as infrastructure failure."""
+
+    if _attempt_indicates_infrastructure_provider_failure(
+        category=classification.category,
+        generation_error=generation_error,
+    ):
+        return AttemptFailureClassification(
+            category="infrastructure_provider",
+            detail=generation_error or classification.detail,
+        )
+    return classification
 
 
 def _classify_attempt_failure(

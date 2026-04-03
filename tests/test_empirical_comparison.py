@@ -383,6 +383,33 @@ def test_build_smoke_readiness_artifact_detects_harness_blocker() -> None:
     assert artifact.hard_harness_success is False
 
 
+def test_build_smoke_readiness_artifact_detects_provider_noise_from_generation_error() -> None:
+    """Smoke readiness should still block on infra when raw provider noise survives category drift."""
+
+    monolithic = _condition_report("monolithic", passed=False, semantic_score=0.0, repair_loops=0)
+    monolithic.attempts[0].generation_error = (
+        'litellm.RateLimitError: GeminiException - {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED"}}'
+    )
+    monolithic.attempts[0].failure_classification = AttemptFailureClassification(
+        category="generation",
+        detail=monolithic.attempts[0].generation_error,
+    )
+
+    artifact = build_smoke_readiness_artifact(
+        benchmark_id="order_exception_resolution_v1",
+        paired_trial_report=PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=1,
+            monolithic=monolithic,
+            ac14=_condition_report("ac14", passed=False, semantic_score=0.0, repair_loops=0),
+        ),
+        trial_report_path="/tmp/trial_1/paired_trial_report.json",
+    )
+
+    assert artifact.verdict == "blocked_on_infrastructure"
+    assert artifact.infrastructure_failure_detected is True
+
+
 def test_empirical_attempt_persists_packet_and_recomposition_reports(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

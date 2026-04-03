@@ -76,6 +76,40 @@ def test_build_front_half_first_smoke_readiness_artifact_ready_for_full_trials()
     assert artifact.runtime_hard_harness_success is True
 
 
+def test_build_front_half_first_smoke_readiness_artifact_detects_provider_noise_from_generation_error() -> None:
+    """Front-half smoke readiness should block on infra when raw provider noise survives category drift."""
+
+    monolithic = _condition_report(
+        "monolithic",
+        passed=False,
+        front_half_passed=None,
+        category="generation",
+    )
+    monolithic.attempts[0].generation_error = (
+        'litellm.RateLimitError: GeminiException - {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED"}}'
+    )
+    monolithic.attempts[0].failure_summary = [monolithic.attempts[0].generation_error]
+
+    artifact = build_front_half_first_smoke_readiness_artifact(
+        benchmark_id="mini_scaling_structured_spec_v1",
+        paired_trial_report=FrontHalfFirstPairedTrialReport(
+            benchmark_id="mini_scaling_structured_spec_v1",
+            trial_id=1,
+            monolithic=monolithic,
+            ac14=_condition_report(
+                "ac14",
+                passed=False,
+                front_half_passed=False,
+                category="generation",
+            ),
+        ),
+        trial_report_path="/tmp/front_half_trial.json",
+    )
+
+    assert artifact.verdict == "blocked_on_infrastructure"
+    assert artifact.infrastructure_failure_detected is True
+
+
 def test_load_monolithic_runtime_system_requires_build_system(tmp_path: Path) -> None:
     """Monolithic runtime modules should fail loud when build_system is absent."""
 

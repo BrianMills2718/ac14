@@ -57,4 +57,4 @@ The next explicit chain is:
 1. [Plan #93: Async-Safe Freeze Review Repair](93_async_safe_freeze_review_repair.md)
 2. [Plan #94: Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md)
 3. [Plan #88: Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) only if the rerun says `ready_for_full_trials`
-4. [Plan #95: Front-Half Freeze Fidelity Boundary](95_front_half_freeze_fidelity_boundary.md) otherwise
+4. [Plan #95: Front-Half Infrastructure Boundary](95_front_half_infrastructure_boundary.md) otherwise
