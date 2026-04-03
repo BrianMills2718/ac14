@@ -21,6 +21,20 @@ This file is not the active checklist. That remains in [TODO.md](/home/brian/pro
 
 ## Active Lane Uncertainties
 
+### U-062: Can the bounded smoke runner finish under the current interactive tool session?
+**Status:** Investigating
+**Context:** The first smoke_14 launch advanced past the repaired dependency
+contract, completed all three monolithic attempts, and reached AC14 attempt 1
+runtime code generation, but the outer interactive process terminated before
+`paired_trial_report.json` or `smoke_readiness_report.json` persisted.
+**Why it matters:** Plan #125 needs one honest bounded smoke artifact. An
+interrupted control-plane session must not be mistaken for an AC14 harness
+verdict or silently overwrite the partial evidence.
+**Current handling:** Preserve the partial directory as an interrupted artifact,
+rerun the smoke gate in a detached shell, and only branch from a persisted
+`smoke_readiness_report.json`.
+**Date opened:** 2026-04-03
+
 ### U-001: What should the dependency execution-probe result model be?
 **Status:** Resolved
 **Context:** The active lane needs explicit result states such as `confirmed`,
