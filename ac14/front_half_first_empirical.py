@@ -102,8 +102,14 @@ class FrontHalfRuntimeContract(BaseModel):
 
     source_component_id: str = Field(description="Generated source component used for runtime execution.")
     source_port_name: str = Field(description="Top-level input port consumed at runtime.")
-    final_component_id: str = Field(description="Generated final component emitting reviewable outputs.")
+    final_component_id: str | None = Field(
+        default=None,
+        description="Single generated final component when all reviewable outputs come from one component.",
+    )
     final_output_ports: list[str] = Field(description="Final output ports evaluated at runtime.")
+    final_output_components: dict[str, str] = Field(
+        description="Mapping from each reviewable final output port to the component that emits it.",
+    )
 
 
 class MonolithicRuntimeSystemResponse(BaseModel):
@@ -792,22 +798,19 @@ def infer_runtime_contract_from_structured_spec(
     )
 
     final_output_ports = [item.name for item in structured_spec.outputs]
-    final_candidates = sorted(
-        component_id
-        for component_id, component in blueprint.components.items()
-        if set(final_output_ports).issubset({port.name for port in component.output_ports})
+    final_output_components = _infer_final_output_components(
+        blueprint=blueprint,
+        final_output_ports=final_output_ports,
     )
-    if len(final_candidates) != 1:
-        raise ValueError(
-            "unable to infer one unique final component from structured spec outputs "
-            f"{final_output_ports!r}: {final_candidates}",
-        )
+    unique_final_components = sorted(set(final_output_components.values()))
+    final_component_id = unique_final_components[0] if len(unique_final_components) == 1 else None
 
     return FrontHalfRuntimeContract(
         source_component_id=selected_source[0],
         source_port_name=selected_source[1],
-        final_component_id=final_candidates[0],
+        final_component_id=final_component_id,
         final_output_ports=final_output_ports,
+        final_output_components=final_output_components,
     )
 
 
@@ -901,6 +904,29 @@ def _normalize_runtime_contract_type(type_label: str) -> str:
         "object": "object",
     }
     return aliases.get(lower, normalized)
+
+
+def _infer_final_output_components(
+    *,
+    blueprint: FrozenBlueprint,
+    final_output_ports: list[str],
+) -> dict[str, str]:
+    """Infer which component emits each structured-spec final output port."""
+
+    inferred: dict[str, str] = {}
+    for port_name in final_output_ports:
+        candidates = sorted(
+            component_id
+            for component_id, component in blueprint.components.items()
+            if port_name in {port.name for port in component.output_ports}
+        )
+        if len(candidates) != 1:
+            raise ValueError(
+                "unable to infer one unique final component from structured spec output "
+                f"{port_name!r}: {candidates}",
+            )
+        inferred[port_name] = candidates[0]
+    return inferred
 
 
 def generate_monolithic_runtime_system_with_llm(
@@ -1147,9 +1173,8 @@ def _execute_generated_blueprint_runtime_cases(
                     },
                 },
             )
-            final_outputs = outputs_by_component[runtime_contract.final_component_id]
             selected_outputs = {
-                port_name: final_outputs[port_name]
+                port_name: outputs_by_component[runtime_contract.final_output_components[port_name]][port_name]
                 for port_name in runtime_contract.final_output_ports
             }
             results.append(

@@ -151,6 +151,10 @@ def test_infer_runtime_contract_from_generated_bundle(tmp_path: Path) -> None:
     assert contract.source_component_id == "decision_engine"
     assert contract.final_component_id == "decision_engine"
     assert contract.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_engine",
+        "scaling_decision_store": "decision_engine",
+    }
 
 
 def test_infer_runtime_contract_accepts_unique_renamed_root_input_port(tmp_path: Path) -> None:
@@ -176,6 +180,76 @@ def test_infer_runtime_contract_accepts_unique_renamed_root_input_port(tmp_path:
     assert contract.source_component_id == "decision_engine"
     assert contract.source_port_name == "metrics_snapshot_in"
     assert contract.final_component_id == "decision_engine"
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_engine",
+        "scaling_decision_store": "decision_engine",
+    }
+
+
+def test_infer_runtime_contract_supports_split_final_outputs(tmp_path: Path) -> None:
+    """Runtime contract inference should support final outputs emitted by multiple components."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"][0]["output_ports"] = [
+        {
+            "description": "Final single-case scaling decision.",
+            "port_name": "scaling_decision_entry",
+            "schema_name": "ScalingDecisionEntry",
+        }
+    ]
+    payload["proposed_components"].append(
+        {
+            "component_id": "decision_store",
+            "semantic_responsibility": "record_scaling_decision",
+            "purpose": "Append the single-case decision into the rolling store.",
+            "input_ports": [
+                {
+                    "port_name": "scaling_decision_entry",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Final single-case decision entry.",
+                }
+            ],
+            "output_ports": [
+                {
+                    "port_name": "scaling_decision_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Rolling scaling decision store.",
+                }
+            ],
+            "packet_focus": ["preserve ordered decision history"],
+            "dependency_notes": [],
+        }
+    )
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "decision_engine",
+            "from_port": "scaling_decision_entry",
+            "rationale": "The recorder consumes the emitted single-case decision entry.",
+            "to_component": "decision_store",
+            "to_port": "scaling_decision_entry",
+        }
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.source_component_id == "decision_engine"
+    assert contract.final_component_id is None
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_engine",
+        "scaling_decision_store": "decision_store",
+    }
 
 
 def test_run_front_half_first_smoke_gate_persists_ready_artifact(
