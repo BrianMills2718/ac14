@@ -28,6 +28,7 @@ from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
+from ac14.structured_spec import build_structured_spec_artifact
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -506,6 +507,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "verify-blueprint" in result.stdout
     assert "packet-sufficiency" in result.stdout
     assert "discover-input" in result.stdout
+    assert "prepare-structured-spec" in result.stdout
     assert "inspect-environment" in result.stdout
     assert "inspect-project-context" in result.stdout
     assert "retrieve-context" in result.stdout
@@ -513,6 +515,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "probe-dependencies" in result.stdout
     assert "remediate-dependencies" in result.stdout
     assert "draft-blueprint-plan" in result.stdout
+    assert "draft-blueprint-plan-from-structured-spec" in result.stdout
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
     assert "front-half-acceptance" in result.stdout
@@ -1193,6 +1196,165 @@ def test_make_draft_blueprint_plan_runs_with_dependency_plan(tmp_path: Path) -> 
     assert payload["dependency_plan_path"] == str(dependency_plan_path)
     assert payload["dependency_execution_artifact_path"] == str(dependency_execution_path)
     assert payload["dependency_recommendations"] == ["reuse pydantic: typed schema contracts"]
+
+
+def test_make_prepare_structured_spec_runs_end_to_end(tmp_path: Path) -> None:
+    """Make structured-spec target should persist the normalized artifact."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+    output_dir = tmp_path / "structured_spec"
+    result = subprocess.run(
+        [
+            "make",
+            "prepare-structured-spec",
+            f"INPUT={source_path}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "structured_spec_artifact.json").read_text())
+    assert payload["spec"]["system_name"] == "Resource Scaling Contract"
+
+
+def test_make_draft_blueprint_plan_from_structured_spec_runs_end_to_end(tmp_path: Path) -> None:
+    """Make structured-spec planning target should persist a draft planning artifact."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+    fixture_path = tmp_path / "draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Use one evaluator component and one sink.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "ScalingDecision",
+                        "kind": "record",
+                        "description": "Final scaling decision.",
+                        "fields": [
+                            {
+                                "field_name": "action",
+                                "field_type": "str",
+                                "description": "One scaling action label.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "recommendation_generator",
+                        "semantic_responsibility": "generate_scaling_recommendation",
+                        "purpose": "Turn metrics into one bounded scaling recommendation.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "scaling_decision",
+                                "schema_name": "ScalingDecision",
+                                "description": "Final scaling recommendation.",
+                            }
+                        ],
+                        "packet_focus": ["keep threshold logic explicit"],
+                        "dependency_notes": [],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "critical_breach",
+                        "kind": "semantic_acceptance",
+                        "description": "Review one critical CPU breach case end to end.",
+                        "requirement_focus": ["produce a scaling decision"],
+                    }
+                ],
+                "packetization_notes": ["Keep the first draft graph minimal."],
+                "dependency_decisions": [],
+                "open_questions": [],
+            },
+            indent=2,
+        )
+    )
+    output_dir = tmp_path / "draft_plan"
+    env = os.environ.copy()
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
+    result = subprocess.run(
+        [
+            "make",
+            "draft-blueprint-plan-from-structured-spec",
+            f"STRUCTURED_SPEC={tmp_path / 'structured_spec' / 'structured_spec_artifact.json'}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "draft_blueprint_plan.json").read_text())
+    assert payload["planning_input_kind"] == "structured_spec"
+    assert payload["planning_input_name"] == "Resource Scaling Contract"
 
 
 def test_make_materialize_draft_bundle_runs_end_to_end(tmp_path: Path) -> None:

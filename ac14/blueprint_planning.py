@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Literal, cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from ac14.dependency_execution import (
     DependencyExecutionArtifact,
@@ -17,12 +17,18 @@ from ac14.dependency_execution import (
 from ac14.dependency_planning import DependencyPlanningArtifact
 from ac14.discovery import DiscoveryArtifact
 from ac14.models import ValidationFinding
+from ac14.structured_spec import StructuredSpecArtifact
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
 DEFAULT_BLUEPRINT_PLAN_MODEL = "gemini/gemini-2.5-flash-lite"
 DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET = 0.75
 PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "draft_blueprint_plan.yaml"
+STRUCTURED_SPEC_PROMPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "prompts"
+    / "draft_blueprint_plan_from_structured_spec.yaml"
+)
 REFINE_PROMPT_PATH = (
     Path(__file__).resolve().parents[1] / "prompts" / "refine_draft_blueprint_plan.yaml"
 )
@@ -185,10 +191,31 @@ class RefinementFreezeRemediationPlan(BaseModel):
 class DraftBlueprintPlanArtifact(BaseModel):
     """Persisted draft blueprint planning artifact built from discovery plus requirements."""
 
-    discovery_artifact_path: str = Field(
-        description="Path to the persisted discovery artifact used as input.",
+    planning_input_kind: Literal["discovery", "structured_spec"] = Field(
+        default="discovery",
+        description="Which bounded front-half input surface produced this plan.",
+    )
+    planning_input_name: str | None = Field(
+        default=None,
+        description="Human-facing name for the source planning input when one is known.",
+    )
+    planning_input_artifact_path: str | None = Field(
+        default=None,
+        description="Canonical source artifact path for this planning run.",
+    )
+    discovery_artifact_path: str | None = Field(
+        default=None,
+        description="Path to the persisted discovery artifact used as input when discovery drove this plan.",
+    )
+    structured_spec_artifact_path: str | None = Field(
+        default=None,
+        description="Path to the persisted structured-spec artifact when structured spec drove this plan.",
     )
     requirements: list[str] = Field(description="Requirements used for planning.")
+    planning_input_open_concerns: list[str] = Field(
+        default_factory=list,
+        description="Open concerns carried forward from the active planning input surface.",
+    )
     discovery_open_concerns: list[str] = Field(
         description="Open concerns carried forward from the discovery artifact.",
     )
@@ -268,6 +295,34 @@ class DraftBlueprintPlanArtifact(BaseModel):
     open_questions: list[PlanningQuestion] = Field(
         description="Questions to resolve before blueprint freeze.",
     )
+
+    @model_validator(mode="after")
+    def _normalize_planning_input_provenance(self) -> "DraftBlueprintPlanArtifact":
+        """Keep older discovery-based artifacts compatible while adding new input provenance."""
+
+        if self.planning_input_kind == "discovery":
+            if not self.discovery_artifact_path and self.planning_input_artifact_path:
+                self.discovery_artifact_path = self.planning_input_artifact_path
+            if not self.planning_input_artifact_path:
+                self.planning_input_artifact_path = self.discovery_artifact_path
+            if not self.planning_input_artifact_path:
+                raise ValueError("discovery-based draft plan is missing discovery artifact provenance")
+        else:
+            if not self.structured_spec_artifact_path and self.planning_input_artifact_path:
+                self.structured_spec_artifact_path = self.planning_input_artifact_path
+            if not self.planning_input_artifact_path:
+                self.planning_input_artifact_path = self.structured_spec_artifact_path
+            if not self.planning_input_artifact_path:
+                raise ValueError("structured-spec draft plan is missing structured-spec provenance")
+
+        if not self.planning_input_name and self.planning_input_artifact_path:
+            self.planning_input_name = Path(self.planning_input_artifact_path).stem.replace(
+                "_artifact",
+                "",
+            )
+        if not self.planning_input_open_concerns:
+            self.planning_input_open_concerns = list(self.discovery_open_concerns)
+        return self
 
 
 async def abuild_draft_blueprint_plan(
@@ -354,8 +409,12 @@ async def abuild_draft_blueprint_plan(
         typed_response = cast(DraftBlueprintPlanResponse, response)
     _validate_draft_blueprint_plan(typed_response)
     plan = DraftBlueprintPlanArtifact(
+        planning_input_kind="discovery",
+        planning_input_name=_planning_input_name_from_discovery(discovery_artifact),
+        planning_input_artifact_path=str(artifact_path),
         discovery_artifact_path=str(artifact_path),
         requirements=requirements,
+        planning_input_open_concerns=discovery_artifact.open_concerns,
         discovery_open_concerns=discovery_artifact.open_concerns,
         dependency_plan_path=(
             str(normalized_dependency_plan_path)
@@ -437,6 +496,63 @@ async def abuild_draft_blueprint_plan(
     return plan
 
 
+async def abuild_draft_blueprint_plan_from_structured_spec(
+    structured_spec_artifact_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
+    max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    task: str = "ac14_draft_blueprint_plan_from_structured_spec",
+) -> DraftBlueprintPlanArtifact:
+    """Build a persisted draft blueprint planning artifact from a structured-spec input surface."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    artifact_path = Path(structured_spec_artifact_path)
+    structured_spec_artifact = StructuredSpecArtifact.model_validate_json(artifact_path.read_text())
+
+    fixture_path = os.environ.get("AC14_BLUEPRINT_PLAN_FIXTURE")
+    if fixture_path:
+        typed_response = DraftBlueprintPlanResponse.model_validate_json(Path(fixture_path).read_text())
+    else:
+        messages = render_prompt(
+            STRUCTURED_SPEC_PROMPT_PATH,
+            structured_spec_artifact=structured_spec_artifact.model_dump(mode="json"),
+        )
+        response, _meta = await acall_llm_structured(
+            model,
+            messages,
+            response_model=DraftBlueprintPlanResponse,
+            task=task,
+            trace_id=f"ac14/draft_blueprint_plan_from_structured_spec/{artifact_path.stem}",
+            max_budget=max_budget,
+        )
+        typed_response = cast(DraftBlueprintPlanResponse, response)
+
+    _validate_draft_blueprint_plan(typed_response)
+    plan = DraftBlueprintPlanArtifact(
+        planning_input_kind="structured_spec",
+        planning_input_name=structured_spec_artifact.spec.system_name,
+        planning_input_artifact_path=str(artifact_path),
+        structured_spec_artifact_path=str(artifact_path),
+        requirements=structured_spec_artifact.spec.requirements,
+        planning_input_open_concerns=structured_spec_artifact.open_concerns,
+        discovery_open_concerns=[],
+        planning_summary=typed_response.planning_summary,
+        proposed_schemas=typed_response.proposed_schemas,
+        proposed_components=typed_response.proposed_components,
+        proposed_bindings=typed_response.proposed_bindings,
+        proposed_scenarios=typed_response.proposed_scenarios,
+        packetization_notes=typed_response.packetization_notes,
+        dependency_decisions=typed_response.dependency_decisions,
+        open_questions=typed_response.open_questions,
+    )
+    (destination / "draft_blueprint_plan.json").write_text(
+        json.dumps(plan.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return plan
+
+
 def build_draft_blueprint_plan(
     discovery_artifact_path: Path | str,
     output_dir: Path | str,
@@ -459,6 +575,27 @@ def build_draft_blueprint_plan(
             dependency_plan_path=dependency_plan_path,
             dependency_execution_artifact_path=dependency_execution_artifact_path,
             dependency_remediation_artifact_path=dependency_remediation_artifact_path,
+            model=model,
+            max_budget=max_budget,
+            task=task,
+        ),
+    )
+
+
+def build_draft_blueprint_plan_from_structured_spec(
+    structured_spec_artifact_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_BLUEPRINT_PLAN_MODEL,
+    max_budget: float = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    task: str = "ac14_draft_blueprint_plan_from_structured_spec",
+) -> DraftBlueprintPlanArtifact:
+    """Synchronous wrapper for structured-spec-driven draft planning."""
+
+    return asyncio.run(
+        abuild_draft_blueprint_plan_from_structured_spec(
+            structured_spec_artifact_path=structured_spec_artifact_path,
+            output_dir=output_dir,
             model=model,
             max_budget=max_budget,
             task=task,
@@ -638,8 +775,18 @@ def _validate_refinement_request(
         raise ValueError(
             "freeze remediation plan points at a different draft plan than the one provided",
         )
-    if source_plan.discovery_artifact_path == "":
-        raise ValueError("source draft plan is missing discovery artifact provenance")
+    if not source_plan.planning_input_artifact_path:
+        raise ValueError("source draft plan is missing planning input provenance")
+
+
+def _planning_input_name_from_discovery(discovery_artifact: DiscoveryArtifact) -> str:
+    """Return a stable human-facing name for discovery-driven planning input."""
+
+    source_path = (
+        discovery_artifact.input_inspection.primary_input_path
+        or discovery_artifact.input_inspection.input_path
+    )
+    return Path(source_path).stem.replace("_artifact", "")
 
 
 def _resolve_dependency_plan_path(

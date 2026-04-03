@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Literal
@@ -148,12 +149,13 @@ def build_freeze_readiness_report(
 def _build_metadata_file(plan: DraftBlueprintPlanArtifact, plan_path: Path) -> MetadataFile:
     """Build draft metadata with frozen-profile defaults."""
 
-    blueprint_stem = Path(plan.discovery_artifact_path).stem.replace("_artifact", "")
+    display_name = plan.planning_input_name or "Draft Blueprint"
+    blueprint_stem = _slugify_blueprint_name(display_name)
     blueprint_id = f"{blueprint_stem}_draft_v0"
     return MetadataFile(
         metadata=Metadata(
             blueprint_id=blueprint_id,
-            name=blueprint_stem.replace("_", " ").title(),
+            name=display_name,
             version="0.0.0-draft",
             purpose=plan.planning_summary,
             source_kind="draft_plan_artifact",
@@ -170,6 +172,13 @@ def _build_metadata_file(plan: DraftBlueprintPlanArtifact, plan_path: Path) -> M
             codegen_target="python",
         ),
     )
+
+
+def _slugify_blueprint_name(value: str) -> str:
+    """Return a stable slug for metadata ids derived from planning provenance."""
+
+    normalized = re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
+    return normalized or "draft_blueprint"
 
 
 def _build_schemas_file(

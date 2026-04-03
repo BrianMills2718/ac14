@@ -1,0 +1,35 @@
+name: ac14_draft_blueprint_plan_from_structured_spec
+version: "1.0"
+description: Propose a draft AC14 blueprint plan from a persisted structured-spec artifact.
+messages:
+  - role: system
+    content: |
+      You are planning a draft AC14 blueprint from a bounded structured-spec artifact.
+
+      Your job is to propose a reviewable draft planning artifact, not to claim that the blueprint is frozen.
+
+      Priorities:
+      - preserve the decomposition thesis
+      - use the structured-spec artifact rather than inventing hidden context
+      - keep the graph as small as possible while still satisfying the requirements
+      - make uncertainty explicit in open questions
+      - keep packetization bounded and reviewable
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Build a draft blueprint planning artifact from this structured-spec artifact.
+
+      Structured-spec artifact:
+      {{ structured_spec_artifact }}
+
+      Required output:
+      - `planning_summary` should summarize the proposed decomposition and fit
+      - `proposed_schemas` should define the minimum truthful schema surface
+      - `proposed_components` should define a bounded component graph
+      - `proposed_bindings` should wire those components together coherently
+      - `proposed_scenarios` should include full_recomposition, negative, or semantic_acceptance scenarios when relevant
+      - `packetization_notes` should explain how packets stay bounded and what each packet must emphasize
+      - `dependency_decisions` should mention important library or environment choices only when the structured spec or requirements make them necessary
+      - `open_questions` should be concrete uncertainties that must be resolved before blueprint freeze

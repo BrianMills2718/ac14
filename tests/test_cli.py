@@ -29,6 +29,7 @@ from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
+from ac14.structured_spec import build_structured_spec_artifact
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -1391,6 +1392,177 @@ def test_cli_draft_blueprint_plan_accepts_dependency_remediation_artifact(tmp_pa
     assert (tmp_path / "draft_plan" / "draft_blueprint_plan.json").exists()
 
 
+def test_cli_prepare_structured_spec(tmp_path: Path) -> None:
+    """Prepare-structured-spec should persist a bounded structured-spec artifact."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "prepare-structured-spec",
+            str(source_path),
+            "--output-dir",
+            str(tmp_path / "artifact"),
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["spec"]["system_name"] == "Resource Scaling Contract"
+    assert (tmp_path / "artifact" / "structured_spec_artifact.json").exists()
+
+
+def test_cli_draft_blueprint_plan_from_structured_spec(tmp_path: Path) -> None:
+    """Structured-spec planning CLI should persist a draft planning artifact."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "artifact")
+    fixture_path = tmp_path / "draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "planning_summary": "Use one evaluator component and one sink.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "ScalingDecision",
+                        "kind": "record",
+                        "description": "Final scaling decision.",
+                        "fields": [
+                            {
+                                "field_name": "action",
+                                "field_type": "str",
+                                "description": "One scaling action label.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "recommendation_generator",
+                        "semantic_responsibility": "generate_scaling_recommendation",
+                        "purpose": "Turn metrics into one bounded scaling recommendation.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "scaling_decision",
+                                "schema_name": "ScalingDecision",
+                                "description": "Final scaling recommendation.",
+                            }
+                        ],
+                        "packet_focus": ["keep threshold logic explicit"],
+                        "dependency_notes": [],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "critical_breach",
+                        "kind": "semantic_acceptance",
+                        "description": "Review one critical CPU breach case end to end.",
+                        "requirement_focus": ["produce a scaling decision"],
+                    }
+                ],
+                "packetization_notes": ["Keep the first draft graph minimal."],
+                "dependency_decisions": [],
+                "open_questions": [],
+            },
+            indent=2,
+        )
+    )
+    env = os.environ.copy()
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(fixture_path)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "draft-blueprint-plan-from-structured-spec",
+            str(tmp_path / "artifact" / "structured_spec_artifact.json"),
+            "--output-dir",
+            str(tmp_path / "plan"),
+            "--max-budget",
+            "0.1",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["planning_input_kind"] == "structured_spec"
+    assert payload["planning_input_name"] == "Resource Scaling Contract"
+    assert payload["requirements"] == ["produce a scaling decision for each metrics snapshot"]
+    assert payload["proposed_components"][0]["component_id"] == "recommendation_generator"
+    assert (tmp_path / "plan" / "draft_blueprint_plan.json").exists()
+
+
 def test_cli_refine_draft_blueprint_plan_runs_end_to_end(tmp_path: Path) -> None:
     """Draft-plan refinement CLI should emit a refined planning artifact with provenance."""
 
@@ -1660,6 +1832,20 @@ def test_cli_discover_input_help() -> None:
     assert "--max-samples" in result.stdout
 
 
+def test_cli_prepare_structured_spec_help() -> None:
+    """Prepare-structured-spec help should expose the new structured-spec command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "prepare-structured-spec", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--output-dir" in result.stdout
+
+
 def test_cli_draft_blueprint_plan_help() -> None:
     """Draft-blueprint-plan help should expose the planning command."""
 
@@ -1672,6 +1858,20 @@ def test_cli_draft_blueprint_plan_help() -> None:
     )
     assert result.returncode == 0
     assert "--requirements" in result.stdout
+
+
+def test_cli_draft_blueprint_plan_from_structured_spec_help() -> None:
+    """Structured-spec planning help should expose the new planning command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "draft-blueprint-plan-from-structured-spec", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--max-budget" in result.stdout
 
 
 def test_cli_materialize_draft_bundle_help() -> None:

@@ -18,6 +18,7 @@ from ac14.blueprint_planning import (
     DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     DEFAULT_BLUEPRINT_PLAN_MODEL,
     build_draft_blueprint_plan,
+    build_draft_blueprint_plan_from_structured_spec,
     build_refined_draft_blueprint_plan,
 )
 from ac14.comparison import build_generator_comparison_report
@@ -61,6 +62,7 @@ from ac14.recommendation import (
 )
 from ac14.semantic_comparison import ComparisonMode, build_semantic_comparison_report
 from ac14.semantic_suite import build_suite_semantic_comparison_report
+from ac14.structured_spec import build_structured_spec_artifact
 from ac14.suite import build_suite_comparison_report, build_suite_proof_report
 from ac14.retrieval import (
     RepoRetrievalQuery,
@@ -103,6 +105,13 @@ def main() -> int:
     discover_parser.add_argument("--packages", nargs="*", default=[])
     discover_parser.add_argument("--retrieval-artifact", nargs="*", default=[])
     discover_parser.add_argument("--max-samples", type=int, default=5)
+
+    structured_spec_parser = subparsers.add_parser(
+        "prepare-structured-spec",
+        help="Validate a bounded structured spec and persist a reviewable artifact.",
+    )
+    structured_spec_parser.add_argument("input_path", type=Path)
+    structured_spec_parser.add_argument("--output-dir", type=Path, required=True)
 
     environment_parser = subparsers.add_parser(
         "inspect-environment",
@@ -174,6 +183,19 @@ def main() -> int:
     draft_plan_parser.add_argument("--dependency-remediation", type=Path, default=None)
     draft_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
     draft_plan_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
+    )
+
+    structured_spec_plan_parser = subparsers.add_parser(
+        "draft-blueprint-plan-from-structured-spec",
+        help="Build an LLM-backed draft blueprint planning artifact from a structured spec artifact.",
+    )
+    structured_spec_plan_parser.add_argument("structured_spec_artifact_path", type=Path)
+    structured_spec_plan_parser.add_argument("--output-dir", type=Path, required=True)
+    structured_spec_plan_parser.add_argument("--model", default=DEFAULT_BLUEPRINT_PLAN_MODEL)
+    structured_spec_plan_parser.add_argument(
         "--max-budget",
         type=float,
         default=DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
@@ -495,6 +517,11 @@ def main() -> int:
             [Path(path) for path in cast(list[str], args.retrieval_artifact)],
             args.max_samples,
         )
+    if args.command == "prepare-structured-spec":
+        return _prepare_structured_spec(
+            args.input_path,
+            args.output_dir,
+        )
     if args.command == "inspect-environment":
         return _inspect_environment(
             args.output_dir,
@@ -545,6 +572,13 @@ def main() -> int:
             args.dependency_plan,
             args.dependency_execution,
             args.dependency_remediation,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "draft-blueprint-plan-from-structured-spec":
+        return _draft_blueprint_plan_from_structured_spec(
+            args.structured_spec_artifact_path,
+            args.output_dir,
             args.model,
             args.max_budget,
         )
@@ -826,6 +860,20 @@ def _inspect_environment(
     return 0
 
 
+def _prepare_structured_spec(
+    input_path: Path,
+    output_dir: Path,
+) -> int:
+    """Build and print a persisted structured-spec artifact."""
+
+    artifact = build_structured_spec_artifact(
+        input_path=input_path,
+        output_dir=output_dir,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
 def _inspect_project_context(
     output_dir: Path,
     project_root: Path | None,
@@ -940,6 +988,24 @@ def _draft_blueprint_plan(
         dependency_plan_path=dependency_plan_path,
         dependency_execution_artifact_path=dependency_execution_artifact_path,
         dependency_remediation_artifact_path=dependency_remediation_artifact_path,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(plan.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _draft_blueprint_plan_from_structured_spec(
+    structured_spec_artifact_path: Path,
+    output_dir: Path,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Build and print a structured-spec-driven draft blueprint planning artifact."""
+
+    plan = build_draft_blueprint_plan_from_structured_spec(
+        structured_spec_artifact_path=structured_spec_artifact_path,
+        output_dir=output_dir,
         model=model,
         max_budget=max_budget,
     )

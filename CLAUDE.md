@@ -144,6 +144,11 @@ For the active empirical-comparison lane, this rule is especially strict:
 - if the bounded smoke rerun still yields `0` AC14 hard-harness successes, the
   full rerun stays closed and the next default move is a front-half-first
   empirical contract plus one bounded implementation lane toward that contract
+- once the first bounded structured-spec input contract lands, the next default
+  chain is:
+  1. structured-spec front-half acceptance
+  2. structured-spec benchmark bundle
+  3. front-half-first smoke gate
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

@@ -1,6 +1,6 @@
 # Plan #83: Structured Spec Input Contract
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 82
@@ -127,3 +127,24 @@ freeze stages.
 
 This lane is intentionally smaller than broad NL-to-blueprint. It is the first
 truthful front-half input contract, not the final front-half schema.
+
+## Implementation Summary (2026-04-02)
+
+What landed:
+
+- bounded structured-spec artifact preparation in `ac14/structured_spec.py`
+- a parallel draft-planning entrypoint for structured-spec provenance in
+  `ac14/blueprint_planning.py`
+- shared downstream provenance so draft authoring can preserve structured-spec
+  names and source artifacts
+- CLI and Make support for:
+  - `prepare-structured-spec`
+  - `draft-blueprint-plan-from-structured-spec`
+
+Why this is enough for the lane:
+
+- AC14 can now accept one reviewable structured specification document without
+  pretending to have broad free-prose NL-to-blueprint capability
+- the new contract is parallel to discovery, not a destabilizing refactor
+- later front-half and benchmark lanes can now consume a real structured-spec
+  artifact directly

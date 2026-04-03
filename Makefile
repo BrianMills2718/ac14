@@ -25,6 +25,7 @@ REPO_QUERY ?=
 REPOS ?=
 RETRIEVAL_ARTIFACTS ?=
 DISCOVERY ?= .ac14_out/discovery/discovery_artifact.json
+STRUCTURED_SPEC ?= .ac14_out/structured_spec/structured_spec_artifact.json
 PLAN ?= .ac14_out/draft_plan/draft_blueprint_plan.json
 DEPENDENCY_PLAN ?=
 DEPENDENCY_EXECUTION ?=
@@ -35,7 +36,7 @@ REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 BENCHMARK ?= benchmarks/order_exception_resolution
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input prepare-structured-spec inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan draft-blueprint-plan-from-structured-spec refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -64,6 +65,9 @@ packet-sufficiency: ## Build a persisted structural packet-sufficiency artifact 
 discover-input: ## Inspect a local input and persist a pre-freeze discovery artifact (INPUT=data.json OUTPUT=.ac14_out/discovery PACKAGES="pandas requests")
 	$(PYTHON) -m ac14 discover-input "$(INPUT)" --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" --packages $(PACKAGES) $(foreach artifact,$(RETRIEVAL_ARTIFACTS),--retrieval-artifact "$(artifact)")
 
+prepare-structured-spec: ## Validate a bounded structured spec and persist an artifact (INPUT=spec.yaml OUTPUT=.ac14_out/structured_spec)
+	$(PYTHON) -m ac14 prepare-structured-spec "$(INPUT)" --output-dir "$(OUTPUT)"
+
 inspect-environment: ## Persist the current discovery environment inventory (OUTPUT=.ac14_out/environment PACKAGES="pandas requests")
 	$(PYTHON) -m ac14 inspect-environment --output-dir "$(OUTPUT)" --project-root "$(CURDIR)" --packages $(PACKAGES)
 
@@ -84,6 +88,9 @@ remediate-dependencies: ## Rerun blocked install probes from an execution artifa
 
 draft-blueprint-plan: ## Build an LLM-backed draft blueprint plan (DISCOVERY=.ac14_out/discovery/discovery_artifact.json OUTPUT=.ac14_out/draft_plan REQUIREMENTS="..." DEPENDENCY_PLAN=optional.json DEPENDENCY_EXECUTION=optional.json DEPENDENCY_REMEDIATION=optional.json)
 	$(PYTHON) -m ac14 draft-blueprint-plan "$(DISCOVERY)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) $(if $(DEPENDENCY_PLAN),--dependency-plan "$(DEPENDENCY_PLAN)",) $(if $(DEPENDENCY_EXECUTION),--dependency-execution "$(DEPENDENCY_EXECUTION)",) $(if $(DEPENDENCY_REMEDIATION),--dependency-remediation "$(DEPENDENCY_REMEDIATION)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+draft-blueprint-plan-from-structured-spec: ## Build an LLM-backed draft blueprint plan from a structured-spec artifact (STRUCTURED_SPEC=.ac14_out/structured_spec/structured_spec_artifact.json OUTPUT=.ac14_out/structured_spec_plan)
+	$(PYTHON) -m ac14 draft-blueprint-plan-from-structured-spec "$(STRUCTURED_SPEC)" --output-dir "$(OUTPUT)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 refine-draft-blueprint-plan: ## Refine a blocked draft plan from a freeze decision (PLAN=.ac14_out/draft_plan/draft_blueprint_plan.json INPUT=.ac14_out/freeze_decision/freeze_decision.json OUTPUT=.ac14_out/refined_draft_plan)
 	$(PYTHON) -m ac14 refine-draft-blueprint-plan "$(PLAN)" --freeze-decision "$(INPUT)" --output-dir "$(OUTPUT)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"

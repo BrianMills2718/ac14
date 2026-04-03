@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md)
+- [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md)
 
 The explicit active chain is:
 
@@ -29,7 +29,10 @@ The explicit active chain is:
 - [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> complete
 - [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md) -> complete
 - [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
-- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> active
+- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
+- [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> active
+- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> planned
+- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> planned
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -45,8 +48,10 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 ## Active 24-Hour Chain
 
 1. implement the minimal structured-spec input contract from Plan #83
-2. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
-3. keep Plan #37 and other blocked propagation lanes frozen until the front-half-first empirical direction is implemented explicitly
+2. prove the new structured-spec contract through draft bundle, freeze decision, and front-half review in Plan #84
+3. freeze a benchmark-ready structured-spec bundle in Plan #85
+4. spend one bounded front-half-first smoke trial in Plan #86
+5. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
 
@@ -74,6 +79,7 @@ Completed before the current lane:
 20. a reusable packet-rule-grounding repair that adds bounded decision-oriented summaries to the codegen context and prompt
 21. a post-grounding smoke rerun showing AC14 still failed `0/3` bounded attempts while monolithic passed immediately
 22. a completed strategic pivot and front-half-first empirical contract
+23. a completed bounded structured-spec input contract for draft planning
 
 ## Tactical Phase Summary
 
@@ -115,6 +121,24 @@ Success criteria:
 
 - the repo states clearly why the harder back-half gate stays closed and what the next front-half lane is
 
+### Phase 5: structured-spec front-half proof
+
+- prove the new structured-spec contract through draft plan, draft bundle,
+  freeze, and front-half review
+
+Success criteria:
+
+- a structured-spec front-half acceptance artifact exists and remains bounded
+
+### Phase 6: structured-spec empirical setup
+
+- freeze the benchmark-ready structured-spec bundle
+- spend one bounded smoke trial only after that bundle is explicit
+
+Success criteria:
+
+- the next empirical smoke gate consumes a shared structured-spec input contract
+
 ## Known Uncertainties
 
 The detailed uncertainty ledger now lives in:
@@ -124,5 +148,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is how small and truthful the first structured-spec input contract can be
-3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is implemented explicitly
+2. the current open question is how well the new structured-spec contract survives the full front half
+3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is executed explicitly

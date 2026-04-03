@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import yaml  # type: ignore[import-untyped]
+
 from ac14.blueprint_planning import (
     DraftBlueprintPlanArtifact,
     PlannedComponent,
@@ -148,6 +150,30 @@ def test_materialize_draft_blueprint_bundle_blocks_on_dependency_probe_results(
     ]
     assert len(blocked_findings) == 1
     assert "install rich" in blocked_findings[0]["message"]
+
+
+def test_materialize_draft_blueprint_bundle_uses_structured_spec_provenance_for_metadata(
+    tmp_path: Path,
+) -> None:
+    """Structured-spec planning provenance should flow into draft metadata ids and names."""
+
+    plan_path = tmp_path / "draft_blueprint_plan.json"
+    artifact = DraftBlueprintPlanArtifact.model_validate_json(_write_plan_artifact(plan_path).read_text())
+    artifact.planning_input_kind = "structured_spec"
+    artifact.discovery_artifact_path = None
+    artifact.structured_spec_artifact_path = str(tmp_path / "structured_spec_artifact.json")
+    artifact.planning_input_artifact_path = artifact.structured_spec_artifact_path
+    artifact.planning_input_name = "Resource Scaling Contract"
+    plan_path.write_text(json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+
+    metadata = yaml.safe_load((Path(manifest.draft_bundle_dir) / "metadata.yaml").read_text())
+    assert metadata["metadata"]["blueprint_id"] == "resource_scaling_contract_draft_v0"
+    assert metadata["metadata"]["name"] == "Resource Scaling Contract"
 
 
 def test_materialize_draft_blueprint_bundle_warns_on_dependency_probe_results_when_policy_warn(

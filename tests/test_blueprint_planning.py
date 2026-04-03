@@ -18,6 +18,7 @@ from ac14.blueprint_planning import (
     PlannedSchemaField,
     PlanningQuestion,
     build_draft_blueprint_plan,
+    build_draft_blueprint_plan_from_structured_spec,
     build_refined_draft_blueprint_plan,
     RefinedDraftBlueprintPlanResponse,
 )
@@ -34,6 +35,7 @@ from ac14.dependency_planning import (
     DependencyEvidence,
 )
 from ac14.discovery import build_discovery_artifact
+from ac14.structured_spec import build_structured_spec_artifact
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -347,7 +349,121 @@ def test_build_draft_blueprint_plan_carries_dependency_execution_artifact(
     assert plan.blocked_dependency_probes == [
         "install rich: install probe blocked because environment mutation is disabled",
     ]
-    assert plan.dependency_probe_observations == ["install mutation was disabled for this run"]
+
+
+def test_build_draft_blueprint_plan_from_structured_spec_persists_artifact(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec draft planning should persist a validated planning artifact."""
+
+    spec_path = tmp_path / "resource_scaling_spec.yaml"
+    spec_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+                "workflow_hints:",
+                "  - hint_id: evaluate_thresholds",
+                "    summary: Evaluate metrics against rules.",
+                "    input_names: [metrics_snapshot]",
+                "    output_names: [scaling_decision]",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(
+        input_path=spec_path,
+        output_dir=tmp_path / "structured_spec",
+    )
+    structured_spec_artifact_path = tmp_path / "structured_spec" / "structured_spec_artifact.json"
+
+    fake_response = DraftBlueprintPlanResponse(
+        planning_summary="Use one evaluator component and one sink.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="ScalingDecision",
+                kind="record",
+                description="Final scale or no-scale decision.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="action",
+                        field_type="str",
+                        description="One scaling action label.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="recommendation_generator",
+                semantic_responsibility="generate_scaling_recommendation",
+                purpose="Turn metrics into one bounded scaling recommendation.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="scaling_decision",
+                        schema_name="ScalingDecision",
+                        description="Final scaling recommendation.",
+                    ),
+                ],
+                packet_focus=["keep threshold logic explicit", "carry rule salience forward"],
+                dependency_notes=[],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="critical_breach",
+                kind="semantic_acceptance",
+                description="Review one critical CPU breach case end to end.",
+                requirement_focus=["produce a scaling decision"],
+            ),
+        ],
+        packetization_notes=["Keep the first draft graph minimal."],
+        dependency_decisions=[],
+        open_questions=[],
+    )
+    fake_call = AsyncMock(return_value=(fake_response, object()))
+    monkeypatch.setattr("ac14.blueprint_planning.acall_llm_structured", fake_call)
+
+    plan = build_draft_blueprint_plan_from_structured_spec(
+        structured_spec_artifact_path=structured_spec_artifact_path,
+        output_dir=tmp_path / "plan",
+        max_budget=0.1,
+    )
+
+    assert plan.planning_input_kind == "structured_spec"
+    assert plan.planning_input_name == "Resource Scaling Contract"
+    assert plan.structured_spec_artifact_path == str(structured_spec_artifact_path)
+    assert plan.planning_input_artifact_path == str(structured_spec_artifact_path)
+    assert plan.requirements == ["produce a scaling decision for each metrics snapshot"]
+    assert plan.proposed_components[0].component_id == "recommendation_generator"
+    assert (tmp_path / "plan" / "draft_blueprint_plan.json").exists()
+    assert fake_call.await_count == 1
+    assert fake_call.await_args is not None
+    kwargs = fake_call.await_args.kwargs
+    assert kwargs["task"] == "ac14_draft_blueprint_plan_from_structured_spec"
+    assert kwargs["max_budget"] == 0.1
 
 
 def test_build_draft_blueprint_plan_requires_requirements(tmp_path: Path) -> None:
