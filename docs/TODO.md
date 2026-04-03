@@ -1,7 +1,7 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 This file is the running checklist for the active numbered plan, not a full
 history log.
@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII](/home/brian/projects/ac14/docs/plans/111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md)
+- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md)
 
 The explicit active chain is:
 
@@ -57,9 +57,11 @@ The explicit active chain is:
 - [Plan #108: Front-Half Freeze Fidelity Boundary II](/home/brian/projects/ac14/docs/plans/108_front_half_freeze_fidelity_boundary_ii.md) -> planned, conditional on Plan #104 verdict `blocked_on_front_half`
 - [Plan #109: Front-Half Freeze-Fidelity Repair II And Smoke Rerun VI](/home/brian/projects/ac14/docs/plans/109_front_half_freeze_fidelity_repair_ii_and_smoke_rerun_vi.md) -> planned, conditional on Plan #108 completion
 - [Plan #110: Front-Half Runtime-Harness Boundary II](/home/brian/projects/ac14/docs/plans/110_front_half_runtime_harness_boundary_ii.md) -> complete
-- [Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII](/home/brian/projects/ac14/docs/plans/111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) -> active
-- [Plan #112: Front-Half Runtime-Harness Boundary III](/home/brian/projects/ac14/docs/plans/112_front_half_runtime_harness_boundary_iii.md) -> planned, conditional on Plan #111 verdict `blocked_on_harness`
-- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> planned, conditional on Plan #112 completion
+- [Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII](/home/brian/projects/ac14/docs/plans/111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) -> complete, verdict `blocked_on_harness`
+- [Plan #112: Front-Half Runtime-Harness Boundary III](/home/brian/projects/ac14/docs/plans/112_front_half_runtime_harness_boundary_iii.md) -> complete
+- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> active
+- [Plan #114: Front-Half Runtime-Harness Boundary IV](/home/brian/projects/ac14/docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> planned, conditional on Plan #113 verdict `blocked_on_harness`
+- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> planned, conditional on Plan #114 completion
 
 The experiment contract remains frozen in:
 
@@ -204,12 +206,19 @@ The previously active propagation lane remains blocked:
 - [x] Plan #110: if Plan #105 still says `blocked_on_harness`, freeze the next narrower runtime/harness blocker boundary
   - Result: the dominant blocker class is now explicit as the runner's single-final-component assumption over split-output generated graphs
 
-- [ ] Plan #111: repair the split-output runtime/harness blocker and rerun one bounded smoke trial immediately
-  - implementation note: the current bounded scope is truthful per-output final-component inference plus split-output runtime collection
+- [x] Plan #111: repair the split-output runtime/harness blocker and rerun one bounded smoke trial immediately
+  - Result: `.ac14_out/front_half_first_smoke_9/smoke_readiness_report.json` exists with verdict `blocked_on_harness`
+  - The split final-output blocker is cleared; the active blocker moved to the structured-spec/runtime contract boundary itself
 
-- [ ] Plan #112: if Plan #111 still says `blocked_on_harness`, freeze the next narrower runtime/harness blocker boundary
+- [x] Plan #112: if Plan #111 still says `blocked_on_harness`, freeze the next narrower runtime/harness blocker boundary
+  - Result: the dominant blocker class is now explicit as structured-spec benchmark/runtime contract drift plus zero-input `source`-component runtime entry
 
-- [ ] Plan #113: if Plan #112 lands, repair that narrower runtime/harness blocker and rerun one bounded smoke trial immediately
+- [ ] Plan #113: repair the structured-spec/runtime contract blocker and rerun one bounded smoke trial immediately
+  - implementation note: the current bounded scope is truthful structured-spec benchmark/runtime fidelity plus support for one unique top-level `source` component runtime contract
+
+- [ ] Plan #114: if Plan #113 still says `blocked_on_harness`, freeze the next narrower runtime/harness blocker boundary
+
+- [ ] Plan #115: if Plan #114 lands, repair that narrower runtime/harness blocker and rerun one bounded smoke trial immediately
 
 ## Current Open Uncertainties
 
@@ -217,8 +226,8 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the infrastructure blocker is cleared and front-half approval now succeeds; the current active uncertainty is whether Plan #111 is enough to move AC14 from split final-output inference failure into at least one real runtime hard-harness attempt
-- Plan #111 is repairing that split final-output inference blocker before the next smoke rerun is spent
+- the infrastructure blocker is cleared and front-half approval now succeeds; the current active uncertainty is whether Plan #113 is enough to make the structured-spec benchmark/runtime contract truthful enough for at least one real runtime hard-harness attempt
+- Plan #113 is repairing that structured-spec/runtime contract boundary before the next smoke rerun is spent
 
 ## Latest Verified Baseline
 
@@ -240,6 +249,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/front_half_first_smoke_6/smoke_readiness_report.json` with verdict `blocked_on_front_half` (infrastructure cleared; AC14 then blocked on draft freeze fidelity)
   - `.ac14_out/front_half_first_smoke_7/smoke_readiness_report.json` with verdict `blocked_on_harness` (front-half approval now succeeds; runtime-contract inference still blocks generation)
   - `.ac14_out/front_half_first_smoke_8/smoke_readiness_report.json` with verdict `blocked_on_harness` (root-input inference is fixed; split final-output inference still blocks generation)
+  - `.ac14_out/front_half_first_smoke_9/smoke_readiness_report.json` with verdict `blocked_on_harness` (split final-output inference is fixed; the structured-spec/runtime contract is now the active blocker)
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -259,6 +269,6 @@ The previously active propagation lane remains blocked:
 - [x] complete Plan #94 — verdict `blocked_on_infrastructure` (all 429, no thesis signal)
 - [x] complete Plan #95 (blocker boundary: infrastructure, not freeze fidelity)
 - [x] run smoke rerun III (Plan #96) with explicit `MODEL=gpt-5-mini`
-- [ ] complete Plan #111 and branch directly into Plan #88 plus Plan #100 if the gate opens, Plan #112 plus Plan #113 if runtime/harness still dominates, Plan #107 if infrastructure reappears, or Plan #108 plus Plan #109 if front-half regresses
+- [ ] complete Plan #113 and branch directly into Plan #88 plus Plan #100 if the gate opens, Plan #114 plus Plan #115 if runtime/harness still dominates, Plan #107 if infrastructure reappears, or Plan #108 plus Plan #109 if front-half regresses
 - [ ] only after the front-half-first branch finishes should the repo decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

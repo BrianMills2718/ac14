@@ -1,6 +1,6 @@
 # Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 110
@@ -26,13 +26,13 @@ chat memory or a new human decision at each smoke boundary.
 
 ## Acceptance Criteria
 
-- [ ] Runtime-contract inference succeeds when structured-spec final outputs are
+- [x] Runtime-contract inference succeeds when structured-spec final outputs are
       emitted by multiple components in one generated graph.
-- [ ] Runtime execution can collect final outputs from the inferred component
+- [x] Runtime execution can collect final outputs from the inferred component
       map without faking a single final component.
-- [ ] Targeted tests prove the repair before the rerun.
-- [ ] One fresh smoke artifact exists after the repair.
-- [ ] The next branch is explicit from the new artifact.
+- [x] Targeted tests prove the repair before the rerun.
+- [x] One fresh smoke artifact exists after the repair.
+- [x] The next branch is explicit from the new artifact.
 
 ---
 
@@ -110,3 +110,11 @@ make front-half-first-smoke-gate \
 
 - 2026-04-02: Activated from Plan #110 after smoke_8 kept the same top-level
   verdict but moved the blocker to split final-output inference.
+- 2026-04-03: Completed. Smoke_9 exists at
+  `.ac14_out/front_half_first_smoke_9/` with verdict `blocked_on_harness`.
+  The split final-output blocker is cleared. The next blocker moved to the
+  structured-spec/runtime input contract: attempts that reached runtime failed
+  because generated components required structured-spec fields like
+  `service_name` while the reused runtime cases still carry legacy fields like
+  `service_id`, and one retry emitted a zero-input `source` component that the
+  current runtime contract cannot inject.

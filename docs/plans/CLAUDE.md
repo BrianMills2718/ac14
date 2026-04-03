@@ -1,7 +1,7 @@
 # AC14 Implementation Plans
 
 Status: Canonical numbered-plan index
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 Use numbered plans for implementation work that changes AC14's code or active
 control surfaces. The roadmap defines direction; numbered plans define the
@@ -118,9 +118,11 @@ current executable lane.
 | 108 | [Front-Half Freeze Fidelity Boundary II](108_front_half_freeze_fidelity_boundary_ii.md) | Critical | Planned | 109 |
 | 109 | [Front-Half Freeze-Fidelity Repair II And Smoke Rerun VI](109_front_half_freeze_fidelity_repair_ii_and_smoke_rerun_vi.md) | Critical | Planned | - |
 | 110 | [Front-Half Runtime-Harness Boundary II](110_front_half_runtime_harness_boundary_ii.md) | Critical | Complete | 111 |
-| 111 | [Front-Half Runtime-Harness Repair II And Smoke Rerun VII](111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) | Critical | In Progress | 88, 107, 108, 112 |
-| 112 | [Front-Half Runtime-Harness Boundary III](112_front_half_runtime_harness_boundary_iii.md) | Critical | Planned | 113 |
-| 113 | [Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) | Critical | Planned | - |
+| 111 | [Front-Half Runtime-Harness Repair II And Smoke Rerun VII](111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) | Critical | Complete | 88, 107, 108, 112 |
+| 112 | [Front-Half Runtime-Harness Boundary III](112_front_half_runtime_harness_boundary_iii.md) | Critical | Complete | 113 |
+| 113 | [Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) | Critical | In Progress | 88, 107, 108, 114 |
+| 114 | [Front-Half Runtime-Harness Boundary IV](114_front_half_runtime_harness_boundary_iv.md) | Critical | Planned | 115 |
+| 115 | [Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) | Critical | Planned | - |
 
 ## Status Key
 
