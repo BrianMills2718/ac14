@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md)
+- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md)
 
 The explicit active chain is:
 
@@ -29,9 +29,10 @@ The explicit active chain is:
 - [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
 - [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> complete
 - [Plan #78: Reusable Packet Rule Grounding](/home/brian/projects/ac14/docs/plans/78_reusable_packet_rule_grounding.md) -> complete
-- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> active
-- if Plan #79 shows AC14 hard-harness success without infrastructure contamination -> activate Plan #80
-- otherwise -> activate Plan #81
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> complete
+- [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md) -> complete
+- [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
+- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> active
 
 The experiment contract remains frozen in:
 
@@ -94,7 +95,16 @@ The previously active propagation lane remains blocked:
 - [x] Plan #78: add one reusable packet-rule-grounding surface and verify it with targeted tests
   - Result: codegen context now carries bounded rule-grounding summaries and the prompt consumes them explicitly
 
-- [ ] Plan #79: rerun the harder smoke gate after the reusable grounding repair and freeze the next branch from the result
+- [x] Plan #79: rerun the harder smoke gate after the reusable grounding repair and freeze the next branch from the result
+  - Result: smoke remained `ready_for_full_trials` only because monolithic passed; AC14 still failed `0/3` attempts
+
+- [x] Plan #81: freeze the post-grounding strategic pivot instead of reopening the harder back-half gate
+  - Result: the harder second gate stays closed and back-half local tuning remains frozen
+
+- [x] Plan #82: define the next empirical horizon as front-half-first and freeze one bounded next implementation lane
+  - Result: the next lane is the structured-spec input contract in Plan #83
+
+- [ ] Plan #83: implement the first bounded structured-spec input contract for draft planning
 
 ## Current Open Uncertainties
 
@@ -102,7 +112,7 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is not packet sufficiency anymore; it is whether the reusable grounding repair can earn an AC14 smoke success
+- the current open question is not packet sufficiency anymore; it is how to define the first truthful structured-spec input contract without pretending the broad NL path already exists
 
 ## Latest Verified Baseline
 
@@ -116,6 +126,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/full_trials_gate_2_smoke_rerun/smoke_readiness_report.json` with verdict `ready_for_full_trials`
   - `.ac14_out/full_trials_gate_2/experiment_decision.json` with verdict `monolithic_wins`
   - `.ac14_out/full_trials_gate_2_smoke_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but `0` AC14 hard-harness successes
+  - `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but still `0` AC14 hard-harness successes
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -126,7 +137,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #77 so the next empirical move targets a reusable weakness or claim boundary rather than another reflexive micro-repair
-- [ ] branch from Plan #79 explicitly to Plan #80 or Plan #81
+- [ ] implement Plan #83 so the front-half-first empirical contract has a real bounded input surface
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

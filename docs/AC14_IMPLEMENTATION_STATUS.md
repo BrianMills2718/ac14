@@ -41,10 +41,13 @@ now has two completed empirical gates against a fair monolithic baseline:
 
 1. gate 1 (`order_exception_resolution_v1`) -> `inconclusive`
 2. gate 2 (`resource_scaling_v1`) -> `monolithic_wins`
+3. one reusable packet-rule-grounding smoke rerun on gate 2 -> still `0/3`
+   AC14 smoke successes
 
 That means the project now has real external evidence, and the stronger
 near-term claim is no longer "unmeasured." The current back-half empirical
-slice did not beat the fair monolithic baseline on the harder benchmark.
+slice did not beat the fair monolithic baseline on the harder benchmark, and
+one reusable grounding repair did not reopen that gate.
 
 ## What Is Implemented
 
@@ -144,7 +147,7 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. classifying which post-loss empirical failures are reusable AC14 weaknesses
+4. implementing the new front-half-first empirical direction
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
 6. freezing a sharper reusable empirical response instead of drifting back into benchmark-local micro-repairs
@@ -195,8 +198,8 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a stronger post-loss empirical strategy instead of more unmeasured benchmark-local iteration
-3. a cross-benchmark taxonomy that separates reusable AC14 weaknesses from local benchmark quirks
+2. a minimal structured-spec input contract for front-half drafting
+3. a stronger front-half-first empirical strategy instead of more unmeasured back-half iteration
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -247,6 +250,17 @@ finishing, but it is narrower than the strongest version of the full thesis.
 After the decisive `resource_scaling_v1` loss and one non-winning prompt/schema
 grounding repair, AC14 has explicitly frozen further benchmark-local
 micro-repairs until a cross-benchmark taxonomy says they are worth reopening.
+
+### 3c. One reusable grounding repair still did not reopen the gate
+
+AC14 then tried one reusable packet-rule-grounding repair and reran the bounded
+smoke gate. Monolithic still passed immediately and AC14 still did not record a
+single smoke success, so the harder back-half gate remains closed.
+
+### 3d. The next empirical horizon is front-half-first
+
+The next honest test is no longer another back-half rerun. It is a comparison
+that includes AC14's front-half context gathering and blueprint drafting.
 
 ### 4. Front Half Still Weaker Than Back Half
 

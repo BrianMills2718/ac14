@@ -89,9 +89,11 @@ current executable lane.
 | 76 | [Second-Gate Repair Boundary](76_second_gate_repair_boundary.md) | Critical | Complete | 77 |
 | 77 | [Cross-Benchmark Failure Taxonomy](77_cross_benchmark_failure_taxonomy.md) | Critical | Complete | 78 |
 | 78 | [Reusable Packet Rule Grounding](78_reusable_packet_rule_grounding.md) | Critical | Complete | 79 |
-| 79 | [Post-Grounding Smoke Rerun](79_post_grounding_smoke_rerun.md) | Critical | In Progress | 80, 81 |
+| 79 | [Post-Grounding Smoke Rerun](79_post_grounding_smoke_rerun.md) | Critical | Complete | 81 |
 | 80 | [Second-Gate Full Rerun](80_second_gate_full_rerun.md) | Critical | Planned | - |
-| 81 | [Post-Grounding Strategic Pivot](81_post_grounding_strategic_pivot.md) | Critical | Planned | - |
+| 81 | [Post-Grounding Strategic Pivot](81_post_grounding_strategic_pivot.md) | Critical | Complete | 82 |
+| 82 | [Front-Half-First Empirical Contract](82_front_half_first_empirical_contract.md) | Critical | Complete | 83 |
+| 83 | [Structured Spec Input Contract](83_structured_spec_input_contract.md) | Critical | Planned | - |
 
 ## Status Key
 

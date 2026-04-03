@@ -535,4 +535,11 @@ produces `0` hard-harness successes in the fresh smoke artifact, freeze further
 benchmark-local tuning and switch to a cross-benchmark failure taxonomy before
 adding another local fix.
 
+### 2026-04-02 — codex — best-practice
+Even a reusable packet-rule-grounding repair can fail to reopen a harder
+back-half gate. When that happens, the next move should be a front-half-first
+empirical contract, not another back-half rerun. The failure signal here was
+specific: AC14 still emitted `recommendation_generator` business-rule misses
+for `RSC-101` and later `RSC-102` after the reusable grounding surface landed.
+
 ---

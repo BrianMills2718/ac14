@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md)
+- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md)
 
 The explicit active chain is:
 
@@ -26,9 +26,10 @@ The explicit active chain is:
 - [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
 - [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> complete
 - [Plan #78: Reusable Packet Rule Grounding](/home/brian/projects/ac14/docs/plans/78_reusable_packet_rule_grounding.md) -> complete
-- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> active
-- if Plan #79 shows AC14 hard-harness success without infrastructure contamination -> activate Plan #80
-- otherwise -> activate Plan #81
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> complete
+- [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md) -> complete
+- [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
+- [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> active
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -43,11 +44,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. spend one bounded smoke rerun on the reusable packet-rule-grounding repair
-2. branch explicitly from the smoke artifact:
-   - Plan #80 if AC14 earns a clean hard-harness success
-   - Plan #81 otherwise
-3. keep Plan #37 and other blocked propagation lanes frozen until the empirical response is explicit
+1. implement the minimal structured-spec input contract from Plan #83
+2. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+3. keep Plan #37 and other blocked propagation lanes frozen until the front-half-first empirical direction is implemented explicitly
 
 ## Progress Update
 
@@ -73,6 +72,8 @@ Completed before the current lane:
 18. a completed second full-trial gate under `.ac14_out/full_trials_gate_2/` with verdict `monolithic_wins`
 19. a completed cross-benchmark taxonomy that freezes further `resource_scaling_v1` micro-repairs by default
 20. a reusable packet-rule-grounding repair that adds bounded decision-oriented summaries to the codegen context and prompt
+21. a post-grounding smoke rerun showing AC14 still failed `0/3` bounded attempts while monolithic passed immediately
+22. a completed strategic pivot and front-half-first empirical contract
 
 ## Tactical Phase Summary
 
@@ -98,11 +99,21 @@ Success criteria:
 ### Phase 3: post-grounding smoke rerun
 
 - rerun the harder benchmark smoke gate once with the reusable grounding repair
-- branch immediately from the persisted artifact to Plan #80 or Plan #81
+- Result: AC14 still achieved `0/3` smoke successes, so the harder second gate stays closed
 
 Success criteria:
 
 - the smoke artifact exists and the next branch is explicit from its result
+
+### Phase 4: front-half-first pivot
+
+- freeze the post-grounding strategic response
+- define the next empirical contract as front-half-first
+- freeze one bounded next implementation lane
+
+Success criteria:
+
+- the repo states clearly why the harder back-half gate stays closed and what the next front-half lane is
 
 ## Known Uncertainties
 
@@ -113,5 +124,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is whether the reusable grounding repair is strong enough to earn an AC14 smoke success
-3. blocked propagation lanes should stay blocked until Plan #79 freezes the next branch explicitly
+2. the current open question is how small and truthful the first structured-spec input contract can be
+3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is implemented explicitly

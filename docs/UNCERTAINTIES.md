@@ -784,10 +784,37 @@ earlier planning surfaces.
 plan, numbered plan surface, and current notebook now exist to close that gap.
 **Date resolved:** 2026-03-31
 ### U-071: Which empirical failure classes are reusable AC14 weaknesses rather than benchmark-local quirks?
-**Status:** Investigating
+**Status:** Resolved
 **Context:** AC14 now has one `inconclusive` gate, one decisive
 `monolithic_wins` gate, and one non-winning post-loss grounding smoke. The repo
 has not yet classified which of those failures should drive the next reusable
 repair lane.
 **Why it matters:** The next plan should target a reusable weakness or an
 explicit claim-boundary adjustment, not drift into more local benchmark tuning.
+**Resolution:** Plan #77 completed the taxonomy and identified packet-local
+rule grounding for semantically coupled business logic as the strongest
+reusable weakness.
+**Date resolved:** 2026-04-02
+
+### U-072: Did the reusable packet-rule-grounding repair earn an AC14 smoke success?
+**Status:** Resolved
+**Context:** Plan #78 added bounded rule-grounding summaries to the codegen
+context and prompt, but the project still needed a bounded empirical check
+before reopening the harder second gate.
+**Why it matters:** Without an explicit stop/go result, the project could
+misread a monolithic-only smoke pass as permission to reopen the full gate.
+**Resolution:** Plan #79 produced
+`.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/` and showed
+`0/3` AC14 smoke successes, so the harder second gate stays closed.
+**Date resolved:** 2026-04-02
+
+### U-073: What should the project do after the reusable grounding rerun still fails?
+**Status:** Resolved
+**Context:** The harder back-half gate did not reopen, so the project needed a
+clear next empirical horizon instead of another local repair loop.
+**Why it matters:** The next move should test the thesis where AC14 may still
+have real advantage.
+**Resolution:** Plans #81 and #82 froze a front-half-first empirical contract
+and the next bounded implementation lane is Plan #83: structured-spec input
+contract.
+**Date resolved:** 2026-04-02

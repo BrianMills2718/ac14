@@ -1,6 +1,6 @@
 # Plan #79: Post-Grounding Smoke Rerun
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 78
@@ -36,12 +36,16 @@ contamination.
 ## Open Questions
 
 ### Q1: Did the reusable grounding repair earn an AC14 hard-harness smoke success?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** Without that, another full five-trial rerun is not justified.
+**Resolution:** No. The fresh smoke artifact remained `ready_for_full_trials`
+only because monolithic passed. AC14 still failed all three bounded attempts.
 
 ### Q2: Does the fresh smoke artifact point to a full rerun or a strategic pivot?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The next branch should be explicit and artifact-driven.
+**Resolution:** It points to a strategic pivot. The stricter branch rule for
+this plan was AC14 success, not merely any-condition smoke success.
 
 ---
 
@@ -78,12 +82,33 @@ contamination.
 
 ## Acceptance Criteria
 
-- [ ] A fresh post-grounding smoke artifact exists.
-- [ ] The repo states clearly whether AC14 earned a hard-harness success.
-- [ ] The next branch is explicit from the smoke artifact.
+- [x] A fresh post-grounding smoke artifact exists.
+- [x] The repo states clearly whether AC14 earned a hard-harness success.
+- [x] The next branch is explicit from the smoke artifact.
 
 ---
 
 ## Notes
 
 This plan should not silently reopen the full gate. The smoke artifact decides.
+
+## Implementation Summary (2026-04-02)
+
+Fresh artifact:
+
+- `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/smoke_readiness_report.json`
+- `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/trial_1/paired_trial_report.json`
+
+Result:
+
+- smoke verdict: `ready_for_full_trials`
+- infrastructure contamination: `false`
+- monolithic: passed in 1 attempt
+- AC14: failed in 3 attempts
+
+Important branch rule:
+
+- this plan required an **AC14** hard-harness smoke success to reopen the full
+  second gate
+- that did not happen
+- therefore the next branch is [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md), not Plan #80

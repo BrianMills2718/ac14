@@ -141,6 +141,9 @@ For the active empirical-comparison lane, this rule is especially strict:
   2. one reusable repair lane
   3. one bounded smoke rerun
   4. either a full rerun or a strategic pivot based on the smoke artifact
+- if the bounded smoke rerun still yields `0` AC14 hard-harness successes, the
+  full rerun stays closed and the next default move is a front-half-first
+  empirical contract plus one bounded implementation lane toward that contract
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

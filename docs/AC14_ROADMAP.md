@@ -230,7 +230,22 @@ In order:
 6. (done — Plans #66-#71) complete the five-trial gate, repair interrupted-run integrity, and lock the second verdict
 7. (done — Plan #72) lock the second-gate verdict honestly across the active docs
 8. (done — Plans #73-#76) diagnose the second-gate loss, test one bounded post-loss grounding repair, and freeze a repair boundary instead of continuing local tuning by habit
-9. (next — Plan #77) classify which empirical failures are reusable AC14 weaknesses and freeze the next lane from that taxonomy
+9. (done — Plan #77) classify which empirical failures are reusable AC14 weaknesses and freeze the next lane from that taxonomy
+10. (done — Plan #78) implement one reusable packet-rule-grounding repair
+11. (done — Plan #79) rerun the bounded smoke gate and confirm the harder second gate still does not reopen
+12. (done — Plans #81-#82) freeze the strategic pivot and front-half-first empirical contract
+13. (next — Plan #83) implement the minimal structured-spec input contract for front-half drafting
+
+## Current empirical branch rule
+
+The harder back-half gate remains closed.
+
+- gate 1: `inconclusive`
+- gate 2: `monolithic_wins`
+- reusable packet-rule-grounding smoke rerun: still `0/3` AC14 successes
+
+That means the next honest horizon is front-half-first, not more local tuning
+of `resource_scaling_v1`.
 
 ## Working Rule
 
