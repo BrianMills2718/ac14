@@ -40,7 +40,7 @@ Do not broaden scope before that works.
 
 **NEVER STOP. This is the primary execution rule.**
 
-For the current front-half-first chain, this means: do not stop at smoke_8, do
+For the current front-half-first chain, this means: do not stop at smoke_9, do
 not stop at a clean test run, and do not stop at one completed repair. The
 required behavior is to spend the active rerun, read the verdict, update the
 control docs, and continue immediately into the already-defined next numbered
@@ -185,23 +185,25 @@ For the active empirical-comparison lane, this rule is especially strict:
     13. Plan #97 front-half freeze-fidelity boundary -> complete
     14. Plan #104 freeze-fidelity repair plus smoke rerun V -> complete with `blocked_on_harness`
     15. Plan #98 runtime-harness boundary -> complete
-    16. Plan #105 runtime-harness repair plus smoke rerun IV -> active
-    17. Plan #88 full trial gate if smoke_8 says `ready_for_full_trials`
-    18. Plan #100 verdict interpretation and next horizon immediately after Plan #88
-    19. Plan #107 external-provider boundary II if smoke_8 says `blocked_on_infrastructure`
-    20. Plan #108 front-half freeze-fidelity boundary II if smoke_8 regresses to `blocked_on_front_half`
-    21. Plan #109 freeze-fidelity repair II plus smoke rerun VI immediately after Plan #108
-    22. Plan #110 runtime-harness boundary II if smoke_8 still says `blocked_on_harness`
-    23. Plan #111 runtime-harness repair II plus smoke rerun VII immediately after Plan #110
+    16. Plan #105 runtime-harness repair plus smoke rerun IV -> complete with `blocked_on_harness`
+    17. Plan #110 runtime-harness boundary II -> complete
+    18. Plan #111 runtime-harness repair II plus smoke rerun VII -> active
+    19. Plan #88 full trial gate if smoke_9 says `ready_for_full_trials`
+    20. Plan #100 verdict interpretation and next horizon immediately after Plan #88
+    21. Plan #107 external-provider boundary II if smoke_9 says `blocked_on_infrastructure`
+    22. Plan #108 front-half freeze-fidelity boundary II if smoke_9 regresses to `blocked_on_front_half`
+    23. Plan #109 freeze-fidelity repair II plus smoke rerun VI immediately after Plan #108
+    24. Plan #112 runtime-harness boundary III if smoke_9 still says `blocked_on_harness`
+    25. Plan #113 runtime-harness repair III plus smoke rerun VIII immediately after Plan #112
   - for the current 24-hour branch tree, every unlocked verdict branch must
     already have its next numbered plan defined in docs before the rerun is
     spent; \"we will decide after the artifact exists\" is not good enough
-  - once Plan #105 starts, the required behavior is:
-    1. repair the runtime-contract inference blocker from smoke_7
+  - once Plan #111 starts, the required behavior is:
+    1. repair the split final-output inference blocker from smoke_8
     2. rerun the smoke gate with explicit `MODEL=gpt-5-mini`
     3. update docs from the persisted verdict immediately
-    4. continue into Plan #88, #107, #108, or #110 with no permission pause
-    5. continue into Plan #100, #109, or #111 the moment that branch unlocks
+    4. continue into Plan #88, #107, #108, or #112 with no permission pause
+    5. continue into Plan #100, #109, or #113 the moment that branch unlocks
     6. leave every new uncertainty in `docs/UNCERTAINTIES.md` rather than
        treating uncertainty as a stop condition
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`

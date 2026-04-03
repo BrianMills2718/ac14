@@ -1,6 +1,6 @@
 # Plan #105: Front-Half Runtime-Harness Repair And Smoke Rerun IV
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 98
@@ -26,15 +26,15 @@ one measured retry without requiring new chat direction.
 
 ## Acceptance Criteria
 
-- [ ] Runtime-contract inference succeeds when the generated blueprint preserves
+- [x] Runtime-contract inference succeeds when the generated blueprint preserves
       one unique unbound root input but renames the port away from the original
       structured-spec input name.
-- [ ] Attempt artifacts persist enough observability to distinguish future
+- [x] Attempt artifacts persist enough observability to distinguish future
       contract-inference failures from later packet/runtime failures without a
       manual reproduction pass.
-- [ ] Targeted tests cover the repaired runtime-contract inference path.
-- [ ] One fresh smoke artifact exists after the repair.
-- [ ] The next branch is explicit from the new artifact.
+- [x] Targeted tests cover the repaired runtime-contract inference path.
+- [x] One fresh smoke artifact exists after the repair.
+- [x] The next branch is explicit from the new artifact.
 
 ---
 
@@ -114,7 +114,48 @@ make front-half-first-smoke-gate \
 - if `blocked_on_infrastructure`: execute Plan #107
 - if `blocked_on_front_half`: execute Plan #108, then Plan #109
 
-## Progress Notes
+## Implementation Summary (Complete — 2026-04-02)
 
-- 2026-04-02: Activated from Plan #98 after smoke_7 showed `blocked_on_harness`
-  with `ac14_front_half_success = true`.
+Repair target completed:
+
+- runtime-contract inference now:
+  - prefers one exact unbound root input-port match
+  - otherwise accepts one unique schema-matched unbound root input
+  - fails loud with explicit candidate details when the source contract remains
+    ambiguous
+- per-attempt `failure_classification.json` is now persisted for both AC14 and
+  monolithic conditions
+
+Verified repair state before rerun:
+
+- committed in `c841ba3` (`[Plan #105] Repair runtime contract inference for smoke rerun`)
+- targeted verification passed:
+  - `python -m pytest -q tests/test_front_half_first_empirical.py`
+- full verification passed:
+  - `python -m pytest -q`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
+
+Smoke_8 result:
+
+- artifact: `.ac14_out/front_half_first_smoke_8/smoke_readiness_report.json`
+- verdict: `blocked_on_harness`
+- infrastructure contamination: `false`
+- AC14 front-half success: `true`
+- runtime hard-harness success: `false`
+
+Dominant next blocker from smoke_8:
+
+- the source-input inference bug is cleared
+- all three AC14 attempts now fail later with:
+  `unable to infer one unique final component from structured spec outputs ['scaling_decision_entry', 'scaling_decision_store']: []`
+- the generated bundle splits final outputs across:
+  - `ApplyComplianceGate.final_decision_out`
+  - `DecisionStore.scaling_decision_store_out`
+- the runner still assumes all final structured-spec outputs must come from one
+  component
+
+Branch unlocked from smoke_8:
+
+- Plan #110 freezes the multi-component final-output boundary
+- Plan #111 is the required repair-and-rerun lane

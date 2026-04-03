@@ -112,13 +112,15 @@ current executable lane.
 | 99 | [Front-Half Infrastructure Boundary For Hidden Default Model Paths](99_front_half_infrastructure_availability_boundary.md) | Critical | Complete | 106 |
 | 100 | [Front-Half-First Verdict Interpretation And Next Horizon](100_front_half_first_verdict_interpretation.md) | Critical | Planned | - |
 | 104 | [Front-Half Freeze-Fidelity Repair And Smoke Rerun V](104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) | Critical | Complete | 98 |
-| 105 | [Front-Half Runtime-Harness Repair And Smoke Rerun IV](105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) | Critical | In Progress | 88, 107, 108, 110 |
+| 105 | [Front-Half Runtime-Harness Repair And Smoke Rerun IV](105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) | Critical | Complete | 110 |
 | 106 | [Front-Half Model Propagation Repair And Smoke Rerun IV](106_front_half_provider_fallback_and_smoke_rerun_iv.md) | Critical | Complete | 97 |
 | 107 | [Front-Half External Provider Boundary II](107_front_half_external_provider_boundary_ii.md) | Critical | Planned | - |
 | 108 | [Front-Half Freeze Fidelity Boundary II](108_front_half_freeze_fidelity_boundary_ii.md) | Critical | Planned | 109 |
 | 109 | [Front-Half Freeze-Fidelity Repair II And Smoke Rerun VI](109_front_half_freeze_fidelity_repair_ii_and_smoke_rerun_vi.md) | Critical | Planned | - |
-| 110 | [Front-Half Runtime-Harness Boundary II](110_front_half_runtime_harness_boundary_ii.md) | Critical | Planned | 111 |
-| 111 | [Front-Half Runtime-Harness Repair II And Smoke Rerun VII](111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) | Critical | Planned | - |
+| 110 | [Front-Half Runtime-Harness Boundary II](110_front_half_runtime_harness_boundary_ii.md) | Critical | Complete | 111 |
+| 111 | [Front-Half Runtime-Harness Repair II And Smoke Rerun VII](111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) | Critical | In Progress | 88, 107, 108, 112 |
+| 112 | [Front-Half Runtime-Harness Boundary III](112_front_half_runtime_harness_boundary_iii.md) | Critical | Planned | 113 |
+| 113 | [Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) | Critical | Planned | - |
 
 ## Status Key
 
