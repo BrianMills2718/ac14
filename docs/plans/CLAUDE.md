@@ -94,8 +94,8 @@ current executable lane.
 | 81 | [Post-Grounding Strategic Pivot](81_post_grounding_strategic_pivot.md) | Critical | Complete | 82 |
 | 82 | [Front-Half-First Empirical Contract](82_front_half_first_empirical_contract.md) | Critical | Complete | 83 |
 | 83 | [Structured Spec Input Contract](83_structured_spec_input_contract.md) | Critical | Complete | 84 |
-| 84 | [Structured-Spec Front-Half Acceptance](84_structured_spec_front_half_acceptance.md) | Critical | In Progress | 85 |
-| 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | Planned | 86 |
+| 84 | [Structured-Spec Front-Half Acceptance](84_structured_spec_front_half_acceptance.md) | Critical | Complete | 85 |
+| 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | In Progress | 86 |
 | 86 | [Front-Half-First Smoke Gate](86_front_half_first_smoke_gate.md) | Critical | Planned | - |
 
 ## Status Key

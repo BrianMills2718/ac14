@@ -49,6 +49,7 @@ from ac14.front_half_acceptance import (
     DEFAULT_FRONT_HALF_RETRY_MODEL,
     build_front_half_acceptance_report,
     build_front_half_acceptance_suite_report,
+    build_structured_spec_front_half_acceptance_report,
 )
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
@@ -260,6 +261,26 @@ def main() -> int:
     front_half_parser.add_argument("--retry-blocked-freeze", action="store_true")
     front_half_parser.add_argument("--retry-model", default=DEFAULT_FRONT_HALF_RETRY_MODEL)
     front_half_parser.add_argument(
+        "--retry-max-budget",
+        type=float,
+        default=DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+    )
+
+    structured_spec_front_half_parser = subparsers.add_parser(
+        "structured-spec-front-half-acceptance",
+        help="Run structured-spec draft planning through freeze decision and review the front half.",
+    )
+    structured_spec_front_half_parser.add_argument("structured_spec_artifact_path", type=Path)
+    structured_spec_front_half_parser.add_argument("--output-dir", type=Path, required=True)
+    structured_spec_front_half_parser.add_argument("--model", default=DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL)
+    structured_spec_front_half_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    )
+    structured_spec_front_half_parser.add_argument("--retry-blocked-freeze", action="store_true")
+    structured_spec_front_half_parser.add_argument("--retry-model", default=DEFAULT_FRONT_HALF_RETRY_MODEL)
+    structured_spec_front_half_parser.add_argument(
         "--retry-max-budget",
         type=float,
         default=DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
@@ -624,6 +645,16 @@ def main() -> int:
             args.retry_model,
             args.retry_max_budget,
             args.max_samples,
+        )
+    if args.command == "structured-spec-front-half-acceptance":
+        return _structured_spec_front_half_acceptance(
+            args.structured_spec_artifact_path,
+            args.output_dir,
+            args.model,
+            args.max_budget,
+            args.retry_blocked_freeze,
+            args.retry_model,
+            args.retry_max_budget,
         )
     if args.command == "front-half-acceptance-suite":
         return _front_half_acceptance_suite(
@@ -1114,6 +1145,30 @@ def _front_half_acceptance(
         retry_model=retry_model,
         retry_max_budget=retry_max_budget,
         max_samples=max_samples,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _structured_spec_front_half_acceptance(
+    structured_spec_artifact_path: Path,
+    output_dir: Path,
+    model: str,
+    max_budget: float,
+    retry_blocked_freeze: bool,
+    retry_model: str,
+    retry_max_budget: float,
+) -> int:
+    """Build and print a persisted structured-spec front-half acceptance artifact."""
+
+    artifact = build_structured_spec_front_half_acceptance_report(
+        structured_spec_artifact_path=structured_spec_artifact_path,
+        output_dir=output_dir,
+        model=model,
+        max_budget=max_budget,
+        retry_blocked_freeze=retry_blocked_freeze,
+        retry_model=retry_model,
+        retry_max_budget=retry_max_budget,
     )
     print(json.dumps(artifact.model_dump(mode="json"), indent=2))
     return 0

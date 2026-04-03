@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md)
+- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md)
 
 The explicit active chain is:
 
@@ -30,8 +30,8 @@ The explicit active chain is:
 - [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md) -> complete
 - [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
-- [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> active
-- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> planned
+- [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
+- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> active
 - [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> planned
 
 The empirical gate remains frozen in
@@ -47,11 +47,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. implement the minimal structured-spec input contract from Plan #83
-2. prove the new structured-spec contract through draft bundle, freeze decision, and front-half review in Plan #84
-3. freeze a benchmark-ready structured-spec bundle in Plan #85
-4. spend one bounded front-half-first smoke trial in Plan #86
-5. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+1. freeze a benchmark-ready structured-spec bundle in Plan #85
+2. spend one bounded front-half-first smoke trial in Plan #86
+3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
 
@@ -80,6 +78,7 @@ Completed before the current lane:
 21. a post-grounding smoke rerun showing AC14 still failed `0/3` bounded attempts while monolithic passed immediately
 22. a completed strategic pivot and front-half-first empirical contract
 23. a completed bounded structured-spec input contract for draft planning
+24. a completed full structured-spec front-half lane through freeze and semantic review
 
 ## Tactical Phase Summary
 
@@ -125,6 +124,7 @@ Success criteria:
 
 - prove the new structured-spec contract through draft plan, draft bundle,
   freeze, and front-half review
+  - Result: the bounded front-half lane now exists and is reviewable
 
 Success criteria:
 

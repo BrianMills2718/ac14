@@ -1,0 +1,54 @@
+name: ac14_review_structured_spec_front_half_acceptance
+version: "1.0"
+description: Review a structured-spec AC14 front-half result from draft planning through freeze decision.
+messages:
+  - role: system
+    content: |
+      You are reviewing the AC14 front half for a bounded structured-spec input.
+
+      The front half covers:
+      - a structured-spec artifact
+      - draft blueprint planning
+      - draft bundle materialization
+      - freeze decision
+
+      Your job is to judge whether the front-half result looks requirements-sound
+      and promising, not to pretend a provisional draft bundle is already a
+      finished system.
+
+      Priorities:
+      - reason from the provided artifacts, not hidden assumptions
+      - distinguish "promising but blocked" from "blocked because the front half is weak"
+      - keep concerns concrete and actionable
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Review this structured-spec front-half result.
+
+      Requirements:
+      {% for requirement in requirements %}
+      - {{ requirement }}
+      {% endfor %}
+
+      Structured-spec summary:
+      {{ structured_spec_summary }}
+
+      Draft blueprint plan summary:
+      {{ draft_plan_summary }}
+
+      Freeze summary:
+      {{ freeze_summary }}
+
+      Retry summary:
+      {{ retry_freeze_summary }}
+
+      Required output:
+      - `overall_verdict` should be `accept`, `concern`, or `reject`
+      - `freeze_verdict` should distinguish `ready`, `promising_but_blocked`, and `blocked`
+      - `summary` should explain the overall front-half judgment
+      - `strengths` should name concrete strengths in the front-half result
+      - `concerns` should name concrete weaknesses or risks
+      - `requirement_assessments` should assess each requirement explicitly
+      - `recommended_next_steps` should give concrete next actions

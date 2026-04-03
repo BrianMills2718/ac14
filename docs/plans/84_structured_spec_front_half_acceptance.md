@@ -1,6 +1,6 @@
 # Plan #84: Structured-Spec Front-Half Acceptance
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 83
@@ -100,3 +100,25 @@ bounded: structured spec -> draft plan -> draft bundle -> freeze -> review.
 ## Notes
 
 This lane is the first real consumer of Plan #83.
+
+## Implementation Summary (2026-04-02)
+
+What landed:
+
+- a parallel structured-spec front-half acceptance path in
+  `ac14/front_half_acceptance.py`
+- operator surfaces for:
+  - `structured-spec-front-half-acceptance`
+  - `make structured-spec-front-half-acceptance`
+- a dedicated front-half review prompt for the structured-spec path
+
+What it proves:
+
+- AC14 can now run:
+  - structured spec artifact
+  - draft blueprint planning
+  - draft bundle authoring
+  - freeze decision
+  - front-half semantic review
+- the lane stays bounded and truthful; it does not pretend discovery or
+  dependency planning ran when they did not

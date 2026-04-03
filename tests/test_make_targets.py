@@ -519,6 +519,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "materialize-draft-bundle" in result.stdout
     assert "decide-freeze" in result.stdout
     assert "front-half-acceptance" in result.stdout
+    assert "structured-spec-front-half-acceptance" in result.stdout
     assert "front-half-acceptance-suite" in result.stdout
     assert "prove-example" in result.stdout
     assert "fresh-runs" in result.stdout
@@ -1948,6 +1949,72 @@ def test_make_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     payload = json.loads((output_dir / "front_half_acceptance_report.json").read_text())
     assert payload["artifact_paths"]["freeze_semantic_review_path"] is not None
     assert (output_dir / "freeze_decision" / "freeze_semantic_review.json").exists()
+
+
+def test_make_structured_spec_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
+    """Make structured-spec front-half target should persist the bounded artifact chain."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+
+    output_dir = tmp_path / "structured_spec_front_half"
+    env = os.environ.copy()
+    env["AC14_BLUEPRINT_PLAN_FIXTURE"] = str(
+        _write_front_half_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json"),
+    )
+    env["AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE"] = str(
+        _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json"),
+    )
+    result = subprocess.run(
+        [
+            "make",
+            "structured-spec-front-half-acceptance",
+            f"STRUCTURED_SPEC={tmp_path / 'structured_spec' / 'structured_spec_artifact.json'}",
+            f"OUTPUT={output_dir}",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "structured_spec_front_half_acceptance_report.json").read_text())
+    assert payload["planning_input_name"] == "Resource Scaling Contract"
+    assert payload["artifact_paths"]["structured_spec_artifact_path"].endswith(
+        "structured_spec_artifact.json",
+    )
 
 
 def test_make_front_half_acceptance_supports_input_directory(tmp_path: Path) -> None:

@@ -15,6 +15,7 @@ from ac14.blueprint_planning import (
     DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     DEFAULT_BLUEPRINT_PLAN_MODEL,
     abuild_draft_blueprint_plan,
+    abuild_draft_blueprint_plan_from_structured_spec,
 )
 from ac14.dependency_execution import build_dependency_execution_artifact
 from ac14.dependency_planning import abuild_dependency_plan
@@ -24,6 +25,7 @@ from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints, 
 from ac14.freeze_decision import FreezeDecisionArtifact, build_freeze_decision
 from ac14.freeze_retry import FreezeRetryArtifact, abuild_freeze_retry_artifact
 from ac14.loader import load_blueprint_dir
+from ac14.structured_spec import StructuredSpecArtifact
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
 
 
@@ -33,6 +35,11 @@ DEFAULT_FRONT_HALF_RETRY_MODEL = DEFAULT_BLUEPRINT_PLAN_MODEL
 DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET = DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET
 FRONT_HALF_ACCEPTANCE_PROMPT_PATH = (
     Path(__file__).resolve().parents[1] / "prompts" / "review_front_half_acceptance.yaml"
+)
+STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_PROMPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "prompts"
+    / "review_structured_spec_front_half_acceptance.yaml"
 )
 
 
@@ -216,6 +223,62 @@ class FrontHalfSuiteAcceptanceReport(BaseModel):
     )
 
 
+class StructuredSpecFrontHalfArtifactPaths(BaseModel):
+    """Persisted paths for each structured-spec front-half artifact."""
+
+    structured_spec_artifact_path: str = Field(
+        description="Path to the persisted structured-spec artifact.",
+    )
+    draft_blueprint_plan_path: str = Field(
+        description="Path to the persisted draft blueprint planning artifact.",
+    )
+    draft_bundle_dir: str = Field(description="Directory containing the authored draft bundle.")
+    freeze_readiness_report_path: str = Field(
+        description="Path to the persisted freeze-readiness report.",
+    )
+    freeze_decision_path: str = Field(description="Path to the persisted freeze decision artifact.")
+    freeze_semantic_review_path: str | None = Field(
+        default=None,
+        description="Path to the persisted freeze-semantic review artifact when one was built.",
+    )
+    retry_freeze_artifact_path: str | None = Field(
+        default=None,
+        description="Path to the persisted retry-chain artifact when retry was attempted.",
+    )
+
+
+class StructuredSpecFrontHalfAcceptanceArtifact(BaseModel):
+    """Persisted front-half acceptance artifact for structured-spec-driven drafting."""
+
+    structured_spec_artifact_path: str = Field(
+        description="Structured-spec artifact inspected by the front half.",
+    )
+    planning_input_name: str = Field(
+        description="Human-facing name of the structured-spec contract under review.",
+    )
+    requirements: list[str] = Field(description="Requirements reviewed by the front-half artifact.")
+    artifact_paths: StructuredSpecFrontHalfArtifactPaths = Field(
+        description="Persisted paths for the sub-artifacts produced by the front-half pipeline.",
+    )
+    freeze_approved: bool = Field(description="Whether the resulting draft bundle was approved for freeze.")
+    final_freeze_approved: bool = Field(
+        description="Whether the front-half result ended in freeze approval after any bounded retry.",
+    )
+    retry_freeze_attempted: bool = Field(
+        description="Whether one explicit retry chain was attempted after blocked freeze.",
+    )
+    retry_freeze_approved: bool | None = Field(
+        default=None,
+        description="Whether the retry chain reached freeze approval when one was attempted.",
+    )
+    blocking_finding_codes: list[str] = Field(
+        description="Blocking finding codes carried by the freeze decision.",
+    )
+    review: FrontHalfReviewResponse = Field(
+        description="Structured review of the front-half result against the requirements.",
+    )
+
+
 async def abuild_front_half_acceptance_report(
     input_path: Path | str,
     output_dir: Path | str,
@@ -384,6 +447,121 @@ def build_front_half_acceptance_report(
             retry_model=retry_model,
             retry_max_budget=retry_max_budget,
             max_samples=max_samples,
+        ),
+    )
+
+
+async def abuild_structured_spec_front_half_acceptance_report(
+    structured_spec_artifact_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+) -> StructuredSpecFrontHalfAcceptanceArtifact:
+    """Build a persisted structured-spec front-half acceptance artifact."""
+
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    artifact_path = Path(structured_spec_artifact_path)
+    structured_spec_artifact = StructuredSpecArtifact.model_validate_json(artifact_path.read_text())
+
+    await abuild_draft_blueprint_plan_from_structured_spec(
+        structured_spec_artifact_path=artifact_path,
+        output_dir=destination / "draft_plan",
+        model=model,
+        max_budget=max_budget,
+    )
+    draft_plan_path = destination / "draft_plan" / "draft_blueprint_plan.json"
+
+    draft_bundle_manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=draft_plan_path,
+        output_dir=destination / "draft_bundle",
+    )
+    freeze_decision = build_freeze_decision(
+        bundle_dir=Path(draft_bundle_manifest.draft_bundle_dir),
+        output_dir=destination / "freeze_decision",
+        readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),
+    )
+    freeze_decision_path = destination / "freeze_decision" / "freeze_decision.json"
+    retry_artifact: FreezeRetryArtifact | None = None
+    if retry_blocked_freeze and not freeze_decision.approved:
+        retry_artifact = await abuild_freeze_retry_artifact(
+            plan_artifact_path=draft_plan_path,
+            freeze_decision_path=freeze_decision_path,
+            output_dir=destination / "freeze_retry",
+            model=retry_model,
+            max_budget=retry_max_budget,
+        )
+
+    review = await _review_structured_spec_front_half_acceptance(
+        structured_spec_artifact=structured_spec_artifact,
+        draft_plan_path=draft_plan_path,
+        freeze_decision=freeze_decision,
+        retry_artifact=retry_artifact,
+        model=model,
+        max_budget=max_budget,
+    )
+
+    artifact = StructuredSpecFrontHalfAcceptanceArtifact(
+        structured_spec_artifact_path=str(artifact_path),
+        planning_input_name=structured_spec_artifact.spec.system_name,
+        requirements=structured_spec_artifact.spec.requirements,
+        artifact_paths=StructuredSpecFrontHalfArtifactPaths(
+            structured_spec_artifact_path=str(artifact_path),
+            draft_blueprint_plan_path=str(draft_plan_path),
+            draft_bundle_dir=draft_bundle_manifest.draft_bundle_dir,
+            freeze_readiness_report_path=draft_bundle_manifest.freeze_readiness_report_path,
+            freeze_decision_path=str(freeze_decision_path),
+            freeze_semantic_review_path=freeze_decision.semantic_review_path,
+            retry_freeze_artifact_path=(
+                str(destination / "freeze_retry" / "freeze_retry_artifact.json")
+                if retry_artifact is not None
+                else None
+            ),
+        ),
+        freeze_approved=freeze_decision.approved,
+        final_freeze_approved=retry_artifact.approved if retry_artifact is not None else freeze_decision.approved,
+        retry_freeze_attempted=retry_artifact is not None,
+        retry_freeze_approved=retry_artifact.approved if retry_artifact is not None else None,
+        blocking_finding_codes=sorted(
+            {
+                finding.code
+                for finding in freeze_decision.findings
+                if finding.code.startswith("E-")
+            },
+        ),
+        review=review,
+    )
+    (destination / "structured_spec_front_half_acceptance_report.json").write_text(
+        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+    return artifact
+
+
+def build_structured_spec_front_half_acceptance_report(
+    structured_spec_artifact_path: Path | str,
+    output_dir: Path | str,
+    *,
+    model: str = DEFAULT_FRONT_HALF_ACCEPTANCE_MODEL,
+    max_budget: float = DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
+    retry_blocked_freeze: bool = False,
+    retry_model: str = DEFAULT_FRONT_HALF_RETRY_MODEL,
+    retry_max_budget: float = DEFAULT_FRONT_HALF_RETRY_MAX_BUDGET,
+) -> StructuredSpecFrontHalfAcceptanceArtifact:
+    """Synchronous wrapper for structured-spec front-half acceptance."""
+
+    return asyncio.run(
+        abuild_structured_spec_front_half_acceptance_report(
+            structured_spec_artifact_path=structured_spec_artifact_path,
+            output_dir=output_dir,
+            model=model,
+            max_budget=max_budget,
+            retry_blocked_freeze=retry_blocked_freeze,
+            retry_model=retry_model,
+            retry_max_budget=retry_max_budget,
         ),
     )
 
@@ -599,6 +777,41 @@ async def _review_front_half_acceptance(
     return cast(FrontHalfReviewResponse, response)
 
 
+async def _review_structured_spec_front_half_acceptance(
+    *,
+    structured_spec_artifact: StructuredSpecArtifact,
+    draft_plan_path: Path,
+    freeze_decision: FreezeDecisionArtifact,
+    retry_artifact: FreezeRetryArtifact | None,
+    model: str,
+    max_budget: float,
+) -> FrontHalfReviewResponse:
+    """Run the LLM reviewer for the structured-spec front half."""
+
+    fixture_path = os.environ.get("AC14_FRONT_HALF_ACCEPTANCE_FIXTURE")
+    if fixture_path:
+        return FrontHalfReviewResponse.model_validate_json(Path(fixture_path).read_text())
+
+    draft_plan_payload = json.loads(draft_plan_path.read_text())
+    messages = render_prompt(
+        STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_PROMPT_PATH,
+        structured_spec_summary=_build_structured_spec_summary(structured_spec_artifact),
+        requirements=structured_spec_artifact.spec.requirements,
+        draft_plan_summary=_build_draft_plan_summary(draft_plan_payload),
+        freeze_summary=_build_freeze_summary(freeze_decision),
+        retry_freeze_summary=_build_retry_freeze_summary(retry_artifact),
+    )
+    response, _meta = await acall_llm_structured(
+        model,
+        messages,
+        response_model=FrontHalfReviewResponse,
+        task="ac14_structured_spec_front_half_acceptance_review",
+        trace_id=f"ac14/structured_spec_front_half_acceptance/{Path(structured_spec_artifact.source_path).stem}",
+        max_budget=max_budget,
+    )
+    return cast(FrontHalfReviewResponse, response)
+
+
 def _build_discovery_summary(artifact: DiscoveryArtifact) -> dict[str, object]:
     """Build a compact review summary from the discovery artifact."""
 
@@ -618,6 +831,31 @@ def _build_discovery_summary(artifact: DiscoveryArtifact) -> dict[str, object]:
             }
             for field in inspection.field_summaries[:10]
         ],
+        "open_concerns": artifact.open_concerns,
+    }
+
+
+def _build_structured_spec_summary(artifact: StructuredSpecArtifact) -> dict[str, object]:
+    """Build a compact review summary from the structured-spec artifact."""
+
+    spec = artifact.spec
+    return {
+        "system_name": spec.system_name,
+        "purpose": spec.purpose,
+        "requirements": spec.requirements,
+        "success_criteria": spec.success_criteria,
+        "business_rules": spec.business_rules[:10],
+        "inputs": [item.name for item in spec.inputs],
+        "outputs": [item.name for item in spec.outputs],
+        "workflow_hints": [
+            {
+                "hint_id": hint.hint_id,
+                "summary": hint.summary,
+                "business_rules": hint.business_rules,
+            }
+            for hint in spec.workflow_hints[:10]
+        ],
+        "human_context_notes": spec.human_context_notes[:10],
         "open_concerns": artifact.open_concerns,
     }
 

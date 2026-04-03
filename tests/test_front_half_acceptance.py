@@ -10,7 +10,9 @@ import pytest
 from ac14.front_half_acceptance import (
     build_front_half_acceptance_report,
     build_front_half_acceptance_suite_report,
+    build_structured_spec_front_half_acceptance_report,
 )
+from ac14.structured_spec import build_structured_spec_artifact
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -307,6 +309,76 @@ def test_build_front_half_acceptance_report_runs_pipeline(
     assert Path(artifact.artifact_paths.freeze_decision_path).exists()
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
     assert Path(artifact.artifact_paths.freeze_semantic_review_path).exists()
+
+
+def test_build_structured_spec_front_half_acceptance_report_runs_end_to_end(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec front-half acceptance should persist the bounded pipeline and review."""
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+                "workflow_hints:",
+                "  - hint_id: evaluate_thresholds",
+                "    summary: Evaluate metrics against rules.",
+                "    input_names: [metrics_snapshot]",
+                "    output_names: [scaling_decision]",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FREEZE_SEMANTIC_REVIEW_FIXTURE",
+        str(_write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json")),
+    )
+
+    artifact = build_structured_spec_front_half_acceptance_report(
+        structured_spec_artifact_path=tmp_path / "structured_spec" / "structured_spec_artifact.json",
+        output_dir=tmp_path / "structured_spec_front_half",
+        max_budget=0.1,
+    )
+
+    assert artifact.planning_input_name == "Resource Scaling Contract"
+    assert Path(artifact.artifact_paths.structured_spec_artifact_path).exists()
+    assert Path(artifact.artifact_paths.draft_blueprint_plan_path).exists()
+    assert Path(artifact.artifact_paths.freeze_readiness_report_path).exists()
+    assert Path(artifact.artifact_paths.freeze_decision_path).exists()
+    assert artifact.artifact_paths.freeze_semantic_review_path is not None
+    assert Path(artifact.artifact_paths.freeze_semantic_review_path).exists()
+    assert (tmp_path / "structured_spec_front_half" / "structured_spec_front_half_acceptance_report.json").exists()
 
 
 def test_build_front_half_acceptance_report_supports_retry_freeze(
