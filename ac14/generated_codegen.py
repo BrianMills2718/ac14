@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
-import json
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from types import ModuleType
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field
 
+from ac14.atomic_io import atomic_write_json, atomic_write_text
 from ac14.codegen_context import CodegenContext, build_codegen_context
 from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
@@ -90,7 +90,7 @@ def emit_generated_package(
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
-    (destination / "__init__.py").write_text('"""Generated AC14 components."""\n')
+    atomic_write_text(destination / "__init__.py", '"""Generated AC14 components."""\n')
 
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
@@ -116,7 +116,7 @@ def emit_generated_package(
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
             raise
         module_path = destination / f"{component_id}.py"
-        module_path.write_text(module_source)
+        atomic_write_text(module_path, module_source)
         module_paths[component_id] = str(module_path)
 
     return GeneratedPackage(
@@ -140,7 +140,7 @@ async def aemit_generated_package(
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
-    (destination / "__init__.py").write_text('"""Generated AC14 components."""\n')
+    atomic_write_text(destination / "__init__.py", '"""Generated AC14 components."""\n')
 
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
@@ -166,7 +166,7 @@ async def aemit_generated_package(
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
             raise
         module_path = destination / f"{component_id}.py"
-        module_path.write_text(module_source)
+        atomic_write_text(module_path, module_source)
         module_paths[component_id] = str(module_path)
 
     return GeneratedPackage(
@@ -208,15 +208,13 @@ def _persist_failed_module_artifacts(destination: Path, *, component_id: str, er
 
     module_code = getattr(error, "module_code", None)
     if isinstance(module_code, str):
-        (destination / f"{component_id}.failed.py").write_text(module_code)
+        atomic_write_text(destination / f"{component_id}.failed.py", module_code)
     metadata = {
         "component_id": component_id,
         "error": str(error),
         "persisted_failed_module_source": isinstance(module_code, str),
     }
-    (destination / f"{component_id}.validation_error.json").write_text(
-        json.dumps(metadata, indent=2, sort_keys=True),
-    )
+    atomic_write_json(destination / f"{component_id}.validation_error.json", metadata)
 
 
 def _render_module_source(

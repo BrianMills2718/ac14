@@ -3,7 +3,7 @@
 **Status:** Planned
 **Type:** evaluation
 **Priority:** Critical
-**Blocked By:** 65 (`ready_for_full_trials`)
+**Blocked By:** 71 (resume-safe full-trial rerun)
 **Blocks:** None
 
 ---
@@ -86,4 +86,5 @@ scope broadening.
 
 ## Notes
 
-This plan should only run if Plan #65 says the smoke run is ready.
+This plan should only run after the smoke gate is `ready_for_full_trials` and
+any interrupted full-trial output has been repaired into a restart-safe state.

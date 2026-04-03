@@ -7,10 +7,11 @@ import ast
 import copy
 import json
 import os
+import shutil
 import sqlite3
 import time
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Literal, TypeVar, cast
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
@@ -22,6 +23,7 @@ from ac14.acceptance import (
     acall_llm_structured,
     render_prompt,
 )
+from ac14.atomic_io import atomic_write_json, atomic_write_text
 from ac14.generated_codegen import (
     DEFAULT_LLM_MAX_BUDGET,
     DEFAULT_LLM_MODEL,
@@ -72,6 +74,7 @@ SmokeReadinessVerdict = Literal[
     "blocked_on_harness",
 ]
 SemanticReviewPolicy = Literal["required", "advisory_on_exact_match"]
+ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
 class BenchmarkConfig(BaseModel):
@@ -350,9 +353,7 @@ def run_paired_trial(
         monolithic=monolithic_report,
         ac14=ac14_report,
     )
-    (destination / "paired_trial_report.json").write_text(
-        json.dumps(paired_report.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(destination / "paired_trial_report.json", paired_report.model_dump(mode="json"))
     return paired_report
 
 
@@ -370,30 +371,47 @@ def run_empirical_comparison(
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
     bundle = load_benchmark_bundle(benchmark_dir)
+    decision_path = destination / "experiment_decision.json"
+    existing_decision = _load_existing_model(decision_path, ExperimentDecisionArtifact)
+    if (
+        existing_decision is not None
+        and existing_decision.benchmark_id == bundle.config.benchmark_id
+        and existing_decision.trial_count == trial_count
+    ):
+        return existing_decision
 
     reports: list[PairedTrialReport] = []
     report_paths: list[str] = []
     for trial_id in range(1, trial_count + 1):
         trial_dir = destination / f"trial_{trial_id}"
-        report = run_paired_trial(
-            benchmark_dir,
-            trial_dir,
-            trial_id=trial_id,
-            model=model,
-            max_budget=max_budget,
-            max_attempts=max_attempts,
-        )
+        report_path = trial_dir / "paired_trial_report.json"
+        existing_report = _load_existing_model(report_path, PairedTrialReport)
+        if (
+            existing_report is not None
+            and existing_report.benchmark_id == bundle.config.benchmark_id
+            and existing_report.trial_id == trial_id
+        ):
+            report = existing_report
+        else:
+            if trial_dir.exists() and any(trial_dir.iterdir()):
+                _archive_incomplete_trial_dir(destination=destination, trial_dir=trial_dir)
+            report = run_paired_trial(
+                benchmark_dir,
+                trial_dir,
+                trial_id=trial_id,
+                model=model,
+                max_budget=max_budget,
+                max_attempts=max_attempts,
+            )
         reports.append(report)
-        report_paths.append(str(trial_dir / "paired_trial_report.json"))
+        report_paths.append(str(report_path))
 
     decision = build_experiment_decision_artifact(
         benchmark_id=bundle.config.benchmark_id,
         trial_reports=reports,
         trial_report_paths=report_paths,
     )
-    (destination / "experiment_decision.json").write_text(
-        json.dumps(decision.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(decision_path, decision.model_dump(mode="json"))
     return decision
 
 
@@ -423,9 +441,7 @@ def run_empirical_smoke_gate(
         paired_trial_report=report,
         trial_report_path=str(trial_report_path),
     )
-    (destination / "smoke_readiness_report.json").write_text(
-        json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(destination / "smoke_readiness_report.json", artifact.model_dump(mode="json"))
     return artifact
 
 
@@ -731,12 +747,8 @@ def _run_condition_attempt(
         results=[],
         harness_error=f"attempt failed before recomposition proof completed: {generation_error or 'unknown error'}",
     )
-    packet_report_path.write_text(
-        json.dumps(packet_report.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
-    recomposition_report_path.write_text(
-        json.dumps(recomposition_report.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(packet_report_path, packet_report.model_dump(mode="json"))
+    atomic_write_json(recomposition_report_path, recomposition_report.model_dump(mode="json"))
 
     duration_s = time.perf_counter() - start
     llm_cost = _observe_llm_cost(trace_prefix)
@@ -785,9 +797,7 @@ def _run_condition_attempt(
             and semantic_review_passed
         ),
     )
-    (output_dir / "attempt_report.json").write_text(
-        json.dumps(attempt_report.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(output_dir / "attempt_report.json", attempt_report.model_dump(mode="json"))
     return attempt_report
 
 
@@ -811,9 +821,7 @@ def emit_monolithic_package_with_llm(
         max_budget=max_budget,
         repair_guidance=repair_guidance or [],
     )
-    (destination / "monolithic_response.json").write_text(
-        json.dumps(response.model_dump(mode="json"), indent=2, sort_keys=True),
-    )
+    atomic_write_json(destination / "monolithic_response.json", response.model_dump(mode="json"))
     expected_component_ids = set(bundle.blueprint.components)
     modules_by_component = {module.component_id: module.module_code for module in response.modules}
     if set(modules_by_component) != expected_component_ids:
@@ -822,7 +830,7 @@ def emit_monolithic_package_with_llm(
             f"expected {sorted(expected_component_ids)}, got {sorted(modules_by_component)}",
         )
 
-    (destination / "__init__.py").write_text('"""Monolithically generated AC14 components."""\n')
+    atomic_write_text(destination / "__init__.py", '"""Monolithically generated AC14 components."""\n')
     module_paths: dict[str, str] = {}
     components_by_id = bundle.blueprint.components
     for component_id, module_code in modules_by_component.items():
@@ -843,7 +851,7 @@ def emit_monolithic_package_with_llm(
                 f"{exc}; failed module source persisted at {failed_path}"
             ) from exc
         module_path = destination / f"{component_id}.py"
-        module_path.write_text(module_code)
+        atomic_write_text(module_path, module_code)
         module_paths[component_id] = str(module_path)
     return GeneratedPackage(
         output_dir=str(destination),
@@ -927,17 +935,40 @@ def _persist_monolithic_failed_module_artifacts(
     """Persist invalid monolithic module source and validation metadata for diagnosis."""
 
     failed_path = destination / f"{component_id}.failed.py"
-    failed_path.write_text(module_code)
+    atomic_write_text(failed_path, module_code)
     metadata = {
         "component_id": component_id,
         "error": str(error),
         "failed_module_path": str(failed_path),
         "persisted_failed_module_source": True,
     }
-    (destination / f"{component_id}.validation_error.json").write_text(
-        json.dumps(metadata, indent=2, sort_keys=True),
-    )
+    atomic_write_json(destination / f"{component_id}.validation_error.json", metadata)
     return failed_path
+
+
+def _load_existing_model(path: Path, model_type: type[ModelT]) -> ModelT | None:
+    """Return one persisted model when the JSON artifact exists and is valid."""
+
+    if not path.exists() or path.stat().st_size == 0:
+        return None
+    try:
+        return model_type.model_validate_json(path.read_text())
+    except Exception:
+        return None
+
+
+def _archive_incomplete_trial_dir(*, destination: Path, trial_dir: Path) -> Path:
+    """Preserve an incomplete trial directory before rerunning it cleanly."""
+
+    archive_root = destination / "_interrupted_trials"
+    archive_root.mkdir(parents=True, exist_ok=True)
+    archived_dir = archive_root / f"{trial_dir.name}_{time.strftime('%Y%m%dT%H%M%S')}"
+    counter = 1
+    while archived_dir.exists():
+        counter += 1
+        archived_dir = archive_root / f"{trial_dir.name}_{time.strftime('%Y%m%dT%H%M%S')}_{counter}"
+    shutil.move(str(trial_dir), str(archived_dir))
+    return archived_dir
 
 
 def generate_monolithic_system_with_llm(

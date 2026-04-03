@@ -129,6 +129,9 @@ For the active empirical-comparison lane, this rule is especially strict:
 - when the smoke artifact is stale or the control docs lag the latest run,
   update the docs before continuing so another agent can resume without chat
   history
+- if a full-trial empirical run is interrupted and leaves partial or zero-byte
+  artifacts, freeze a restart-integrity plan immediately; preserve incomplete
+  trial evidence, make the runner resume-safe, and only then continue the gate
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

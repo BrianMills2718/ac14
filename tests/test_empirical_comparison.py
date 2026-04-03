@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 from llm_client import render_prompt  # type: ignore[import-not-found]
@@ -36,6 +37,7 @@ from ac14.empirical_comparison import (
     emit_monolithic_package_with_llm,
     generate_monolithic_system_with_llm,
     load_benchmark_bundle,
+    run_empirical_comparison,
     run_paired_trial,
 )
 
@@ -154,6 +156,102 @@ def test_run_paired_trial_persists_monolithic_and_ac14_artifacts(
     assert report.ac14.condition == "ac14"
     assert persisted["monolithic"]["condition"] == "monolithic"
     assert persisted["ac14"]["condition"] == "ac14"
+
+
+def test_run_empirical_comparison_reuses_completed_trial_reports(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A rerun should reuse valid completed trial reports instead of regenerating them."""
+
+    existing_trial_dir = tmp_path / "trial_1"
+    existing_trial_dir.mkdir(parents=True)
+    existing_report = PairedTrialReport(
+        benchmark_id="order_exception_resolution_v1",
+        trial_id=1,
+        monolithic=_condition_report("monolithic", passed=True, semantic_score=2.0, repair_loops=0),
+        ac14=_condition_report("ac14", passed=False, semantic_score=0.0, repair_loops=1),
+    )
+    (existing_trial_dir / "paired_trial_report.json").write_text(
+        json.dumps(existing_report.model_dump(mode="json"), indent=2, sort_keys=True),
+    )
+
+    call_counter = {"count": 0}
+
+    def _fake_run_paired_trial(*args: object, **kwargs: object) -> PairedTrialReport:
+        call_counter["count"] += 1
+        trial_id = cast(int, kwargs["trial_id"])
+        destination = Path(str(args[1]))
+        report = PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=trial_id,
+            monolithic=_condition_report("monolithic", passed=True, semantic_score=2.0, repair_loops=0),
+            ac14=_condition_report("ac14", passed=True, semantic_score=2.0, repair_loops=0),
+        )
+        destination.mkdir(parents=True, exist_ok=True)
+        (destination / "paired_trial_report.json").write_text(
+            json.dumps(report.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        return report
+
+    monkeypatch.setattr("ac14.empirical_comparison.run_paired_trial", _fake_run_paired_trial)
+
+    decision = run_empirical_comparison(
+        BENCHMARK_DIR,
+        tmp_path,
+        trial_count=2,
+    )
+
+    assert call_counter["count"] == 1
+    assert decision.trial_count == 2
+    assert decision.trial_report_paths == [
+        str(tmp_path / "trial_1" / "paired_trial_report.json"),
+        str(tmp_path / "trial_2" / "paired_trial_report.json"),
+    ]
+
+
+def test_run_empirical_comparison_archives_incomplete_trial_before_rerun(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An invalid or partial trial directory should be preserved and rerun cleanly."""
+
+    trial_dir = tmp_path / "trial_1"
+    (trial_dir / "paired_trial_report.json").parent.mkdir(parents=True, exist_ok=True)
+    (trial_dir / "paired_trial_report.json").write_text("")
+    (trial_dir / "monolithic" / "attempt_1").mkdir(parents=True)
+    (trial_dir / "monolithic" / "attempt_1" / "attempt_report.json").write_text("")
+
+    captured_destination: dict[str, Path] = {}
+
+    def _fake_run_paired_trial(*args: object, **kwargs: object) -> PairedTrialReport:
+        destination = Path(str(args[1]))
+        captured_destination["path"] = destination
+        report = PairedTrialReport(
+            benchmark_id="order_exception_resolution_v1",
+            trial_id=1,
+            monolithic=_condition_report("monolithic", passed=True, semantic_score=2.0, repair_loops=0),
+            ac14=_condition_report("ac14", passed=False, semantic_score=0.0, repair_loops=1),
+        )
+        destination.mkdir(parents=True, exist_ok=True)
+        (destination / "paired_trial_report.json").write_text(
+            json.dumps(report.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        return report
+
+    monkeypatch.setattr("ac14.empirical_comparison.run_paired_trial", _fake_run_paired_trial)
+
+    run_empirical_comparison(
+        BENCHMARK_DIR,
+        tmp_path,
+        trial_count=1,
+    )
+
+    archived = list((tmp_path / "_interrupted_trials").glob("trial_1_*"))
+    assert len(archived) == 1
+    assert (archived[0] / "paired_trial_report.json").read_text() == ""
+    assert captured_destination["path"] == tmp_path / "trial_1"
+    assert json.loads((tmp_path / "trial_1" / "paired_trial_report.json").read_text())["trial_id"] == 1
 
 
 def test_build_experiment_decision_artifact_applies_plan_38_rule() -> None:

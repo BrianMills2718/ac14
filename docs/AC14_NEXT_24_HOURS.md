@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- [Plan #71: Empirical Full-Trial Resume Integrity](/home/brian/projects/ac14/docs/plans/71_empirical_full_trial_resume_integrity.md)
 
 The explicit active chain is:
 
@@ -17,7 +17,8 @@ The explicit active chain is:
 - [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
 - [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
 - [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md) -> complete
-- if rerun says `ready_for_full_trials` -> [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- [Plan #71: Empirical Full-Trial Resume Integrity](/home/brian/projects/ac14/docs/plans/71_empirical_full_trial_resume_integrity.md) -> active
+- once Plan #71 is verified -> resume [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The empirical gate remains frozen in
@@ -33,8 +34,8 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. execute Plan #66 now that the rerun smoke artifact says `ready_for_full_trials`
-2. lock the second empirical verdict from the five-trial gate
+1. finish Plan #71 so interrupted full-trial state becomes resume-safe and observable
+2. resume Plan #66 and lock the second empirical verdict from the five-trial gate
 3. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
 
 ## Progress Update
@@ -57,13 +58,25 @@ Completed before the current lane:
 14. a verified second-gate benchmark bundle at `benchmarks/resource_scaling/` with 13 components, four runtime cases, and categorical-only final outputs
 15. a clean second-gate smoke artifact at `.ac14_out/full_trials_gate_2_smoke/` with verdict `blocked_on_harness` and an explicit blocker diagnosis
 16. a corrected smoke rerun at `.ac14_out/full_trials_gate_2_smoke_rerun/` with verdict `ready_for_full_trials`
+17. a partially executed second full-trial directory at `.ac14_out/full_trials_gate_2/` that preserved real attempt artifacts but no final decision artifact because the run was interrupted mid-write
 
 ## Tactical Phase Summary
 
-### Phase 1: full five-trial gate
+### Phase 1: restart-safe full-trial integrity
 
-- run the second empirical benchmark for five paired trials
+- add atomic empirical artifact writes where interruption currently leaves zero-byte files
+- reuse valid completed trial reports and archive incomplete trial directories
 - keep the runtime-first contract and repaired harness surfaces fixed
+
+Success criteria:
+
+- `.ac14_out/full_trials_gate_2/_interrupted_trials/` contains any previously partial trial evidence that had to be preserved
+- rerunning the gate does not overwrite valid completed trials or depend on manual cleanup
+
+### Phase 2: full five-trial gate
+
+- resume the second empirical benchmark for five paired trials using the repaired runner
+- persist the final decision artifact
 
 Success criteria:
 
@@ -81,3 +94,4 @@ Current lane-specific uncertainties:
 1. AC14 may still lose the second full-trial gate even though the harness is now spendable
 2. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
 3. blocked propagation lanes should stay blocked until the second gate produces a locked five-trial verdict
+4. interrupted empirical runs must now be interpreted through the repaired resume-safe harness rather than by manual artifact reading alone
