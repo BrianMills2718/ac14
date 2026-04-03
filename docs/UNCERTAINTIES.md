@@ -32,7 +32,9 @@ interrupted control-plane session must not be mistaken for an AC14 harness
 verdict or silently overwrite the partial evidence.
 **Current handling:** Preserve the partial directory as an interrupted artifact,
 rerun the smoke gate in a detached shell, and only branch from a persisted
-`smoke_readiness_report.json`.
+`smoke_readiness_report.json`. The current detached rerun is still active and
+has already cleared monolithic attempts plus two AC14 front-half passes, so the
+uncertainty is now runner completion time rather than immediate crash.
 **Date opened:** 2026-04-03
 
 ### U-001: What should the dependency execution-probe result model be?

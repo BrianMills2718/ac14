@@ -101,6 +101,10 @@ The experiment contract remains frozen in:
 - [ ] Run smoke_14 at `.ac14_out/front_half_first_smoke_14`.
 - [ ] Branch immediately from the smoke_14 verdict into Plan #88 + #100, Plan #120 + #121, Plan #122 + #123, Plan #126 + #127, or Plan #128 + #129.
 
+Live note: a detached smoke_14 rerun is currently active. Do not branch from
+partial attempt files; branch only after
+`.ac14_out/front_half_first_smoke_14/smoke_readiness_report.json` exists.
+
 The completed execution lanes are:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
