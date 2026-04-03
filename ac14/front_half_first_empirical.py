@@ -114,6 +114,12 @@ class FrontHalfRuntimeContract(BaseModel):
     final_output_components: dict[str, str] = Field(
         description="Mapping from each reviewable final output port to the component that emits it.",
     )
+    final_output_emitted_ports: dict[str, str] = Field(
+        description=(
+            "Mapping from each structured-spec final output name to the actual generated "
+            "emitted port name used during runtime extraction."
+        ),
+    )
 
 
 class MonolithicRuntimeSystemResponse(BaseModel):
@@ -851,10 +857,18 @@ def infer_runtime_contract_from_structured_spec(
         source_mode = "source_output"
 
     final_output_ports = [item.name for item in structured_spec.outputs]
-    final_output_components = _infer_final_output_components(
+    final_output_bindings = _infer_final_output_bindings(
         blueprint=blueprint,
-        final_output_ports=final_output_ports,
+        structured_outputs=structured_spec.outputs,
     )
+    final_output_components = {
+        structured_output_name: binding[0]
+        for structured_output_name, binding in final_output_bindings.items()
+    }
+    final_output_emitted_ports = {
+        structured_output_name: binding[1]
+        for structured_output_name, binding in final_output_bindings.items()
+    }
     unique_final_components = sorted(set(final_output_components.values()))
     final_component_id = unique_final_components[0] if len(unique_final_components) == 1 else None
 
@@ -865,6 +879,7 @@ def infer_runtime_contract_from_structured_spec(
         final_component_id=final_component_id,
         final_output_ports=final_output_ports,
         final_output_components=final_output_components,
+        final_output_emitted_ports=final_output_emitted_ports,
     )
 
 
@@ -913,6 +928,30 @@ def _format_runtime_source_candidates(
     return [f"{component_id}.{port_name}:{schema_id}" for component_id, port_name, schema_id in candidates]
 
 
+def _schema_matches_structured_spec_interface(
+    *,
+    blueprint: FrozenBlueprint,
+    schema_id: str,
+    structured_interface: StructuredSpecInterface,
+) -> bool:
+    """Return whether one blueprint schema matches one structured-spec interface shape."""
+
+    schema = blueprint.schemas.get(schema_id)
+    if schema is None:
+        return False
+    if structured_interface.kind != "record" or schema.kind != "object":
+        return False
+    blueprint_fields = {
+        field.name: _normalize_runtime_contract_type(field.type, blueprint=blueprint)
+        for field in schema.fields
+    }
+    structured_fields = {
+        field.field_name: _normalize_runtime_contract_type(field.field_type, blueprint=blueprint)
+        for field in structured_interface.fields
+    }
+    return blueprint_fields == structured_fields
+
+
 def _schema_matches_structured_spec_input(
     *,
     blueprint: FrozenBlueprint,
@@ -921,30 +960,25 @@ def _schema_matches_structured_spec_input(
 ) -> bool:
     """Return whether one blueprint schema matches the top-level structured input shape."""
 
-    schema = blueprint.schemas.get(schema_id)
-    if schema is None:
-        return False
-    if structured_input.kind != "record" or schema.kind != "object":
-        return False
-    blueprint_fields = {
-        field.name: _normalize_runtime_contract_type(field.type)
-        for field in schema.fields
-    }
-    structured_fields = {
-        field.field_name: _normalize_runtime_contract_type(field.field_type)
-        for field in structured_input.fields
-    }
-    return blueprint_fields == structured_fields
+    return _schema_matches_structured_spec_interface(
+        blueprint=blueprint,
+        schema_id=schema_id,
+        structured_interface=structured_input,
+    )
 
 
-def _normalize_runtime_contract_type(type_label: str) -> str:
+def _normalize_runtime_contract_type(
+    type_label: str,
+    *,
+    blueprint: FrozenBlueprint | None = None,
+) -> str:
     """Normalize compact and canonical field types into one comparison label."""
 
     normalized = type_label.strip()
     lower = normalized.lower()
     if lower.startswith("list[") and lower.endswith("]"):
         inner = normalized[5:-1].strip()
-        return f"list[{_normalize_runtime_contract_type(inner)}]"
+        return f"list[{_normalize_runtime_contract_type(inner, blueprint=blueprint)}]"
     aliases = {
         "str": "string",
         "string": "string",
@@ -958,30 +992,112 @@ def _normalize_runtime_contract_type(type_label: str) -> str:
         "dict": "object",
         "object": "object",
     }
+    if blueprint is not None:
+        referenced_schema = blueprint.schemas.get(normalized)
+        if referenced_schema is not None and referenced_schema.kind == "object":
+            return "object"
     return aliases.get(lower, normalized)
 
 
-def _infer_final_output_components(
+def _infer_final_output_bindings(
     *,
     blueprint: FrozenBlueprint,
-    final_output_ports: list[str],
-) -> dict[str, str]:
-    """Infer which component emits each structured-spec final output port."""
+    structured_outputs: list[StructuredSpecInterface],
+) -> dict[str, tuple[str, str]]:
+    """Infer which generated output satisfies each structured-spec final output."""
 
-    inferred: dict[str, str] = {}
-    for port_name in final_output_ports:
+    inferred: dict[str, tuple[str, str]] = {}
+    for structured_output in structured_outputs:
         candidates = sorted(
-            component_id
-            for component_id, component in blueprint.components.items()
-            if port_name in {port.name for port in component.output_ports}
-        )
-        if len(candidates) != 1:
-            raise ValueError(
-                "unable to infer one unique final component from structured spec output "
-                f"{port_name!r}: {candidates}",
+            (
+                component_id,
+                port.name,
+                port.schema_id,
             )
-        inferred[port_name] = candidates[0]
+            for component_id, component in blueprint.components.items()
+            for port in component.output_ports
+        )
+        exact_name_candidates = [
+            candidate
+            for candidate in candidates
+            if candidate[1] == structured_output.name
+        ]
+        schema_name_candidates = [
+            candidate
+            for candidate in candidates
+            if _normalize_runtime_contract_identifier(candidate[2])
+            == _normalize_runtime_contract_identifier(structured_output.name)
+        ]
+        schema_match_candidates = [
+            candidate
+            for candidate in candidates
+            if _schema_matches_structured_spec_interface(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_interface=structured_output,
+            )
+        ]
+        component_id, emitted_port_name, _schema_id = _select_structured_spec_output_candidate(
+            structured_output_name=structured_output.name,
+            candidates=candidates,
+            exact_name_candidates=exact_name_candidates,
+            schema_name_candidates=schema_name_candidates,
+            schema_match_candidates=schema_match_candidates,
+        )
+        inferred[structured_output.name] = (component_id, emitted_port_name)
     return inferred
+
+
+def _select_structured_spec_output_candidate(
+    *,
+    structured_output_name: str,
+    candidates: list[tuple[str, str, str]],
+    exact_name_candidates: list[tuple[str, str, str]],
+    schema_name_candidates: list[tuple[str, str, str]],
+    schema_match_candidates: list[tuple[str, str, str]],
+) -> tuple[str, str, str]:
+    """Select one generated output candidate for one structured-spec final output or fail loud."""
+
+    if len(exact_name_candidates) == 1:
+        return exact_name_candidates[0]
+    if len(exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple exact-name candidates "
+            f"{_format_runtime_source_candidates(exact_name_candidates)}",
+        )
+    if len(schema_name_candidates) == 1:
+        return schema_name_candidates[0]
+    if len(schema_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple schema-name candidates "
+            f"{_format_runtime_source_candidates(schema_name_candidates)}",
+        )
+    if len(schema_match_candidates) == 1:
+        return schema_match_candidates[0]
+    if len(schema_match_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple schema-matched candidates "
+            f"{_format_runtime_source_candidates(schema_match_candidates)}",
+        )
+    if len(candidates) == 1:
+        return candidates[0]
+    raise ValueError(
+        "unable to infer one unique final component from structured spec output "
+        f"{structured_output_name!r}: exact-name candidates "
+        f"{_format_runtime_source_candidates(exact_name_candidates)}, schema-name candidates "
+        f"{_format_runtime_source_candidates(schema_name_candidates)}, schema-matched candidates "
+        f"{_format_runtime_source_candidates(schema_match_candidates)}, all output candidates "
+        f"{_format_runtime_source_candidates(candidates)}",
+    )
+
+
+def _normalize_runtime_contract_identifier(identifier: str) -> str:
+    """Normalize one identifier for case-insensitive schema/name comparisons."""
+
+    return "".join(character for character in identifier.lower() if character.isalnum())
 
 
 def generate_monolithic_runtime_system_with_llm(
@@ -1230,7 +1346,9 @@ def _execute_generated_blueprint_runtime_cases(
                 initial_inputs,
             )
             selected_outputs = {
-                port_name: outputs_by_component[runtime_contract.final_output_components[port_name]][port_name]
+                port_name: outputs_by_component[runtime_contract.final_output_components[port_name]][
+                    runtime_contract.final_output_emitted_ports[port_name]
+                ]
                 for port_name in runtime_contract.final_output_ports
             }
             results.append(
