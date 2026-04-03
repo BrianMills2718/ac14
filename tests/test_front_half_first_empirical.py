@@ -19,6 +19,7 @@ from ac14.front_half_first_empirical import (
     run_front_half_first_smoke_gate,
 )
 from ac14.empirical_comparison import CostObservation
+from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.loader import load_blueprint_dir
 from ac14.structured_spec import build_structured_spec_artifact, load_structured_spec_document
 from ac14.structured_spec_benchmark import load_structured_spec_benchmark_bundle
@@ -152,6 +153,31 @@ def test_infer_runtime_contract_from_generated_bundle(tmp_path: Path) -> None:
     assert contract.final_output_ports == ["scaling_decision_entry", "scaling_decision_store"]
 
 
+def test_infer_runtime_contract_accepts_unique_renamed_root_input_port(tmp_path: Path) -> None:
+    """Runtime contract inference should tolerate one unique unbound root port with a renamed port name."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"][0]["input_ports"][0]["port_name"] = "metrics_snapshot_in"
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.source_component_id == "decision_engine"
+    assert contract.source_port_name == "metrics_snapshot_in"
+    assert contract.final_component_id == "decision_engine"
+
+
 def test_run_front_half_first_smoke_gate_persists_ready_artifact(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -194,6 +220,8 @@ def test_run_front_half_first_smoke_gate_persists_ready_artifact(
     assert persisted["verdict"] == "ready_for_full_trials"
     assert persisted["ac14_front_half_success"] is True
     assert (tmp_path / "front_half_first_smoke" / "trial_1" / "paired_trial_report.json").exists()
+    assert (tmp_path / "front_half_first_smoke" / "trial_1" / "ac14" / "attempt_1" / "failure_classification.json").exists()
+    assert (tmp_path / "front_half_first_smoke" / "trial_1" / "monolithic" / "attempt_1" / "failure_classification.json").exists()
 
 
 def test_generate_monolithic_runtime_system_persists_failed_source_for_nested_input_contract(

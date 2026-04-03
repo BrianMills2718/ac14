@@ -56,7 +56,11 @@ from ac14.models import FrozenBlueprint
 from ac14.packets import compile_packets
 from ac14.recomposition import RecompositionReport
 from ac14.runtime import run_blueprint_once
-from ac14.structured_spec import StructuredSpecDocument, build_structured_spec_artifact
+from ac14.structured_spec import (
+    StructuredSpecDocument,
+    StructuredSpecInterface,
+    build_structured_spec_artifact,
+)
 from ac14.structured_spec_benchmark import (
     StructuredSpecBenchmarkBundle,
     load_structured_spec_benchmark_bundle,
@@ -605,6 +609,10 @@ def _run_ac14_attempt(
             and semantic_review_passed
         ),
     )
+    atomic_write_json(
+        output_dir / "failure_classification.json",
+        failure_classification.model_dump(mode="json"),
+    )
     atomic_write_json(output_dir / "attempt_report.json", report.model_dump(mode="json"))
     return report
 
@@ -728,6 +736,10 @@ def _run_monolithic_attempt(
         failure_summary=failure_summary,
         passed=generation_error is None and runtime_outputs_passed and semantic_review_passed,
     )
+    atomic_write_json(
+        output_dir / "failure_classification.json",
+        failure_classification.model_dump(mode="json"),
+    )
     atomic_write_json(output_dir / "attempt_report.json", report.model_dump(mode="json"))
     return report
 
@@ -739,25 +751,45 @@ def infer_runtime_contract_from_structured_spec(
 ) -> FrontHalfRuntimeContract:
     """Infer the runtime execution contract from a generated blueprint and structured spec."""
 
-    input_names = [item.name for item in structured_spec.inputs]
+    structured_inputs = structured_spec.inputs
+    input_names = [item.name for item in structured_inputs]
     if len(input_names) != 1:
         raise ValueError("front-half-first runtime contract currently requires exactly one top-level input")
-    source_port_name = input_names[0]
+    structured_input = structured_inputs[0]
     bound_input_ports = {
         (binding.to_component, binding.to_port)
         for binding in blueprint.bindings
     }
-    source_candidates = sorted(
-        component_id
-        for component_id, component in blueprint.components.items()
-        if source_port_name in {port.name for port in component.input_ports}
-        and (component_id, source_port_name) not in bound_input_ports
-    )
-    if len(source_candidates) != 1:
-        raise ValueError(
-            "unable to infer one unique source component from structured spec input "
-            f"{source_port_name!r}: {source_candidates}",
+    unbound_input_candidates = sorted(
+        (
+            component_id,
+            port.name,
+            port.schema_id,
         )
+        for component_id, component in blueprint.components.items()
+        for port in component.input_ports
+        if (component_id, port.name) not in bound_input_ports
+    )
+    exact_name_candidates = [
+        candidate
+        for candidate in unbound_input_candidates
+        if candidate[1] == structured_input.name
+    ]
+    schema_match_candidates = [
+        candidate
+        for candidate in unbound_input_candidates
+        if _schema_matches_structured_spec_input(
+            blueprint=blueprint,
+            schema_id=candidate[2],
+            structured_input=structured_input,
+        )
+    ]
+    selected_source = _select_structured_spec_source_candidate(
+        structured_input_name=structured_input.name,
+        unbound_input_candidates=unbound_input_candidates,
+        exact_name_candidates=exact_name_candidates,
+        schema_match_candidates=schema_match_candidates,
+    )
 
     final_output_ports = [item.name for item in structured_spec.outputs]
     final_candidates = sorted(
@@ -772,11 +804,103 @@ def infer_runtime_contract_from_structured_spec(
         )
 
     return FrontHalfRuntimeContract(
-        source_component_id=source_candidates[0],
-        source_port_name=source_port_name,
+        source_component_id=selected_source[0],
+        source_port_name=selected_source[1],
         final_component_id=final_candidates[0],
         final_output_ports=final_output_ports,
     )
+
+
+def _select_structured_spec_source_candidate(
+    *,
+    structured_input_name: str,
+    unbound_input_candidates: list[tuple[str, str, str]],
+    exact_name_candidates: list[tuple[str, str, str]],
+    schema_match_candidates: list[tuple[str, str, str]],
+) -> tuple[str, str, str]:
+    """Select one source input port for the runtime contract or fail loud."""
+
+    if len(exact_name_candidates) == 1:
+        return exact_name_candidates[0]
+    if len(exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique source component from structured spec input "
+            f"{structured_input_name!r}: multiple exact-name candidates "
+            f"{_format_runtime_source_candidates(exact_name_candidates)}",
+        )
+    if len(schema_match_candidates) == 1:
+        return schema_match_candidates[0]
+    if len(schema_match_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique source component from structured spec input "
+            f"{structured_input_name!r}: multiple schema-matched candidates "
+            f"{_format_runtime_source_candidates(schema_match_candidates)}",
+        )
+    if len(unbound_input_candidates) == 1:
+        return unbound_input_candidates[0]
+    raise ValueError(
+        "unable to infer one unique source component from structured spec input "
+        f"{structured_input_name!r}: exact-name candidates "
+        f"{_format_runtime_source_candidates(exact_name_candidates)}, schema-matched "
+        f"candidates {_format_runtime_source_candidates(schema_match_candidates)}, "
+        f"all unbound candidates {_format_runtime_source_candidates(unbound_input_candidates)}",
+    )
+
+
+def _format_runtime_source_candidates(
+    candidates: list[tuple[str, str, str]],
+) -> list[str]:
+    """Render bounded runtime-source candidates for failure messages."""
+
+    return [f"{component_id}.{port_name}:{schema_id}" for component_id, port_name, schema_id in candidates]
+
+
+def _schema_matches_structured_spec_input(
+    *,
+    blueprint: FrozenBlueprint,
+    schema_id: str,
+    structured_input: StructuredSpecInterface,
+) -> bool:
+    """Return whether one blueprint schema matches the top-level structured input shape."""
+
+    schema = blueprint.schemas.get(schema_id)
+    if schema is None:
+        return False
+    if structured_input.kind != "record" or schema.kind != "object":
+        return False
+    blueprint_fields = {
+        field.name: _normalize_runtime_contract_type(field.type)
+        for field in schema.fields
+    }
+    structured_fields = {
+        field.field_name: _normalize_runtime_contract_type(field.field_type)
+        for field in structured_input.fields
+    }
+    return blueprint_fields == structured_fields
+
+
+def _normalize_runtime_contract_type(type_label: str) -> str:
+    """Normalize compact and canonical field types into one comparison label."""
+
+    normalized = type_label.strip()
+    lower = normalized.lower()
+    if lower.startswith("list[") and lower.endswith("]"):
+        inner = normalized[5:-1].strip()
+        return f"list[{_normalize_runtime_contract_type(inner)}]"
+    aliases = {
+        "str": "string",
+        "string": "string",
+        "int": "integer",
+        "integer": "integer",
+        "float": "number",
+        "number": "number",
+        "bool": "boolean",
+        "boolean": "boolean",
+        "record": "object",
+        "dict": "object",
+        "object": "object",
+    }
+    return aliases.get(lower, normalized)
 
 
 def generate_monolithic_runtime_system_with_llm(
