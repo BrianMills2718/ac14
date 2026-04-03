@@ -1,5 +1,5 @@
 name: ac14_draft_blueprint_plan_from_structured_spec
-version: "1.0"
+version: "1.1"
 description: Propose a draft AC14 blueprint plan from a persisted structured-spec artifact.
 messages:
   - role: system
@@ -14,6 +14,9 @@ messages:
       - keep the graph as small as possible while still satisfying the requirements
       - make uncertainty explicit in open questions
       - keep packetization bounded and reviewable
+      - every binding must reference declared component ids and declared ports only
+      - do not invent implicit store reads, hidden helper components, or undeclared sink bindings
+      - if a needed edge cannot be expressed truthfully, convert it into an open question or an explicit component instead
 
       Return only structured fields. Do not add markdown fences.
 
@@ -33,3 +36,25 @@ messages:
       - `packetization_notes` should explain how packets stay bounded and what each packet must emphasize
       - `dependency_decisions` should mention important library or environment choices only when the structured spec or requirements make them necessary
       - `open_questions` should be concrete uncertainties that must be resolved before blueprint freeze
+      - every `proposed_binding.from_component` and `proposed_binding.to_component` must match one `component_id` declared in `proposed_components`
+      - every `proposed_binding.from_port` must match one declared output port on that upstream component
+      - every `proposed_binding.to_port` must match one declared input port on that downstream component
+
+      {% if repair_validation_error %}
+      Previous invalid draft-plan validation error:
+      {{ repair_validation_error }}
+
+      Previous invalid draft plan:
+      {{ previous_invalid_plan }}
+
+      Repair requirement:
+      - correct the exact validation error above
+      - preserve valid parts of the previous plan where possible
+      - return a fully valid plan under the binding rules above
+      {% endif %}
+
+      Binding validation rules (must pass before the plan is accepted):
+      - Every `from_component` and `to_component` in `proposed_bindings` must be the exact `component_id` of a component in `proposed_components`.
+      - Every `from_port` must be the exact `port_name` of an output port on the named `from_component`.
+      - Every `to_port` must be the exact `port_name` of an input port on the named `to_component`.
+      - Do not invent component ids or port names that are not in your `proposed_components` list.

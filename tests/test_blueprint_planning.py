@@ -11,6 +11,7 @@ import pytest
 from ac14.blueprint_planning import (
     DraftBlueprintPlanArtifact,
     DraftBlueprintPlanResponse,
+    PlannedBinding,
     PlannedComponent,
     PlannedPort,
     PlannedScenario,
@@ -464,6 +465,286 @@ def test_build_draft_blueprint_plan_from_structured_spec_persists_artifact(
     kwargs = fake_call.await_args.kwargs
     assert kwargs["task"] == "ac14_draft_blueprint_plan_from_structured_spec"
     assert kwargs["max_budget"] == 0.1
+
+
+def test_build_draft_blueprint_plan_from_structured_spec_retries_retryable_binding_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec planning should retry once when the first plan only fails binding validation."""
+
+    spec_path = tmp_path / "resource_scaling_spec.yaml"
+    spec_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+                "workflow_hints:",
+                "  - hint_id: evaluate_thresholds",
+                "    summary: Evaluate metrics against rules.",
+                "    input_names: [metrics_snapshot]",
+                "    output_names: [scaling_decision]",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(
+        input_path=spec_path,
+        output_dir=tmp_path / "structured_spec",
+    )
+    structured_spec_artifact_path = tmp_path / "structured_spec" / "structured_spec_artifact.json"
+
+    invalid_response = DraftBlueprintPlanResponse(
+        planning_summary="Use one evaluator component and one external audit sink.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="ScalingDecision",
+                kind="record",
+                description="Final scale or no-scale decision.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="action",
+                        field_type="str",
+                        description="One scaling action label.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="recommendation_generator",
+                semantic_responsibility="generate_scaling_recommendation",
+                purpose="Turn metrics into one bounded scaling recommendation.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="scaling_decision",
+                        schema_name="ScalingDecision",
+                        description="Final scaling recommendation.",
+                    ),
+                ],
+                packet_focus=["keep threshold logic explicit", "carry rule salience forward"],
+                dependency_notes=[],
+            ),
+        ],
+        proposed_bindings=[
+            PlannedBinding(
+                from_component="recommendation_generator",
+                from_port="scaling_decision",
+                to_component="external_audit_or_test",
+                to_port="audit_input",
+                rationale="send the decision to an undeclared audit helper",
+            )
+        ],
+        proposed_scenarios=[],
+        packetization_notes=["Keep the graph small."],
+        dependency_decisions=[],
+        open_questions=[],
+    )
+    valid_response = DraftBlueprintPlanResponse(
+        planning_summary="Use one evaluator component only.",
+        proposed_schemas=invalid_response.proposed_schemas,
+        proposed_components=invalid_response.proposed_components,
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="critical_breach",
+                kind="semantic_acceptance",
+                description="Review one critical CPU breach case end to end.",
+                requirement_focus=["produce a scaling decision"],
+            ),
+        ],
+        packetization_notes=["Keep the first draft graph minimal."],
+        dependency_decisions=[],
+        open_questions=[],
+    )
+    fake_call = AsyncMock(side_effect=[(invalid_response, object()), (valid_response, object())])
+    monkeypatch.setattr("ac14.blueprint_planning.acall_llm_structured", fake_call)
+
+    plan = build_draft_blueprint_plan_from_structured_spec(
+        structured_spec_artifact_path=structured_spec_artifact_path,
+        output_dir=tmp_path / "plan",
+        max_budget=0.1,
+    )
+
+    assert plan.proposed_bindings == []
+    assert fake_call.await_count == 2
+    diagnostics_path = tmp_path / "plan" / "draft_blueprint_plan_validation_error_attempt_1.json"
+    invalid_plan_path = tmp_path / "plan" / "draft_blueprint_plan_invalid_attempt_1.json"
+    assert diagnostics_path.exists()
+    assert invalid_plan_path.exists()
+    diagnostics = json.loads(diagnostics_path.read_text())
+    assert diagnostics["retryable"] is True
+    assert diagnostics["retry_scheduled"] is True
+    assert "unknown to_component 'external_audit_or_test'" in diagnostics["validation_error"]
+    repair_messages = fake_call.await_args_list[1].args[1]
+    combined_content = "\n".join(message["content"] for message in repair_messages)
+    assert "Previous invalid draft-plan validation error" in combined_content
+    assert "external_audit_or_test" in combined_content
+
+
+def test_build_draft_blueprint_plan_from_structured_spec_persists_final_invalid_plan_diagnostics(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec planning should fail loud with persisted diagnostics after the bounded retry."""
+
+    spec_path = tmp_path / "resource_scaling_spec.yaml"
+    spec_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(
+        input_path=spec_path,
+        output_dir=tmp_path / "structured_spec",
+    )
+    structured_spec_artifact_path = tmp_path / "structured_spec" / "structured_spec_artifact.json"
+
+    invalid_response_one = DraftBlueprintPlanResponse(
+        planning_summary="Use one evaluator component and one undeclared sink.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="ScalingDecision",
+                kind="record",
+                description="Final scale or no-scale decision.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="action",
+                        field_type="str",
+                        description="One scaling action label.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="recommendation_generator",
+                semantic_responsibility="generate_scaling_recommendation",
+                purpose="Turn metrics into one bounded scaling recommendation.",
+                input_ports=[],
+                output_ports=[
+                    PlannedPort(
+                        port_name="scaling_decision",
+                        schema_name="ScalingDecision",
+                        description="Final scaling recommendation.",
+                    ),
+                ],
+                packet_focus=["keep threshold logic explicit"],
+                dependency_notes=[],
+            ),
+        ],
+        proposed_bindings=[
+            PlannedBinding(
+                from_component="recommendation_generator",
+                from_port="scaling_decision",
+                to_component="external_audit_or_test",
+                to_port="audit_input",
+                rationale="send the decision to an undeclared audit helper",
+            )
+        ],
+        proposed_scenarios=[],
+        packetization_notes=[],
+        dependency_decisions=[],
+        open_questions=[],
+    )
+    invalid_response_two = DraftBlueprintPlanResponse(
+        planning_summary="Retry still invents an implicit store read.",
+        proposed_schemas=invalid_response_one.proposed_schemas,
+        proposed_components=[
+            PlannedComponent(
+                component_id="recommendation_generator",
+                semantic_responsibility="generate_scaling_recommendation",
+                purpose="Turn metrics into one bounded scaling recommendation.",
+                input_ports=[
+                    PlannedPort(
+                        port_name="metrics_snapshot",
+                        schema_name="ScalingDecision",
+                        description="Incorrect but irrelevant input for this retry test.",
+                    ),
+                ],
+                output_ports=invalid_response_one.proposed_components[0].output_ports,
+                packet_focus=["keep threshold logic explicit"],
+                dependency_notes=[],
+            ),
+        ],
+        proposed_bindings=[
+            PlannedBinding(
+                from_component="recommendation_generator",
+                from_port="scaling_decision",
+                to_component="recommendation_generator",
+                to_port="store_snapshot",
+                rationale="implicit store read that still is not a declared input port",
+            )
+        ],
+        proposed_scenarios=[],
+        packetization_notes=[],
+        dependency_decisions=[],
+        open_questions=[],
+    )
+    fake_call = AsyncMock(
+        side_effect=[(invalid_response_one, object()), (invalid_response_two, object())],
+    )
+    monkeypatch.setattr("ac14.blueprint_planning.acall_llm_structured", fake_call)
+
+    with pytest.raises(ValueError, match="invalid structured-spec draft plan persisted at"):
+        build_draft_blueprint_plan_from_structured_spec(
+            structured_spec_artifact_path=structured_spec_artifact_path,
+            output_dir=tmp_path / "plan",
+            max_budget=0.1,
+        )
+
+    assert fake_call.await_count == 2
+    diagnostics_path = tmp_path / "plan" / "draft_blueprint_plan_validation_error_attempt_2.json"
+    invalid_plan_path = tmp_path / "plan" / "draft_blueprint_plan_invalid_attempt_2.json"
+    assert diagnostics_path.exists()
+    assert invalid_plan_path.exists()
+    diagnostics = json.loads(diagnostics_path.read_text())
+    assert diagnostics["retryable"] is False
+    assert diagnostics["retry_scheduled"] is False
+    assert "unknown to_port 'store_snapshot'" in diagnostics["validation_error"]
 
 
 def test_build_draft_blueprint_plan_requires_requirements(tmp_path: Path) -> None:

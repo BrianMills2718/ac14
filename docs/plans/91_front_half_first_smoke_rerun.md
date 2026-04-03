@@ -1,6 +1,6 @@
 # Plan #91: Front-Half-First Smoke Rerun
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 90

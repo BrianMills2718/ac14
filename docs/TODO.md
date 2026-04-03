@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md)
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md)
 
 The explicit active chain is:
 
@@ -39,8 +39,8 @@ The explicit active chain is:
 - [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> complete, verdict `blocked_on_front_half`
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> planned, conditional on Plan #87 verdict `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> complete
-- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> active
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> planned
+- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> complete
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> active
 - [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> planned, conditional on Plan #91 verdict `blocked_*`
 
 The experiment contract remains frozen in:
@@ -131,8 +131,8 @@ The previously active propagation lane remains blocked:
 - [x] Plan #89: diagnose the first blocked front-half-first smoke artifact and freeze the next bounded repair lane
   - Result: the blocker is a combined contract failure: AC14 invalid structured-spec bindings plus monolithic raw-record runtime mismatch
 
-- [ ] Plan #90: repair the front-half-first contract and failed-front-half observability surfaces
-  - Result target: the next smoke rerun should test repaired contracts rather than repeat the same planning and raw-input failures
+- [x] Plan #90: repair the front-half-first contract and failed-front-half observability surfaces
+  - Result: structured-spec planning now persists invalid-plan diagnostics, gets one bounded binding-error retry, and monolithic runtime generation now fails loud with persisted failed source for raw-record contract mistakes
 
 - [ ] Plan #91 or Plan #92:
   - if Plan #91 says `ready_for_full_trials`, run Plan #88
@@ -145,12 +145,12 @@ The previously active propagation lane remains blocked:
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
 - the current open question is no longer what the first front-half-first smoke gate should judge; that contract is now the staged-combined rule in Plan #86
-- the current active uncertainty is whether the first repair lane is enough to reopen the front-half-first smoke gate or whether a second blocker boundary is needed
+- the current active uncertainty is whether the Plan #90 repair lane is enough to reopen the front-half-first smoke gate or whether a second blocker boundary is needed
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `275 passed, 1 skipped`
+  - `python -m pytest -q` with `278 passed, 1 skipped`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:

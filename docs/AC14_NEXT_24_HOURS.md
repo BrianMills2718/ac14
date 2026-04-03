@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md)
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md)
 
 The explicit active chain is:
 
@@ -36,8 +36,8 @@ The explicit active chain is:
 - [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> complete, verdict `blocked_on_front_half`
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> conditional on smoke `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> complete
-- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> active
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> next
+- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> complete
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> active
 - [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> conditional on rerun `blocked_*`
 
 The empirical gate remains frozen in
@@ -53,12 +53,11 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. repair the failed front-half-first contract surfaces and failed-front-half observability
-2. rerun one bounded front-half-first smoke trial
-3. branch immediately from the rerun verdict:
+1. rerun one bounded front-half-first smoke trial after the repaired contract lane
+2. branch immediately from the rerun verdict:
    - full trial if `ready_for_full_trials`
    - second blocker boundary if `blocked_*`
-4. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
 
@@ -92,6 +91,7 @@ Completed before the current lane:
 26. a verified staged-combined front-half-first smoke runner with CLI/Make parity and typed subprocess fixtures
 27. a first persisted front-half-first smoke artifact at `.ac14_out/front_half_first_smoke_1/` with verdict `blocked_on_front_half`
 28. a blocker diagnosis showing AC14 invalid structured-spec bindings and monolithic raw-record runtime mismatch
+29. a repaired front-half-first contract lane with persisted invalid-plan diagnostics, one bounded structured-spec binding retry, and persisted failed monolithic runtime source on raw-record contract violations
 
 ## Tactical Phase Summary
 
@@ -174,15 +174,14 @@ Success criteria:
 
 - the next 24-hour chain is executable without chat interpretation
 
-### Phase 9: front-half-first contract repair
+### Phase 9: front-half-first smoke rerun
 
-- repair the structured-spec front-half planning validity surface
-- repair the monolithic raw-record runtime contract
-- improve failed-front-half observability so future blocked attempts leave reviewable diagnostics
+- rerun the front-half-first smoke gate after the repaired contract lane
+- branch immediately from the persisted verdict instead of from expectation
 
 Success criteria:
 
-- the next smoke rerun is testing repaired contract surfaces instead of repeating known failures
+- one fresh smoke artifact exists and the next branch is explicit from that artifact
 
 ## Known Uncertainties
 
@@ -193,5 +192,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the first smoke verdict is now known; the active question is whether one bounded repair lane is enough to reopen the gate
+2. the first smoke verdict is now known and the first repair lane is now complete; the active question is whether the repaired smoke rerun reopens the gate
 3. blocked propagation lanes should stay blocked until the repaired front-half-first empirical direction is rerun explicitly

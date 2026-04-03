@@ -13,6 +13,7 @@ from ac14.front_half_first_empirical import (
     FrontHalfFirstFailureClassification,
     FrontHalfFirstPairedTrialReport,
     build_front_half_first_smoke_readiness_artifact,
+    generate_monolithic_runtime_system_with_llm,
     infer_runtime_contract_from_structured_spec,
     load_monolithic_runtime_system,
     run_front_half_first_smoke_gate,
@@ -20,6 +21,7 @@ from ac14.front_half_first_empirical import (
 from ac14.empirical_comparison import CostObservation
 from ac14.loader import load_blueprint_dir
 from ac14.structured_spec import build_structured_spec_artifact, load_structured_spec_document
+from ac14.structured_spec_benchmark import load_structured_spec_benchmark_bundle
 from tests.front_half_first_fixtures import (
     write_acceptance_review_fixture,
     write_freeze_semantic_review_fixture,
@@ -158,6 +160,68 @@ def test_run_front_half_first_smoke_gate_persists_ready_artifact(
     assert persisted["verdict"] == "ready_for_full_trials"
     assert persisted["ac14_front_half_success"] is True
     assert (tmp_path / "front_half_first_smoke" / "trial_1" / "paired_trial_report.json").exists()
+
+
+def test_generate_monolithic_runtime_system_persists_failed_source_for_nested_input_contract(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Monolithic front-half-first generation should fail loud and persist source for nested-record contracts."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    structured_bundle = load_structured_spec_benchmark_bundle(benchmark_dir)
+    from ac14.empirical_comparison import load_benchmark_bundle
+
+    reference_bundle = load_benchmark_bundle(structured_bundle.reference_benchmark_dir)
+    fixture_path = tmp_path / "invalid_monolithic_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "module_code": "\n".join(
+                    [
+                        '"""Invalid monolithic runtime for contract testing."""',
+                        "",
+                        "class RuntimeSystem:",
+                        "    def run_case(self, record):",
+                        "        if 'metrics_snapshot' not in record:",
+                        "            raise ValueError(\"nested input required\")",
+                        "        payload = record['metrics_snapshot']",
+                        "        return {'scaling_decision_entry': payload}",
+                        "",
+                        "def build_system():",
+                        "    return RuntimeSystem()",
+                        "",
+                    ]
+                ),
+                "implementation_notes": ["intentionally invalid raw-record contract"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    monkeypatch.setenv("AC14_FRONT_HALF_FIRST_MONOLITHIC_FIXTURE", str(fixture_path))
+
+    with pytest.raises(ValueError, match="raw benchmark record directly"):
+        generate_monolithic_runtime_system_with_llm(
+            structured_bundle=structured_bundle,
+            reference_bundle=reference_bundle,
+            output_dir=tmp_path / "generated",
+            model="gpt-5-mini",
+            trace_id="test/front_half_first/monolithic_contract",
+            max_budget=0.1,
+            repair_guidance=[],
+        )
+
+    failed_path = tmp_path / "generated" / "monolithic_runtime.failed.py"
+    metadata_path = tmp_path / "generated" / "monolithic_runtime.validation_error.json"
+    response_path = tmp_path / "generated" / "monolithic_response.json"
+    assert failed_path.exists()
+    assert metadata_path.exists()
+    assert response_path.exists()
+    assert "record['metrics_snapshot']" in failed_path.read_text()
+    metadata = json.loads(metadata_path.read_text())
+    assert metadata["persisted_failed_module_source"] is True
+    assert "raw benchmark record directly" in metadata["error"]
 
 
 def _condition_report(

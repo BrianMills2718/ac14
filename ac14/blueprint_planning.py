@@ -10,6 +10,7 @@ from typing import Literal, cast
 
 from pydantic import BaseModel, Field, model_validator
 
+from ac14.atomic_io import atomic_write_json
 from ac14.dependency_execution import (
     DependencyExecutionArtifact,
     DependencyRemediationArtifact,
@@ -325,6 +326,24 @@ class DraftBlueprintPlanArtifact(BaseModel):
         return self
 
 
+class DraftBlueprintPlanValidationDiagnostics(BaseModel):
+    """Persisted diagnosis for one invalid structured-spec draft plan."""
+
+    planning_input_kind: Literal["structured_spec"] = Field(
+        description="Which planning surface produced the invalid plan.",
+    )
+    planning_input_artifact_path: str = Field(
+        description="Structured-spec artifact path that produced this invalid plan.",
+    )
+    attempt_id: int = Field(description="Sequential validation attempt number.")
+    validation_error: str = Field(description="Exact validator error for the rejected plan.")
+    invalid_plan_path: str = Field(description="Path to the persisted invalid plan payload.")
+    retryable: bool = Field(description="Whether this validation failure qualifies for one bounded retry.")
+    retry_scheduled: bool = Field(
+        description="Whether a retry was actually scheduled after persisting this invalid plan.",
+    )
+
+
 async def abuild_draft_blueprint_plan(
     discovery_artifact_path: Path | str,
     output_dir: Path | str,
@@ -511,25 +530,70 @@ async def abuild_draft_blueprint_plan_from_structured_spec(
     artifact_path = Path(structured_spec_artifact_path)
     structured_spec_artifact = StructuredSpecArtifact.model_validate_json(artifact_path.read_text())
 
+    typed_response: DraftBlueprintPlanResponse | None = None
     fixture_path = os.environ.get("AC14_BLUEPRINT_PLAN_FIXTURE")
     if fixture_path:
         typed_response = DraftBlueprintPlanResponse.model_validate_json(Path(fixture_path).read_text())
+        try:
+            _validate_draft_blueprint_plan(typed_response)
+        except ValueError as exc:
+            diagnostics_path = _persist_failed_plan_diagnostics(
+                destination=destination,
+                structured_spec_artifact_path=artifact_path,
+                response=typed_response,
+                error_message=str(exc),
+                attempt=1,
+                retryable=False,
+                retry_scheduled=False,
+            )
+            raise ValueError(
+                f"{exc}; invalid structured-spec draft plan persisted at {diagnostics_path}",
+            ) from exc
     else:
-        messages = render_prompt(
-            STRUCTURED_SPEC_PROMPT_PATH,
-            structured_spec_artifact=structured_spec_artifact.model_dump(mode="json"),
-        )
-        response, _meta = await acall_llm_structured(
-            model,
-            messages,
-            response_model=DraftBlueprintPlanResponse,
-            task=task,
-            trace_id=f"ac14/draft_blueprint_plan_from_structured_spec/{artifact_path.stem}",
-            max_budget=max_budget,
-        )
-        typed_response = cast(DraftBlueprintPlanResponse, response)
+        # Two-attempt repair loop: attempt 1 is cold; attempt 2 feeds binding errors back.
+        repair_validation_error: str | None = None
+        previous_invalid_plan: dict[str, object] | None = None
+        for attempt in range(1, 3):
+            messages = render_prompt(
+                STRUCTURED_SPEC_PROMPT_PATH,
+                structured_spec_artifact=structured_spec_artifact.model_dump(mode="json"),
+                repair_validation_error=repair_validation_error,
+                previous_invalid_plan=previous_invalid_plan,
+            )
+            response, _meta = await acall_llm_structured(
+                model,
+                messages,
+                response_model=DraftBlueprintPlanResponse,
+                task=task,
+                trace_id=f"ac14/draft_blueprint_plan_from_structured_spec/{artifact_path.stem}/attempt{attempt}",
+                max_budget=max_budget,
+            )
+            typed_response = cast(DraftBlueprintPlanResponse, response)
+            try:
+                _validate_draft_blueprint_plan(typed_response)
+                break  # plan is valid; exit retry loop
+            except ValueError as exc:
+                validation_error = str(exc)
+                retryable = attempt == 1 and _structured_spec_validation_error_is_retryable(
+                    validation_error,
+                )
+                diagnostics_path = _persist_failed_plan_diagnostics(
+                    destination=destination,
+                    structured_spec_artifact_path=artifact_path,
+                    response=typed_response,
+                    error_message=validation_error,
+                    attempt=attempt,
+                    retryable=retryable,
+                    retry_scheduled=retryable,
+                )
+                if not retryable:
+                    raise ValueError(
+                        f"{validation_error}; invalid structured-spec draft plan persisted at {diagnostics_path}",
+                    ) from exc
+                repair_validation_error = validation_error
+                previous_invalid_plan = typed_response.model_dump(mode="json")
 
-    _validate_draft_blueprint_plan(typed_response)
+    assert typed_response is not None
     plan = DraftBlueprintPlanArtifact(
         planning_input_kind="structured_spec",
         planning_input_name=structured_spec_artifact.spec.system_name,
@@ -712,6 +776,40 @@ def build_refined_draft_blueprint_plan(
             task=task,
         ),
     )
+
+
+def _persist_failed_plan_diagnostics(
+    *,
+    destination: Path,
+    structured_spec_artifact_path: Path,
+    response: DraftBlueprintPlanResponse,
+    error_message: str,
+    attempt: int,
+    retryable: bool,
+    retry_scheduled: bool,
+) -> Path:
+    """Persist a failed structured-spec draft-plan response with direct review artifacts."""
+
+    invalid_plan_path = destination / f"draft_blueprint_plan_invalid_attempt_{attempt}.json"
+    atomic_write_json(invalid_plan_path, response.model_dump(mode="json"))
+    diagnostics = DraftBlueprintPlanValidationDiagnostics(
+        planning_input_kind="structured_spec",
+        planning_input_artifact_path=str(structured_spec_artifact_path),
+        attempt_id=attempt,
+        validation_error=error_message,
+        invalid_plan_path=str(invalid_plan_path),
+        retryable=retryable,
+        retry_scheduled=retry_scheduled,
+    )
+    path = destination / f"draft_blueprint_plan_validation_error_attempt_{attempt}.json"
+    atomic_write_json(path, diagnostics.model_dump(mode="json"))
+    return path
+
+
+def _structured_spec_validation_error_is_retryable(error_message: str) -> bool:
+    """Return whether the structured-spec validation error qualifies for one retry."""
+
+    return error_message.startswith("draft blueprint plan binding references unknown ")
 
 
 def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:

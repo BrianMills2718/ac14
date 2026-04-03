@@ -1,5 +1,5 @@
 name: ac14_generate_monolithic_runtime_system_from_structured_spec
-version: "1.0"
+version: "1.1"
 description: Generate one direct whole-task runtime system from a structured-spec benchmark bundle.
 messages:
   - role: system
@@ -13,6 +13,7 @@ messages:
       - return one Python module only
       - the module must define `build_system()`
       - `build_system()` must return an object with `run_case(record)`
+      - `run_case(record)` receives the raw benchmark case dict directly — the dict contains case fields like `case_id` and the data fields from the benchmark; do NOT access `record["port_name"]` or `record["component_name"]`; the record is NOT wrapped in a source-port key
       - `run_case(record)` must return a dict keyed by final output port name
       - output keys must match the declared final output ports exactly
       - preserve deterministic state across sequential calls when the benchmark requires it
@@ -38,6 +39,12 @@ messages:
       Structured spec:
       {{ structured_spec }}
 
+      Top-level input port name:
+      {{ source_port_name }}
+
+      Sample runtime record:
+      {{ sample_runtime_record }}
+
       Allowed dependencies:
       {{ allowed_dependencies }}
 
@@ -46,3 +53,8 @@ messages:
 
       Repair guidance from previous attempt:
       {{ repair_guidance }}
+
+      Hard contract reminder:
+      - implement `run_case(record)` against the raw record fields directly
+      - do not read `record[{{ source_port_name|tojson }}]`
+      - do not require a wrapper dict like `{ "{{ source_port_name }}": record }`

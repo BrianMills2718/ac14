@@ -160,11 +160,11 @@ For the active empirical-comparison lane, this rule is especially strict:
   - do not spend the full-trial budget until the new smoke artifact exists and
     says `ready_for_full_trials`
   - the current mandatory chain is:
-    1. Plan #86 runner contract and implementation
-    2. Plan #87 bounded smoke execution
-    3. Plan #89 blocker diagnosis if the first smoke blocks
-    4. Plan #90 bounded contract-and-observability repair
-    5. Plan #91 smoke rerun
+    1. Plan #86 runner contract and implementation -> complete
+    2. Plan #87 bounded smoke execution -> complete with `blocked_on_front_half`
+    3. Plan #89 blocker diagnosis -> complete
+    4. Plan #90 bounded contract-and-observability repair -> complete
+    5. Plan #91 smoke rerun -> active
     6. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
     7. Plan #92 second blocker boundary otherwise
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`

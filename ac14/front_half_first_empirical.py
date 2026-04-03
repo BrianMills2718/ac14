@@ -793,7 +793,22 @@ def generate_monolithic_runtime_system_with_llm(
             repair_guidance=repair_guidance,
         ),
     )
-    _validate_monolithic_runtime_module(response.module_code)
+    atomic_write_json(destination / "monolithic_response.json", response.model_dump(mode="json"))
+    source_port_name = _structured_spec_source_port_name(structured_bundle)
+    try:
+        _validate_monolithic_runtime_module(
+            response.module_code,
+            source_port_name=source_port_name,
+        )
+    except Exception as exc:
+        failed_path = _persist_failed_monolithic_runtime_artifacts(
+            destination=destination,
+            module_code=response.module_code,
+            error=exc,
+        )
+        raise ValueError(
+            f"{exc}; failed module source persisted at {failed_path}",
+        ) from exc
     module_path = destination / "monolithic_runtime.py"
     atomic_write_text(module_path, response.module_code)
     return response
@@ -821,6 +836,10 @@ async def agenerate_monolithic_runtime_system_with_llm(
             benchmark=structured_bundle.config.model_dump(mode="json"),
             requirements_text=structured_bundle.requirements_text,
             structured_spec=structured_bundle.structured_spec.model_dump(mode="json"),
+            source_port_name=_structured_spec_source_port_name(structured_bundle),
+            sample_runtime_record=(
+                reference_bundle.runtime_cases[0] if reference_bundle.runtime_cases else None
+            ),
             allowed_dependencies=reference_bundle.config.allowed_dependencies,
             final_output_ports=reference_bundle.config.final_output_ports,
             repair_guidance=repair_guidance,
@@ -865,7 +884,11 @@ def _load_module(name: str, module_path: Path) -> ModuleType:
     return module
 
 
-def _validate_monolithic_runtime_module(module_code: str) -> None:
+def _validate_monolithic_runtime_module(
+    module_code: str,
+    *,
+    source_port_name: str | None = None,
+) -> None:
     """Fail loud when a monolithic runtime module misses the required contract."""
 
     tree = ast.parse(module_code)
@@ -875,6 +898,87 @@ def _validate_monolithic_runtime_module(module_code: str) -> None:
     )
     if not build_system_defined:
         raise ValueError("monolithic runtime module must define build_system()")
+    if source_port_name is not None and _uses_nested_source_port_access(
+        tree,
+        source_port_name=source_port_name,
+    ):
+        raise ValueError(
+            "monolithic runtime module must treat run_case(record) as the raw benchmark "
+            f"record directly; do not read record[{source_port_name!r}] or "
+            f"record.get({source_port_name!r})",
+        )
+
+
+def _structured_spec_source_port_name(structured_bundle: StructuredSpecBenchmarkBundle) -> str:
+    """Return the one top-level structured-spec input name for front-half-first trials."""
+
+    input_names = [item.name for item in structured_bundle.structured_spec.inputs]
+    if len(input_names) != 1:
+        raise ValueError("front-half-first monolithic runtime contract requires exactly one top-level input")
+    return input_names[0]
+
+
+def _uses_nested_source_port_access(tree: ast.AST, *, source_port_name: str) -> bool:
+    """Return whether the generated runtime expects the raw record to be nested."""
+
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Subscript)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "record"
+            and _extract_string_literal(node.slice) == source_port_name
+        ):
+            return True
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "get"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "record"
+            and node.args
+            and _extract_string_literal(node.args[0]) == source_port_name
+        ):
+            return True
+        if (
+            isinstance(node, ast.Compare)
+            and len(node.ops) == 1
+            and isinstance(node.ops[0], (ast.In, ast.NotIn))
+            and len(node.comparators) == 1
+            and isinstance(node.comparators[0], ast.Name)
+            and node.comparators[0].id == "record"
+            and _extract_string_literal(node.left) == source_port_name
+        ):
+            return True
+    return False
+
+
+def _extract_string_literal(node: ast.AST) -> str | None:
+    """Return one literal string value when an AST node is statically known."""
+
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
+def _persist_failed_monolithic_runtime_artifacts(
+    *,
+    destination: Path,
+    module_code: str,
+    error: Exception,
+) -> Path:
+    """Persist invalid monolithic runtime module source and validation metadata."""
+
+    failed_path = destination / "monolithic_runtime.failed.py"
+    atomic_write_text(failed_path, module_code)
+    atomic_write_json(
+        destination / "monolithic_runtime.validation_error.json",
+        {
+            "error": str(error),
+            "failed_module_path": str(failed_path),
+            "persisted_failed_module_source": True,
+        },
+    )
+    return failed_path
 
 
 def _execute_generated_blueprint_runtime_cases(
@@ -957,6 +1061,24 @@ def _execute_monolithic_runtime_cases(
                     actual_outputs=actual_outputs,
                     expected_outputs=expected_outputs,
                     dynamic_output_fields=reference_bundle.config.dynamic_output_fields,
+                ),
+            )
+        except KeyError as exc:
+            # Detect the nested source-port contract mistake: run_case(record) tried to
+            # access record[port_name] instead of using the raw record dict directly.
+            missing_key = str(exc)
+            error = (
+                f"Monolithic runtime contract error: run_case(record) accessed "
+                f"record[{missing_key}] but that key is not in the benchmark record. "
+                "Ensure run_case(record) consumes the raw case dict directly — "
+                "do not wrap record in a source-port key before accessing it."
+            )
+            results.append(
+                RuntimeCaseExecution(
+                    case_id=case_id,
+                    matched_expected=False,
+                    expected_outputs=expected_outputs,
+                    error=error,
                 ),
             )
         except Exception as exc:  # pragma: no cover - explicit failure capture

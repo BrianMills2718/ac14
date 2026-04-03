@@ -1,6 +1,6 @@
 # Plan #90: Front-Half-First Contract And Observability Repair
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 89
@@ -28,13 +28,13 @@ not repeat the same planning and raw-input mistakes with low observability.
 
 ## Acceptance Criteria
 
-- [ ] Invalid structured-spec draft-plan responses persist reviewable failed-plan
+- [x] Invalid structured-spec draft-plan responses persist reviewable failed-plan
       diagnostics before the attempt exits.
-- [ ] Structured-spec planning gets one bounded validation-repair loop for
+- [x] Structured-spec planning gets one bounded validation-repair loop for
       binding errors instead of failing immediately on the first invalid plan.
-- [ ] The monolithic runtime contract makes `run_case(record)` consume the raw
+- [x] The monolithic runtime contract makes `run_case(record)` consume the raw
       benchmark record directly and rejects the nested source-port mistake.
-- [ ] Targeted tests cover the new diagnostics and contract repair surfaces.
+- [x] Targeted tests cover the new diagnostics and contract repair surfaces.
 
 ---
 
@@ -85,3 +85,22 @@ not repeat the same planning and raw-input mistakes with low observability.
 
 This plan does not spend the smoke budget again. It repairs the exact blocker
 surfaces identified by Plan #89 so Plan #91 can rerun the smoke gate honestly.
+
+## Implementation Summary
+
+- Structured-spec planning now persists one invalid plan payload plus one
+  validation-diagnostics artifact for each rejected attempt.
+- Structured-spec planning now gets one bounded retry only when the first
+  validator failure is a retryable binding-reference error.
+- The structured-spec planning prompt now states binding-validity rules
+  explicitly and receives the previous invalid plan plus validator error on the
+  bounded retry.
+- Monolithic front-half-first generation now persists failed runtime-module
+  source and validation metadata when the raw-record contract is violated.
+- The monolithic prompt now states the raw-record contract explicitly and sees a
+  sample runtime record plus the top-level source port name.
+- Verification landed on:
+  - `python -m pytest -q tests/test_blueprint_planning.py tests/test_front_half_first_empirical.py tests/test_cli.py tests/test_make_targets.py`
+  - `python -m pytest -q`
+  - `python -m mypy ac14 tests`
+  - `python -m ruff check ac14 tests`
