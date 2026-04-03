@@ -40,11 +40,19 @@ Do not broaden scope before that works.
 
 **NEVER STOP. This is the primary execution rule.**
 
-For the current front-half-first chain, this means: do not stop at smoke_10, do
+For the current front-half-first chain, this means: do not stop at smoke_11, do
 not stop at a clean test run, and do not stop at one completed repair. The
 required behavior is to spend the active rerun, read the verdict, update the
 control docs, and continue immediately into the already-defined next numbered
 plan for that verdict.
+
+The current mandatory overnight chain is:
+
+1. [Plan #113](./docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> complete, smoke_10 `blocked_on_harness`
+2. [Plan #114](./docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> complete, blocker is final-output binding fidelity
+3. [Plan #115](./docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> active
+4. if smoke_11 still says `blocked_on_harness`, immediately continue into [Plan #116](./docs/plans/116_front_half_runtime_harness_boundary_v.md) then [Plan #117](./docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md)
+5. if smoke_11 says `ready_for_full_trials`, immediately continue into [Plan #88](./docs/plans/88_front_half_first_full_trial_gate.md) and then [Plan #100](./docs/plans/100_front_half_first_verdict_interpretation.md)
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid

@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md)
+- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md)
 
 The explicit active chain is:
 
@@ -59,13 +59,24 @@ The explicit active chain is:
 - [Plan #110: Front-Half Runtime-Harness Boundary II](/home/brian/projects/ac14/docs/plans/110_front_half_runtime_harness_boundary_ii.md) -> complete
 - [Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII](/home/brian/projects/ac14/docs/plans/111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) -> complete, verdict `blocked_on_harness`
 - [Plan #112: Front-Half Runtime-Harness Boundary III](/home/brian/projects/ac14/docs/plans/112_front_half_runtime_harness_boundary_iii.md) -> complete
-- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> active
-- [Plan #114: Front-Half Runtime-Harness Boundary IV](/home/brian/projects/ac14/docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> planned, conditional on Plan #113 verdict `blocked_on_harness`
-- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> planned, conditional on Plan #114 completion
+- [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> complete, smoke_10 verdict `blocked_on_harness`
+- [Plan #114: Front-Half Runtime-Harness Boundary IV](/home/brian/projects/ac14/docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> complete, blocker is final-output binding fidelity
+- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> active
+- [Plan #116: Front-Half Runtime-Harness Boundary V](/home/brian/projects/ac14/docs/plans/116_front_half_runtime_harness_boundary_v.md) -> planned if smoke_11 still says `blocked_on_harness`
+- [Plan #117: Front-Half Runtime-Harness Repair V And Smoke Rerun X](/home/brian/projects/ac14/docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md) -> planned
 
 The experiment contract remains frozen in:
 
 - [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md)
+
+## Active Checklist
+
+- [x] Commit the verified Plan #113 structured-spec/runtime-contract repair.
+- [x] Freeze smoke_10 as the canonical blocker artifact.
+- [ ] Repair final-output binding fidelity in the runtime contract and execution path.
+- [ ] Prove the repair with targeted tests.
+- [ ] Run smoke_11 at `.ac14_out/front_half_first_smoke_11`.
+- [ ] Lock the next branch immediately from the smoke_11 verdict.
 
 The completed execution lanes are:
 

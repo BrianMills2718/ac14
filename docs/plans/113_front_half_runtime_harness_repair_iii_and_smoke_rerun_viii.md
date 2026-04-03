@@ -1,6 +1,6 @@
 # Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 112
@@ -25,13 +25,13 @@ direction at each blocker boundary.
 
 ## Acceptance Criteria
 
-- [ ] The structured-spec benchmark/runtime contract is made truthful enough
+- [x] The structured-spec benchmark/runtime contract is made truthful enough
       that both conditions consume the same bounded input surface.
-- [ ] The runtime contract can execute a generated graph even when the draft
+- [x] The runtime contract can execute a generated graph even when the draft
       emits a zero-input `source` component for the top-level structured input.
-- [ ] Targeted tests prove the repair before the rerun.
-- [ ] One fresh smoke artifact exists after the repair.
-- [ ] The next branch is explicit from the new artifact.
+- [x] Targeted tests prove the repair before the rerun.
+- [x] One fresh smoke artifact exists after the repair.
+- [x] The next branch is explicit from the new artifact.
 
 ---
 
@@ -118,6 +118,13 @@ make front-half-first-smoke-gate \
 - if `blocked_on_front_half`: execute Plan #108, then Plan #109
 
 ## Progress Notes
+
+- Repair landed and was committed as `[Plan #113] Repair structured-spec runtime contract and source entry`.
+- Fresh smoke artifact: `.ac14_out/front_half_first_smoke_10/smoke_readiness_report.json`
+- Smoke_10 still returned `blocked_on_harness`, but the old input/source-entry
+  mismatch cleared. The next blocker is final-output binding fidelity: generated
+  drafts emit the correct final schemas under renamed output ports, and runtime
+  inference still expects literal ports named `scaling_decision_entry`.
 
 - 2026-04-03: Activated from Plan #112 after smoke_9 kept the top-level verdict
   at `blocked_on_harness` but moved the blocker to the structured-spec/runtime
