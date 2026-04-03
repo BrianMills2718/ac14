@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md)
+- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md)
 
 The explicit active chain is:
 
@@ -25,7 +25,8 @@ The explicit active chain is:
 - [Plan #72: Second-Gate Verdict Interpretation](/home/brian/projects/ac14/docs/plans/72_second_gate_verdict_interpretation.md) -> complete
 - [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md) -> complete
 - [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
-- [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> active
+- [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> complete
+- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> active
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The experiment contract remains frozen in:
@@ -78,7 +79,9 @@ The previously active propagation lane remains blocked:
 
 - [x] Plan #74: determine whether the repeated `resource_scaling_v1` misses reflect insufficient packet context or poor use of sufficient local context
 
-- [ ] Plan #75: strengthen local rule salience for the failing `resource_scaling_v1` component cluster and earn a fresh bounded smoke result
+- [x] Plan #75: strengthen local rule salience for the failing `resource_scaling_v1` component cluster and earn a fresh bounded smoke result
+
+- [ ] Plan #76: decide whether another `resource_scaling_v1` micro-repair is justified after the non-winning grounding smoke
 
 ## Current Open Uncertainties
 
@@ -86,7 +89,7 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is not packet sufficiency anymore; it is whether stronger local prompt/schema grounding can materially improve the failing component cluster
+- the current open question is not packet sufficiency anymore; it is whether another benchmark-local repair is justified at all after the non-winning grounding smoke
 
 ## Latest Verified Baseline
 
@@ -109,6 +112,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #75 so the next empirical move is grounded in one fresh smoke artifact instead of diagnosis alone
+- [ ] complete Plan #76 so the next empirical move is a deliberate boundary decision rather than another reflexive micro-repair
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

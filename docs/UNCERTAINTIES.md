@@ -744,6 +744,15 @@ fixture mismatches, recomposition mismatches, and one late syntax failure.
 **Why it matters:** The next lane should be diagnosis first, not reflexive
 benchmark-local tuning or premature thesis-level overreaction.
 
+### U-070: Is another `resource_scaling_v1` benchmark-local repair justified after the grounding smoke still yielded zero AC14 successes?
+**Status:** Open
+**Context:** Plan #75 strengthened local rule salience for the original
+trend/deploy-risk failure cluster and produced a fresh smoke artifact with
+`verdict = ready_for_full_trials`, but AC14 itself still achieved zero hard-
+harness successes.
+**Why it matters:** The project should not drift into endless benchmark-local
+micro-repairs without an explicit stop/go boundary.
+
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred
 **Context:** Current breadth accounting relies on workflow signatures and light

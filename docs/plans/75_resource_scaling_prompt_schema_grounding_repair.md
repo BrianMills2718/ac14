@@ -1,10 +1,10 @@
 # Plan #75: Resource Scaling Prompt-Schema Grounding Repair
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** 74
-**Blocks:** None
+**Blocks:** 76
 
 ---
 
@@ -93,9 +93,9 @@ another full-trial budget.
 
 ## Acceptance Criteria
 
-- [ ] The failing component cluster has stronger local rule salience without packet redesign.
-- [ ] Targeted regression tests cover the new benchmark-local guidance surface.
-- [ ] One bounded smoke artifact shows whether the grounding repair earned another full-trial budget.
+- [x] The failing component cluster has stronger local rule salience without packet redesign.
+- [x] Targeted regression tests cover the new benchmark-local guidance surface.
+- [x] One bounded smoke artifact shows whether the grounding repair earned another full-trial budget.
 
 ---
 
@@ -103,3 +103,28 @@ another full-trial budget.
 
 This plan should stay benchmark-local and grounding-local. It is not permission
 to add more broad empirical machinery.
+
+## Implementation Summary (2026-04-02)
+
+What landed:
+
+- explicit benchmark-local guidance for `trend_evaluator`
+- explicit benchmark-local guidance for `deploy_risk_evaluator`
+- stronger local component constraints and schema descriptions for the same rule surfaces
+- targeted empirical regression coverage for those guidance/schema additions
+
+Fresh smoke artifact:
+
+- `.ac14_out/full_trials_gate_2_smoke_grounding1/smoke_readiness_report.json`
+- verdict: `ready_for_full_trials`
+- infrastructure contamination: `false`
+
+Important nuance:
+
+- AC14 still achieved `0` hard-harness successes in the smoke trial
+- the dominant AC14 failures shifted away from the original trend/deploy-risk
+  cluster and narrowed to `recommendation_generator`, `alert_planner`, and a
+  `decision_recorder` runtime/code path issue
+
+So the grounding repair changed the failure surface, but it did not yet earn an
+AC14 smoke success.
