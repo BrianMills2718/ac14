@@ -16,7 +16,7 @@ import os
 import time
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Literal, Protocol, cast
+from typing import Any, Literal, Protocol, Sequence, cast
 
 from pydantic import BaseModel, Field
 from llm_client.io_log import activate_feature_profile, experiment_run  # type: ignore[import-not-found]
@@ -841,6 +841,7 @@ def infer_runtime_contract_from_structured_spec(
             component_id,
             port.name,
             port.schema_id,
+            port.required,
         )
         for component_id, component in blueprint.components.items()
         for port in component.input_ports
@@ -852,14 +853,14 @@ def infer_runtime_contract_from_structured_spec(
         if candidate[1] == structured_input.name
     ]
     schema_match_candidates = [
-        candidate
-        for candidate in unbound_input_candidates
-        if _schema_matches_structured_spec_input(
-            blueprint=blueprint,
-            schema_id=candidate[2],
-            structured_input=structured_input,
-        )
-    ]
+            candidate
+            for candidate in unbound_input_candidates
+            if _schema_matches_structured_spec_input(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_input=structured_input,
+            )
+        ]
     if exact_name_candidates or schema_match_candidates or len(unbound_input_candidates) == 1:
         selected_source = _select_structured_spec_source_candidate(
             structured_input_name=structured_input.name,
@@ -875,6 +876,7 @@ def infer_runtime_contract_from_structured_spec(
                 component_id,
                 port.name,
                 port.schema_id,
+                False,
             )
             for component_id, component in blueprint.components.items()
             if component.kind == "source" and not component.input_ports
@@ -918,6 +920,11 @@ def infer_runtime_contract_from_structured_spec(
     }
     unique_final_components = sorted(set(final_output_components.values()))
     final_component_id = unique_final_components[0] if len(unique_final_components) == 1 else None
+    _assert_no_extra_required_unbound_inputs(
+        unbound_input_candidates=unbound_input_candidates,
+        selected_source=selected_source,
+        source_mode=source_mode,
+    )
 
     return FrontHalfRuntimeContract(
         source_component_id=selected_source[0],
@@ -934,10 +941,10 @@ def _select_structured_spec_source_candidate(
     *,
     structured_input_name: str,
     candidate_kind: str,
-    candidates: list[tuple[str, str, str]],
-    exact_name_candidates: list[tuple[str, str, str]],
-    schema_match_candidates: list[tuple[str, str, str]],
-) -> tuple[str, str, str]:
+    candidates: list[tuple[str, str, str, bool]],
+    exact_name_candidates: list[tuple[str, str, str, bool]],
+    schema_match_candidates: list[tuple[str, str, str, bool]],
+) -> tuple[str, str, str, bool]:
     """Select one source input port for the runtime contract or fail loud."""
 
     if len(exact_name_candidates) == 1:
@@ -968,11 +975,41 @@ def _select_structured_spec_source_candidate(
 
 
 def _format_runtime_source_candidates(
-    candidates: list[tuple[str, str, str]],
+    candidates: Sequence[tuple[str, str, str] | tuple[str, str, str, bool]],
 ) -> list[str]:
     """Render bounded runtime-source candidates for failure messages."""
 
-    return [f"{component_id}.{port_name}:{schema_id}" for component_id, port_name, schema_id in candidates]
+    return [
+        f"{component_id}.{port_name}:{schema_id}"
+        for component_id, port_name, schema_id, *_rest in candidates
+    ]
+
+
+def _assert_no_extra_required_unbound_inputs(
+    *,
+    unbound_input_candidates: list[tuple[str, str, str, bool]],
+    selected_source: tuple[str, str, str, bool],
+    source_mode: Literal["input_port", "source_output"],
+) -> None:
+    """Fail loud when the blueprint still has extra required unbound inputs."""
+
+    if source_mode != "input_port":
+        extra_required = [
+            candidate
+            for candidate in unbound_input_candidates
+            if candidate[3]
+        ]
+    else:
+        extra_required = [
+            candidate
+            for candidate in unbound_input_candidates
+            if candidate[3] and candidate[:3] != selected_source[:3]
+        ]
+    if extra_required:
+        raise ValueError(
+            "runtime contract inference found extra required unbound inputs beyond the top-level "
+            f"structured-spec source: {_format_runtime_source_candidates(extra_required)}",
+        )
 
 
 def _schema_matches_structured_spec_interface(
@@ -1054,6 +1091,8 @@ def _infer_final_output_bindings(
     """Infer which generated output satisfies each structured-spec final output."""
 
     inferred: dict[str, tuple[str, str]] = {}
+    bound_to_sink_candidates = _collect_bound_sink_output_candidates(blueprint)
+    non_source_candidates = _collect_non_source_output_candidates(blueprint)
     for structured_output in structured_outputs:
         candidates = sorted(
             (
@@ -1064,14 +1103,45 @@ def _infer_final_output_bindings(
             for component_id, component in blueprint.components.items()
             for port in component.output_ports
         )
+        sink_exact_name_candidates = [
+            candidate
+            for candidate in bound_to_sink_candidates
+            if candidate[1] == structured_output.name
+        ]
+        sink_schema_name_candidates = [
+            candidate
+            for candidate in bound_to_sink_candidates
+            if _normalize_runtime_contract_identifier(candidate[2])
+            == _normalize_runtime_contract_identifier(structured_output.name)
+        ]
+        sink_schema_match_candidates = [
+            candidate
+            for candidate in bound_to_sink_candidates
+            if _schema_matches_structured_spec_interface(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_interface=structured_output,
+            )
+        ]
         exact_name_candidates = [
             candidate
             for candidate in candidates
             if candidate[1] == structured_output.name
         ]
+        non_source_exact_name_candidates = [
+            candidate
+            for candidate in non_source_candidates
+            if candidate[1] == structured_output.name
+        ]
         schema_name_candidates = [
             candidate
             for candidate in candidates
+            if _normalize_runtime_contract_identifier(candidate[2])
+            == _normalize_runtime_contract_identifier(structured_output.name)
+        ]
+        non_source_schema_name_candidates = [
+            candidate
+            for candidate in non_source_candidates
             if _normalize_runtime_contract_identifier(candidate[2])
             == _normalize_runtime_contract_identifier(structured_output.name)
         ]
@@ -1084,27 +1154,106 @@ def _infer_final_output_bindings(
                 structured_interface=structured_output,
             )
         ]
+        non_source_schema_match_candidates = [
+            candidate
+            for candidate in non_source_candidates
+            if _schema_matches_structured_spec_interface(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_interface=structured_output,
+            )
+        ]
         component_id, emitted_port_name, _schema_id = _select_structured_spec_output_candidate(
             structured_output_name=structured_output.name,
             candidates=candidates,
+            sink_exact_name_candidates=sink_exact_name_candidates,
+            sink_schema_name_candidates=sink_schema_name_candidates,
+            sink_schema_match_candidates=sink_schema_match_candidates,
             exact_name_candidates=exact_name_candidates,
+            non_source_exact_name_candidates=non_source_exact_name_candidates,
             schema_name_candidates=schema_name_candidates,
+            non_source_schema_name_candidates=non_source_schema_name_candidates,
             schema_match_candidates=schema_match_candidates,
+            non_source_schema_match_candidates=non_source_schema_match_candidates,
         )
         inferred[structured_output.name] = (component_id, emitted_port_name)
     return inferred
+
+
+def _collect_non_source_output_candidates(
+    blueprint: FrozenBlueprint,
+) -> list[tuple[str, str, str]]:
+    """Return output candidates that do not come from zero-input source components."""
+
+    return sorted(
+        (
+            component_id,
+            port.name,
+            port.schema_id,
+        )
+        for component_id, component in blueprint.components.items()
+        if component.kind != "source"
+        for port in component.output_ports
+    )
+
+
+def _collect_bound_sink_output_candidates(
+    blueprint: FrozenBlueprint,
+) -> list[tuple[str, str, str]]:
+    """Return output candidates that feed a sink component input."""
+
+    sink_component_ids = {
+        component_id
+        for component_id, component in blueprint.components.items()
+        if component.kind == "sink"
+    }
+    return sorted(
+        (
+            binding.from_component,
+            binding.from_port,
+            next(
+                port.schema_id
+                for port in blueprint.components[binding.from_component].output_ports
+                if port.name == binding.from_port
+            ),
+        )
+        for binding in blueprint.bindings
+        if binding.to_component in sink_component_ids
+    )
 
 
 def _select_structured_spec_output_candidate(
     *,
     structured_output_name: str,
     candidates: list[tuple[str, str, str]],
+    sink_exact_name_candidates: list[tuple[str, str, str]],
+    sink_schema_name_candidates: list[tuple[str, str, str]],
+    sink_schema_match_candidates: list[tuple[str, str, str]],
     exact_name_candidates: list[tuple[str, str, str]],
+    non_source_exact_name_candidates: list[tuple[str, str, str]],
     schema_name_candidates: list[tuple[str, str, str]],
+    non_source_schema_name_candidates: list[tuple[str, str, str]],
     schema_match_candidates: list[tuple[str, str, str]],
+    non_source_schema_match_candidates: list[tuple[str, str, str]],
 ) -> tuple[str, str, str]:
     """Select one generated output candidate for one structured-spec final output or fail loud."""
 
+    if len(sink_exact_name_candidates) == 1:
+        return sink_exact_name_candidates[0]
+    if len(sink_exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple sink-forward exact-name candidates "
+            f"{_format_output_candidates(sink_exact_name_candidates)}",
+        )
+    if len(non_source_exact_name_candidates) == 1:
+        return non_source_exact_name_candidates[0]
+    if len(non_source_exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple non-source exact-name candidates "
+            f"{_format_output_candidates(non_source_exact_name_candidates)}",
+        )
     if len(exact_name_candidates) == 1:
         return exact_name_candidates[0]
     if len(exact_name_candidates) > 1:
@@ -1113,6 +1262,22 @@ def _select_structured_spec_output_candidate(
             f"{structured_output_name!r}: multiple exact-name candidates "
             f"{_format_runtime_source_candidates(exact_name_candidates)}",
         )
+    if len(sink_schema_name_candidates) == 1:
+        return sink_schema_name_candidates[0]
+    if len(sink_schema_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple sink-forward schema-name candidates "
+            f"{_format_output_candidates(sink_schema_name_candidates)}",
+        )
+    if len(non_source_schema_name_candidates) == 1:
+        return non_source_schema_name_candidates[0]
+    if len(non_source_schema_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple non-source schema-name candidates "
+            f"{_format_output_candidates(non_source_schema_name_candidates)}",
+        )
     if len(schema_name_candidates) == 1:
         return schema_name_candidates[0]
     if len(schema_name_candidates) > 1:
@@ -1120,6 +1285,22 @@ def _select_structured_spec_output_candidate(
             "unable to infer one unique final component from structured spec output "
             f"{structured_output_name!r}: multiple schema-name candidates "
             f"{_format_runtime_source_candidates(schema_name_candidates)}",
+        )
+    if len(sink_schema_match_candidates) == 1:
+        return sink_schema_match_candidates[0]
+    if len(sink_schema_match_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple sink-forward schema-matched candidates "
+            f"{_format_output_candidates(sink_schema_match_candidates)}",
+        )
+    if len(non_source_schema_match_candidates) == 1:
+        return non_source_schema_match_candidates[0]
+    if len(non_source_schema_match_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple non-source schema-matched candidates "
+            f"{_format_output_candidates(non_source_schema_match_candidates)}",
         )
     if len(schema_match_candidates) == 1:
         return schema_match_candidates[0]
@@ -1139,6 +1320,14 @@ def _select_structured_spec_output_candidate(
         f"{_format_runtime_source_candidates(schema_match_candidates)}, all output candidates "
         f"{_format_runtime_source_candidates(candidates)}",
     )
+
+
+def _format_output_candidates(
+    candidates: list[tuple[str, str, str]],
+) -> list[str]:
+    """Render output candidates for failure messages."""
+
+    return [f"{component_id}.{port_name}:{schema_id}" for component_id, port_name, schema_id in candidates]
 
 
 def _normalize_runtime_contract_identifier(identifier: str) -> str:

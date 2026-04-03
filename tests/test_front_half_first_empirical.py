@@ -352,6 +352,135 @@ def test_infer_runtime_contract_supports_renamed_final_output_ports(tmp_path: Pa
     }
 
 
+def test_infer_runtime_contract_prefers_non_source_candidate_for_final_store(
+    tmp_path: Path,
+) -> None:
+    """Runtime contract inference should prefer non-source final outputs over source snapshots."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"][0]["output_ports"] = [
+        {
+            "port_name": "scaling_decision_entry",
+            "schema_name": "ScalingDecisionEntry",
+            "description": "Final single-case scaling decision.",
+        }
+    ]
+    payload["proposed_components"].append(
+        {
+            "component_id": "prior_store_provider",
+            "semantic_responsibility": "provide_prior_store",
+            "purpose": "Provide the rolling store snapshot explicitly.",
+            "kind": "source",
+            "input_ports": [],
+            "output_ports": [
+                {
+                    "port_name": "prior_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Prior rolling store snapshot.",
+                }
+            ],
+            "packet_focus": ["preserve prior rolling store exactly"],
+            "dependency_notes": [],
+        }
+    )
+    payload["proposed_components"].append(
+        {
+            "component_id": "decision_store",
+            "semantic_responsibility": "record_scaling_decision",
+            "purpose": "Append the current decision to the rolling store.",
+            "input_ports": [
+                {
+                    "port_name": "decision_in",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Final single-case decision entry.",
+                },
+                {
+                    "port_name": "prior_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Prior rolling store snapshot.",
+                },
+            ],
+            "output_ports": [
+                {
+                    "port_name": "updated_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Updated rolling scaling store snapshot.",
+                }
+            ],
+            "packet_focus": ["preserve ordered decision history"],
+            "dependency_notes": [],
+        }
+    )
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "decision_engine",
+            "from_port": "scaling_decision_entry",
+            "rationale": "The recorder consumes the emitted single-case decision entry.",
+            "to_component": "decision_store",
+            "to_port": "decision_in",
+        },
+        {
+            "from_component": "prior_store_provider",
+            "from_port": "prior_store",
+            "rationale": "The recorder consumes the prior rolling store explicitly.",
+            "to_component": "decision_store",
+            "to_port": "prior_store",
+        },
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_engine",
+        "scaling_decision_store": "decision_store",
+    }
+    assert contract.final_output_emitted_ports == {
+        "scaling_decision_entry": "scaling_decision_entry",
+        "scaling_decision_store": "updated_store",
+    }
+
+
+def test_infer_runtime_contract_rejects_extra_required_unbound_inputs(tmp_path: Path) -> None:
+    """Runtime contract inference should fail loud on extra required unbound inputs."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"][0]["input_ports"].append(
+        {
+            "port_name": "previous_store",
+            "schema_name": "ScalingDecisionStore",
+            "description": "Unexpected extra required store input.",
+        }
+    )
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+
+    with pytest.raises(ValueError, match="extra required unbound inputs"):
+        infer_runtime_contract_from_structured_spec(
+            blueprint=blueprint,
+            structured_spec=load_structured_spec_document(source_path),
+        )
+
+
 def test_infer_runtime_contract_supports_zero_input_source_component(tmp_path: Path) -> None:
     """Runtime contract inference should support one unique zero-input source component."""
 

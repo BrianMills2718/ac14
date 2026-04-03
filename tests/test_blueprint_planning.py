@@ -18,6 +18,8 @@ from ac14.blueprint_planning import (
     PlannedSchema,
     PlannedSchemaField,
     PlanningQuestion,
+    _structured_spec_validation_error_is_retryable,
+    _validate_draft_blueprint_plan,
     build_draft_blueprint_plan,
     build_draft_blueprint_plan_from_structured_spec,
     build_refined_draft_blueprint_plan,
@@ -1078,3 +1080,71 @@ def test_refine_draft_blueprint_plan_from_freeze_remediation_preserves_provenanc
     assert refined_plan.dependency_remediation_artifact_path == source_plan.dependency_remediation_artifact_path
     assert (tmp_path / "refined_plan" / "draft_blueprint_plan.json").exists()
     assert fake_call.await_count == 1
+
+
+def test_validate_draft_blueprint_plan_rejects_generic_port_schema_alias() -> None:
+    """Structured-spec planning should reject generic port schema aliases like record."""
+
+    response = DraftBlueprintPlanResponse(
+        planning_summary="Use one source and one policy component.",
+        proposed_schemas=[
+            PlannedSchema(
+                schema_name="RawTicket",
+                kind="record",
+                description="Normalized raw ticket shape.",
+                fields=[
+                    PlannedSchemaField(
+                        field_name="ticket_id",
+                        field_type="str",
+                        description="Stable ticket identifier.",
+                    ),
+                ],
+            ),
+        ],
+        proposed_components=[
+            PlannedComponent(
+                component_id="policy_component",
+                semantic_responsibility="classify_ticket",
+                purpose="Demonstrate invalid generic port schema alias.",
+                input_ports=[
+                    PlannedPort(
+                        port_name="policy_in",
+                        schema_name="record",
+                        description="Invalid generic alias instead of named schema.",
+                    ),
+                ],
+                output_ports=[
+                    PlannedPort(
+                        port_name="raw_ticket",
+                        schema_name="RawTicket",
+                        description="Normalized ticket payload.",
+                    ),
+                ],
+                packet_focus=["keep schema names explicit"],
+                dependency_notes=[],
+            ),
+        ],
+        proposed_bindings=[],
+        proposed_scenarios=[
+            PlannedScenario(
+                scenario_id="happy_path",
+                kind="semantic_acceptance",
+                description="Review one realistic ticket end to end.",
+                requirement_focus=["normalize discovered ticket input"],
+            ),
+        ],
+        packetization_notes=["Keep schema names explicit at every port."],
+        dependency_decisions=["No extra dependencies required."],
+        open_questions=[],
+    )
+
+    with pytest.raises(ValueError, match="generic port schema alias"):
+        _validate_draft_blueprint_plan(response)
+
+
+def test_structured_spec_validation_error_is_retryable_for_generic_schema_alias() -> None:
+    """Generic schema alias validation errors should qualify for one bounded retry."""
+
+    assert _structured_spec_validation_error_is_retryable(
+        "draft blueprint plan uses generic port schema alias 'record' in component Normalizer",
+    )

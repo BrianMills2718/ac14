@@ -814,7 +814,12 @@ def _persist_failed_plan_diagnostics(
 def _structured_spec_validation_error_is_retryable(error_message: str) -> bool:
     """Return whether the structured-spec validation error qualifies for one retry."""
 
-    return error_message.startswith("draft blueprint plan binding references unknown ")
+    return error_message.startswith(
+        (
+            "draft blueprint plan binding references unknown ",
+            "draft blueprint plan uses generic port schema alias ",
+        ),
+    )
 
 
 def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:
@@ -830,6 +835,13 @@ def _validate_draft_blueprint_plan(plan: DraftBlueprintPlanResponse) -> None:
     port_lookup: dict[str, set[str]] = {}
     for component in plan.proposed_components:
         for port in [*component.input_ports, *component.output_ports]:
+            normalized_schema_name = port.schema_name.strip().lower()
+            if normalized_schema_name in {"record", "dict", "object"}:
+                raise ValueError(
+                    "draft blueprint plan uses generic port schema alias "
+                    f"{port.schema_name!r} in component {component.component_id}; "
+                    "every port must reference one named proposed schema"
+                )
             if port.schema_name not in schema_names:
                 raise ValueError(
                     "draft blueprint plan references unknown schema "
