@@ -16,6 +16,7 @@ from ac14.blueprint_planning import (
     PlannedSchemaField,
     PlanningQuestion,
 )
+from ac14.freeze_decision import FreezeDecisionArtifact
 from ac14.freeze_retry import build_freeze_retry_artifact
 
 
@@ -244,3 +245,110 @@ def test_build_freeze_retry_artifact_runs_refine_materialize_and_refreeze(
     assert artifact.source_freeze_decision_path == str(freeze_decision_path)
     assert artifact.refinement_round == 1
     assert (tmp_path / "freeze_retry" / "freeze_retry_artifact.json").exists()
+
+
+def test_build_freeze_retry_artifact_propagates_model_to_refreshed_freeze(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Retry refresh should reuse the explicit retry model for freeze semantic review."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    freeze_decision_path, _remediation_plan_path = _write_blocked_freeze_inputs(tmp_path, plan_path)
+    fixture_path = tmp_path / "refine_draft_blueprint_plan_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "refinement_summary": "Clarified dependency scope after the blocked freeze.",
+                "planning_summary": "Keep the bounded graph and tighten dependency decisions.",
+                "proposed_schemas": [
+                    {
+                        "schema_name": "RawTicket",
+                        "kind": "record",
+                        "description": "Normalized raw ticket input.",
+                        "fields": [
+                            {
+                                "field_name": "ticket_id",
+                                "field_type": "str",
+                                "description": "Stable ticket identifier.",
+                            }
+                        ],
+                    }
+                ],
+                "proposed_components": [
+                    {
+                        "component_id": "ticket_ingest",
+                        "semantic_responsibility": "ingest_ticket",
+                        "purpose": "Normalize the discovered input into RawTicket.",
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "port_name": "raw_ticket",
+                                "schema_name": "RawTicket",
+                                "description": "Normalized ticket payload.",
+                            }
+                        ],
+                        "packet_focus": ["normalize incoming fields", "preserve ticket identity"],
+                        "dependency_notes": ["no external libraries required"],
+                    }
+                ],
+                "proposed_bindings": [],
+                "proposed_scenarios": [
+                    {
+                        "scenario_id": "happy_path",
+                        "kind": "semantic_acceptance",
+                        "description": "Review one realistic ticket end to end.",
+                        "requirement_focus": ["normalize ticket input", "preserve meaning"],
+                    }
+                ],
+                "packetization_notes": ["Keep the packet boundary unchanged."],
+                "dependency_decisions": ["Keep optional formatting dependencies out of the first freeze."],
+                "open_questions": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    monkeypatch.setenv("AC14_REFINE_BLUEPRINT_PLAN_FIXTURE", str(fixture_path))
+    captured: dict[str, object] = {}
+
+    async def _fake_refreshed_freeze_decision(
+        bundle_dir: Path | str,
+        output_dir: Path | str,
+        *,
+        readiness_report_path: Path | str | None = None,
+        semantic_review_model: str,
+        semantic_review_max_budget: float,
+    ) -> FreezeDecisionArtifact:
+        del bundle_dir, readiness_report_path
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        decision = FreezeDecisionArtifact(
+            source_bundle_dir=str(destination / "bundle"),
+            readiness_report_path=str(destination / "readiness.json"),
+            approved=False,
+            decision_summary="bundle blocked by freeze-readiness findings",
+            findings=[],
+            promoted_bundle_dir=None,
+            semantic_review_path=str(destination / "freeze_semantic_review.json"),
+            remediation_plan_path=str(destination / "freeze_remediation_plan.json"),
+        )
+        (destination / "freeze_decision.json").write_text(
+            json.dumps(decision.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        captured["model"] = semantic_review_model
+        captured["max_budget"] = semantic_review_max_budget
+        return decision
+
+    monkeypatch.setattr("ac14.freeze_retry.abuild_freeze_decision", _fake_refreshed_freeze_decision)
+
+    artifact = build_freeze_retry_artifact(
+        plan_artifact_path=plan_path,
+        freeze_decision_path=freeze_decision_path,
+        output_dir=tmp_path / "freeze_retry",
+        model="gpt-5-mini",
+        max_budget=1.4,
+    )
+
+    assert artifact.approved is False
+    assert captured == {"model": "gpt-5-mini", "max_budget": 1.4}

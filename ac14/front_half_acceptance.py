@@ -321,6 +321,8 @@ async def abuild_front_half_acceptance_report(
         discovery_artifact_path=discovery_artifact_path,
         output_dir=destination / "dependency_plan",
         requirements=requirements,
+        model=model,
+        max_budget=max_budget,
     )
     dependency_plan_path = destination / "dependency_plan" / "dependency_plan.json"
 
@@ -338,6 +340,8 @@ async def abuild_front_half_acceptance_report(
         requirements=requirements,
         dependency_plan_path=dependency_plan_path,
         dependency_execution_artifact_path=dependency_execution_path,
+        model=model,
+        max_budget=max_budget,
     )
     draft_plan_path = destination / "draft_plan" / "draft_blueprint_plan.json"
 
@@ -349,6 +353,8 @@ async def abuild_front_half_acceptance_report(
         bundle_dir=Path(draft_bundle_manifest.draft_bundle_dir),
         output_dir=destination / "freeze_decision",
         readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),
+        semantic_review_model=model,
+        semantic_review_max_budget=max_budget,
     )
     freeze_decision_path = destination / "freeze_decision" / "freeze_decision.json"
     retry_artifact: FreezeRetryArtifact | None = None
@@ -493,6 +499,8 @@ async def abuild_structured_spec_front_half_acceptance_report(
         bundle_dir=Path(draft_bundle_manifest.draft_bundle_dir),
         output_dir=destination / "freeze_decision",
         readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),
+        semantic_review_model=model,
+        semantic_review_max_budget=max_budget,
     )
     freeze_decision_path = destination / "freeze_decision" / "freeze_decision.json"
     retry_artifact: FreezeRetryArtifact | None = None

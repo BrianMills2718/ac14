@@ -89,6 +89,8 @@ async def abuild_freeze_retry_artifact(
         bundle_dir=manifest.draft_bundle_dir,
         output_dir=destination / "refreshed_freeze_decision",
         readiness_report_path=manifest.freeze_readiness_report_path,
+        semantic_review_model=model,
+        semantic_review_max_budget=max_budget,
     )
     refreshed_freeze_decision_path = destination / "refreshed_freeze_decision" / "freeze_decision.json"
 

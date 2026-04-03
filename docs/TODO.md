@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md)
+- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md)
 
 The explicit active chain is:
 
@@ -45,10 +45,15 @@ The explicit active chain is:
 - [Plan #93: Async-Safe Freeze Review Repair](/home/brian/projects/ac14/docs/plans/93_async_safe_freeze_review_repair.md) -> complete
 - [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> complete, verdict `blocked_on_infrastructure` (Gemini 429, front-half not tested)
 - [Plan #95: Front-Half Infrastructure Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_infrastructure_boundary.md) -> complete
-- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md) -> active
+- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md) -> complete, verdict `blocked_on_infrastructure`
 - [Plan #97: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/97_front_half_freeze_fidelity_boundary.md) -> planned, conditional on Plan #96 verdict `blocked_on_front_half`
 - [Plan #98: Front-Half Runtime-Harness Boundary](/home/brian/projects/ac14/docs/plans/98_front_half_runtime_harness_boundary.md) -> planned, conditional on Plan #96 verdict `blocked_on_harness`
-- [Plan #99: Front-Half Infrastructure Availability Boundary](/home/brian/projects/ac14/docs/plans/99_front_half_infrastructure_availability_boundary.md) -> planned, conditional on Plan #96 verdict `blocked_on_infrastructure`
+- [Plan #99: Front-Half Infrastructure Boundary For Hidden Default Model Paths](/home/brian/projects/ac14/docs/plans/99_front_half_infrastructure_availability_boundary.md) -> complete
+- [Plan #100: Front-Half-First Verdict Interpretation And Next Horizon](/home/brian/projects/ac14/docs/plans/100_front_half_first_verdict_interpretation.md) -> planned, conditional on Plan #88 completion
+- [Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) -> planned, conditional on Plan #97 completion
+- [Plan #105: Front-Half Runtime-Harness Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) -> planned, conditional on Plan #98 completion
+- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md) -> active
+- [Plan #107: Front-Half External Provider Boundary II](/home/brian/projects/ac14/docs/plans/107_front_half_external_provider_boundary_ii.md) -> planned, conditional on Plan #106 verdict `blocked_on_infrastructure`
 
 The experiment contract remains frozen in:
 
@@ -156,11 +161,23 @@ The previously active propagation lane remains blocked:
 - [x] Plan #95: freeze the blocker boundary — dominant blocker is Gemini 429 quota, not freeze fidelity
   - Result: the blocker is now explicitly `infrastructure_quota_exhausted`; next move is Plan #96 with explicit `MODEL=gpt-5-mini`
 
-- [ ] Plan #96: rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini`
-  - if Plan #96 says `ready_for_full_trials`, run Plan #88
-  - if Plan #96 says `blocked_on_front_half`, freeze Plan #97
-  - if Plan #96 says `blocked_on_harness`, freeze Plan #98
-  - if Plan #96 says `blocked_on_infrastructure`, freeze Plan #99
+- [x] Plan #96: rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini`
+  - Result: `.ac14_out/front_half_first_smoke_5/smoke_readiness_report.json` exists with verdict `blocked_on_infrastructure`
+  - Monolithic reached real `runtime_outputs` evaluation; AC14 still failed on hidden Gemini-default subcalls after draft planning and freeze remediation
+
+- [ ] Plan #88: spend the front-half-first full-trial budget if and only if Plan #96 opens the gate
+  - implementation note: this plan must add the missing full-trial runner surface before spending the five-trial budget
+  - after Plan #88 completes, immediately execute Plan #100
+
+- [ ] Plan #100: interpret the front-half-first verdict and freeze the next horizon from the actual result
+
+- [ ] Plan #104: if Plan #97 lands, repair the dominant freeze-fidelity blocker and rerun one bounded smoke trial immediately
+
+- [ ] Plan #105: if Plan #98 lands, repair the dominant runtime/harness blocker and rerun one bounded smoke trial immediately
+
+- [ ] Plan #106: repair hidden front-half default-model plumbing and rerun one bounded smoke trial immediately
+
+- [ ] Plan #107: if Plan #106 still says `blocked_on_infrastructure`, freeze the next external-provider boundary before spending more empirical budget
 
 ## Current Open Uncertainties
 
@@ -168,8 +185,8 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current active uncertainty: the Plan #93 async-safe fix has landed but has NOT been empirically tested — all smoke_4 attempts hit Gemini 429 rate limits before reaching front-half execution; Plan #96 is the first rerun that should test the fix honestly
-- the Gemini 2.5 Flash Lite free-tier quota appears exhausted; Plan #96 therefore overrides the Makefile default and uses `MODEL=gpt-5-mini`
+- the current active uncertainty is narrower now: smoke_5 proved the top-level rerun is no longer the Gemini-default problem, but AC14 front-half subcalls still hid a Gemini path after draft planning and freeze remediation
+- Plan #106 is repairing that hidden model plumbing before the next smoke rerun is spent
 
 ## Latest Verified Baseline
 
@@ -187,6 +204,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json` with verdict `blocked_on_front_half`
   - `.ac14_out/front_half_first_smoke_2/smoke_readiness_report.json` with verdict `blocked_on_front_half`
   - `.ac14_out/front_half_first_smoke_4/smoke_readiness_report.json` with verdict `blocked_on_infrastructure` (Gemini 429, not a thesis signal)
+  - `.ac14_out/front_half_first_smoke_5/smoke_readiness_report.json` with verdict `blocked_on_infrastructure` (top-level explicit model honored, hidden Gemini-default subcalls still blocking AC14)
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -205,6 +223,7 @@ The previously active propagation lane remains blocked:
 - [x] complete Plan #93 so the next smoke rerun is testing async-safe front-half review/decision paths
 - [x] complete Plan #94 — verdict `blocked_on_infrastructure` (all 429, no thesis signal)
 - [x] complete Plan #95 (blocker boundary: infrastructure, not freeze fidelity)
-- [ ] run smoke rerun III (Plan #96) with explicit `MODEL=gpt-5-mini`
-- [ ] only after that decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
+- [x] run smoke rerun III (Plan #96) with explicit `MODEL=gpt-5-mini`
+- [ ] complete Plan #106 and branch directly into Plan #88 plus Plan #100 if the gate opens, Plan #104 or #105 if it moves to a thesis blocker, or Plan #107 if infrastructure still dominates
+- [ ] only after the front-half-first branch finishes should the repo decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

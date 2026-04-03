@@ -159,6 +159,10 @@ For the active empirical-comparison lane, this rule is especially strict:
     artifact for symmetry theater
   - do not spend the full-trial budget until the new smoke artifact exists and
     says `ready_for_full_trials`
+  - do not treat \"Plan #88 exists\" as permission to stop; if the smoke rerun
+    opens the gate and the runner surface is still missing, implement that
+    runner immediately as part of the next active plan and continue into the
+    full gate without waiting for new human direction
   - the current mandatory chain is:
     1. Plan #86 runner contract and implementation -> complete
     2. Plan #87 bounded smoke execution -> complete with `blocked_on_front_half`
@@ -169,11 +173,27 @@ For the active empirical-comparison lane, this rule is especially strict:
     7. Plan #93 async-safe freeze review repair -> complete
     8. Plan #94 smoke rerun II -> complete with `blocked_on_infrastructure`
     9. Plan #95 front-half infrastructure boundary -> complete
-    10. Plan #96 smoke rerun III with explicit `MODEL=gpt-5-mini` -> active
-    11. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
-    12. Plan #97 front-half freeze-fidelity boundary if the rerun verdict is `blocked_on_front_half`
-    13. Plan #98 runtime-harness boundary if the rerun verdict is `blocked_on_harness`
-    14. Plan #99 infrastructure-availability boundary if the rerun verdict is `blocked_on_infrastructure`
+    10. Plan #96 smoke rerun III with explicit `MODEL=gpt-5-mini` -> complete with `blocked_on_infrastructure`
+    11. Plan #99 hidden-default-model infrastructure boundary -> complete
+    12. Plan #106 model-propagation repair plus smoke rerun IV -> active
+    13. Plan #88 full trial gate if the rerun verdict is `ready_for_full_trials`
+    14. Plan #100 verdict interpretation and next horizon immediately after Plan #88
+    15. Plan #97 front-half freeze-fidelity boundary if the rerun verdict is `blocked_on_front_half`
+    16. Plan #104 freeze-fidelity repair plus smoke rerun IV immediately after Plan #97
+    17. Plan #98 runtime-harness boundary if the rerun verdict is `blocked_on_harness`
+    18. Plan #105 runtime-harness repair plus smoke rerun IV immediately after Plan #98
+    19. Plan #107 external-provider boundary II if the rerun verdict is `blocked_on_infrastructure`
+  - for the current 24-hour branch tree, every unlocked verdict branch must
+    already have its next numbered plan defined in docs before the rerun is
+    spent; \"we will decide after the artifact exists\" is not good enough
+  - once Plan #106 starts, the required behavior is:
+    1. repair hidden front-half default-model plumbing
+    2. rerun the smoke gate with explicit `MODEL=gpt-5-mini`
+    3. update docs from the persisted verdict immediately
+    4. continue into Plan #88, #97, #98, or #107 with no permission pause
+    5. continue into Plan #100, #104, or #105 the moment that branch unlocks
+    6. leave every new uncertainty in `docs/UNCERTAINTIES.md` rather than
+       treating uncertainty as a stop condition
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

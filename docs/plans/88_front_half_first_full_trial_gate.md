@@ -11,7 +11,9 @@
 ## Gap
 
 **Current:** The repo can reach a bounded front-half-first smoke verdict, but
-that alone is not the actual empirical comparison.
+that alone is not the actual empirical comparison. The repo also does not yet
+have a dedicated front-half-first full-trial runner surface comparable to the
+older back-half gate.
 
 **Target:** If Plan #87 says `ready_for_full_trials`, spend the bounded
 front-half-first full-trial budget and persist the verdict artifact.
@@ -30,7 +32,22 @@ the benchmark is worth spending.
 
 ---
 
+## Execution Contract
+
+If and only if Plan #96 says `ready_for_full_trials`, this plan must:
+
+1. add the missing front-half-first full-trial runner surface if it does not
+   already exist
+2. expose that runner through typed Python entrypoints plus CLI/Make parity
+3. run the five-trial front-half-first gate with explicit
+   `MODEL=gpt-5-mini`
+4. persist the decision artifact before any narrative doc update
+5. hand off immediately to Plan #100 for verdict interpretation with no pause
+
+---
+
 ## Notes
 
-This plan is conditional. It only activates if Plan #87 produces
-`ready_for_full_trials`.
+This plan is conditional. It only activates if the latest smoke rerun produces
+`ready_for_full_trials`, and it is not complete until the verdict artifact
+exists and Plan #100 is unlocked explicitly.

@@ -41,7 +41,11 @@ from ac14.discovery import (
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.evidence_bundle import build_evidence_bundle
 from ac14.examples import discover_shipped_blueprints
-from ac14.freeze_decision import build_freeze_decision
+from ac14.freeze_decision import (
+    DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
+    DEFAULT_FREEZE_SEMANTIC_MODEL,
+    build_freeze_decision,
+)
 from ac14.freeze_retry import build_freeze_retry_artifact
 from ac14.front_half_acceptance import (
     DEFAULT_FRONT_HALF_ACCEPTANCE_MAX_BUDGET,
@@ -245,6 +249,12 @@ def main() -> int:
     freeze_parser.add_argument("bundle_dir", type=Path)
     freeze_parser.add_argument("--output-dir", type=Path, required=True)
     freeze_parser.add_argument("--readiness-report", type=Path, default=None)
+    freeze_parser.add_argument("--model", default=DEFAULT_FREEZE_SEMANTIC_MODEL)
+    freeze_parser.add_argument(
+        "--max-budget",
+        type=float,
+        default=DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
+    )
 
     front_half_parser = subparsers.add_parser(
         "front-half-acceptance",
@@ -640,6 +650,8 @@ def main() -> int:
             args.bundle_dir,
             args.output_dir,
             args.readiness_report,
+            args.model,
+            args.max_budget,
         )
     if args.command == "front-half-acceptance":
         return _front_half_acceptance(
@@ -1121,6 +1133,8 @@ def _decide_freeze(
     bundle_dir: Path,
     output_dir: Path,
     readiness_report: Path | None,
+    model: str,
+    max_budget: float,
 ) -> int:
     """Build and print a persisted freeze decision artifact."""
 
@@ -1128,6 +1142,8 @@ def _decide_freeze(
         bundle_dir=bundle_dir,
         output_dir=output_dir,
         readiness_report_path=readiness_report,
+        semantic_review_model=model,
+        semantic_review_max_budget=max_budget,
     )
     print(json.dumps(decision.model_dump(mode="json"), indent=2))
     return 0

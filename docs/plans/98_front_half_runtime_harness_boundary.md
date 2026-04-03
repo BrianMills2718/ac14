@@ -4,7 +4,7 @@
 **Type:** investigation
 **Priority:** Critical
 **Blocked By:** 96
-**Blocks:** None
+**Blocks:** 105
 
 ---
 
@@ -28,3 +28,10 @@ explicit instead of collapsing back into mixed repair work.
 - [ ] The next move is explicit and bounded to the dominant runtime blocker
       class.
 - [ ] The full-trial budget remains closed unless the rerun says otherwise.
+
+---
+
+## Continuation Contract
+
+If this boundary plan activates, the next required move is
+[Plan #105: Front-Half Runtime-Harness Repair And Smoke Rerun IV](105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md).

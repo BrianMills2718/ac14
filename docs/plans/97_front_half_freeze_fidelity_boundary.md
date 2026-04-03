@@ -4,7 +4,7 @@
 **Type:** investigation
 **Priority:** Critical
 **Blocked By:** 96
-**Blocks:** None
+**Blocks:** 104
 
 ---
 
@@ -30,3 +30,10 @@ bounded to the dominant blocker.
 - [ ] The next move is explicit and bounded to the dominant front-half blocker
       class.
 - [ ] The full-trial budget remains closed unless the rerun says otherwise.
+
+---
+
+## Continuation Contract
+
+If this boundary plan activates, the next required move is
+[Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun IV](104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md).

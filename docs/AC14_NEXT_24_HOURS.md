@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md)
+- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md)
 
 The explicit active chain is:
 
@@ -42,10 +42,15 @@ The explicit active chain is:
 - [Plan #93: Async-Safe Freeze Review Repair](/home/brian/projects/ac14/docs/plans/93_async_safe_freeze_review_repair.md) -> complete
 - [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> complete, verdict `blocked_on_infrastructure`
 - [Plan #95: Front-Half Infrastructure Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_infrastructure_boundary.md) -> complete
-- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md) -> active
+- [Plan #96: Front-Half-First Smoke Rerun III](/home/brian/projects/ac14/docs/plans/96_front_half_first_smoke_rerun_iii.md) -> complete, verdict `blocked_on_infrastructure`
 - [Plan #97: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/97_front_half_freeze_fidelity_boundary.md) -> conditional on rerun `blocked_on_front_half`
 - [Plan #98: Front-Half Runtime-Harness Boundary](/home/brian/projects/ac14/docs/plans/98_front_half_runtime_harness_boundary.md) -> conditional on rerun `blocked_on_harness`
-- [Plan #99: Front-Half Infrastructure Availability Boundary](/home/brian/projects/ac14/docs/plans/99_front_half_infrastructure_availability_boundary.md) -> conditional on rerun `blocked_on_infrastructure`
+- [Plan #99: Front-Half Infrastructure Boundary For Hidden Default Model Paths](/home/brian/projects/ac14/docs/plans/99_front_half_infrastructure_availability_boundary.md) -> complete
+- [Plan #100: Front-Half-First Verdict Interpretation And Next Horizon](/home/brian/projects/ac14/docs/plans/100_front_half_first_verdict_interpretation.md) -> conditional on Plan #88 completion
+- [Plan #104: Front-Half Freeze-Fidelity Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) -> conditional on Plan #97 completion
+- [Plan #105: Front-Half Runtime-Harness Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) -> conditional on Plan #98 completion
+- [Plan #106: Front-Half Model Propagation Repair And Smoke Rerun IV](/home/brian/projects/ac14/docs/plans/106_front_half_provider_fallback_and_smoke_rerun_iv.md) -> active
+- [Plan #107: Front-Half External Provider Boundary II](/home/brian/projects/ac14/docs/plans/107_front_half_external_provider_boundary_ii.md) -> conditional on Plan #106 verdict `blocked_on_infrastructure`
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -60,14 +65,40 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. freeze the infrastructure blocker boundary from smoke_4
-2. rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini`
-3. branch immediately from the rerun verdict:
-   - full trial if `ready_for_full_trials`
-   - freeze-fidelity blocker boundary if `blocked_on_front_half`
-   - runtime-harness blocker boundary if `blocked_on_harness`
-   - infrastructure-availability boundary if `blocked_on_infrastructure`
-4. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+1. lock the smoke_5 infrastructure boundary as hidden front-half default-model plumbing
+2. repair explicit model propagation through the active AC14 front-half subcalls
+3. rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini`
+4. branch immediately from the rerun verdict with no permission pause:
+   - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
+   - if `blocked_on_front_half`: execute Plan #97, then execute Plan #104
+   - if `blocked_on_harness`: execute Plan #98, then execute Plan #105
+   - if `blocked_on_infrastructure`: execute Plan #107
+5. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen unless a new front-half-first artifact changes that state
+
+## Branch Matrix
+
+### Branch A: smoke opens the gate
+
+1. Plan #96 produces `ready_for_full_trials`
+2. Plan #88 implements any missing front-half-first full-trial runner surface, spends the five-trial budget, and persists the verdict artifact
+3. Plan #100 locks the verdict across docs and freezes the next horizon from the actual result
+
+### Branch B: front half still blocked
+
+1. Plan #96 produces `blocked_on_front_half`
+2. Plan #97 freezes the dominant front-half blocker from the new artifact
+3. Plan #104 repairs that blocker and reruns one bounded smoke trial immediately
+
+### Branch C: front half passes but runtime still blocked
+
+1. Plan #96 produces `blocked_on_harness`
+2. Plan #98 freezes the dominant runtime or harness blocker from the new artifact
+3. Plan #105 repairs that blocker and reruns one bounded smoke trial immediately
+
+### Branch D: infrastructure still dominates after propagation repair
+
+1. Plan #106 produces `blocked_on_infrastructure`
+2. Plan #107 freezes the next external-provider boundary from the new artifact
 
 ## Progress Update
 
@@ -104,6 +135,7 @@ Completed before the current lane:
 29. a repaired front-half-first contract lane with persisted invalid-plan diagnostics, one bounded structured-spec binding retry, and persisted failed monolithic runtime source on raw-record contract violations
 30. a second bounded front-half-first smoke artifact at `.ac14_out/front_half_first_smoke_2/` with verdict `blocked_on_front_half`, showing that the original planning blocker moved and the next blocker is async wrapper reentry inside the retry-enabled front-half path
 31. a third smoke rerun at `.ac14_out/front_half_first_smoke_4/` with verdict `blocked_on_infrastructure`, which means Plan #93's async-safe fix is still not empirically judged
+32. a fourth smoke rerun at `.ac14_out/front_half_first_smoke_5/` with verdict `blocked_on_infrastructure`, but this time the blocker sharpened: monolithic reached runtime evaluation while AC14 still hit hidden Gemini-default subcalls after draft planning and freeze remediation
 
 ## Tactical Phase Summary
 

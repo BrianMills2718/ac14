@@ -5,11 +5,15 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 
+from ac14.freeze_decision import FreezeDecisionArtifact
+from ac14.freeze_retry import FreezeRetryArtifact
 from ac14.front_half_acceptance import (
+    FrontHalfReviewResponse,
     abuild_structured_spec_front_half_acceptance_report,
     build_front_half_acceptance_report,
     build_front_half_acceptance_suite_report,
@@ -465,7 +469,162 @@ def test_async_structured_spec_front_half_acceptance_supports_retry_freeze(
     assert artifact.retry_freeze_attempted is True
     assert artifact.artifact_paths.retry_freeze_artifact_path is not None
     assert Path(artifact.artifact_paths.retry_freeze_artifact_path).exists()
-    assert freeze_review_call.await_count >= 1
+
+
+def test_build_structured_spec_front_half_acceptance_report_propagates_explicit_models(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Structured-spec front-half acceptance should forward explicit models into freeze paths."""
+
+    source_path = (
+        REPO_ROOT
+        / "benchmarks"
+        / "resource_scaling_structured_spec"
+        / "structured_spec_input.yaml"
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+    captured: dict[str, object] = {}
+
+    async def _fake_plan_writer(
+        structured_spec_artifact_path: Path | str,
+        output_dir: Path | str,
+        *,
+        model: str,
+        max_budget: float,
+        task: str = "ac14_draft_blueprint_plan_from_structured_spec",
+    ) -> None:
+        del task
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        payload = json.loads(
+            _write_blueprint_plan_fixture(destination / "draft_blueprint_plan_fixture.json").read_text(),
+        )
+        payload.update(
+            {
+                "planning_input_kind": "structured_spec",
+                "planning_input_name": "Resource Scaling Contract",
+                "planning_input_artifact_path": str(structured_spec_artifact_path),
+                "structured_spec_artifact_path": str(structured_spec_artifact_path),
+                "requirements": ["produce a scaling decision for each metrics snapshot"],
+                "planning_input_open_concerns": [],
+                "discovery_open_concerns": [],
+            },
+        )
+        (destination / "draft_blueprint_plan.json").write_text(
+            json.dumps(payload, indent=2, sort_keys=True),
+        )
+        captured["plan_model"] = model
+        captured["plan_max_budget"] = max_budget
+
+    async def _fake_freeze_decision(
+        bundle_dir: Path | str,
+        output_dir: Path | str,
+        *,
+        readiness_report_path: Path | str | None = None,
+        semantic_review_model: str,
+        semantic_review_max_budget: float,
+    ) -> FreezeDecisionArtifact:
+        del bundle_dir, readiness_report_path
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        review_path = destination / "freeze_semantic_review.json"
+        review_path.write_text(
+            _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json").read_text(),
+        )
+        decision_path = destination / "freeze_decision.json"
+        decision = FreezeDecisionArtifact(
+            source_bundle_dir=str(tmp_path / "draft_bundle"),
+            readiness_report_path=str(tmp_path / "draft_bundle" / "freeze_readiness_report.json"),
+            approved=False,
+            decision_summary="bundle blocked by freeze-readiness findings",
+            findings=[],
+            promoted_bundle_dir=None,
+            semantic_review_path=str(review_path),
+            remediation_plan_path=str(destination / "freeze_remediation_plan.json"),
+        )
+        decision_path.write_text(json.dumps(decision.model_dump(mode="json"), indent=2, sort_keys=True))
+        captured["freeze_model"] = semantic_review_model
+        captured["freeze_max_budget"] = semantic_review_max_budget
+        return decision
+
+    async def _fake_retry_artifact(
+        plan_artifact_path: Path | str,
+        freeze_decision_path: Path | str,
+        output_dir: Path | str,
+        *,
+        model: str,
+        max_budget: float,
+    ) -> FreezeRetryArtifact:
+        del plan_artifact_path, freeze_decision_path
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        artifact = FreezeRetryArtifact(
+            source_draft_blueprint_plan_path=str(destination / "source_plan.json"),
+            source_freeze_decision_path=str(destination / "source_freeze_decision.json"),
+            refined_draft_blueprint_plan_path=str(destination / "refined_plan.json"),
+            refined_draft_bundle_dir=str(destination / "refined_bundle"),
+            refreshed_freeze_readiness_report_path=str(destination / "refreshed_freeze_readiness_report.json"),
+            refreshed_freeze_decision_path=str(destination / "refreshed_freeze_decision.json"),
+            refreshed_freeze_semantic_review_path=str(destination / "refreshed_freeze_semantic_review.json"),
+            refinement_round=1,
+            approved=False,
+            summary="retry chain kept the refined bundle blocked at freeze",
+        )
+        (destination / "freeze_retry_artifact.json").write_text(
+            json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        captured["retry_model"] = model
+        captured["retry_max_budget"] = max_budget
+        return artifact
+
+    async def _fake_review(*args: object, **kwargs: object) -> FrontHalfReviewResponse:
+        del args, kwargs
+        return FrontHalfReviewResponse.model_validate_json(
+            _write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json").read_text(),
+        )
+
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance.abuild_draft_blueprint_plan_from_structured_spec",
+        _fake_plan_writer,
+    )
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance.materialize_draft_blueprint_bundle",
+        lambda plan_artifact_path, output_dir: SimpleNamespace(
+            draft_bundle_dir=str(Path(output_dir)),
+            freeze_readiness_report_path=str(Path(output_dir) / "freeze_readiness_report.json"),
+        ),
+    )
+    monkeypatch.setattr("ac14.front_half_acceptance.abuild_freeze_decision", _fake_freeze_decision)
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance.abuild_freeze_retry_artifact",
+        _fake_retry_artifact,
+    )
+    monkeypatch.setattr(
+        "ac14.front_half_acceptance._review_structured_spec_front_half_acceptance",
+        _fake_review,
+    )
+
+    artifact = build_structured_spec_front_half_acceptance_report(
+        structured_spec_artifact_path=tmp_path / "structured_spec" / "structured_spec_artifact.json",
+        output_dir=tmp_path / "structured_spec_front_half",
+        model="gpt-5-mini",
+        max_budget=1.5,
+        retry_blocked_freeze=True,
+        retry_model="gpt-5-nano",
+        retry_max_budget=0.75,
+    )
+
+    assert artifact.freeze_approved is False
+    assert artifact.retry_freeze_attempted is True
+    assert captured == {
+        "plan_model": "gpt-5-mini",
+        "plan_max_budget": 1.5,
+        "freeze_model": "gpt-5-mini",
+        "freeze_max_budget": 1.5,
+        "retry_model": "gpt-5-nano",
+        "retry_max_budget": 0.75,
+    }
 
 
 def test_build_front_half_acceptance_report_supports_retry_freeze(

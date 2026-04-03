@@ -17,7 +17,7 @@ from ac14.blueprint_planning import (
     PlanningQuestion,
 )
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
-from ac14.freeze_decision import build_freeze_decision
+from ac14.freeze_decision import FreezeSemanticReviewResponse, build_freeze_decision
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -237,3 +237,42 @@ def test_build_freeze_decision_groups_dependency_probe_blockers(
         target.endswith("dependency_execution_artifact.json")
         for target in dependency_task["target_files"]
     )
+
+
+def test_build_freeze_decision_respects_explicit_semantic_review_model(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Freeze semantic review should honor the caller-provided model and budget."""
+
+    plan_path = _write_plan_artifact(tmp_path / "draft_blueprint_plan.json")
+    manifest = materialize_draft_blueprint_bundle(
+        plan_artifact_path=plan_path,
+        output_dir=tmp_path / "draft_bundle",
+    )
+    captured: dict[str, object] = {}
+
+    async def _fake_acall_llm_structured(model: str, messages: object, **kwargs: object) -> object:
+        captured["model"] = model
+        captured["max_budget"] = kwargs.get("max_budget")
+        review = FreezeSemanticReviewResponse.model_validate_json(
+            _write_freeze_semantic_review_fixture(tmp_path / "freeze_semantic_review_fixture.json").read_text(),
+        )
+        return review, object()
+
+    monkeypatch.setattr(
+        "ac14.freeze_decision.render_prompt",
+        lambda *args, **kwargs: [{"role": "system", "content": "stub"}],
+    )
+    monkeypatch.setattr("ac14.freeze_decision.acall_llm_structured", _fake_acall_llm_structured)
+
+    decision = build_freeze_decision(
+        bundle_dir=Path(manifest.draft_bundle_dir),
+        output_dir=tmp_path / "freeze_decision",
+        readiness_report_path=Path(manifest.freeze_readiness_report_path),
+        semantic_review_model="gpt-5-mini",
+        semantic_review_max_budget=1.25,
+    )
+
+    assert decision.semantic_review_path is not None
+    assert captured == {"model": "gpt-5-mini", "max_budget": 1.25}

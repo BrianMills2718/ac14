@@ -102,7 +102,7 @@ materialize-draft-bundle: ## Materialize a six-file draft bundle and readiness r
 	$(PYTHON) -m ac14 materialize-draft-bundle "$(PLAN)" --output-dir "$(OUTPUT)"
 
 decide-freeze: ## Build a freeze decision and promote only when approved (INPUT=bundle_dir OUTPUT=.ac14_out/freeze READINESS=optional_report.json)
-	$(PYTHON) -m ac14 decide-freeze "$(INPUT)" --output-dir "$(OUTPUT)" $(if $(READINESS),--readiness-report "$(READINESS)",)
+	$(PYTHON) -m ac14 decide-freeze "$(INPUT)" --output-dir "$(OUTPUT)" $(if $(READINESS),--readiness-report "$(READINESS)",) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
 
 front-half-acceptance: ## Run realistic-input discovery through freeze decision and review the front half (REALISTIC_INPUT=... OUTPUT=.ac14_out/front_half REQUIREMENTS="..." PACKAGES="pydantic" RETRY_BLOCKED_FREEZE=1)
 	$(PYTHON) -m ac14 front-half-acceptance "$(REALISTIC_INPUT)" --output-dir "$(OUTPUT)" --requirements $(REQUIREMENTS) --project-root "$(CURDIR)" --packages $(PACKAGES) $(foreach artifact,$(RETRIEVAL_ARTIFACTS),--retrieval-artifact "$(artifact)") $(if $(filter 1 true yes,$(ALLOW_INSTALL)),--allow-install,) --model "$(MODEL)" --max-budget "$(MAX_BUDGET)" $(if $(filter 1 true yes,$(RETRY_BLOCKED_FREEZE)),--retry-blocked-freeze,) --retry-model "$(RETRY_MODEL)" --retry-max-budget "$(RETRY_MAX_BUDGET)"

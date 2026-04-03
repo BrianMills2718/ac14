@@ -176,6 +176,8 @@ async def abuild_freeze_decision(
     output_dir: Path | str,
     *,
     readiness_report_path: Path | str | None = None,
+    semantic_review_model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    semantic_review_max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeDecisionArtifact:
     """Persist a freeze decision and promote the bundle only when approved."""
 
@@ -243,6 +245,8 @@ async def abuild_freeze_decision(
             freeze_approved=approved,
             findings=findings,
             remediation_plan=remediation_plan,
+            model=semantic_review_model,
+            max_budget=semantic_review_max_budget,
         )
         semantic_review_path = str(destination / "freeze_semantic_review.json")
 
@@ -267,6 +271,8 @@ def build_freeze_decision(
     output_dir: Path | str,
     *,
     readiness_report_path: Path | str | None = None,
+    semantic_review_model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    semantic_review_max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeDecisionArtifact:
     """Synchronous wrapper for persisted freeze decisions."""
 
@@ -275,6 +281,8 @@ def build_freeze_decision(
             bundle_dir=bundle_dir,
             output_dir=output_dir,
             readiness_report_path=readiness_report_path,
+            semantic_review_model=semantic_review_model,
+            semantic_review_max_budget=semantic_review_max_budget,
         ),
     )
 
@@ -288,6 +296,8 @@ async def abuild_freeze_semantic_review(
     freeze_approved: bool,
     findings: list[ValidationFinding],
     remediation_plan: FreezeRemediationPlan,
+    model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeSemanticReviewArtifact:
     """Persist a semantic review artifact attached directly to the freeze decision."""
 
@@ -303,6 +313,8 @@ async def abuild_freeze_semantic_review(
         freeze_approved=freeze_approved,
         findings=findings,
         remediation_plan=remediation_plan,
+        model=model,
+        max_budget=max_budget,
     )
     artifact = FreezeSemanticReviewArtifact(
         source_bundle_dir=str(source_dir),
@@ -333,6 +345,8 @@ def build_freeze_semantic_review(
     freeze_approved: bool,
     findings: list[ValidationFinding],
     remediation_plan: FreezeRemediationPlan,
+    model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeSemanticReviewArtifact:
     """Synchronous wrapper for attached freeze-semantic review artifacts."""
 
@@ -345,6 +359,8 @@ def build_freeze_semantic_review(
             freeze_approved=freeze_approved,
             findings=findings,
             remediation_plan=remediation_plan,
+            model=model,
+            max_budget=max_budget,
         ),
     )
 
@@ -673,6 +689,8 @@ async def areview_freeze_semantic_quality(
     freeze_approved: bool,
     findings: list[ValidationFinding],
     remediation_plan: FreezeRemediationPlan,
+    model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeSemanticReviewResponse:
     """Run one semantic review over draft/freeze quality."""
 
@@ -732,12 +750,12 @@ async def areview_freeze_semantic_quality(
     response, _meta = cast(
         tuple[FreezeSemanticReviewResponse, object],
         await acall_llm_structured(
-            DEFAULT_FREEZE_SEMANTIC_MODEL,
+            model,
             messages,
             response_model=FreezeSemanticReviewResponse,
             task="ac14_freeze_semantic_review",
             trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}",
-            max_budget=DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
+            max_budget=max_budget,
         ),
     )
     return response
@@ -751,6 +769,8 @@ def _review_freeze_semantic_quality(
     freeze_approved: bool,
     findings: list[ValidationFinding],
     remediation_plan: FreezeRemediationPlan,
+    model: str = DEFAULT_FREEZE_SEMANTIC_MODEL,
+    max_budget: float = DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
 ) -> FreezeSemanticReviewResponse:
     """Synchronous wrapper for freeze semantic review."""
 
@@ -762,5 +782,7 @@ def _review_freeze_semantic_quality(
             freeze_approved=freeze_approved,
             findings=findings,
             remediation_plan=remediation_plan,
+            model=model,
+            max_budget=max_budget,
         ),
     )
