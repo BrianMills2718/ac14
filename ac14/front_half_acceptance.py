@@ -22,7 +22,7 @@ from ac14.dependency_planning import abuild_dependency_plan
 from ac14.discovery import DiscoveryArtifact, build_discovery_artifact
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
 from ac14.examples import ShippedBlueprintExample, discover_shipped_blueprints, resolve_realistic_input_path
-from ac14.freeze_decision import FreezeDecisionArtifact, build_freeze_decision
+from ac14.freeze_decision import FreezeDecisionArtifact, abuild_freeze_decision
 from ac14.freeze_retry import FreezeRetryArtifact, abuild_freeze_retry_artifact
 from ac14.loader import load_blueprint_dir
 from ac14.structured_spec import StructuredSpecArtifact
@@ -345,7 +345,7 @@ async def abuild_front_half_acceptance_report(
         plan_artifact_path=draft_plan_path,
         output_dir=destination / "draft_bundle",
     )
-    freeze_decision = build_freeze_decision(
+    freeze_decision = await abuild_freeze_decision(
         bundle_dir=Path(draft_bundle_manifest.draft_bundle_dir),
         output_dir=destination / "freeze_decision",
         readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),
@@ -489,7 +489,7 @@ async def abuild_structured_spec_front_half_acceptance_report(
         plan_artifact_path=draft_plan_path,
         output_dir=destination / "draft_bundle",
     )
-    freeze_decision = build_freeze_decision(
+    freeze_decision = await abuild_freeze_decision(
         bundle_dir=Path(draft_bundle_manifest.draft_bundle_dir),
         output_dir=destination / "freeze_decision",
         readiness_report_path=Path(draft_bundle_manifest.freeze_readiness_report_path),

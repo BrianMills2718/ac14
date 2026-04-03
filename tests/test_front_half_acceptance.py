@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 
 from ac14.front_half_acceptance import (
+    abuild_structured_spec_front_half_acceptance_report,
     build_front_half_acceptance_report,
     build_front_half_acceptance_suite_report,
     build_structured_spec_front_half_acceptance_report,
@@ -379,6 +382,90 @@ def test_build_structured_spec_front_half_acceptance_report_runs_end_to_end(
     assert artifact.artifact_paths.freeze_semantic_review_path is not None
     assert Path(artifact.artifact_paths.freeze_semantic_review_path).exists()
     assert (tmp_path / "structured_spec_front_half" / "structured_spec_front_half_acceptance_report.json").exists()
+
+
+def test_async_structured_spec_front_half_acceptance_supports_retry_freeze(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The async structured-spec retry path should not re-enter asyncio.run()."""
+
+    from ac14.freeze_decision import FreezeSemanticReviewResponse
+
+    source_path = tmp_path / "resource_scaling_spec.yaml"
+    source_path.write_text(
+        "\n".join(
+            [
+                "system_name: Resource Scaling Contract",
+                "purpose: Decide when infrastructure should scale.",
+                "requirements:",
+                "  - produce a scaling decision for each metrics snapshot",
+                "inputs:",
+                "  - name: metrics_snapshot",
+                "    kind: record",
+                "    description: Current utilization metrics.",
+                "    fields:",
+                "      - field_name: cpu_utilization",
+                "        field_type: float",
+                "        description: CPU utilization ratio.",
+                "        required: true",
+                "outputs:",
+                "  - name: scaling_decision",
+                "    kind: record",
+                "    description: Final scaling decision.",
+                "    fields:",
+                "      - field_name: action",
+                "        field_type: str",
+                "        description: One scaling action label.",
+                "        required: true",
+                "workflow_hints:",
+                "  - hint_id: evaluate_thresholds",
+                "    summary: Evaluate metrics against rules.",
+                "    input_names: [metrics_snapshot]",
+                "    output_names: [scaling_decision]",
+            ],
+        ),
+    )
+    build_structured_spec_artifact(source_path, tmp_path / "structured_spec")
+    monkeypatch.setenv(
+        "AC14_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_blueprint_plan_fixture(tmp_path / "blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_REFINE_BLUEPRINT_PLAN_FIXTURE",
+        str(_write_refine_blueprint_plan_fixture(tmp_path / "refine_blueprint_plan_fixture.json")),
+    )
+    monkeypatch.setenv(
+        "AC14_FRONT_HALF_ACCEPTANCE_FIXTURE",
+        str(_write_front_half_review_fixture(tmp_path / "front_half_review_fixture.json")),
+    )
+    freeze_review = FreezeSemanticReviewResponse(
+        overall_verdict="concern",
+        freeze_verdict="promising_but_blocked",
+        summary="async-safe retry path reached freeze semantic review",
+        strengths=["reviewable retry path"],
+        concerns=["freeze still blocked on draft fidelity"],
+        requirement_assessments=[],
+        recommended_next_steps=["repair draft fidelity findings before the next retry"],
+    )
+    freeze_review_call = AsyncMock(return_value=(freeze_review, object()))
+    monkeypatch.setattr("ac14.freeze_decision.acall_llm_structured", freeze_review_call)
+
+    artifact = asyncio.run(
+        abuild_structured_spec_front_half_acceptance_report(
+            structured_spec_artifact_path=tmp_path / "structured_spec" / "structured_spec_artifact.json",
+            output_dir=tmp_path / "structured_spec_front_half_async",
+            retry_blocked_freeze=True,
+            max_budget=0.1,
+            retry_max_budget=0.1,
+        )
+    )
+
+    assert artifact.freeze_approved is False
+    assert artifact.retry_freeze_attempted is True
+    assert artifact.artifact_paths.retry_freeze_artifact_path is not None
+    assert Path(artifact.artifact_paths.retry_freeze_artifact_path).exists()
+    assert freeze_review_call.await_count >= 1
 
 
 def test_build_front_half_acceptance_report_supports_retry_freeze(

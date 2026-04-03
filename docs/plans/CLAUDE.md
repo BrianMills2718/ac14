@@ -101,8 +101,11 @@ current executable lane.
 | 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | Planned | - |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
-| 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | In Progress | 88, 92 |
-| 92 | [Front-Half-First Second Blocker Boundary](92_front_half_first_second_blocker_boundary.md) | Critical | Planned | - |
+| 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
+| 92 | [Front-Half-First Second Blocker Boundary](92_front_half_first_second_blocker_boundary.md) | Critical | Complete | 93 |
+| 93 | [Async-Safe Freeze Review Repair](93_async_safe_freeze_review_repair.md) | Critical | Complete | 94 |
+| 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | In Progress | 88, 95 |
+| 95 | [Front-Half Freeze Fidelity Boundary](95_front_half_freeze_fidelity_boundary.md) | Critical | Planned | - |
 
 ## Status Key
 

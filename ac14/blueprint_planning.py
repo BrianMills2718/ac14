@@ -721,8 +721,13 @@ async def abuild_refined_draft_blueprint_plan(
 
     _validate_draft_blueprint_plan(typed_response)
     refined_plan = DraftBlueprintPlanArtifact(
+        planning_input_kind=source_plan.planning_input_kind,
+        planning_input_name=source_plan.planning_input_name,
+        planning_input_artifact_path=source_plan.planning_input_artifact_path,
         discovery_artifact_path=source_plan.discovery_artifact_path,
+        structured_spec_artifact_path=source_plan.structured_spec_artifact_path,
         requirements=source_plan.requirements,
+        planning_input_open_concerns=source_plan.planning_input_open_concerns,
         discovery_open_concerns=source_plan.discovery_open_concerns,
         dependency_plan_path=source_plan.dependency_plan_path,
         dependency_plan_summary=source_plan.dependency_plan_summary,

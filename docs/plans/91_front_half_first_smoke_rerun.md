@@ -1,6 +1,6 @@
 # Plan #91: Front-Half-First Smoke Rerun
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 90
@@ -22,9 +22,9 @@ structured-spec and monolithic contracts, not chat-level optimism.
 
 ## Acceptance Criteria
 
-- [ ] One fresh smoke artifact exists after the Plan #90 repairs.
-- [ ] The verdict is explicit and persisted.
-- [ ] The next branch is explicit:
+- [x] One fresh smoke artifact exists after the Plan #90 repairs.
+- [x] The verdict is explicit and persisted.
+- [x] The next branch is explicit:
       - Plan #88 if `ready_for_full_trials`
       - Plan #92 if still `blocked_*`
 
@@ -33,3 +33,20 @@ structured-spec and monolithic contracts, not chat-level optimism.
 ## Notes
 
 This plan only executes after Plan #90 is fully verified.
+
+## Implementation Summary
+
+Plan #91 produced a fresh smoke artifact at:
+
+- `.ac14_out/front_half_first_smoke_2/smoke_readiness_report.json`
+
+The verdict is:
+
+- `blocked_on_front_half`
+
+The rerun moved the blocker chain:
+
+- monolithic no longer fails on the old raw-record contract mistake
+- AC14 no longer fails first on invalid structured-spec bindings
+- AC14 now reaches draft planning, draft authoring, and freeze-remediation
+  artifacts before failing on nested `asyncio.run()` reentry in the retry path

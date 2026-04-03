@@ -19,7 +19,7 @@ from ac14.blueprint_planning import (
     abuild_refined_draft_blueprint_plan,
 )
 from ac14.draft_authoring import materialize_draft_blueprint_bundle
-from ac14.freeze_decision import build_freeze_decision
+from ac14.freeze_decision import abuild_freeze_decision
 
 
 class FreezeRetryArtifact(BaseModel):
@@ -85,7 +85,7 @@ async def abuild_freeze_retry_artifact(
         output_dir=destination / "refined_bundle",
     )
 
-    refreshed_freeze = build_freeze_decision(
+    refreshed_freeze = await abuild_freeze_decision(
         bundle_dir=manifest.draft_bundle_dir,
         output_dir=destination / "refreshed_freeze_decision",
         readiness_report_path=manifest.freeze_readiness_report_path,

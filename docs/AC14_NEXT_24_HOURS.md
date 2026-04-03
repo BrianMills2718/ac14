@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md)
+- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md)
 
 The explicit active chain is:
 
@@ -37,8 +37,11 @@ The explicit active chain is:
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> conditional on smoke `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> complete
 - [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> complete
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> active
-- [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> conditional on rerun `blocked_*`
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> complete, verdict `blocked_on_front_half`
+- [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> complete
+- [Plan #93: Async-Safe Freeze Review Repair](/home/brian/projects/ac14/docs/plans/93_async_safe_freeze_review_repair.md) -> complete
+- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> active
+- [Plan #95: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_freeze_fidelity_boundary.md) -> conditional on rerun `blocked_*`
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -53,10 +56,10 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. rerun one bounded front-half-first smoke trial after the repaired contract lane
+1. rerun one bounded front-half-first smoke trial after the async-safe repair
 2. branch immediately from the rerun verdict:
    - full trial if `ready_for_full_trials`
-   - second blocker boundary if `blocked_*`
+   - freeze-fidelity blocker boundary if `blocked_*`
 3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
@@ -92,6 +95,7 @@ Completed before the current lane:
 27. a first persisted front-half-first smoke artifact at `.ac14_out/front_half_first_smoke_1/` with verdict `blocked_on_front_half`
 28. a blocker diagnosis showing AC14 invalid structured-spec bindings and monolithic raw-record runtime mismatch
 29. a repaired front-half-first contract lane with persisted invalid-plan diagnostics, one bounded structured-spec binding retry, and persisted failed monolithic runtime source on raw-record contract violations
+30. a second bounded front-half-first smoke artifact at `.ac14_out/front_half_first_smoke_2/` with verdict `blocked_on_front_half`, showing that the original planning blocker moved and the next blocker is async wrapper reentry inside the retry-enabled front-half path
 
 ## Tactical Phase Summary
 
@@ -174,9 +178,18 @@ Success criteria:
 
 - the next 24-hour chain is executable without chat interpretation
 
-### Phase 9: front-half-first smoke rerun
+### Phase 9: async-safe front-half retry repair
 
-- rerun the front-half-first smoke gate after the repaired contract lane
+- remove nested `asyncio.run()` reentry from retry-enabled front-half review and freeze decision paths
+- keep sync wrappers available for non-async callers
+
+Success criteria:
+
+- the next smoke rerun can return a structured-spec front-half artifact instead of dying in the retry path
+
+### Phase 10: front-half-first smoke rerun II
+
+- rerun the front-half-first smoke gate after the async-safe repair
 - branch immediately from the persisted verdict instead of from expectation
 
 Success criteria:
@@ -192,5 +205,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the first smoke verdict is now known and the first repair lane is now complete; the active question is whether the repaired smoke rerun reopens the gate
+2. the second smoke verdict is now known; the active question is whether the async-safe retry repair is enough to reopen the gate before freeze-fidelity blockers become the dominant boundary
 3. blocked propagation lanes should stay blocked until the repaired front-half-first empirical direction is rerun explicitly

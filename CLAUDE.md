@@ -164,9 +164,12 @@ For the active empirical-comparison lane, this rule is especially strict:
     2. Plan #87 bounded smoke execution -> complete with `blocked_on_front_half`
     3. Plan #89 blocker diagnosis -> complete
     4. Plan #90 bounded contract-and-observability repair -> complete
-    5. Plan #91 smoke rerun -> active
-    6. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
-    7. Plan #92 second blocker boundary otherwise
+    5. Plan #91 smoke rerun -> complete with `blocked_on_front_half`
+    6. Plan #92 second blocker boundary -> complete
+    7. Plan #93 async-safe freeze review repair -> complete
+    8. Plan #94 smoke rerun II -> active
+    9. Plan #88 full trial only if the rerun verdict is `ready_for_full_trials`
+    10. Plan #95 front-half freeze-fidelity boundary otherwise
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

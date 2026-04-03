@@ -171,7 +171,7 @@ class FreezeSemanticReviewArtifact(BaseModel):
     )
 
 
-def build_freeze_decision(
+async def abuild_freeze_decision(
     bundle_dir: Path | str,
     output_dir: Path | str,
     *,
@@ -235,7 +235,7 @@ def build_freeze_decision(
             )
         if readiness_path is None:
             raise ValueError("freeze semantic review requires a readiness report path")
-        build_freeze_semantic_review(
+        await abuild_freeze_semantic_review(
             source_bundle_dir=source_dir,
             readiness_report_path=readiness_path,
             upstream_plan_path=Path(upstream_plan_path),
@@ -262,7 +262,24 @@ def build_freeze_decision(
     return decision
 
 
-def build_freeze_semantic_review(
+def build_freeze_decision(
+    bundle_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    readiness_report_path: Path | str | None = None,
+) -> FreezeDecisionArtifact:
+    """Synchronous wrapper for persisted freeze decisions."""
+
+    return asyncio.run(
+        abuild_freeze_decision(
+            bundle_dir=bundle_dir,
+            output_dir=output_dir,
+            readiness_report_path=readiness_report_path,
+        ),
+    )
+
+
+async def abuild_freeze_semantic_review(
     *,
     source_bundle_dir: Path | str,
     readiness_report_path: Path | str,
@@ -279,7 +296,7 @@ def build_freeze_semantic_review(
     plan_path = Path(upstream_plan_path)
     destination = Path(output_dir)
 
-    review = _review_freeze_semantic_quality(
+    review = await areview_freeze_semantic_quality(
         source_bundle_dir=source_dir,
         readiness_report_path=readiness_path,
         upstream_plan_path=plan_path,
@@ -305,6 +322,31 @@ def build_freeze_semantic_review(
         json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return artifact
+
+
+def build_freeze_semantic_review(
+    *,
+    source_bundle_dir: Path | str,
+    readiness_report_path: Path | str,
+    upstream_plan_path: Path | str,
+    output_dir: Path | str,
+    freeze_approved: bool,
+    findings: list[ValidationFinding],
+    remediation_plan: FreezeRemediationPlan,
+) -> FreezeSemanticReviewArtifact:
+    """Synchronous wrapper for attached freeze-semantic review artifacts."""
+
+    return asyncio.run(
+        abuild_freeze_semantic_review(
+            source_bundle_dir=source_bundle_dir,
+            readiness_report_path=readiness_report_path,
+            upstream_plan_path=upstream_plan_path,
+            output_dir=output_dir,
+            freeze_approved=freeze_approved,
+            findings=findings,
+            remediation_plan=remediation_plan,
+        ),
+    )
 
 
 def build_freeze_remediation_plan(
@@ -623,7 +665,7 @@ def _dedupe(values: Iterable[str]) -> list[str]:
     return unique
 
 
-def _review_freeze_semantic_quality(
+async def areview_freeze_semantic_quality(
     *,
     source_bundle_dir: Path,
     readiness_report_path: Path,
@@ -689,15 +731,36 @@ def _review_freeze_semantic_quality(
     )
     response, _meta = cast(
         tuple[FreezeSemanticReviewResponse, object],
-        asyncio.run(
-            acall_llm_structured(
-                DEFAULT_FREEZE_SEMANTIC_MODEL,
-                messages,
-                response_model=FreezeSemanticReviewResponse,
-                task="ac14_freeze_semantic_review",
-                trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}",
-                max_budget=DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
-            ),
+        await acall_llm_structured(
+            DEFAULT_FREEZE_SEMANTIC_MODEL,
+            messages,
+            response_model=FreezeSemanticReviewResponse,
+            task="ac14_freeze_semantic_review",
+            trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}",
+            max_budget=DEFAULT_FREEZE_SEMANTIC_MAX_BUDGET,
         ),
     )
     return response
+
+
+def _review_freeze_semantic_quality(
+    *,
+    source_bundle_dir: Path,
+    readiness_report_path: Path,
+    upstream_plan_path: Path,
+    freeze_approved: bool,
+    findings: list[ValidationFinding],
+    remediation_plan: FreezeRemediationPlan,
+) -> FreezeSemanticReviewResponse:
+    """Synchronous wrapper for freeze semantic review."""
+
+    return asyncio.run(
+        areview_freeze_semantic_quality(
+            source_bundle_dir=source_bundle_dir,
+            readiness_report_path=readiness_report_path,
+            upstream_plan_path=upstream_plan_path,
+            freeze_approved=freeze_approved,
+            findings=findings,
+            remediation_plan=remediation_plan,
+        ),
+    )

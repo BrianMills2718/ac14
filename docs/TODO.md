@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md)
+- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md)
 
 The explicit active chain is:
 
@@ -40,8 +40,11 @@ The explicit active chain is:
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> planned, conditional on Plan #87 verdict `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> complete
 - [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> complete
-- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> active
-- [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> planned, conditional on Plan #91 verdict `blocked_*`
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> complete, verdict `blocked_on_front_half`
+- [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> complete
+- [Plan #93: Async-Safe Freeze Review Repair](/home/brian/projects/ac14/docs/plans/93_async_safe_freeze_review_repair.md) -> complete
+- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> active
+- [Plan #95: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_freeze_fidelity_boundary.md) -> planned, conditional on Plan #94 verdict `blocked_*`
 
 The experiment contract remains frozen in:
 
@@ -134,9 +137,18 @@ The previously active propagation lane remains blocked:
 - [x] Plan #90: repair the front-half-first contract and failed-front-half observability surfaces
   - Result: structured-spec planning now persists invalid-plan diagnostics, gets one bounded binding-error retry, and monolithic runtime generation now fails loud with persisted failed source for raw-record contract mistakes
 
-- [ ] Plan #91 or Plan #92:
-  - if Plan #91 says `ready_for_full_trials`, run Plan #88
-  - otherwise freeze Plan #92 before any more local tuning
+- [x] Plan #91: rerun one bounded front-half-first smoke trial after Plan #90
+  - Result: `.ac14_out/front_half_first_smoke_2/smoke_readiness_report.json` exists with verdict `blocked_on_front_half`
+
+- [x] Plan #92: freeze the second blocker boundary from the rerun verdict
+  - Result: the next chain is now explicit as Plan #93 -> Plan #94 -> Plan #88 or Plan #95
+
+- [x] Plan #93: make freeze decision and semantic review async-safe inside retry-enabled front-half paths
+  - Result: the next smoke rerun can now test front-half approval and runtime instead of dying on nested `asyncio.run()` reentry
+
+- [ ] Plan #94 or Plan #95:
+  - if Plan #94 says `ready_for_full_trials`, run Plan #88
+  - otherwise freeze Plan #95 before any more local tuning
 
 ## Current Open Uncertainties
 
@@ -145,12 +157,12 @@ The previously active propagation lane remains blocked:
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
 - the current open question is no longer what the first front-half-first smoke gate should judge; that contract is now the staged-combined rule in Plan #86
-- the current active uncertainty is whether the Plan #90 repair lane is enough to reopen the front-half-first smoke gate or whether a second blocker boundary is needed
+- the current active uncertainty is whether the async-safe retry repair is enough to reopen the gate or whether the next rerun will still block on draft/freeze fidelity
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `278 passed, 1 skipped`
+  - `python -m pytest -q` with `279 passed, 1 skipped`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:
@@ -161,6 +173,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/full_trials_gate_2_smoke_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but `0` AC14 hard-harness successes
   - `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but still `0` AC14 hard-harness successes
   - `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json` with verdict `blocked_on_front_half`
+  - `.ac14_out/front_half_first_smoke_2/smoke_readiness_report.json` with verdict `blocked_on_front_half`
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -174,7 +187,9 @@ The previously active propagation lane remains blocked:
 - [x] complete Plan #86 so the front-half-first empirical contract has a runnable smoke gate
 - [x] complete Plan #87 so the front-half-first empirical contract has one persisted smoke verdict
 - [x] complete Plan #89 from that verdict instead of drifting into a side lane
-- [ ] complete Plan #90 so the next smoke rerun is testing repaired contracts and better failed-front-half observability
-- [ ] complete Plan #91 or Plan #92 from the repaired smoke rerun
+- [x] complete Plan #90 so the next smoke rerun is testing repaired contracts and better failed-front-half observability
+- [x] complete Plan #91 and Plan #92 from the repaired smoke rerun
+- [ ] complete Plan #93 so the next smoke rerun is testing async-safe front-half review/decision paths
+- [ ] complete Plan #94 or Plan #95 from that rerun
 - [ ] only after that decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly
