@@ -40,7 +40,7 @@ Do not broaden scope before that works.
 
 **NEVER STOP. This is the primary execution rule.**
 
-For the current front-half-first chain, this means: do not stop at smoke_11, do
+For the current front-half-first chain, this means: do not stop at smoke_12, do
 not stop at a clean test run, and do not stop at one completed repair. The
 required behavior is to spend the active rerun, read the verdict, update the
 control docs, and continue immediately into the already-defined next numbered
@@ -48,11 +48,12 @@ plan for that verdict.
 
 The current mandatory overnight chain is:
 
-1. [Plan #113](./docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> complete, smoke_10 `blocked_on_harness`
-2. [Plan #114](./docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> complete, blocker is final-output binding fidelity
-3. [Plan #115](./docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> active
-4. if smoke_11 still says `blocked_on_harness`, immediately continue into [Plan #116](./docs/plans/116_front_half_runtime_harness_boundary_v.md) then [Plan #117](./docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md)
-5. if smoke_11 says `ready_for_full_trials`, immediately continue into [Plan #88](./docs/plans/88_front_half_first_full_trial_gate.md) and then [Plan #100](./docs/plans/100_front_half_first_verdict_interpretation.md)
+1. [Plan #117](./docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md) -> complete, smoke_12 still `blocked_on_harness` but the runtime-output verdict split is landed
+2. [Plan #118](./docs/plans/118_front_half_runtime_output_boundary_i.md) -> complete, smoke_12 shows the next blocker is a pre-runtime contract failure mix
+3. [Plan #119](./docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md) -> active
+4. if smoke_13 says `ready_for_full_trials`, immediately continue into [Plan #88](./docs/plans/88_front_half_first_full_trial_gate.md) and then [Plan #100](./docs/plans/100_front_half_first_verdict_interpretation.md)
+5. if smoke_13 says `blocked_on_runtime_outputs`, immediately continue into [Plan #120](./docs/plans/120_front_half_runtime_output_boundary_ii.md) then [Plan #121](./docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md)
+6. if smoke_13 still says `blocked_on_harness`, immediately continue into [Plan #122](./docs/plans/122_front_half_runtime_harness_boundary_vi.md) then [Plan #123](./docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md)
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
@@ -246,6 +247,12 @@ process failure. The required behavior is:
   and continue immediately
 - keep the next 24-hour chain explicit as a sequence of numbered plans with
   unambiguous success criteria; do not rely on chat memory for continuation
+- for the current overnight lane specifically, the repo must always make these
+  phases explicit:
+  1. boundary doc from the latest smoke artifact
+  2. one bounded repair plan
+  3. one bounded smoke rerun
+  4. one already-defined next branch for every reachable verdict
 - for the current empirical chain specifically, the repo must always make these
   phases explicit: Plan #65 smoke gate, Plan #67 blocker diagnosis, Plans #68-#69
   blocker-clearing harness repairs, Plan #70 smoke rerun, then either Plan #66

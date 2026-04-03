@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md)
+- [Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI](/home/brian/projects/ac14/docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md)
 
 The explicit active chain is:
 
@@ -60,10 +60,16 @@ The explicit active chain is:
 - [Plan #111: Front-Half Runtime-Harness Repair II And Smoke Rerun VII](/home/brian/projects/ac14/docs/plans/111_front_half_runtime_harness_repair_ii_and_smoke_rerun_vii.md) -> complete, verdict `blocked_on_harness`
 - [Plan #112: Front-Half Runtime-Harness Boundary III](/home/brian/projects/ac14/docs/plans/112_front_half_runtime_harness_boundary_iii.md) -> complete
 - [Plan #113: Front-Half Runtime-Harness Repair III And Smoke Rerun VIII](/home/brian/projects/ac14/docs/plans/113_front_half_runtime_harness_repair_iii_and_smoke_rerun_viii.md) -> complete, smoke_10 verdict `blocked_on_harness`
-- [Plan #114: Front-Half Runtime-Harness Boundary IV](/home/brian/projects/ac14/docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> complete, blocker is final-output binding fidelity
-- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> active
-- [Plan #116: Front-Half Runtime-Harness Boundary V](/home/brian/projects/ac14/docs/plans/116_front_half_runtime_harness_boundary_v.md) -> planned if smoke_11 still says `blocked_on_harness`
-- [Plan #117: Front-Half Runtime-Harness Repair V And Smoke Rerun X](/home/brian/projects/ac14/docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md) -> planned
+- [Plan #114: Front-Half Runtime-Harness Boundary IV](/home/brian/projects/ac14/docs/plans/114_front_half_runtime_harness_boundary_iv.md) -> complete, blocker was final-output binding fidelity
+- [Plan #115: Front-Half Runtime-Harness Repair IV And Smoke Rerun IX](/home/brian/projects/ac14/docs/plans/115_front_half_runtime_harness_repair_iv_and_smoke_rerun_ix.md) -> complete, smoke_11 verdict `blocked_on_harness` but output binding now works
+- [Plan #116: Front-Half Runtime-Harness Boundary V](/home/brian/projects/ac14/docs/plans/116_front_half_runtime_harness_boundary_v.md) -> complete, smoke_11 shows both conditions now fail in `runtime_outputs`
+- [Plan #117: Front-Half Runtime-Harness Repair V And Smoke Rerun X](/home/brian/projects/ac14/docs/plans/117_front_half_runtime_harness_repair_v_and_smoke_rerun_x.md) -> complete, smoke_12 still `blocked_on_harness`
+- [Plan #118: Front-Half Runtime-Output Boundary I](/home/brian/projects/ac14/docs/plans/118_front_half_runtime_output_boundary_i.md) -> complete, smoke_12 froze the pre-runtime contract blocker mix
+- [Plan #119: Front-Half Runtime-Output Repair I And Smoke Rerun XI](/home/brian/projects/ac14/docs/plans/119_front_half_runtime_output_repair_i_and_smoke_rerun_xi.md) -> active
+- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_13 says `blocked_on_runtime_outputs`
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> planned
+- [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> planned if smoke_13 still says `blocked_on_harness`
+- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> planned
 
 The experiment contract remains frozen in:
 
@@ -73,10 +79,17 @@ The experiment contract remains frozen in:
 
 - [x] Commit the verified Plan #113 structured-spec/runtime-contract repair.
 - [x] Freeze smoke_10 as the canonical blocker artifact.
-- [ ] Repair final-output binding fidelity in the runtime contract and execution path.
-- [ ] Prove the repair with targeted tests.
-- [ ] Run smoke_11 at `.ac14_out/front_half_first_smoke_11`.
-- [ ] Lock the next branch immediately from the smoke_11 verdict.
+- [x] Repair final-output binding fidelity in the runtime contract and execution path.
+- [x] Prove the repair with targeted tests.
+- [x] Run smoke_11 at `.ac14_out/front_half_first_smoke_11`.
+- [x] Split true runtime-output smoke failures from genuine harness failures.
+- [x] Prove the verdict split with targeted tests.
+- [x] Run smoke_12 at `.ac14_out/front_half_first_smoke_12`.
+- [x] Lock the next branch immediately from the smoke_12 verdict.
+- [ ] Repair the smoke_12 pre-runtime contract blocker mix inside Plan #119.
+- [ ] Prove the Plan #119 repair with targeted tests plus `mypy` and `ruff`.
+- [ ] Run smoke_13 at `.ac14_out/front_half_first_smoke_13`.
+- [ ] Branch immediately from the smoke_13 verdict into Plan #88 + #100, Plan #120 + #121, or Plan #122 + #123.
 
 The completed execution lanes are:
 
