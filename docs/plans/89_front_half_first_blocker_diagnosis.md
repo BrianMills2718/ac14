@@ -1,6 +1,6 @@
 # Plan #89: Front-Half-First Blocker Diagnosis
 
-**Status:** Planned
+**Status:** Complete
 **Type:** investigation
 **Priority:** Critical
 **Blocked By:** 87
@@ -24,10 +24,10 @@ back into generic local tuning.
 
 ## Acceptance Criteria
 
-- [ ] One blocker diagnosis artifact exists and cites the smoke artifact
+- [x] One blocker diagnosis artifact exists and cites the smoke artifact
       directly.
-- [ ] The next bounded repair or contract lane is explicit.
-- [ ] The full-trial budget remains closed unless the diagnosis says otherwise.
+- [x] The next bounded repair or contract lane is explicit.
+- [x] The full-trial budget remains closed unless the diagnosis says otherwise.
 
 ---
 
@@ -35,3 +35,21 @@ back into generic local tuning.
 
 This plan is conditional. It only activates if Plan #87 produces one of:
 `blocked_on_front_half`, `blocked_on_harness`, or `blocked_on_infrastructure`.
+
+## Implementation Summary
+
+Plan #87 produced a persisted smoke artifact at:
+
+- `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json`
+
+The verdict is:
+
+- `blocked_on_front_half`
+
+The blocker diagnosis is captured in:
+
+- `~/projects/investigations/ac14/2026-04-02-front-half-first-smoke-blocker-diagnosis.md`
+
+The next bounded repair lane is:
+
+- [Plan #90: Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md)

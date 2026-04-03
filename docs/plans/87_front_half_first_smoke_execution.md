@@ -1,6 +1,6 @@
 # Plan #87: Front-Half-First Smoke Execution
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 86
@@ -24,11 +24,11 @@ reopening the older back-half gate.
 
 ## Acceptance Criteria
 
-- [ ] One bounded front-half-first smoke artifact exists.
-- [ ] The verdict is one of:
+- [x] One bounded front-half-first smoke artifact exists.
+- [x] The verdict is one of:
       `ready_for_full_trials`, `blocked_on_front_half`,
       `blocked_on_harness`, or `blocked_on_infrastructure`.
-- [ ] The next branch is explicit from the artifact with no chat-only
+- [x] The next branch is explicit from the artifact with no chat-only
       interpretation.
 
 ---
@@ -59,3 +59,25 @@ reopening the older back-half gate.
 
 This plan spends the smoke budget only once. It should not quietly expand into
 repair work; that belongs to Plan #89 if the verdict is blocked.
+
+## Implementation Summary
+
+Persisted artifact:
+
+- `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json`
+
+Verdict:
+
+- `blocked_on_front_half`
+
+Key facts:
+
+1. no provider/infrastructure contamination was detected
+2. AC14 failed all three bounded attempts in `generation` before any approved
+   front-half artifact existed
+3. monolithic failed all three bounded attempts in `runtime_outputs` because it
+   expected a nested `metrics_snapshot` key instead of consuming the raw record
+
+Next branch:
+
+- [Plan #89: Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md)

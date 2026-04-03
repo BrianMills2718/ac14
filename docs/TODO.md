@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md)
+- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md)
 
 The explicit active chain is:
 
@@ -36,9 +36,12 @@ The explicit active chain is:
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
 - [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
 - [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> complete
-- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> active
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> complete, verdict `blocked_on_front_half`
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> planned, conditional on Plan #87 verdict `ready_for_full_trials`
-- [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> planned, conditional on Plan #87 verdict `blocked_*`
+- [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> complete
+- [Plan #90: Front-Half-First Contract And Observability Repair](/home/brian/projects/ac14/docs/plans/90_front_half_first_contract_and_observability_repair.md) -> active
+- [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> planned
+- [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> planned, conditional on Plan #91 verdict `blocked_*`
 
 The experiment contract remains frozen in:
 
@@ -123,11 +126,17 @@ The previously active propagation lane remains blocked:
   - Result: the repo now persists a staged-combined front-half-first smoke artifact and verified CLI/Make runner surface
 
 - [ ] Plan #87: spend one bounded front-half-first smoke trial on the structured-spec benchmark bundle
-  - Result target: one persisted smoke artifact decides the next branch without chat-only interpretation
+  - Result: `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json` now exists with verdict `blocked_on_front_half`
 
-- [ ] Plan #88 or Plan #89:
-  - if Plan #87 says `ready_for_full_trials`, run the bounded full-trial gate
-  - otherwise diagnose the blocker before spending the full-trial budget
+- [x] Plan #89: diagnose the first blocked front-half-first smoke artifact and freeze the next bounded repair lane
+  - Result: the blocker is a combined contract failure: AC14 invalid structured-spec bindings plus monolithic raw-record runtime mismatch
+
+- [ ] Plan #90: repair the front-half-first contract and failed-front-half observability surfaces
+  - Result target: the next smoke rerun should test repaired contracts rather than repeat the same planning and raw-input failures
+
+- [ ] Plan #91 or Plan #92:
+  - if Plan #91 says `ready_for_full_trials`, run Plan #88
+  - otherwise freeze Plan #92 before any more local tuning
 
 ## Current Open Uncertainties
 
@@ -136,7 +145,7 @@ The previously active propagation lane remains blocked:
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
 - the current open question is no longer what the first front-half-first smoke gate should judge; that contract is now the staged-combined rule in Plan #86
-- the current active uncertainty is whether the first persisted smoke artifact will block on AC14 front-half approval, on the runtime harness, or on infrastructure contamination
+- the current active uncertainty is whether the first repair lane is enough to reopen the front-half-first smoke gate or whether a second blocker boundary is needed
 
 ## Latest Verified Baseline
 
@@ -151,6 +160,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/full_trials_gate_2/experiment_decision.json` with verdict `monolithic_wins`
   - `.ac14_out/full_trials_gate_2_smoke_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but `0` AC14 hard-harness successes
   - `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but still `0` AC14 hard-harness successes
+  - `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json` with verdict `blocked_on_front_half`
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -162,7 +172,9 @@ The previously active propagation lane remains blocked:
 ## Longer-Term Next Steps
 
 - [x] complete Plan #86 so the front-half-first empirical contract has a runnable smoke gate
-- [ ] complete Plan #87 so the front-half-first empirical contract has one persisted smoke verdict
-- [ ] complete Plan #88 or Plan #89 from that verdict instead of drifting into a side lane
+- [x] complete Plan #87 so the front-half-first empirical contract has one persisted smoke verdict
+- [x] complete Plan #89 from that verdict instead of drifting into a side lane
+- [ ] complete Plan #90 so the next smoke rerun is testing repaired contracts and better failed-front-half observability
+- [ ] complete Plan #91 or Plan #92 from the repaired smoke rerun
 - [ ] only after that decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

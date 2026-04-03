@@ -97,9 +97,12 @@ current executable lane.
 | 84 | [Structured-Spec Front-Half Acceptance](84_structured_spec_front_half_acceptance.md) | Critical | Complete | 85 |
 | 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | Complete | 86 |
 | 86 | [Front-Half-First Smoke Gate Contract And Runner](86_front_half_first_smoke_gate.md) | Critical | Complete | 87 |
-| 87 | [Front-Half-First Smoke Execution](87_front_half_first_smoke_execution.md) | Critical | In Progress | 88, 89 |
+| 87 | [Front-Half-First Smoke Execution](87_front_half_first_smoke_execution.md) | Critical | Complete | 88, 89 |
 | 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | Planned | - |
-| 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Planned | - |
+| 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
+| 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | In Progress | 91 |
+| 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Planned | 88, 92 |
+| 92 | [Front-Half-First Second Blocker Boundary](92_front_half_first_second_blocker_boundary.md) | Critical | Planned | - |
 
 ## Status Key
 
