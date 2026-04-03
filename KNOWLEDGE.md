@@ -528,4 +528,11 @@ The harder second empirical benchmark (`resource_scaling_v1`) completed with
 slice does not yet beat a fair monolithic baseline on the harder benchmark, so
 the next honest lane is diagnosis rather than more unmeasured capability growth.
 
+### 2026-04-02 — codex — best-practice
+After a decisive harder-benchmark loss, one bounded post-loss repair is enough
+to test whether the failure surface is easily recoverable. If that repair still
+produces `0` hard-harness successes in the fresh smoke artifact, freeze further
+benchmark-local tuning and switch to a cross-benchmark failure taxonomy before
+adding another local fix.
+
 ---

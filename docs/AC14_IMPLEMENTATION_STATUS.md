@@ -144,10 +144,10 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. diagnosing why the second back-half empirical gate ended in a decisive loss
+4. classifying which post-loss empirical failures are reusable AC14 weaknesses
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
-6. freezing a sharper next empirical response instead of drifting back into benchmark-local micro-repairs
+6. freezing a sharper reusable empirical response instead of drifting back into benchmark-local micro-repairs
 
 ### Semantic Validation
 
@@ -195,8 +195,8 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a diagnosis of why AC14 lost the second hard benchmark
-3. a stronger post-loss empirical strategy instead of more unmeasured benchmark-local iteration
+2. a stronger post-loss empirical strategy instead of more unmeasured benchmark-local iteration
+3. a cross-benchmark taxonomy that separates reusable AC14 weaknesses from local benchmark quirks
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -241,6 +241,12 @@ favors the monolithic baseline.
 The current benchmark and runner compare packetized local generation against
 whole-package generation over a fixed decomposition. That is useful and worth
 finishing, but it is narrower than the strongest version of the full thesis.
+
+### 3b. Post-loss local tuning is now intentionally frozen
+
+After the decisive `resource_scaling_v1` loss and one non-winning prompt/schema
+grounding repair, AC14 has explicitly frozen further benchmark-local
+micro-repairs until a cross-benchmark taxonomy says they are worth reopening.
 
 ### 4. Front Half Still Weaker Than Back Half
 

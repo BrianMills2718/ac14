@@ -86,7 +86,8 @@ current executable lane.
 | 73 | [Resource Scaling Failure Diagnosis](73_resource_scaling_failure_diagnosis.md) | Critical | Complete | 74 |
 | 74 | [Resource Scaling Packet-Context Diagnosis](74_resource_scaling_packet_context_diagnosis.md) | Critical | Complete | 75 |
 | 75 | [Resource Scaling Prompt-Schema Grounding Repair](75_resource_scaling_prompt_schema_grounding_repair.md) | Critical | Complete | 76 |
-| 76 | [Second-Gate Repair Boundary](76_second_gate_repair_boundary.md) | Critical | Planned | - |
+| 76 | [Second-Gate Repair Boundary](76_second_gate_repair_boundary.md) | Critical | Complete | 77 |
+| 77 | [Cross-Benchmark Failure Taxonomy](77_cross_benchmark_failure_taxonomy.md) | Critical | In Progress | - |
 
 ## Status Key
 

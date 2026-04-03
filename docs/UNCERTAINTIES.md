@@ -737,21 +737,30 @@ failure class.
 **Date resolved:** 2026-04-02
 
 ### U-069: Does the second-gate loss reflect benchmark-local business-rule misses or deeper packet/context limitations?
-**Status:** Investigating
+**Status:** Resolved
 **Context:** The harder benchmark now finished decisively in favor of the
 monolithic baseline, but AC14's dominant failure surfaces span repeated packet
 fixture mismatches, recomposition mismatches, and one late syntax failure.
 **Why it matters:** The next lane should be diagnosis first, not reflexive
 benchmark-local tuning or premature thesis-level overreaction.
+**Resolution:** The packet-context diagnosis and bounded grounding repair say
+the failing packets are structurally sufficient and that packet-context
+insufficiency is not the leading diagnosis. The harder remaining issue is which
+post-loss failure classes are reusable AC14 weaknesses.
+**Date resolved:** 2026-04-02
 
 ### U-070: Is another `resource_scaling_v1` benchmark-local repair justified after the grounding smoke still yielded zero AC14 successes?
-**Status:** Open
+**Status:** Resolved
 **Context:** Plan #75 strengthened local rule salience for the original
 trend/deploy-risk failure cluster and produced a fresh smoke artifact with
 `verdict = ready_for_full_trials`, but AC14 itself still achieved zero hard-
 harness successes.
 **Why it matters:** The project should not drift into endless benchmark-local
 micro-repairs without an explicit stop/go boundary.
+**Resolution:** Plan #76 froze the boundary and decided that another
+`resource_scaling_v1` benchmark-local micro-repair is not evidence-justified
+now.
+**Date resolved:** 2026-04-02
 
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred
@@ -774,3 +783,11 @@ earlier planning surfaces.
 **Resolution:** AC14-native doctrine, roadmap, implementation status, adoption
 plan, numbered plan surface, and current notebook now exist to close that gap.
 **Date resolved:** 2026-03-31
+### U-071: Which empirical failure classes are reusable AC14 weaknesses rather than benchmark-local quirks?
+**Status:** Investigating
+**Context:** AC14 now has one `inconclusive` gate, one decisive
+`monolithic_wins` gate, and one non-winning post-loss grounding smoke. The repo
+has not yet classified which of those failures should drive the next reusable
+repair lane.
+**Why it matters:** The next plan should target a reusable weakness or an
+explicit claim-boundary adjustment, not drift into more local benchmark tuning.

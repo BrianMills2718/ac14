@@ -114,7 +114,7 @@ Focus areas:
 
 1. interpret the second-gate loss honestly
 2. diagnose whether the dominant misses are benchmark-local, packet-context, or generation-stability failures
-3. decide whether the next move is benchmark-local repair, broader strategic pivot, or a stronger end-to-end front-half test
+3. decide whether the next move is a reusable repair lane, a broader strategic pivot, or a stronger end-to-end front-half test
 4. keep any next empirical response explicit and falsifiable
 
 Important scope note:
@@ -128,13 +128,15 @@ Exit criteria:
 1. the target systems and baseline protocol are explicit
 2. the scoring rubric and decision rule are explicit
 3. the current evidence is interpreted honestly
-4. the next empirical direction is explicit rather than implied
+4. the project does not reopen benchmark-local tuning after a decisive loss unless a boundary decision says so
+5. the next empirical direction is explicit rather than implied
 
 Failure signs:
 
 1. AC14 continues to count proof-hygiene progress as thesis validation after a hard empirical loss
 2. the project explains away the second-gate loss without diagnosis
 3. the next empirical direction becomes another unbounded micro-repair chain
+4. the project keeps tuning one benchmark locally without first extracting a reusable failure taxonomy or claim-boundary adjustment
 
 ## Horizon 2: Strengthen The Front Half
 
@@ -226,8 +228,9 @@ In order:
 4. (done — Plan #64) land the harder second benchmark bundle
 5. (done — Plan #65) run the bounded smoke gate on that bundle
 6. (done — Plans #66-#71) complete the five-trial gate, repair interrupted-run integrity, and lock the second verdict
-7. (next — Plan #72) lock the second-gate verdict honestly across the active docs
-8. (next — Plan #73) diagnose why AC14 lost `resource_scaling_v1`
+7. (done — Plan #72) lock the second-gate verdict honestly across the active docs
+8. (done — Plans #73-#76) diagnose the second-gate loss, test one bounded post-loss grounding repair, and freeze a repair boundary instead of continuing local tuning by habit
+9. (next — Plan #77) classify which empirical failures are reusable AC14 weaknesses and freeze the next lane from that taxonomy
 
 ## Working Rule
 

@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md)
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md)
 
 The explicit active chain is:
 
@@ -26,7 +26,8 @@ The explicit active chain is:
 - [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md) -> complete
 - [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
 - [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> complete
-- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> active
+- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> active
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The experiment contract remains frozen in:
@@ -81,7 +82,10 @@ The previously active propagation lane remains blocked:
 
 - [x] Plan #75: strengthen local rule salience for the failing `resource_scaling_v1` component cluster and earn a fresh bounded smoke result
 
-- [ ] Plan #76: decide whether another `resource_scaling_v1` micro-repair is justified after the non-winning grounding smoke
+- [x] Plan #76: decide whether another `resource_scaling_v1` micro-repair is justified after the non-winning grounding smoke
+  - Result: no; `resource_scaling_v1` benchmark-local micro-repairs stay frozen
+
+- [ ] Plan #77: classify which empirical failure surfaces are benchmark-local versus reusable AC14 weaknesses and freeze the next lane from that taxonomy
 
 ## Current Open Uncertainties
 
@@ -89,7 +93,7 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is not packet sufficiency anymore; it is whether another benchmark-local repair is justified at all after the non-winning grounding smoke
+- the current open question is not packet sufficiency anymore; it is which observed empirical failures are reusable AC14 weaknesses versus local benchmark quirks
 
 ## Latest Verified Baseline
 
@@ -102,6 +106,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/full_trials_gate_2_smoke/smoke_readiness_report.json` with verdict `blocked_on_harness`
   - `.ac14_out/full_trials_gate_2_smoke_rerun/smoke_readiness_report.json` with verdict `ready_for_full_trials`
   - `.ac14_out/full_trials_gate_2/experiment_decision.json` with verdict `monolithic_wins`
+  - `.ac14_out/full_trials_gate_2_smoke_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but `0` AC14 hard-harness successes
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -112,6 +117,6 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #76 so the next empirical move is a deliberate boundary decision rather than another reflexive micro-repair
+- [ ] complete Plan #77 so the next empirical move targets a reusable weakness or claim boundary rather than another reflexive micro-repair
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md)
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md)
 
 The explicit active chain is:
 
@@ -23,7 +23,8 @@ The explicit active chain is:
 - [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md) -> complete
 - [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
 - [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> complete
-- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> active
+- [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> active
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The empirical gate remains frozen in
@@ -39,9 +40,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. execute Plan #76 so the repo states explicitly whether another `resource_scaling_v1` micro-repair is justified
-2. freeze the next strategic or implementation lane from that boundary decision
-3. keep Plan #37 blocked until the second-gate loss is diagnosed explicitly
+1. execute Plan #77 so the repo classifies which empirical failures are benchmark-local versus reusable AC14 weaknesses
+2. freeze one explicit next lane from that taxonomy instead of reopening `resource_scaling_v1` local tuning by habit
+3. keep Plan #37 and other blocked propagation lanes frozen until the empirical response is explicit
 
 ## Progress Update
 
@@ -68,23 +69,25 @@ Completed before the current lane:
 
 ## Tactical Phase Summary
 
-### Phase 1: repair boundary evaluation
+### Phase 1: repair boundary decision
 
 - compare the decisive full-trial loss against the non-winning grounding smoke repair
 - decide whether the new smoke result justifies another narrow benchmark-local repair
+- Result: it does not; `resource_scaling_v1` benchmark-local micro-repairs stay frozen
 
 Success criteria:
 
 - the repo states explicitly whether another `resource_scaling_v1` micro-repair is justified
 
-### Phase 2: next-lane freeze
+### Phase 2: cross-benchmark taxonomy
 
-- freeze the next lane explicitly from the boundary decision
-- keep unrelated propagation and capability-breadth work blocked
+- compare the first gate, second gate, and post-loss smoke evidence
+- separate benchmark-local quirks from reusable AC14 weaknesses
+- freeze the next lane explicitly from that taxonomy
 
 Success criteria:
 
-- the next plan is explicit and justified by the boundary decision
+- the next plan is explicit and justified by a cross-benchmark taxonomy instead of a local benchmark repair loop
 
 ## Known Uncertainties
 
@@ -95,5 +98,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is whether the non-winning grounding smoke is enough to justify more benchmark-local repair work
-3. blocked propagation lanes should stay blocked until the second-gate loss is diagnosed explicitly
+2. the current open question is which observed failure classes are reusable AC14 weaknesses rather than local benchmark quirks
+3. blocked propagation lanes should stay blocked until the post-loss empirical response is explicit

@@ -132,6 +132,10 @@ For the active empirical-comparison lane, this rule is especially strict:
 - if a full-trial empirical run is interrupted and leaves partial or zero-byte
   artifacts, freeze a restart-integrity plan immediately; preserve incomplete
   trial evidence, make the runner resume-safe, and only then continue the gate
+- after a decisive harder-benchmark loss, allow at most one bounded post-loss
+  benchmark-local repair before freezing a repair-boundary plan; if that repair
+  still produces `0` hard-harness successes in the fresh smoke artifact, do not
+  continue local tuning by default
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock
