@@ -21,6 +21,22 @@ This file is not the active checklist. That remains in [TODO.md](/home/brian/pro
 
 ## Active Lane Uncertainties
 
+### U-063: Can smoke_15 produce a truthful artifact under the current OpenRouter instability?
+**Status:** Investigating
+**Context:** After Plan #123's leaf-output repair landed and verified, the fresh
+`smoke_15` rerun hit repeated OpenRouter timeouts before it persisted even the
+first attempt artifact. The live process was terminated rather than allowed to
+masquerade as a harness verdict.
+**Why it matters:** The next branch after Plan #123 depends on a truthful
+`smoke_readiness_report.json`. A rerun that never persists attempt 1 cannot be
+used to choose between the runtime-output, harness, or infrastructure branches.
+**Current handling:** Keep Plan #123 active, preserve the verified code/doc
+state, and treat the next rerun as infrastructure-sensitive. Only branch from a
+persisted `smoke_readiness_report.json`; if the next rerun dies the same way,
+activate the explicit infrastructure branch rather than pretending the harness
+lane is still being measured.
+**Date opened:** 2026-04-03
+
 ### U-062: Can the bounded smoke runner finish under the current interactive tool session?
 **Status:** Investigating
 **Context:** The first smoke_14 launch advanced past the repaired dependency
@@ -30,11 +46,11 @@ runtime code generation, but the outer interactive process terminated before
 **Why it matters:** Plan #125 needs one honest bounded smoke artifact. An
 interrupted control-plane session must not be mistaken for an AC14 harness
 verdict or silently overwrite the partial evidence.
-**Current handling:** Preserve the partial directory as an interrupted artifact,
-rerun the smoke gate in a detached shell, and only branch from a persisted
-`smoke_readiness_report.json`. The current detached rerun is still active and
-has already cleared monolithic attempts plus two AC14 front-half passes, so the
-uncertainty is now runner completion time rather than immediate crash.
+**Current handling:** Preserve interrupted directories as evidence, rerun the
+smoke gate in one owned shell, and only branch from a persisted
+`smoke_readiness_report.json`. Smoke_14 eventually completed; the remaining
+interactive-run concern is now captured separately in U-063 for smoke_15's
+provider timeout behavior rather than in the old smoke_14 process lifecycle.
 **Date opened:** 2026-04-03
 
 ### U-001: What should the dependency execution-probe result model be?

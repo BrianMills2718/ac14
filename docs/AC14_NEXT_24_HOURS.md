@@ -104,6 +104,11 @@ The completed execution, interpretation, and notebook-remediation lanes are:
    - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
 6. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen unless a new front-half-first artifact changes that state
 
+Live note: the first `smoke_15` rerun was terminated after repeated OpenRouter
+timeouts before attempt 1 persisted. Treat that as an active infrastructure
+uncertainty, not a branch verdict. The next valid branch still requires a
+persisted `smoke_readiness_report.json`.
+
 ## Branch Matrix
 
 ### Branch A: smoke opens the gate after Plan #117

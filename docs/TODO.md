@@ -107,6 +107,11 @@ The experiment contract remains frozen in:
 - [ ] Run smoke_15 at `.ac14_out/front_half_first_smoke_15`.
 - [ ] Branch immediately from the smoke_15 verdict into Plan #88 + #100, Plan #120 + #121, Plan #130 + #131, Plan #126 + #127, or Plan #128 + #129.
 
+Live note: the first `smoke_15` rerun was terminated after repeated OpenRouter
+timeouts before attempt 1 persisted. Do not branch from that aborted run. The
+next move is to rerun Plan #123 under stable provider conditions and only
+branch from a persisted `smoke_readiness_report.json`.
+
 The completed execution lanes are:
 
 - [Plan #39: Monolithic Vs AC14 Comparison Execution](/home/brian/projects/ac14/docs/plans/39_monolithic_vs_ac14_comparison_execution.md)
