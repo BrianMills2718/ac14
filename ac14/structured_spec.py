@@ -154,8 +154,7 @@ def build_structured_spec_artifact(
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
 
-    raw_payload = _load_structured_spec_payload(source_path)
-    spec = StructuredSpecDocument.model_validate(raw_payload)
+    spec = load_structured_spec_document(source_path)
     artifact = StructuredSpecArtifact(
         source_path=str(source_path),
         spec=spec,
@@ -165,6 +164,14 @@ def build_structured_spec_artifact(
         json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
     )
     return artifact
+
+
+def load_structured_spec_document(input_path: Path | str) -> StructuredSpecDocument:
+    """Load and validate one raw structured-spec document without persisting artifacts."""
+
+    source_path = Path(input_path)
+    raw_payload = _load_structured_spec_payload(source_path)
+    return StructuredSpecDocument.model_validate(raw_payload)
 
 
 def _load_structured_spec_payload(path: Path) -> object:

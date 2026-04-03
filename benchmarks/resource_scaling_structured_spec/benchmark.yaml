@@ -1,0 +1,13 @@
+benchmark:
+  benchmark_id: resource_scaling_structured_spec_v1
+  name: Resource Scaling Structured-Spec Bundle
+  purpose: >
+    Front-half-first benchmark bundle for testing AC14 from a bounded
+    structured-spec input before running a new empirical smoke gate.
+  comparison_scope: front_half_first_structured_spec
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ../resource_scaling
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

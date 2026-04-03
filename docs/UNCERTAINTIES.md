@@ -818,3 +818,12 @@ have real advantage.
 and the next bounded implementation lane is Plan #83: structured-spec input
 contract.
 **Date resolved:** 2026-04-02
+
+### U-074: What should the first front-half-first smoke gate judge?
+**Status:** Investigating
+**Context:** Plans #83-#85 now provide a bounded structured-spec input
+contract, a full structured-spec front-half lane, and a benchmark-ready bundle
+that points at the existing `resource_scaling` runtime evaluation assets.
+**Why it matters:** The next smoke gate cannot be honest until it decides
+whether success means front-half artifact quality, final runtime outputs, or a
+staged combination of both.

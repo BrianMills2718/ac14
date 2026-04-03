@@ -1,6 +1,6 @@
 # Plan #85: Structured-Spec Benchmark Bundle
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 84
@@ -24,6 +24,26 @@ of ad hoc benchmark assembly.
 
 ## Acceptance Criteria
 
-- [ ] One benchmark-ready structured-spec bundle exists.
-- [ ] Both AC14 and the monolithic condition can consume it from the same raw inputs.
-- [ ] The artifact states what the next smoke gate should measure.
+- [x] One benchmark-ready structured-spec bundle exists.
+- [x] Both AC14 and the monolithic condition can consume it from the same raw inputs.
+- [x] The artifact states what the next smoke gate should measure.
+
+## Implementation Summary (2026-04-02)
+
+What landed:
+
+- a typed structured-spec benchmark loader in `ac14/structured_spec_benchmark.py`
+- a benchmark-ready bundle in `benchmarks/resource_scaling_structured_spec/`
+- an explicit reference from the new front-half-first bundle back to the
+  existing `resource_scaling` runtime evaluation assets
+
+What this resolves:
+
+- the next empirical gate now has a shared structured-spec input contract
+- the bundle is anchored to a real existing runtime evaluation surface instead
+  of inventing a disconnected benchmark
+
+What remains for the next plan:
+
+- the runner still needs an explicit decision about what the smoke gate judges:
+  front-half artifacts only, final generated runtime outputs, or both

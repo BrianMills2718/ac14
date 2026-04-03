@@ -1,0 +1,112 @@
+system_name: Resource Scaling Decision System
+purpose: >
+  Decide whether cloud resources should scale for each incoming metrics snapshot
+  while preserving threshold rules, compliance constraints, and a deterministic
+  rolling decision record.
+requirements:
+  - produce one scaling decision for each metrics snapshot
+  - keep threshold logic explicit and reviewable
+  - preserve compliance blocking rules instead of hiding them in prompts
+  - record a deterministic decision entry and rolling decision store
+success_criteria:
+  - each decision includes categorical action, urgency, team routing, and rationale
+  - blocked actions remain explicit instead of silently downgrading to no-op
+  - the final system can be evaluated against the existing resource_scaling runtime cases
+business_rules:
+  - cpu>=0.80, memory>=0.85, error_rate>=0.05 are deterministic threshold breaches
+  - scale_out when both cpu and memory breach; scale_up when only cpu breaches
+  - scale_down when no breach and request_rate_rps < 20; none otherwise
+  - compliance blocks non-none actions during maintenance and blocks change-freeze actions unless urgency is critical
+  - the final decision action is blocked when execution gate evaluation says blocked; otherwise it equals the recommendation action
+inputs:
+  - name: metrics_snapshot
+    kind: record
+    description: Current service metrics, account tier, and compliance context for one scaling decision.
+    fields:
+      - field_name: service_name
+        field_type: str
+        description: Stable service identifier under review.
+        required: true
+      - field_name: cpu_utilization
+        field_type: float
+        description: Current CPU utilization ratio.
+        required: true
+      - field_name: memory_utilization
+        field_type: float
+        description: Current memory utilization ratio.
+        required: true
+      - field_name: error_rate
+        field_type: float
+        description: Current request error ratio.
+        required: true
+      - field_name: request_rate_rps
+        field_type: int
+        description: Current request rate in requests per second.
+        required: true
+      - field_name: account_tier
+        field_type: str
+        description: Customer account tier that affects routing and urgency.
+        required: true
+      - field_name: maintenance_mode
+        field_type: bool
+        description: Whether the service is in maintenance mode.
+        required: true
+      - field_name: change_freeze
+        field_type: bool
+        description: Whether non-critical scaling changes are blocked.
+        required: true
+outputs:
+  - name: scaling_decision_entry
+    kind: record
+    description: Final single-case scaling decision emitted for one metrics snapshot.
+    fields:
+      - field_name: action
+        field_type: str
+        description: Final categorical scaling action.
+        required: true
+      - field_name: urgency
+        field_type: str
+        description: Final urgency band for the decision.
+        required: true
+      - field_name: recommended_team
+        field_type: str
+        description: Final team or queue that should handle the decision.
+        required: true
+      - field_name: correlator
+        field_type: str
+        description: One categorical explanation of the dominant decision factor.
+        required: true
+  - name: scaling_decision_store
+    kind: record
+    description: Rolling deterministic store of prior emitted scaling decisions.
+    fields:
+      - field_name: decisions
+        field_type: list[record]
+        description: Ordered decision entries accumulated over time.
+        required: true
+workflow_hints:
+  - hint_id: normalize_metrics
+    summary: Normalize raw snapshot fields into one bounded source schema.
+    input_names: [metrics_snapshot]
+    output_names: [scaling_decision_entry]
+    business_rules:
+      - Preserve account tier and compliance flags explicitly for later decision steps.
+  - hint_id: evaluate_thresholds
+    summary: Determine threshold breaches and urgency without hiding categorical rules.
+    input_names: [metrics_snapshot]
+    output_names: [scaling_decision_entry]
+    business_rules:
+      - Scale action and urgency follow deterministic threshold combinations.
+  - hint_id: apply_compliance_gate
+    summary: Apply maintenance and change-freeze blocking rules before recording the final decision.
+    input_names: [metrics_snapshot]
+    output_names: [scaling_decision_entry]
+    business_rules:
+      - Compliance can block the recommendation even when thresholds suggest scaling.
+  - hint_id: record_decision
+    summary: Emit one decision entry and update a deterministic rolling store.
+    input_names: [scaling_decision_entry]
+    output_names: [scaling_decision_store]
+human_context_notes:
+  - Keep the component graph bounded and reviewable; do not collapse all rules into one opaque function.
+  - The later empirical smoke gate should compare AC14 and a monolithic baseline from this same structured spec.

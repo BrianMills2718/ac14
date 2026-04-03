@@ -147,7 +147,7 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. implementing the new front-half-first empirical direction
+4. implementing the first runnable front-half-first smoke gate
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
 6. freezing a sharper reusable empirical response instead of drifting back into benchmark-local micro-repairs
@@ -198,8 +198,8 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a minimal structured-spec input contract for front-half drafting
-3. a stronger front-half-first empirical strategy instead of more unmeasured back-half iteration
+2. a stronger front-half-first smoke-gate runner
+3. a final decision about whether the first front-half-first gate judges front-half artifacts, runtime outputs, or both
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -261,6 +261,17 @@ single smoke success, so the harder back-half gate remains closed.
 
 The next honest test is no longer another back-half rerun. It is a comparison
 that includes AC14's front-half context gathering and blueprint drafting.
+
+### 3e. The first structured-spec front-half chain now exists
+
+AC14 now has:
+
+- a bounded structured-spec input contract
+- a full structured-spec front-half lane through freeze and semantic review
+- a benchmark-ready structured-spec bundle anchored to the existing
+  `resource_scaling` runtime evaluation assets
+
+The next missing piece is the first honest smoke gate over that new surface.
 
 ### 4. Front Half Still Weaker Than Back Half
 

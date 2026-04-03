@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md)
+- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
 
 The explicit active chain is:
 
@@ -31,8 +31,8 @@ The explicit active chain is:
 - [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
-- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> active
-- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> planned
+- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
+- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -47,8 +47,8 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. freeze a benchmark-ready structured-spec bundle in Plan #85
-2. spend one bounded front-half-first smoke trial in Plan #86
+1. decide and implement what the first front-half-first smoke gate should judge
+2. spend one bounded front-half-first smoke trial in Plan #86 only after that contract is explicit
 3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
@@ -79,6 +79,7 @@ Completed before the current lane:
 22. a completed strategic pivot and front-half-first empirical contract
 23. a completed bounded structured-spec input contract for draft planning
 24. a completed full structured-spec front-half lane through freeze and semantic review
+25. a completed structured-spec benchmark bundle anchored to existing runtime evaluation assets
 
 ## Tactical Phase Summary
 
@@ -133,7 +134,9 @@ Success criteria:
 ### Phase 6: structured-spec empirical setup
 
 - freeze the benchmark-ready structured-spec bundle
-- spend one bounded smoke trial only after that bundle is explicit
+  - Result: the bundle now exists and points at the existing `resource_scaling`
+    runtime evaluation assets
+- decide the exact success surface for the first smoke gate before spending it
 
 Success criteria:
 
@@ -148,5 +151,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is how well the new structured-spec contract survives the full front half
+2. the current open question is what the first front-half-first smoke gate should actually judge
 3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is executed explicitly

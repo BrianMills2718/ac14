@@ -234,7 +234,10 @@ In order:
 10. (done — Plan #78) implement one reusable packet-rule-grounding repair
 11. (done — Plan #79) rerun the bounded smoke gate and confirm the harder second gate still does not reopen
 12. (done — Plans #81-#82) freeze the strategic pivot and front-half-first empirical contract
-13. (next — Plan #83) implement the minimal structured-spec input contract for front-half drafting
+13. (done — Plan #83) implement the minimal structured-spec input contract for front-half drafting
+14. (done — Plan #84) prove one full structured-spec front-half lane through freeze and semantic review
+15. (done — Plan #85) freeze one benchmark-ready structured-spec bundle anchored to the existing `resource_scaling` runtime evaluation assets
+16. (next — Plan #86) decide and run the first honest front-half-first smoke gate
 
 ## Current empirical branch rule
 

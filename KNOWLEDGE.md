@@ -542,4 +542,10 @@ empirical contract, not another back-half rerun. The failure signal here was
 specific: AC14 still emitted `recommendation_generator` business-rule misses
 for `RSC-101` and later `RSC-102` after the reusable grounding surface landed.
 
+### 2026-04-02 — codex — best-practice
+The first truthful front-half-first empirical surface is a bounded
+structured-spec contract plus one full front-half lane, not broad free-prose
+NL-to-blueprint. That gives the project a real consumer-aligned input surface
+without pretending the full front-half problem is already solved.
+
 ---

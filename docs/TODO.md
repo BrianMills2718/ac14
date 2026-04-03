@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md)
+- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
 
 The explicit active chain is:
 
@@ -34,8 +34,8 @@ The explicit active chain is:
 - [Plan #82: Front-Half-First Empirical Contract](/home/brian/projects/ac14/docs/plans/82_front_half_first_empirical_contract.md) -> complete
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
-- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> active
-- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> planned
+- [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
+- [Plan #86: Front-Half-First Smoke Gate](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
 
 The experiment contract remains frozen in:
 
@@ -113,7 +113,8 @@ The previously active propagation lane remains blocked:
 - [x] Plan #84: implement one structured-spec front-half acceptance artifact through freeze and review
   - Result: AC14 now proves one full structured-spec front-half lane through freeze decision and review
 
-- [ ] Plan #85: freeze one benchmark-ready structured-spec bundle for the next empirical gate
+- [x] Plan #85: freeze one benchmark-ready structured-spec bundle for the next empirical gate
+  - Result: the repo now has a typed structured-spec benchmark bundle anchored to the existing `resource_scaling` runtime evaluation assets
 
 - [ ] Plan #86: spend one bounded front-half-first smoke trial on the structured-spec benchmark bundle
 
@@ -123,7 +124,7 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is not packet sufficiency anymore; it is how to freeze the first benchmark-ready structured-spec bundle without overfitting it to the existing back-half harness
+- the current open question is not packet sufficiency anymore; it is what the first front-half-first smoke gate should judge: front-half artifacts, final runtime outputs, or both
 
 ## Latest Verified Baseline
 
@@ -148,7 +149,7 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #85 and Plan #86 so the front-half-first empirical contract has a runnable benchmark lane
+- [ ] complete Plan #86 so the front-half-first empirical contract has a runnable smoke gate
 - [ ] complete Plan #85 and Plan #86 so the next empirical gate has a truthful shared input contract
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly
