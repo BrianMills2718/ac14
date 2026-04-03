@@ -104,8 +104,8 @@ current executable lane.
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
 | 92 | [Front-Half-First Second Blocker Boundary](92_front_half_first_second_blocker_boundary.md) | Critical | Complete | 93 |
 | 93 | [Async-Safe Freeze Review Repair](93_async_safe_freeze_review_repair.md) | Critical | Complete | 94 |
-| 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | In Progress | 88, 95 |
-| 95 | [Front-Half Freeze Fidelity Boundary](95_front_half_freeze_fidelity_boundary.md) | Critical | Planned | - |
+| 94 | [Front-Half-First Smoke Rerun II](94_front_half_first_smoke_rerun_ii.md) | Critical | Complete | 88, 95 |
+| 95 | [Front-Half Freeze Fidelity Boundary](95_front_half_freeze_fidelity_boundary.md) | Critical | In Progress | - |
 
 ## Status Key
 

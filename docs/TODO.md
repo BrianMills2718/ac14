@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md)
+- [Plan #95: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_freeze_fidelity_boundary.md)
 
 The explicit active chain is:
 
@@ -43,8 +43,8 @@ The explicit active chain is:
 - [Plan #91: Front-Half-First Smoke Rerun](/home/brian/projects/ac14/docs/plans/91_front_half_first_smoke_rerun.md) -> complete, verdict `blocked_on_front_half`
 - [Plan #92: Front-Half-First Second Blocker Boundary](/home/brian/projects/ac14/docs/plans/92_front_half_first_second_blocker_boundary.md) -> complete
 - [Plan #93: Async-Safe Freeze Review Repair](/home/brian/projects/ac14/docs/plans/93_async_safe_freeze_review_repair.md) -> complete
-- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> active
-- [Plan #95: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_freeze_fidelity_boundary.md) -> planned, conditional on Plan #94 verdict `blocked_*`
+- [Plan #94: Front-Half-First Smoke Rerun II](/home/brian/projects/ac14/docs/plans/94_front_half_first_smoke_rerun_ii.md) -> complete, verdict `blocked_on_infrastructure` (Gemini 429, front-half not tested)
+- [Plan #95: Front-Half Freeze Fidelity Boundary](/home/brian/projects/ac14/docs/plans/95_front_half_freeze_fidelity_boundary.md) -> active
 
 The experiment contract remains frozen in:
 
@@ -146,9 +146,11 @@ The previously active propagation lane remains blocked:
 - [x] Plan #93: make freeze decision and semantic review async-safe inside retry-enabled front-half paths
   - Result: the next smoke rerun can now test front-half approval and runtime instead of dying on nested `asyncio.run()` reentry
 
-- [ ] Plan #94 or Plan #95:
-  - if Plan #94 says `ready_for_full_trials`, run Plan #88
-  - otherwise freeze Plan #95 before any more local tuning
+- [x] Plan #94: smoke rerun II completed with verdict `blocked_on_infrastructure`
+  - Result: all 6 attempts hit Gemini 429 rate limit; async-safe fix NOT empirically tested yet; next branch is Plan #95
+
+- [ ] Plan #95: freeze the blocker boundary — dominant blocker is Gemini 429 quota, not freeze fidelity
+  - After Plan #95 is documented, next step is smoke rerun III (Plan #96) once rate limits clear or alternate model is configured
 
 ## Current Open Uncertainties
 
@@ -156,13 +158,13 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is no longer what the first front-half-first smoke gate should judge; that contract is now the staged-combined rule in Plan #86
-- the current active uncertainty is whether the async-safe retry repair is enough to reopen the gate or whether the next rerun will still block on draft/freeze fidelity
+- the current active uncertainty: the Plan #93 async-safe fix has landed but has NOT been empirically tested — all smoke_4 attempts hit Gemini 429 rate limits before reaching front-half execution; the next smoke rerun (after rate limits clear) is needed to determine if the fix is sufficient
+- the Gemini 2.5 Flash Lite free-tier quota appears exhausted; the next smoke rerun will need either a different model or a quota reset
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `279 passed, 1 skipped`
+  - `python -m pytest -q` with `278 passed, 1 skipped` (after 429 fix commit)
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:
@@ -174,6 +176,7 @@ The previously active propagation lane remains blocked:
   - `.ac14_out/full_trials_gate_2_smoke_reusable_grounding1/smoke_readiness_report.json` with verdict `ready_for_full_trials` but still `0` AC14 hard-harness successes
   - `.ac14_out/front_half_first_smoke_1/smoke_readiness_report.json` with verdict `blocked_on_front_half`
   - `.ac14_out/front_half_first_smoke_2/smoke_readiness_report.json` with verdict `blocked_on_front_half`
+  - `.ac14_out/front_half_first_smoke_4/smoke_readiness_report.json` with verdict `blocked_on_infrastructure` (Gemini 429, not a thesis signal)
   - `.ac14_out/full_trials_gate_2/_interrupted_trials/` preserves the interrupted pre-repair trial state
   - `ac14`: `2/5` successes on gate 1
   - `monolithic`: `2/5` successes on gate 1
@@ -189,7 +192,9 @@ The previously active propagation lane remains blocked:
 - [x] complete Plan #89 from that verdict instead of drifting into a side lane
 - [x] complete Plan #90 so the next smoke rerun is testing repaired contracts and better failed-front-half observability
 - [x] complete Plan #91 and Plan #92 from the repaired smoke rerun
-- [ ] complete Plan #93 so the next smoke rerun is testing async-safe front-half review/decision paths
-- [ ] complete Plan #94 or Plan #95 from that rerun
+- [x] complete Plan #93 so the next smoke rerun is testing async-safe front-half review/decision paths
+- [x] complete Plan #94 — verdict `blocked_on_infrastructure` (all 429, no thesis signal)
+- [ ] complete Plan #95 (blocker boundary: infrastructure, not freeze fidelity)
+- [ ] run smoke rerun III (Plan #96) once Gemini quota resets or alternate model configured
 - [ ] only after that decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly
