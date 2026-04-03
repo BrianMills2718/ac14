@@ -76,12 +76,16 @@ current executable lane.
 | 63 | [Runtime-First Comparison Contract](63_runtime_first_comparison_contract.md) | Critical | Complete | 64, 37 |
 | 64 | [Second-Gate Benchmark Bundle](64_second_gate_benchmark_bundle.md) | Critical | Complete | 65 |
 | 65 | [Second-Gate Smoke Run](65_second_gate_smoke.md) | Critical | Complete | 66, 67 |
-| 66 | [Second-Gate Full Trial](66_second_gate_full_trial.md) | Critical | In Progress | 71 |
+| 66 | [Second-Gate Full Trial](66_second_gate_full_trial.md) | Critical | Complete | 71 |
 | 67 | [Second-Gate Blocker Diagnosis](67_second_gate_blocker_diagnosis.md) | Critical | Complete | 37, 68, 69, 70 |
 | 68 | [Deterministic Exact-Match Semantic Review Policy](68_deterministic_exact_match_semantic_review_policy.md) | Critical | Complete | 70 |
 | 69 | [Monolithic Input-Port Contract Validation](69_monolithic_input_port_contract_validation.md) | Critical | Complete | 70 |
 | 70 | [Second-Gate Smoke Rerun](70_second_gate_smoke_rerun.md) | Critical | Complete | 66, 71 |
-| 71 | [Empirical Full-Trial Resume Integrity](71_empirical_full_trial_resume_integrity.md) | Critical | In Progress | 66 |
+| 71 | [Empirical Full-Trial Resume Integrity](71_empirical_full_trial_resume_integrity.md) | Critical | Complete | 66, 72 |
+| 72 | [Second-Gate Verdict Interpretation](72_second_gate_verdict_interpretation.md) | Critical | Complete | 73, 74 |
+| 73 | [Resource Scaling Failure Diagnosis](73_resource_scaling_failure_diagnosis.md) | Critical | Complete | 74 |
+| 74 | [Resource Scaling Packet-Context Diagnosis](74_resource_scaling_packet_context_diagnosis.md) | Critical | Complete | 75 |
+| 75 | [Resource Scaling Prompt-Schema Grounding Repair](75_resource_scaling_prompt_schema_grounding_repair.md) | Critical | In Progress | - |
 
 ## Status Key
 

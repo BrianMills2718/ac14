@@ -47,7 +47,7 @@ AC14 does not yet have:
 
 1. broad proof breadth
 2. strong messy-input blueprint derivation
-3. a decisive empirical verdict against a fair monolithic baseline
+3. empirical evidence that favors AC14 over a fair monolithic baseline
 4. first-class tool/runtime nodes in the blueprint model
 5. a completed long-term front half
 
@@ -87,28 +87,35 @@ accumulate:
 Does AC14's decomposition discipline materially beat a fair monolithic baseline
 on a system complex enough for context management to matter?
 
-Current result:
+Current results:
 
-The first benchmark gate completed under `.ac14_out/full_trials_gate_1/` and
-returned `inconclusive`.
+The first two benchmark gates are now complete.
+
+Gate 1: `.ac14_out/full_trials_gate_1/experiment_decision.json` -> `inconclusive`
 
 - AC14: `2/5` successful trials
 - monolithic: `2/5` successful trials
 - secondary metrics did not separate them cleanly
 - monolithic was faster and cheaper on this benchmark
 
-That means the project now has a real baseline artifact, but not yet a
-benchmark result that validates the stronger thesis claim. Plan #62 concluded
-that the next empirical contract should make final runtime correctness primary
-and treat packet-level failures as explicit secondary evidence.
+Gate 2: `.ac14_out/full_trials_gate_2/experiment_decision.json` -> `monolithic_wins`
+
+- AC14: `0/5` successful trials
+- monolithic: `5/5` successful trials
+- average semantic score tied
+- monolithic used fewer repair loops, less time, and less cost
+
+That means the project now has real baseline artifacts, and the current
+harder benchmark evidence does not support the stronger thesis claim. Plan #62
+was still the right move, but the second gate now says the current back-half
+decomposition slice loses on the harder benchmark.
 
 Focus areas:
 
-1. define one comparison target that is neither trivial nor unreviewably large
-2. define a fair `monolithic` condition and a fair `AC14` condition
-3. define one explicit primary outcome plus supporting metrics
-4. persist a decision artifact that says whether AC14 wins clearly, loses, or
-   remains inconclusive
+1. interpret the second-gate loss honestly
+2. diagnose whether the dominant misses are benchmark-local, packet-context, or generation-stability failures
+3. decide whether the next move is benchmark-local repair, broader strategic pivot, or a stronger end-to-end front-half test
+4. keep any next empirical response explicit and falsifiable
 
 Important scope note:
 
@@ -118,17 +125,16 @@ front-half-plus-back-half end-to-end thesis test.
 
 Exit criteria:
 
-1. the target system is explicit
-2. the baseline protocol is explicit
-3. the scoring rubric and decision rule are explicit
-4. the result can falsify AC14's stronger thesis claim
+1. the target systems and baseline protocol are explicit
+2. the scoring rubric and decision rule are explicit
+3. the current evidence is interpreted honestly
+4. the next empirical direction is explicit rather than implied
 
 Failure signs:
 
-1. the active plan sequence keeps expanding propagation-proof lanes without the
-   comparison gate
-2. AC14 continues to count proof-hygiene progress as thesis validation
-3. the comparison target is too small to stress context or too vague to score
+1. AC14 continues to count proof-hygiene progress as thesis validation after a hard empirical loss
+2. the project explains away the second-gate loss without diagnosis
+3. the next empirical direction becomes another unbounded micro-repair chain
 
 ## Horizon 2: Strengthen The Front Half
 
@@ -217,10 +223,11 @@ In order:
 3. (done — Plan #63) freeze the runtime-first second-gate contract and split
    the next chain explicitly into benchmark, smoke, and full-gate/blocker
    branches
-4. (Plan #64) land the harder second benchmark bundle
-5. (Plan #65) run the bounded smoke gate on that bundle
-6. (Plan #66 or #67) either spend the five-trial budget or freeze one
-   blocker-clearing plan based on the smoke verdict
+4. (done — Plan #64) land the harder second benchmark bundle
+5. (done — Plan #65) run the bounded smoke gate on that bundle
+6. (done — Plans #66-#71) complete the five-trial gate, repair interrupted-run integrity, and lock the second verdict
+7. (next — Plan #72) lock the second-gate verdict honestly across the active docs
+8. (next — Plan #73) diagnose why AC14 lost `resource_scaling_v1`
 
 ## Working Rule
 

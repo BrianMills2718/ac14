@@ -113,7 +113,7 @@ AC14 now supports:
 
 AC14 is still incomplete on:
 
-- one decisive empirical comparison showing whether AC14 materially beats a fair monolithic baseline
+- empirical evidence that AC14 materially beats a fair monolithic baseline
 - broader proof breadth across many workflow shapes
 - stronger messy-input blueprint derivation
 - explicit front-half proof that the new directory schema-divergence concerns survive the discovery-through-freeze chain
@@ -130,17 +130,22 @@ The first full empirical gate is now complete:
 - `ac14`: `2/5` successes
 - `monolithic`: `2/5` successes
 
+The second full empirical gate is now also complete:
+
+- `.ac14_out/full_trials_gate_2/experiment_decision.json` -> `monolithic_wins`
+- `ac14`: `0/5` successes
+- `monolithic`: `5/5` successes
+- monolithic was faster and cheaper on the harder benchmark
+
 The next strategic gates are now:
 
-- [Plan #64: Second-Gate Benchmark Bundle](/home/brian/projects/ac14/docs/plans/64_second_gate_benchmark_bundle.md)
-- [Plan #65: Second-Gate Smoke Run](/home/brian/projects/ac14/docs/plans/65_second_gate_smoke.md)
-- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md) or [Plan #67: Second-Gate Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/67_second_gate_blocker_diagnosis.md) depending on the smoke verdict
+- [Plan #72: Second-Gate Verdict Interpretation](/home/brian/projects/ac14/docs/plans/72_second_gate_verdict_interpretation.md)
+- [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md)
 
-The important point is that AC14 now has a real baseline artifact, but the
-current benchmark did not separate the conditions cleanly enough to validate the
-stronger thesis claim. Plan #62's diagnosis concluded that the next empirical
-contract should make final runtime correctness primary and demote packet-level
-failures to explicit secondary evidence.
+The important point is that AC14 now has two real baseline artifacts. The
+harder second benchmark did separate the conditions cleanly, and the current
+result favors the monolithic baseline. That means the next work is diagnosis and
+strategic response, not pretending the thesis is already validated.
 
 ## Quickstart
 

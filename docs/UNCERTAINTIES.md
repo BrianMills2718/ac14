@@ -712,6 +712,38 @@ those concerns survive discovery-through-freeze on a directory input bundle.
 if it is only proven at `discover-input` and not in the broader front-half
 artifact chain.
 
+### U-067: Interrupted full-trial empirical runs were leaving zero-byte artifacts and no safe resume path.
+**Status:** Resolved
+**Context:** The first attempt at the second full-trial gate died mid-run and
+left empty `paired_trial_report.json`, `attempt_report.json`, and generated
+module artifacts.
+**Why it matters:** Without atomic writes and resume behavior, the empirical
+gate would depend on manual cleanup and could silently lose observability.
+**Resolution:** Plan #71 added atomic empirical artifact writes, reuse of valid
+completed paired-trial reports, and archival of incomplete trial directories
+under `_interrupted_trials/` before rerun.
+**Date resolved:** 2026-04-02
+
+### U-068: The harder second empirical gate might still be unresolved or infrastructure-contaminated.
+**Status:** Resolved
+**Context:** Before the repaired full-trial rerun completed, the second gate
+had only smoke evidence plus an interrupted full-trial directory.
+**Why it matters:** The project needed to know whether the harder benchmark
+would validate AC14, remain inconclusive, or lose cleanly.
+**Resolution:** `.ac14_out/full_trials_gate_2/experiment_decision.json` now
+exists with verdict `monolithic_wins`. All five trials recorded observed costs,
+and the completed reports do not show infrastructure-provider as the dominant
+failure class.
+**Date resolved:** 2026-04-02
+
+### U-069: Does the second-gate loss reflect benchmark-local business-rule misses or deeper packet/context limitations?
+**Status:** Investigating
+**Context:** The harder benchmark now finished decisively in favor of the
+monolithic baseline, but AC14's dominant failure surfaces span repeated packet
+fixture mismatches, recomposition mismatches, and one late syntax failure.
+**Why it matters:** The next lane should be diagnosis first, not reflexive
+benchmark-local tuning or premature thesis-level overreaction.
+
 ### U-009: Proof breadth metrics are still approximate.
 **Status:** Deferred
 **Context:** Current breadth accounting relies on workflow signatures and light

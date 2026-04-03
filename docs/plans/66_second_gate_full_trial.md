@@ -1,6 +1,6 @@
 # Plan #66: Second-Gate Full Trial
 
-**Status:** Planned
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 71 (resume-safe full-trial rerun)
@@ -78,9 +78,9 @@ scope broadening.
 
 ## Acceptance Criteria
 
-- [ ] `.ac14_out/full_trials_gate_2/experiment_decision.json` exists.
+- [x] `.ac14_out/full_trials_gate_2/experiment_decision.json` exists.
 - [ ] The verdict is recorded plainly in the active docs.
-- [ ] The repo remains green after the verdict lock.
+- [x] The repo remains green after the verdict lock.
 
 ---
 
@@ -88,3 +88,23 @@ scope broadening.
 
 This plan should only run after the smoke gate is `ready_for_full_trials` and
 any interrupted full-trial output has been repaired into a restart-safe state.
+
+## Implementation Summary (2026-04-02)
+
+The repaired runner completed the second five-trial gate under
+`.ac14_out/full_trials_gate_2/`.
+
+Result:
+
+- verdict: `monolithic_wins`
+- AC14: `0/5` successful trials
+- monolithic: `5/5` successful trials
+- AC14 average repair loops: `2.0`
+- monolithic average repair loops: `0.8`
+- AC14 average duration: `142.46s`
+- monolithic average duration: `33.41s`
+- AC14 observed cost: `$0.1974`
+- monolithic observed cost: `$0.0885`
+
+The decisive second gate means AC14's current back-half empirical slice does
+not beat the fair monolithic baseline on the harder benchmark.

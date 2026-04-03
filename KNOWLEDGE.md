@@ -516,4 +516,16 @@ The NL disambiguation loop needs to understand that it is receiving a *theory sp
 extraction or orchestration logic. See `theory-forge/docs/plans/08_ac14_codegen_integration.md`
 for the full integration plan.
 
+### 2026-04-02 — codex — best-practice
+Interrupted empirical gates should be restart-safe, not manually cleaned up.
+AC14 now writes second-gate empirical artifacts atomically, reuses valid
+completed paired-trial reports, and archives incomplete trial directories under
+`_interrupted_trials/` before rerunning them cleanly.
+
+### 2026-04-02 — codex — best-practice
+The harder second empirical benchmark (`resource_scaling_v1`) completed with
+`monolithic_wins` (`5/5` vs `0/5`). That means AC14's current back-half proof
+slice does not yet beat a fair monolithic baseline on the harder benchmark, so
+the next honest lane is diagnosis rather than more unmeasured capability growth.
+
 ---

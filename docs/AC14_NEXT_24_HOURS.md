@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #71: Empirical Full-Trial Resume Integrity](/home/brian/projects/ac14/docs/plans/71_empirical_full_trial_resume_integrity.md)
+- [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md)
 
 The explicit active chain is:
 
@@ -17,8 +17,12 @@ The explicit active chain is:
 - [Plan #68: Deterministic Exact-Match Semantic Review Policy](/home/brian/projects/ac14/docs/plans/68_deterministic_exact_match_semantic_review_policy.md) -> complete
 - [Plan #69: Monolithic Input-Port Contract Validation](/home/brian/projects/ac14/docs/plans/69_monolithic_input_port_contract_validation.md) -> complete
 - [Plan #70: Second-Gate Smoke Rerun](/home/brian/projects/ac14/docs/plans/70_second_gate_smoke_rerun.md) -> complete
-- [Plan #71: Empirical Full-Trial Resume Integrity](/home/brian/projects/ac14/docs/plans/71_empirical_full_trial_resume_integrity.md) -> active
-- once Plan #71 is verified -> resume [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md)
+- [Plan #71: Empirical Full-Trial Resume Integrity](/home/brian/projects/ac14/docs/plans/71_empirical_full_trial_resume_integrity.md) -> complete
+- [Plan #66: Second-Gate Full Trial](/home/brian/projects/ac14/docs/plans/66_second_gate_full_trial.md) -> complete
+- [Plan #72: Second-Gate Verdict Interpretation](/home/brian/projects/ac14/docs/plans/72_second_gate_verdict_interpretation.md) -> complete
+- [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md) -> complete
+- [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
+- [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> active
 - if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
 
 The empirical gate remains frozen in
@@ -34,9 +38,9 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. finish Plan #71 so interrupted full-trial state becomes resume-safe and observable
-2. resume Plan #66 and lock the second empirical verdict from the five-trial gate
-3. keep Plan #37 blocked until the second gate completes or yields an explicit blocker-clearing plan
+1. execute Plan #75 so the failing component cluster gets stronger local rule salience
+2. use one fresh bounded smoke artifact to decide whether the grounding repair earned another full-trial budget
+3. keep Plan #37 blocked until the second-gate loss is diagnosed explicitly
 
 ## Progress Update
 
@@ -58,30 +62,31 @@ Completed before the current lane:
 14. a verified second-gate benchmark bundle at `benchmarks/resource_scaling/` with 13 components, four runtime cases, and categorical-only final outputs
 15. a clean second-gate smoke artifact at `.ac14_out/full_trials_gate_2_smoke/` with verdict `blocked_on_harness` and an explicit blocker diagnosis
 16. a corrected smoke rerun at `.ac14_out/full_trials_gate_2_smoke_rerun/` with verdict `ready_for_full_trials`
-17. a partially executed second full-trial directory at `.ac14_out/full_trials_gate_2/` that preserved real attempt artifacts but no final decision artifact because the run was interrupted mid-write
+17. a previously interrupted second full-trial directory that required a restart-integrity repair before the gate could complete
+18. a completed second full-trial gate under `.ac14_out/full_trials_gate_2/` with verdict `monolithic_wins`
 
 ## Tactical Phase Summary
 
-### Phase 1: restart-safe full-trial integrity
+### Phase 1: grounding repair
 
-- add atomic empirical artifact writes where interruption currently leaves zero-byte files
-- reuse valid completed trial reports and archive incomplete trial directories
-- keep the runtime-first contract and repaired harness surfaces fixed
-
-Success criteria:
-
-- `.ac14_out/full_trials_gate_2/_interrupted_trials/` contains any previously partial trial evidence that had to be preserved
-- rerunning the gate does not overwrite valid completed trials or depend on manual cleanup
-
-### Phase 2: full five-trial gate
-
-- resume the second empirical benchmark for five paired trials using the repaired runner
-- persist the final decision artifact
+- strengthen local benchmark guidance and schema salience for the failing component cluster
+- keep packet projection unchanged
+- add regression coverage for the new grounding surface
 
 Success criteria:
 
-- `.ac14_out/full_trials_gate_2/experiment_decision.json` exists
-- the artifact records an honest verdict: `ac14_wins`, `monolithic_wins`, or `inconclusive`
+- the failing component cluster has stronger local rule salience without packet redesign
+- targeted regression tests cover the new grounding surface
+
+### Phase 2: bounded smoke rerun
+
+- run one bounded smoke trial on `resource_scaling_v1`
+- inspect whether AC14 now gets at least one hard-harness success
+
+Success criteria:
+
+- one fresh smoke artifact exists for the grounding-repaired lane
+- the next empirical decision is explicit: full trial or another narrow blocker-clearing plan
 
 ## Known Uncertainties
 
@@ -91,7 +96,6 @@ The detailed uncertainty ledger now lives in:
 
 Current lane-specific uncertainties:
 
-1. AC14 may still lose the second full-trial gate even though the harness is now spendable
-2. provider `503` demand spikes remain a possible source of secondary noise during live empirical execution
-3. blocked propagation lanes should stay blocked until the second gate produces a locked five-trial verdict
-4. interrupted empirical runs must now be interpreted through the repaired resume-safe harness rather than by manual artifact reading alone
+1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
+2. the current open question is whether stronger local prompt/schema grounding materially improves the failing component cluster
+3. blocked propagation lanes should stay blocked until the second-gate loss is diagnosed explicitly

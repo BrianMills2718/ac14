@@ -1,10 +1,10 @@
 # Plan #71: Empirical Full-Trial Resume Integrity
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation
 **Priority:** Critical
 **Blocked By:** None
-**Blocks:** 66
+**Blocks:** 66, 72
 
 ---
 
@@ -109,9 +109,9 @@ partial condition state.
 
 ## Acceptance Criteria
 
-- [ ] Empirical full-trial execution reuses valid completed paired-trial reports.
-- [ ] Incomplete full-trial directories are preserved before rerun instead of overwritten in place.
-- [ ] The repaired runner is used to continue Plan #66 toward a final decision artifact.
+- [x] Empirical full-trial execution reuses valid completed paired-trial reports.
+- [x] Incomplete full-trial directories are preserved before rerun instead of overwritten in place.
+- [x] The repaired runner is used to continue Plan #66 toward a final decision artifact.
 
 ---
 
@@ -120,3 +120,20 @@ partial condition state.
 This plan is intentionally narrow. It does not change the benchmark semantics
 or decision rule; it only makes the active thesis gate restart-safe and
 observable enough to trust.
+
+## Implementation Summary (2026-04-02)
+
+The empirical runner now:
+
+- writes attempt, packet, recomposition, paired-trial, and decision artifacts atomically
+- reuses valid existing `paired_trial_report.json` artifacts instead of rerunning completed trials
+- archives incomplete trial directories under `_interrupted_trials/` before rerunning them cleanly
+
+The repaired runner was used directly against the interrupted
+`.ac14_out/full_trials_gate_2/` directory:
+
+- trials 1 and 2 were reused
+- the broken partial `trial_3/` state was archived and rebuilt
+- the broken partial `trial_4/` state was rebuilt cleanly
+- the run completed through `trial_5/` and emitted
+  `.ac14_out/full_trials_gate_2/experiment_decision.json`

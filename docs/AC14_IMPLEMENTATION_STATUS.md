@@ -37,16 +37,14 @@ AC14 is not yet the full long-term general coding agent, but it is not off in a
 different direction.
 
 The main current issue is no longer the absence of a baseline comparison. AC14
-now has a completed five-trial empirical gate against a fair monolithic
-baseline, and the result is `inconclusive`. Plan #62 diagnosed the cause:
-(1) packet-test LLM eval noise dominated the verdict signal; (2) runtime
-outputs passed in virtually all attempts for both conditions, meaning the
-benchmark did not stress decomposition enough. The next empirical gate (Plan
-#63) fixes both simultaneously: a harder benchmark (12–15 components, stronger
-context pressure, categorical-dominant expected outputs) and a runtime-primary
-success criterion (packet tests as logged diagnostic artifacts only). The first
-benchmark remains one honest data point; the second gate is designed to produce
-a cleaner measurement.
+now has two completed empirical gates against a fair monolithic baseline:
+
+1. gate 1 (`order_exception_resolution_v1`) -> `inconclusive`
+2. gate 2 (`resource_scaling_v1`) -> `monolithic_wins`
+
+That means the project now has real external evidence, and the stronger
+near-term claim is no longer "unmeasured." The current back-half empirical
+slice did not beat the fair monolithic baseline on the harder benchmark.
 
 ## What Is Implemented
 
@@ -146,10 +144,10 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. diagnosing why the first back-half empirical gate ended in a tie
+4. diagnosing why the second back-half empirical gate ended in a decisive loss
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
-6. freezing a sharper next empirical comparison direction instead of drifting back into benchmark-local micro-repairs
+6. freezing a sharper next empirical response instead of drifting back into benchmark-local micro-repairs
 
 ### Semantic Validation
 
@@ -192,13 +190,13 @@ Still missing:
 
 1. broad domain diversity
 2. strong evidence that the decomposition discipline generalizes beyond current examples
-3. one empirical baseline comparison against a fair monolithic condition
+3. evidence that the decomposition discipline beats a fair monolithic condition on a hard benchmark
 
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a decisive monolithic-versus-decomposition comparison verdict
-3. a stronger second empirical gate or benchmark that separates the conditions more clearly than the first one
+2. a diagnosis of why AC14 lost the second hard benchmark
+3. a stronger post-loss empirical strategy instead of more unmeasured benchmark-local iteration
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model
@@ -227,16 +225,18 @@ AC14 has strong artifact discipline, but still limited breadth.
 That means the system may look rigorous while still being overfit to a narrow
 set of workflow patterns.
 
-### 3. The First Empirical Gate Is Real But Inconclusive
+### 3. The Current Back-Half Empirical Evidence Does Not Favor AC14
 
-AC14 now has one explicit comparison artifact showing whether the decomposition
-approach beats a fair monolithic baseline on a system where context collapse
-should matter. The result is `inconclusive`, not absent.
+AC14 now has two explicit comparison artifacts:
 
-That is better than no gate, but it is still not project-level thesis
-validation.
+1. gate 1: `inconclusive`
+2. gate 2: `monolithic_wins`
 
-### 3a. The current empirical gate is only a first back-half gate
+That is better than no gate, but it means the current proof slice has not
+validated the stronger thesis claim. Right now the harder benchmark evidence
+favors the monolithic baseline.
+
+### 3a. The current empirical gate is still a bounded back-half gate
 
 The current benchmark and runner compare packetized local generation against
 whole-package generation over a fixed decomposition. That is useful and worth
@@ -259,7 +259,7 @@ the long-term end state.
 These are rough but honest estimates:
 
 1. proof-slice infrastructure: 99%
-2. proof-slice thesis validation: 75-80% with one real empirical gate now complete but inconclusive
+2. proof-slice thesis validation: 55-65% with one inconclusive gate and one harder gate now favoring the monolithic baseline
 3. long-term general coding agent vision: 55-60%
 
 The remaining work is not mainly “more code.” It is:
@@ -278,7 +278,7 @@ This attempt still fails if any of the following happen:
 3. decomposition packets still rely on too much hidden context in real use
 4. the front half never becomes strong enough to derive good blueprints from realistic inputs
 5. the operational overhead ends up larger than the decomposition benefit
-6. the project never runs a fair monolithic-versus-decomposition comparison
+6. the project ignores or explains away empirical losses instead of changing direction
 
 ## Why This Attempt Is Better Than Prior Restarts
 
@@ -300,6 +300,6 @@ Before more major implementation lanes:
 
 1. keep the AC14-native notebook current
 2. keep this implementation-status document current
-3. run the empirical comparison gate before defaulting to more propagation-proof micro-lanes
-4. continue only when the next lane clearly strengthens the decomposition thesis
-5. do not let side artifacts become disconnected from freeze, packets, and proof
+3. diagnose the second-gate loss before any new benchmark-local tuning
+4. continue only when the next lane clearly strengthens or honestly tests the decomposition thesis
+5. do not let side artifacts become disconnected from freeze, packets, proof, and empirical verdicts
