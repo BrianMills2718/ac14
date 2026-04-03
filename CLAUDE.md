@@ -136,6 +136,11 @@ For the active empirical-comparison lane, this rule is especially strict:
   benchmark-local repair before freezing a repair-boundary plan; if that repair
   still produces `0` hard-harness successes in the fresh smoke artifact, do not
   continue local tuning by default
+- after the repair boundary is frozen, the next default chain must be:
+  1. cross-benchmark taxonomy
+  2. one reusable repair lane
+  3. one bounded smoke rerun
+  4. either a full rerun or a strategic pivot based on the smoke artifact
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
 - the active empirical chain is now:
   1. Plan #44 verdict interpretation and doc lock

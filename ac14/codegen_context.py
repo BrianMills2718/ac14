@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from ac14.models import ComponentPacket, ComponentSummary, SchemaDefinition, StateStore
@@ -37,6 +39,13 @@ class CodegenContext(BaseModel):
     packet_test_cases: list[PacketTestCase] = Field(
         description="Packet-local test cases derived from fixtures.",
     )
+    rule_grounding_summaries: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Bounded decision-oriented summaries distilled from packet-local fixtures. "
+            "These restate local case-to-output mappings without widening packet scope."
+        ),
+    )
     repair_guidance: list[str] = Field(
         default_factory=list,
         description="Bounded guidance from the previous failed attempt when a repair loop is active.",
@@ -66,6 +75,7 @@ def build_codegen_context(
         downstream_components=dict(packet.downstream_components),
         owned_state_stores=dict(packet.owned_state_stores),
         packet_test_cases=list(packet_test_cases),
+        rule_grounding_summaries=_build_rule_grounding_summaries(packet_test_cases),
         repair_guidance=list(repair_guidance or []),
     )
 
@@ -93,5 +103,55 @@ def render_codegen_context_text(context: CodegenContext) -> str:
             f"upstream_components: {upstream}",
             f"downstream_components: {downstream}",
             f"packet_test_cases: {tests}",
+            f"rule_grounding_summaries: {len(context.rule_grounding_summaries)}",
         ],
     )
+
+
+def _build_rule_grounding_summaries(packet_test_cases: list[PacketTestCase]) -> list[str]:
+    """Restate packet-local cases as bounded decision-oriented rule summaries."""
+
+    return [_summarize_packet_test_case(case) for case in packet_test_cases]
+
+
+def _summarize_packet_test_case(case: PacketTestCase) -> str:
+    """Summarize one packet test case without widening beyond local fixture facts."""
+
+    input_items = _flatten_scalar_items(case.inputs)
+    output_items = _flatten_scalar_items(case.expected_outputs)
+    trigger_summary = ", ".join(input_items[:5]) or "no scalar inputs"
+    output_summary = ", ".join(output_items[:5]) or "no scalar outputs"
+    return (
+        f"{case.fixture_id}: when {trigger_summary}, "
+        f"expect {output_summary}"
+    )
+
+
+def _flatten_scalar_items(payload: dict[str, Any]) -> list[str]:
+    """Collect bounded scalar leaf values as stable dotted-path summaries."""
+
+    items: list[str] = []
+
+    def _walk(prefix: str, value: Any) -> None:
+        if isinstance(value, dict):
+            for key in sorted(value):
+                child = f"{prefix}.{key}" if prefix else key
+                _walk(child, value[key])
+            return
+        if isinstance(value, list):
+            scalar_values = [item for item in value if _is_scalar(item)]
+            if scalar_values:
+                rendered = ", ".join(repr(item) for item in scalar_values[:3])
+                items.append(f"{prefix}=[{rendered}]")
+            return
+        if _is_scalar(value):
+            items.append(f"{prefix}={value!r}")
+
+    _walk("", payload)
+    return items
+
+
+def _is_scalar(value: Any) -> bool:
+    """Return whether the value is cheap and safe to restate inline."""
+
+    return value is None or isinstance(value, (str, int, float, bool))

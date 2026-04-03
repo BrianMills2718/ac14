@@ -108,6 +108,11 @@ messages:
         expected_outputs: {{ case.expected_outputs }}
       {% endfor %}
 
+      Rule-grounding summaries:
+      {% for item in context.rule_grounding_summaries %}
+      - {{ item }}
+      {% endfor %}
+
       Repair guidance from the previous failed attempt:
       {% for item in context.repair_guidance %}
       - {{ item }}

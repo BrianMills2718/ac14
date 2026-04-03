@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md)
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md)
 
 The explicit active chain is:
 
@@ -27,8 +27,11 @@ The explicit active chain is:
 - [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
 - [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> complete
 - [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
-- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> active
-- if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> complete
+- [Plan #78: Reusable Packet Rule Grounding](/home/brian/projects/ac14/docs/plans/78_reusable_packet_rule_grounding.md) -> complete
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> active
+- if Plan #79 shows AC14 hard-harness success without infrastructure contamination -> activate Plan #80
+- otherwise -> activate Plan #81
 
 The experiment contract remains frozen in:
 
@@ -85,7 +88,13 @@ The previously active propagation lane remains blocked:
 - [x] Plan #76: decide whether another `resource_scaling_v1` micro-repair is justified after the non-winning grounding smoke
   - Result: no; `resource_scaling_v1` benchmark-local micro-repairs stay frozen
 
-- [ ] Plan #77: classify which empirical failure surfaces are benchmark-local versus reusable AC14 weaknesses and freeze the next lane from that taxonomy
+- [x] Plan #77: classify which empirical failure surfaces are benchmark-local versus reusable AC14 weaknesses and freeze the next lane from that taxonomy
+  - Result: the strongest reusable weakness is packet-local rule grounding for semantically coupled business logic
+
+- [x] Plan #78: add one reusable packet-rule-grounding surface and verify it with targeted tests
+  - Result: codegen context now carries bounded rule-grounding summaries and the prompt consumes them explicitly
+
+- [ ] Plan #79: rerun the harder smoke gate after the reusable grounding repair and freeze the next branch from the result
 
 ## Current Open Uncertainties
 
@@ -93,7 +102,7 @@ The previously active propagation lane remains blocked:
 - the current comparison is still a bounded back-half gate over a fixed decomposition and should not be mistaken for the strongest end-to-end thesis test
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
-- the current open question is not packet sufficiency anymore; it is which observed empirical failures are reusable AC14 weaknesses versus local benchmark quirks
+- the current open question is not packet sufficiency anymore; it is whether the reusable grounding repair can earn an AC14 smoke success
 
 ## Latest Verified Baseline
 
@@ -118,5 +127,6 @@ The previously active propagation lane remains blocked:
 ## Longer-Term Next Steps
 
 - [ ] complete Plan #77 so the next empirical move targets a reusable weakness or claim boundary rather than another reflexive micro-repair
+- [ ] branch from Plan #79 explicitly to Plan #80 or Plan #81
 - [ ] only after that decide whether the first benchmark should be retained, expanded, or replaced for broader proof breadth
 - [ ] keep blocked propagation lanes blocked until the second empirical contract is executed honestly

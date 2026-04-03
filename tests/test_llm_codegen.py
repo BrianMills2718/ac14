@@ -222,6 +222,8 @@ def test_component_prompt_includes_local_schema_definitions() -> None:
     assert "schema_id:" in user_message
     assert "required=" in user_message
     assert "absence_meaning=" in user_message
+    assert "Rule-grounding summaries:" in user_message
+    assert "happy_path_digest_assembler: when " in user_message
 
 
 def test_component_prompt_forbids_comment_only_branches_and_fallback_labels() -> None:

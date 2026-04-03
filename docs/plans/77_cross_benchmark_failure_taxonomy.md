@@ -1,6 +1,6 @@
 # Plan #77: Cross-Benchmark Failure Taxonomy
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 76
@@ -50,13 +50,22 @@ either a reusable weakness or an explicit claim-boundary adjustment, not habit.
 ## Open Questions
 
 ### Q1: Which observed failure classes are genuinely reusable AC14 weaknesses?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The next lane should improve the system, not just the
 current benchmark.
+**Resolution:** The reusable weakness is weak first-class rule grounding for
+semantically coupled business logic inside bounded packets. The evidence does
+not support packet-size insufficiency as the leading diagnosis, and it no
+longer supports packet-level semantic review as the dominant blocker.
 
 ### Q2: Does the evidence support a reusable implementation repair, a claim-boundary adjustment, or a front-half-first pivot?
-**Status:** Open
+**Status:** Resolved
 **Why it matters:** The next lane should respond to the actual empirical story.
+**Resolution:** The next move should be one reusable implementation repair:
+strengthen benchmark-agnostic rule grounding inside the packet/codegen surface,
+then spend one bounded smoke rerun. If that still does not produce an AC14
+hard-harness success, the next branch should be a strategic pivot or claim
+boundary adjustment rather than more local tuning.
 
 ---
 
@@ -94,11 +103,11 @@ explicitly justifies one reusable repair lane.
 
 ## Acceptance Criteria
 
-- [ ] The repo has one explicit cross-benchmark failure taxonomy grounded in the
+- [x] The repo has one explicit cross-benchmark failure taxonomy grounded in the
       current empirical artifacts.
-- [ ] The repo states whether the next move is a reusable implementation repair,
+- [x] The repo states whether the next move is a reusable implementation repair,
       a claim-boundary adjustment, or a different empirical design.
-- [ ] `resource_scaling_v1` benchmark-local micro-repairs remain frozen unless
+- [x] `resource_scaling_v1` benchmark-local micro-repairs remain frozen unless
       this plan produces explicit new evidence to reopen them.
 
 ---
@@ -108,3 +117,55 @@ explicitly justifies one reusable repair lane.
 This plan exists to stop the project from drifting from "another local tweak"
 to "another local tweak" after already recording a decisive harder-benchmark
 loss.
+
+## Implementation Summary (2026-04-02)
+
+### Cross-Benchmark Taxonomy
+
+1. **Infrastructure/provider noise**
+   - real but secondary
+   - affected some earlier live attempts and time/cost interpretation
+   - not the dominant reason for the completed second-gate loss
+
+2. **Generation-stability failures**
+   - present in both conditions across the two gates
+   - important observability and contract issue
+   - not the dominant differentiator after the repair chain
+
+3. **Packet-context insufficiency**
+   - not the leading diagnosis on the harder second gate
+   - packet-context review plus the bounded grounding repair indicate the
+     failing packets already contain strong local schemas, fixtures,
+     constraints, and neighboring summaries
+
+4. **Semantic-coupling / business-rule grounding weakness**
+   - the strongest reusable AC14 weakness
+   - gate 1 surfaced shared business-rule mismatches before the runtime-first
+     contract demoted packet-level noise
+   - gate 2 surfaced repeated AC14 runtime misses in a tightly coupled business
+     logic subgraph even after packet-context sufficiency was judged strong
+   - the bounded post-loss grounding repair changed the failure surface, which
+     is evidence that rule salience is the right repair family
+
+5. **Benchmark-local expectation quirks**
+   - real in both benchmarks
+   - still present, but no longer the best next target after the boundary
+     decision because the project now needs a reusable response
+
+### Decision
+
+- keep `resource_scaling_v1` benchmark-local micro-repairs frozen
+- pursue one reusable implementation repair aimed at packet-local rule
+  grounding
+- use one bounded smoke rerun to determine whether that reusable repair earns
+  another full-gate attempt
+- if the smoke rerun still yields no AC14 hard-harness success, do not continue
+  with more local repairs by default
+
+### Frozen Next Chain
+
+1. [Plan #78: Reusable Packet Rule Grounding](/home/brian/projects/ac14/docs/plans/78_reusable_packet_rule_grounding.md)
+2. [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md)
+3. if Plan #79 shows AC14 hard-harness success and no infrastructure
+   contamination -> [Plan #80: Second-Gate Full Rerun](/home/brian/projects/ac14/docs/plans/80_second_gate_full_rerun.md)
+4. otherwise -> [Plan #81: Post-Grounding Strategic Pivot](/home/brian/projects/ac14/docs/plans/81_post_grounding_strategic_pivot.md)

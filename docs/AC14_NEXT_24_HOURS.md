@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md)
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md)
 
 The explicit active chain is:
 
@@ -24,8 +24,11 @@ The explicit active chain is:
 - [Plan #74: Resource Scaling Packet-Context Diagnosis](/home/brian/projects/ac14/docs/plans/74_resource_scaling_packet_context_diagnosis.md) -> complete
 - [Plan #75: Resource Scaling Prompt-Schema Grounding Repair](/home/brian/projects/ac14/docs/plans/75_resource_scaling_prompt_schema_grounding_repair.md) -> complete
 - [Plan #76: Second-Gate Repair Boundary](/home/brian/projects/ac14/docs/plans/76_second_gate_repair_boundary.md) -> complete
-- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> active
-- if rerun says `blocked_on_harness` or `blocked_on_infrastructure` -> freeze Plan #71 immediately
+- [Plan #77: Cross-Benchmark Failure Taxonomy](/home/brian/projects/ac14/docs/plans/77_cross_benchmark_failure_taxonomy.md) -> complete
+- [Plan #78: Reusable Packet Rule Grounding](/home/brian/projects/ac14/docs/plans/78_reusable_packet_rule_grounding.md) -> complete
+- [Plan #79: Post-Grounding Smoke Rerun](/home/brian/projects/ac14/docs/plans/79_post_grounding_smoke_rerun.md) -> active
+- if Plan #79 shows AC14 hard-harness success without infrastructure contamination -> activate Plan #80
+- otherwise -> activate Plan #81
 
 The empirical gate remains frozen in
 [Plan #38: Empirical Comparison Gate](/home/brian/projects/ac14/docs/plans/38_empirical_comparison_gate.md).
@@ -40,8 +43,10 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. execute Plan #77 so the repo classifies which empirical failures are benchmark-local versus reusable AC14 weaknesses
-2. freeze one explicit next lane from that taxonomy instead of reopening `resource_scaling_v1` local tuning by habit
+1. spend one bounded smoke rerun on the reusable packet-rule-grounding repair
+2. branch explicitly from the smoke artifact:
+   - Plan #80 if AC14 earns a clean hard-harness success
+   - Plan #81 otherwise
 3. keep Plan #37 and other blocked propagation lanes frozen until the empirical response is explicit
 
 ## Progress Update
@@ -66,28 +71,38 @@ Completed before the current lane:
 16. a corrected smoke rerun at `.ac14_out/full_trials_gate_2_smoke_rerun/` with verdict `ready_for_full_trials`
 17. a previously interrupted second full-trial directory that required a restart-integrity repair before the gate could complete
 18. a completed second full-trial gate under `.ac14_out/full_trials_gate_2/` with verdict `monolithic_wins`
+19. a completed cross-benchmark taxonomy that freezes further `resource_scaling_v1` micro-repairs by default
+20. a reusable packet-rule-grounding repair that adds bounded decision-oriented summaries to the codegen context and prompt
 
 ## Tactical Phase Summary
 
-### Phase 1: repair boundary decision
+### Phase 1: cross-benchmark taxonomy
 
-- compare the decisive full-trial loss against the non-winning grounding smoke repair
-- decide whether the new smoke result justifies another narrow benchmark-local repair
-- Result: it does not; `resource_scaling_v1` benchmark-local micro-repairs stay frozen
-
-Success criteria:
-
-- the repo states explicitly whether another `resource_scaling_v1` micro-repair is justified
-
-### Phase 2: cross-benchmark taxonomy
-
-- compare the first gate, second gate, and post-loss smoke evidence
+- compare gate 1, gate 2, and the post-loss smoke evidence
 - separate benchmark-local quirks from reusable AC14 weaknesses
-- freeze the next lane explicitly from that taxonomy
+- Result: the strongest reusable weakness is packet-local rule grounding for semantically coupled business logic
 
 Success criteria:
 
-- the next plan is explicit and justified by a cross-benchmark taxonomy instead of a local benchmark repair loop
+- the repo has one explicit reusable failure taxonomy
+
+### Phase 2: reusable grounding repair
+
+- add one bounded rule-grounding surface to the codegen context and prompt
+- verify it with targeted tests before another smoke rerun
+
+Success criteria:
+
+- the reusable grounding surface is implemented and verified
+
+### Phase 3: post-grounding smoke rerun
+
+- rerun the harder benchmark smoke gate once with the reusable grounding repair
+- branch immediately from the persisted artifact to Plan #80 or Plan #81
+
+Success criteria:
+
+- the smoke artifact exists and the next branch is explicit from its result
 
 ## Known Uncertainties
 
@@ -98,5 +113,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current open question is which observed failure classes are reusable AC14 weaknesses rather than local benchmark quirks
-3. blocked propagation lanes should stay blocked until the post-loss empirical response is explicit
+2. the current open question is whether the reusable grounding repair is strong enough to earn an AC14 smoke success
+3. blocked propagation lanes should stay blocked until Plan #79 freezes the next branch explicitly

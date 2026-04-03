@@ -87,7 +87,11 @@ current executable lane.
 | 74 | [Resource Scaling Packet-Context Diagnosis](74_resource_scaling_packet_context_diagnosis.md) | Critical | Complete | 75 |
 | 75 | [Resource Scaling Prompt-Schema Grounding Repair](75_resource_scaling_prompt_schema_grounding_repair.md) | Critical | Complete | 76 |
 | 76 | [Second-Gate Repair Boundary](76_second_gate_repair_boundary.md) | Critical | Complete | 77 |
-| 77 | [Cross-Benchmark Failure Taxonomy](77_cross_benchmark_failure_taxonomy.md) | Critical | In Progress | - |
+| 77 | [Cross-Benchmark Failure Taxonomy](77_cross_benchmark_failure_taxonomy.md) | Critical | Complete | 78 |
+| 78 | [Reusable Packet Rule Grounding](78_reusable_packet_rule_grounding.md) | Critical | Complete | 79 |
+| 79 | [Post-Grounding Smoke Rerun](79_post_grounding_smoke_rerun.md) | Critical | In Progress | 80, 81 |
+| 80 | [Second-Gate Full Rerun](80_second_gate_full_rerun.md) | Critical | Planned | - |
+| 81 | [Post-Grounding Strategic Pivot](81_post_grounding_strategic_pivot.md) | Critical | Planned | - |
 
 ## Status Key
 

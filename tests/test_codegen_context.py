@@ -33,6 +33,12 @@ def test_build_codegen_context_for_digest_assembler() -> None:
         "missing_customer_context_digest_assembler",
         "schema_mismatch_rejected_digest_assembler",
     }
+    assert len(context.rule_grounding_summaries) == 3
+    assert any(
+        summary.startswith("happy_path_digest_assembler: when ")
+        and "expect digest_entry.action_hint='escalate to billing operations'" in summary
+        for summary in context.rule_grounding_summaries
+    )
 
 
 def test_render_codegen_context_text_is_compact_and_informative() -> None:
@@ -50,3 +56,4 @@ def test_render_codegen_context_text_is_compact_and_informative() -> None:
     assert "component_id: issue_classifier" in rendered
     assert "input_ports: parsed_ticket:ParsedTicket" in rendered
     assert "packet_test_cases: happy_path_issue_classifier, missing_customer_context_issue_classifier" in rendered
+    assert "rule_grounding_summaries: 2" in rendered
