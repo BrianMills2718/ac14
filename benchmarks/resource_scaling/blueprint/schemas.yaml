@@ -150,11 +150,11 @@ schemas:
   - name: cpu_trend
     type: string
     required: true
-    description: 'Valid values: spiking, increasing, stable.'
+    description: 'Valid values: spiking, increasing, stable. Use spiking when cpu_utilization >= 0.90, increasing when >= 0.80, and stable otherwise.'
   - name: memory_trend
     type: string
     required: true
-    description: 'Valid values: spiking, increasing, stable.'
+    description: 'Valid values: spiking, increasing, stable. Use spiking when memory_utilization >= 0.92, increasing when >= 0.85, and stable otherwise.'
   - name: sustained_pressure
     type: boolean
     required: true
@@ -170,7 +170,7 @@ schemas:
   - name: deploy_risk
     type: string
     required: true
-    description: 'Valid values: high, medium, low.'
+    description: 'Valid values: high, medium, low. Use high when last_deploy_hours < 4, medium when < 24, and low otherwise.'
   - name: rollback_eligible
     type: boolean
     required: true
@@ -178,7 +178,7 @@ schemas:
   - name: risk_factor
     type: string
     required: true
-    description: 'Valid values: fresh_deploy, recent_deploy, stable_deploy.'
+    description: 'Valid values: fresh_deploy, recent_deploy, stable_deploy, matching the deploy_risk bucket exactly.'
 - schema_id: ServicePolicy
   kind: object
   description: Scaling policy derived from the service tier.

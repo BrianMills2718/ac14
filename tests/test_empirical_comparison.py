@@ -585,6 +585,30 @@ def test_benchmark_schema_descriptions_state_shipping_and_escalation_contracts()
     assert "remain `high` even when `escalation_required=false`" in priority_band.description
 
 
+def test_resource_scaling_component_guidance_targets_trend_and_deploy_risk_rules() -> None:
+    """The resource-scaling benchmark should state the local trend and deploy-risk rules explicitly."""
+
+    bundle = load_benchmark_bundle(RESOURCE_SCALING_BENCHMARK_DIR)
+    guidance = _build_component_repair_guidance(bundle=bundle, prior_guidance=[])
+
+    assert any("cpu_utilization >= 0.90" in line for line in guidance["trend_evaluator"])
+    assert any("memory_utilization >= 0.92" in line for line in guidance["trend_evaluator"])
+    assert any("last_deploy_hours < 4" in line for line in guidance["deploy_risk_evaluator"])
+    assert any("last_deploy_hours < 24" in line for line in guidance["deploy_risk_evaluator"])
+
+    trend_schema = bundle.blueprint.schemas["TrendSignal"]
+    deploy_schema = bundle.blueprint.schemas["DeployRisk"]
+    cpu_trend = next(field for field in trend_schema.fields if field.name == "cpu_trend")
+    memory_trend = next(field for field in trend_schema.fields if field.name == "memory_trend")
+    deploy_risk = next(field for field in deploy_schema.fields if field.name == "deploy_risk")
+    risk_factor = next(field for field in deploy_schema.fields if field.name == "risk_factor")
+
+    assert "cpu_utilization >= 0.90" in cpu_trend.description
+    assert "memory_utilization >= 0.92" in memory_trend.description
+    assert "last_deploy_hours < 4" in deploy_risk.description
+    assert "matching the deploy_risk bucket exactly" in risk_factor.description
+
+
 def test_monolithic_prompt_forbids_preclass_generatedcomponent_annotations_and_unparenthesized_multiline_conditions() -> None:
     """The monolithic prompt should harden the same import-time and multiline-condition failures."""
 

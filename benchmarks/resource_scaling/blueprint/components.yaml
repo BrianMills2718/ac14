@@ -79,6 +79,8 @@ components:
   - fail loud on missing normalized metric fields
   implementation_constraints:
   - treat cpu and memory trends independently before computing sustained_pressure
+  - cpu_trend is spiking at cpu_utilization >= 0.90, increasing at >= 0.80, and stable otherwise
+  - memory_trend is spiking at memory_utilization >= 0.92, increasing at >= 0.85, and stable otherwise
 - component_id: deploy_risk_evaluator
   kind: transform
   purpose: Classify deploy recency risk.
@@ -99,6 +101,8 @@ components:
   - fail loud on missing normalized metric fields
   implementation_constraints:
   - use only the benchmark recency buckets high/medium/low
+  - deploy_risk is high when last_deploy_hours < 4, medium when < 24, and low otherwise
+  - risk_factor must match the deploy_risk bucket exactly as fresh_deploy, recent_deploy, or stable_deploy
 - component_id: service_policy_loader
   kind: transform
   purpose: Map service tier to one scaling policy.

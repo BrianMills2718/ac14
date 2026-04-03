@@ -1132,6 +1132,16 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
 
     if bundle.config.benchmark_id == "resource_scaling_v1":
         return {
+            "trend_evaluator": [
+                "cpu_trend is spiking when cpu_utilization >= 0.90, increasing when >= 0.80, and stable otherwise.",
+                "memory_trend is spiking when memory_utilization >= 0.92, increasing when >= 0.85, and stable otherwise.",
+                "sustained_pressure is true only when both cpu_trend and memory_trend are increasing or spiking.",
+            ],
+            "deploy_risk_evaluator": [
+                "deploy_risk is high when last_deploy_hours < 4, medium when last_deploy_hours < 24, and low otherwise.",
+                "risk_factor must match the deploy_risk bucket exactly: fresh_deploy, recent_deploy, or stable_deploy.",
+                "rollback_eligible is true when last_deploy_hours < 48 and false otherwise.",
+            ],
             "metrics_normalizer": [
                 "Pass through the benchmark fields exactly; do not drop maintenance or freeze flags.",
             ],
@@ -1164,7 +1174,7 @@ def _benchmark_component_repair_guidance(bundle: BenchmarkBundle) -> dict[str, l
                 "Keep the rolling store keyed by case_id and append new cases in arrival order.",
             ],
         } | {component_id: [] for component_id in bundle.blueprint.components if component_id not in {
-            "metrics_normalizer", "threshold_detector", "urgency_classifier", "recommendation_generator", "approval_resolver", "compliance_checker", "scaling_plan_builder", "execution_gate", "decision_recorder"
+            "trend_evaluator", "deploy_risk_evaluator", "metrics_normalizer", "threshold_detector", "urgency_classifier", "recommendation_generator", "approval_resolver", "compliance_checker", "scaling_plan_builder", "execution_gate", "decision_recorder"
         }}
     if bundle.config.benchmark_id != "order_exception_resolution_v1":
         return {component_id: [] for component_id in bundle.blueprint.components}
