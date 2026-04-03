@@ -29,6 +29,14 @@ from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
 from ac14.structured_spec import build_structured_spec_artifact
+from tests.front_half_first_fixtures import (
+    write_acceptance_review_fixture as write_front_half_first_acceptance_review_fixture,
+    write_front_half_first_benchmark_bundle,
+    write_front_half_first_llm_codegen_fixture,
+    write_front_half_first_monolithic_fixture,
+    write_front_half_first_plan_fixture,
+    write_front_half_first_structured_spec_front_half_fixture,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -536,6 +544,7 @@ def test_make_help_lists_proof_targets() -> None:
     assert "live-llm-readiness" in result.stdout
     assert "live-llm-readiness-suite" in result.stdout
     assert "empirical-smoke-gate" in result.stdout
+    assert "front-half-first-smoke-gate" in result.stdout
 
 
 def test_make_packet_sufficiency_runs_end_to_end(tmp_path: Path) -> None:
@@ -1640,6 +1649,17 @@ def test_make_compare_suite_deterministic_only(tmp_path: Path) -> None:
     """Make suite comparison target should build aggregate comparison artifacts."""
 
     output_dir = tmp_path / "suite_compare"
+    env = os.environ.copy()
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+    ]:
+        env.pop(key, None)
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        _write_acceptance_review_fixture(tmp_path / "acceptance_review_fixture.json")
+    )
     result = subprocess.run(
         [
             "make",
@@ -1653,6 +1673,7 @@ def test_make_compare_suite_deterministic_only(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     assert (output_dir / "suite_comparison_report.json").exists()
@@ -2015,6 +2036,51 @@ def test_make_structured_spec_front_half_acceptance_runs_end_to_end(tmp_path: Pa
     assert payload["artifact_paths"]["structured_spec_artifact_path"].endswith(
         "structured_spec_artifact.json",
     )
+
+
+def test_make_front_half_first_smoke_gate_runs_end_to_end(tmp_path: Path) -> None:
+    """Make target should persist a front-half-first smoke readiness artifact."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    output_dir = tmp_path / "front_half_first_smoke"
+    env = os.environ.copy()
+    env["AC14_STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        write_front_half_first_structured_spec_front_half_fixture(
+            tmp_path / "front_half_first_structured_spec_front_half_fixture.json",
+            benchmark_dir=benchmark_dir,
+            plan_fixture_path=write_front_half_first_plan_fixture(
+                tmp_path / "front_half_first_plan_fixture.json",
+            ),
+        ),
+    )
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(
+        write_front_half_first_llm_codegen_fixture(tmp_path / "front_half_first_llm_codegen_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_FIRST_MONOLITHIC_FIXTURE"] = str(
+        write_front_half_first_monolithic_fixture(tmp_path / "front_half_first_monolithic_fixture.json"),
+    )
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        write_front_half_first_acceptance_review_fixture(tmp_path / "front_half_first_acceptance_review_fixture.json"),
+    )
+    env["AC14_LLM_OBSERVABILITY_DB"] = str(tmp_path / "missing_observability.db")
+    result = subprocess.run(
+        [
+            "make",
+            "front-half-first-smoke-gate",
+            f"BENCHMARK={benchmark_dir}",
+            f"OUTPUT={output_dir}",
+            "MAX_ATTEMPTS=1",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads((output_dir / "smoke_readiness_report.json").read_text())
+    assert payload["verdict"] == "ready_for_full_trials"
+    assert payload["ac14_front_half_success"] is True
 
 
 def test_make_front_half_acceptance_supports_input_directory(tmp_path: Path) -> None:

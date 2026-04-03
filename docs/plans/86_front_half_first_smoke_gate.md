@@ -1,6 +1,6 @@
 # Plan #86: Front-Half-First Smoke Gate Contract And Runner
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 85
@@ -28,12 +28,12 @@ surface honestly instead of quietly reverting to a back-half-only gate.
 
 ## Acceptance Criteria
 
-- [ ] One bounded front-half-first smoke runner exists and persists a smoke
+- [x] One bounded front-half-first smoke runner exists and persists a smoke
       artifact.
-- [ ] The smoke contract is explicit: AC14 front-half acceptance is a required
+- [x] The smoke contract is explicit: AC14 front-half acceptance is a required
       precondition, and runtime success stays the hard end-to-end success
       surface.
-- [ ] The next branch is explicit from the verdict: full trial or blocker
+- [x] The next branch is explicit from the verdict: full trial or blocker
       diagnosis.
 
 ---
@@ -128,3 +128,26 @@ the differentiating AC14 surface, so only AC14 carries that additional gate.
 This plan does not spend the smoke budget itself. It freezes and implements the
 truthful runner contract so Plan #87 can spend one bounded smoke trial without
 reopening the old ambiguity.
+
+## Implementation Summary
+
+Implemented:
+
+1. `ac14/front_half_first_empirical.py` now persists a staged-combined
+   front-half-first smoke artifact.
+2. `ac14/__main__.py` and `Makefile` now expose
+   `front-half-first-smoke-gate`.
+3. `ac14/front_half_acceptance.py` now supports a fixture-backed
+   structured-spec front-half artifact for subprocess verification.
+4. `tests/front_half_first_fixtures.py`,
+   `tests/test_front_half_first_empirical.py`,
+   `tests/test_cli.py`, and `tests/test_make_targets.py` now cover the new
+   runner surface and subprocess entrypoints.
+5. `tests/__init__.py` makes the test helpers package-explicit so mypy sees one
+   module path, not two.
+
+Verified:
+
+- `python -m pytest -q` -> `275 passed, 1 skipped`
+- `python -m mypy ac14 tests`
+- `python -m ruff check ac14 tests`

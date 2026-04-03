@@ -465,6 +465,15 @@ async def abuild_structured_spec_front_half_acceptance_report(
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
+    fixture_path = os.environ.get("AC14_STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_FIXTURE")
+    if fixture_path:
+        artifact = StructuredSpecFrontHalfAcceptanceArtifact.model_validate_json(
+            Path(fixture_path).read_text(),
+        )
+        (destination / "structured_spec_front_half_acceptance_report.json").write_text(
+            json.dumps(artifact.model_dump(mode="json"), indent=2, sort_keys=True),
+        )
+        return artifact
     artifact_path = Path(structured_spec_artifact_path)
     structured_spec_artifact = StructuredSpecArtifact.model_validate_json(artifact_path.read_text())
 

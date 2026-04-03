@@ -12,6 +12,7 @@ from ac14.llm_codegen import generate_component_module_with_llm
 from ac14.loader import load_blueprint_dir
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.packets import compile_packets
+from llm_client.core.errors import LLMQuotaExhaustedError, LLMRateLimitError  # type: ignore[import-not-found]
 
 
 EXAMPLE_DIR = Path(__file__).resolve().parents[1] / "examples" / "support_ticket_digest" / "blueprint"
@@ -46,11 +47,14 @@ def test_live_llm_generator_smoke() -> None:
         packet_cases["ticket_parser"],
     )
 
-    response = generate_component_module_with_llm(
-        context,
-        trace_id="test/live_llm_codegen",
-        max_budget=0.10,
-    )
+    try:
+        response = generate_component_module_with_llm(
+            context,
+            trace_id="test/live_llm_codegen",
+            max_budget=0.10,
+        )
+    except (LLMQuotaExhaustedError, LLMRateLimitError) as exc:
+        pytest.skip(f"Live LLM smoke unavailable: {exc}")
 
     assert "class GeneratedComponent" in response.module_code
     assert "def build_component" in response.module_code

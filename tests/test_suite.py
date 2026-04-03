@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -47,8 +48,26 @@ def test_build_suite_proof_report_for_deterministic_generator(
     assert report.realistic_input_gate_missing_examples == 0
 
 
-def test_build_suite_comparison_report_for_deterministic_generator(tmp_path: Path) -> None:
+def test_build_suite_comparison_report_for_deterministic_generator(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     """Suite comparison should aggregate deterministic runs across shipped examples."""
+
+    fixture_path = tmp_path / "acceptance_review_fixture.json"
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "overall_verdict": "accept",
+                "summary": "Fixture-backed suite comparison review approved the outputs.",
+                "concerns": [],
+                "requirement_assessments": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    monkeypatch.setenv("AC14_ACCEPTANCE_REVIEW_FIXTURE", str(fixture_path))
 
     report = build_suite_comparison_report(
         output_dir=tmp_path / "suite_compare",

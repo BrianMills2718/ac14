@@ -32,6 +32,7 @@ from ac14.dependency_planning import (
     build_dependency_plan,
 )
 from ac14.empirical_comparison import run_empirical_comparison, run_empirical_smoke_gate
+from ac14.front_half_first_empirical import run_front_half_first_smoke_gate
 from ac14.discovery import (
     build_discovery_artifact,
     persist_environment_inventory,
@@ -516,6 +517,16 @@ def main() -> int:
     empirical_smoke_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     empirical_smoke_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    front_half_first_smoke_parser = subparsers.add_parser(
+        "front-half-first-smoke-gate",
+        help="Run one bounded front-half-first smoke trial from a structured-spec benchmark bundle.",
+    )
+    front_half_first_smoke_parser.add_argument("benchmark_dir", type=Path)
+    front_half_first_smoke_parser.add_argument("--output-dir", type=Path, required=True)
+    front_half_first_smoke_parser.add_argument("--max-attempts", type=int, default=3)
+    front_half_first_smoke_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    front_half_first_smoke_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -804,6 +815,14 @@ def main() -> int:
         )
     if args.command == "empirical-smoke-gate":
         return _empirical_smoke_gate(
+            args.benchmark_dir,
+            args.output_dir,
+            args.max_attempts,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "front-half-first-smoke-gate":
+        return _front_half_first_smoke_gate(
             args.benchmark_dir,
             args.output_dir,
             args.max_attempts,
@@ -1549,6 +1568,26 @@ def _empirical_smoke_gate(
     """Run and print one bounded smoke-readiness artifact for the empirical gate."""
 
     artifact = run_empirical_smoke_gate(
+        benchmark_dir=benchmark_dir,
+        output_dir=output_dir,
+        max_attempts=max_attempts,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _front_half_first_smoke_gate(
+    benchmark_dir: Path,
+    output_dir: Path,
+    max_attempts: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Run and print one bounded front-half-first smoke-readiness artifact."""
+
+    artifact = run_front_half_first_smoke_gate(
         benchmark_dir=benchmark_dir,
         output_dir=output_dir,
         max_attempts=max_attempts,

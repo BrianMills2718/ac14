@@ -1,0 +1,48 @@
+name: ac14_generate_monolithic_runtime_system_from_structured_spec
+version: "1.0"
+description: Generate one direct whole-task runtime system from a structured-spec benchmark bundle.
+messages:
+  - role: system
+    content: |
+      You are generating one direct monolithic runtime system from a bounded structured specification.
+
+      Your job is not to decompose the system into AC14 packets or blueprint artifacts.
+      Your job is to emit one complete Python module that can execute runtime cases directly.
+
+      Contract:
+      - return one Python module only
+      - the module must define `build_system()`
+      - `build_system()` must return an object with `run_case(record)`
+      - `run_case(record)` must return a dict keyed by final output port name
+      - output keys must match the declared final output ports exactly
+      - preserve deterministic state across sequential calls when the benchmark requires it
+
+      Priorities:
+      - follow the structured specification and requirements exactly
+      - keep logic explicit and reviewable
+      - do not hide core threshold or compliance rules in vague prose
+      - use only the allowed dependencies when they are genuinely necessary
+
+      Return only structured fields. Do not add markdown fences.
+
+  - role: user
+    content: |
+      Build one direct whole-task runtime system from this structured-spec benchmark.
+
+      Benchmark metadata:
+      {{ benchmark }}
+
+      Requirements:
+      {{ requirements_text }}
+
+      Structured spec:
+      {{ structured_spec }}
+
+      Allowed dependencies:
+      {{ allowed_dependencies }}
+
+      Final output ports:
+      {{ final_output_ports }}
+
+      Repair guidance from previous attempt:
+      {{ repair_guidance }}

@@ -1,6 +1,6 @@
 # Plan #87: Front-Half-First Smoke Execution
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 86

@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md)
 
 The explicit active chain is:
 
@@ -32,8 +32,8 @@ The explicit active chain is:
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
 - [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
-- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
-- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> next
+- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> complete
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> active
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> conditional on smoke `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> conditional on smoke `blocked_*`
 
@@ -50,12 +50,11 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. implement the front-half-first smoke runner with an explicit staged-combined success contract
-2. spend one bounded front-half-first smoke trial
-3. branch immediately from the verdict:
+1. spend one bounded front-half-first smoke trial
+2. branch immediately from the verdict:
    - full trial if `ready_for_full_trials`
    - blocker diagnosis if `blocked_on_front_half`, `blocked_on_harness`, or `blocked_on_infrastructure`
-4. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
+3. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen
 
 ## Progress Update
 
@@ -86,6 +85,7 @@ Completed before the current lane:
 23. a completed bounded structured-spec input contract for draft planning
 24. a completed full structured-spec front-half lane through freeze and semantic review
 25. a completed structured-spec benchmark bundle anchored to existing runtime evaluation assets
+26. a verified staged-combined front-half-first smoke runner with CLI/Make parity and typed subprocess fixtures
 
 ## Tactical Phase Summary
 
@@ -150,9 +150,17 @@ Success criteria:
 
 - the next empirical smoke gate consumes a shared structured-spec input contract
 
-### Phase 7: front-half-first smoke chain
+### Phase 7: front-half-first smoke runner
 
 - implement the dedicated front-half-first smoke runner
+  - Result: the repo now has a verified staged-combined runner and explicit CLI/Make surface
+
+Success criteria:
+
+- the runner is real, typed, and fully verified across code, CLI, and Make
+
+### Phase 8: front-half-first smoke execution
+
 - spend one bounded smoke trial
 - branch immediately to either full trials or blocker diagnosis from the verdict
 
@@ -169,5 +177,5 @@ The detailed uncertainty ledger now lives in:
 Current lane-specific uncertainties:
 
 1. the second gate is decisive, but it is still a bounded back-half empirical slice rather than the strongest end-to-end thesis test
-2. the current runner still needs to prove whether AC14 front-half approval is easy enough to keep the first smoke gate inexpensive
+2. the current runner is implemented; the active question is what verdict the first persisted smoke artifact will actually produce
 3. blocked propagation lanes should stay blocked until the front-half-first empirical direction is executed explicitly

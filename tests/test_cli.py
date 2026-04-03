@@ -30,6 +30,14 @@ from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
 from ac14.packets import compile_packets
 from ac14.structured_spec import build_structured_spec_artifact
+from tests.front_half_first_fixtures import (
+    write_acceptance_review_fixture as write_front_half_first_acceptance_review_fixture,
+    write_front_half_first_benchmark_bundle,
+    write_front_half_first_llm_codegen_fixture,
+    write_front_half_first_monolithic_fixture,
+    write_front_half_first_plan_fixture,
+    write_front_half_first_structured_spec_front_half_fixture,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -1999,6 +2007,19 @@ def test_cli_prove_suite(tmp_path: Path) -> None:
 def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
     """Suite comparison command should build an aggregate comparison artifact."""
 
+    env = os.environ.copy()
+    for key in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+    ]:
+        env.pop(key, None)
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        write_front_half_first_acceptance_review_fixture(
+            tmp_path / "acceptance_review_fixture.json",
+        )
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -2018,6 +2039,7 @@ def test_cli_compare_suite_deterministic_only(tmp_path: Path) -> None:
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
@@ -2233,6 +2255,70 @@ def test_cli_empirical_smoke_gate_help() -> None:
     assert result.returncode == 0
     assert "--max-attempts" in result.stdout
     assert "--output-dir" in result.stdout
+
+
+def test_cli_front_half_first_smoke_gate_help() -> None:
+    """Front-half-first smoke help should expose the new structured-spec smoke command."""
+
+    result = subprocess.run(
+        [sys.executable, "-m", "ac14", "front-half-first-smoke-gate", "--help"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--max-attempts" in result.stdout
+    assert "--output-dir" in result.stdout
+
+
+def test_cli_front_half_first_smoke_gate_runs_end_to_end(tmp_path: Path) -> None:
+    """Front-half-first smoke CLI should persist a readiness artifact on the mini benchmark."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    env = os.environ.copy()
+    env["AC14_STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        write_front_half_first_structured_spec_front_half_fixture(
+            tmp_path / "front_half_first_structured_spec_front_half_fixture.json",
+            benchmark_dir=benchmark_dir,
+            plan_fixture_path=write_front_half_first_plan_fixture(
+                tmp_path / "front_half_first_plan_fixture.json",
+            ),
+        ),
+    )
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(
+        write_front_half_first_llm_codegen_fixture(tmp_path / "front_half_first_llm_codegen_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_FIRST_MONOLITHIC_FIXTURE"] = str(
+        write_front_half_first_monolithic_fixture(tmp_path / "front_half_first_monolithic_fixture.json"),
+    )
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        write_front_half_first_acceptance_review_fixture(tmp_path / "front_half_first_acceptance_review_fixture.json"),
+    )
+    env["AC14_LLM_OBSERVABILITY_DB"] = str(tmp_path / "missing_observability.db")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "front-half-first-smoke-gate",
+            str(benchmark_dir),
+            "--output-dir",
+            str(tmp_path / "front_half_first_smoke"),
+            "--max-attempts",
+            "1",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["verdict"] == "ready_for_full_trials"
+    assert payload["ac14_front_half_success"] is True
+    assert (tmp_path / "front_half_first_smoke" / "smoke_readiness_report.json").exists()
 
 
 def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:

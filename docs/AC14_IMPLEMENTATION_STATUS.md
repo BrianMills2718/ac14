@@ -147,7 +147,7 @@ It is not yet strong at:
 1. explicit front-half proof that the new directory schema-divergence concerns survive discovery-through-freeze
 2. deeper schema inference from realistic corpora
 3. broad source-code understanding outside retrieved snippets
-4. implementing the first runnable front-half-first smoke gate with an explicit staged-combined success contract
+4. spending the first bounded front-half-first smoke gate and interpreting its verdict honestly
 5. proving that the full end-to-end decomposition approach materially beats
    monolithic generation on a system complex enough for the thesis to matter
 6. freezing a sharper reusable empirical response instead of drifting back into benchmark-local micro-repairs
@@ -198,8 +198,7 @@ Still missing:
 ## What Is Not Implemented Yet
 
 1. directory schema-divergence propagation through the front-half chain
-2. a stronger front-half-first smoke-gate runner
-3. a persisted verdict from the first front-half-first smoke gate
+2. a persisted verdict from the first front-half-first smoke gate
 4. broad automatic dependency installation and post-install verification as a normal lane
 5. real shared-tool execution inside blueprinted components
 6. first-class runtime tool nodes or retrieval nodes in the blueprint model

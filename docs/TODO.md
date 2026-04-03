@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md)
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md)
 
 The explicit active chain is:
 
@@ -35,8 +35,8 @@ The explicit active chain is:
 - [Plan #83: Structured Spec Input Contract](/home/brian/projects/ac14/docs/plans/83_structured_spec_input_contract.md) -> complete
 - [Plan #84: Structured-Spec Front-Half Acceptance](/home/brian/projects/ac14/docs/plans/84_structured_spec_front_half_acceptance.md) -> complete
 - [Plan #85: Structured-Spec Benchmark Bundle](/home/brian/projects/ac14/docs/plans/85_structured_spec_benchmark_bundle.md) -> complete
-- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> active
-- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> planned
+- [Plan #86: Front-Half-First Smoke Gate Contract And Runner](/home/brian/projects/ac14/docs/plans/86_front_half_first_smoke_gate.md) -> complete
+- [Plan #87: Front-Half-First Smoke Execution](/home/brian/projects/ac14/docs/plans/87_front_half_first_smoke_execution.md) -> active
 - [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> planned, conditional on Plan #87 verdict `ready_for_full_trials`
 - [Plan #89: Front-Half-First Blocker Diagnosis](/home/brian/projects/ac14/docs/plans/89_front_half_first_blocker_diagnosis.md) -> planned, conditional on Plan #87 verdict `blocked_*`
 
@@ -119,8 +119,8 @@ The previously active propagation lane remains blocked:
 - [x] Plan #85: freeze one benchmark-ready structured-spec bundle for the next empirical gate
   - Result: the repo now has a typed structured-spec benchmark bundle anchored to the existing `resource_scaling` runtime evaluation assets
 
-- [ ] Plan #86: implement the front-half-first smoke contract and runner
-  - Result target: the repo persists an honest smoke artifact that requires both AC14 front-half approval and runtime hard-harness evidence
+- [x] Plan #86: implement the front-half-first smoke contract and runner
+  - Result: the repo now persists a staged-combined front-half-first smoke artifact and verified CLI/Make runner surface
 
 - [ ] Plan #87: spend one bounded front-half-first smoke trial on the structured-spec benchmark bundle
   - Result target: one persisted smoke artifact decides the next branch without chat-only interpretation
@@ -136,12 +136,12 @@ The previously active propagation lane remains blocked:
 - provider `503` demand noise appeared during the first full five-trial run and may contaminate secondary time/cost interpretation even though the primary success outcome completed
 - the second gate is no longer open; it finished decisively as `monolithic_wins`
 - the current open question is no longer what the first front-half-first smoke gate should judge; that contract is now the staged-combined rule in Plan #86
-- the current active uncertainty is whether the new runner will reveal a blocker in AC14 front-half approval, in runtime execution, or in both
+- the current active uncertainty is whether the first persisted smoke artifact will block on AC14 front-half approval, on the runtime harness, or on infrastructure contamination
 
 ## Latest Verified Baseline
 
 - latest full code verification baseline:
-  - `python -m pytest -q` with `250 passed`
+  - `python -m pytest -q` with `275 passed, 1 skipped`
   - `python -m mypy ac14 tests`
   - `python -m ruff check ac14 tests`
 - latest empirical verification baseline:
@@ -161,7 +161,7 @@ The previously active propagation lane remains blocked:
 
 ## Longer-Term Next Steps
 
-- [ ] complete Plan #86 so the front-half-first empirical contract has a runnable smoke gate
+- [x] complete Plan #86 so the front-half-first empirical contract has a runnable smoke gate
 - [ ] complete Plan #87 so the front-half-first empirical contract has one persisted smoke verdict
 - [ ] complete Plan #88 or Plan #89 from that verdict instead of drifting into a side lane
 - [ ] only after that decide whether the first front-half-first benchmark should be retained, expanded, or replaced for broader proof breadth

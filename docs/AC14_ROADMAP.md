@@ -237,8 +237,8 @@ In order:
 13. (done — Plan #83) implement the minimal structured-spec input contract for front-half drafting
 14. (done — Plan #84) prove one full structured-spec front-half lane through freeze and semantic review
 15. (done — Plan #85) freeze one benchmark-ready structured-spec bundle anchored to the existing `resource_scaling` runtime evaluation assets
-16. (now — Plan #86) implement the front-half-first smoke contract and runner
-17. (next — Plan #87) spend one bounded front-half-first smoke trial
+16. (done — Plan #86) implement the front-half-first smoke contract and runner
+17. (now — Plan #87) spend one bounded front-half-first smoke trial
 18. (then — Plan #88 or #89) either run the full front-half-first gate or diagnose the blocker directly from the smoke verdict
 
 ## Current empirical branch rule
