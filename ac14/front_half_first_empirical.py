@@ -1093,6 +1093,7 @@ def _infer_final_output_bindings(
     inferred: dict[str, tuple[str, str]] = {}
     bound_to_sink_candidates = _collect_bound_sink_output_candidates(blueprint)
     non_source_candidates = _collect_non_source_output_candidates(blueprint)
+    leaf_non_source_candidates = _collect_leaf_non_source_output_candidates(blueprint)
     for structured_output in structured_outputs:
         candidates = sorted(
             (
@@ -1133,6 +1134,11 @@ def _infer_final_output_bindings(
             for candidate in non_source_candidates
             if candidate[1] == structured_output.name
         ]
+        leaf_non_source_exact_name_candidates = [
+            candidate
+            for candidate in leaf_non_source_candidates
+            if candidate[1] == structured_output.name
+        ]
         schema_name_candidates = [
             candidate
             for candidate in candidates
@@ -1142,6 +1148,12 @@ def _infer_final_output_bindings(
         non_source_schema_name_candidates = [
             candidate
             for candidate in non_source_candidates
+            if _normalize_runtime_contract_identifier(candidate[2])
+            == _normalize_runtime_contract_identifier(structured_output.name)
+        ]
+        leaf_non_source_schema_name_candidates = [
+            candidate
+            for candidate in leaf_non_source_candidates
             if _normalize_runtime_contract_identifier(candidate[2])
             == _normalize_runtime_contract_identifier(structured_output.name)
         ]
@@ -1163,6 +1175,15 @@ def _infer_final_output_bindings(
                 structured_interface=structured_output,
             )
         ]
+        leaf_non_source_schema_match_candidates = [
+            candidate
+            for candidate in leaf_non_source_candidates
+            if _schema_matches_structured_spec_interface(
+                blueprint=blueprint,
+                schema_id=candidate[2],
+                structured_interface=structured_output,
+            )
+        ]
         component_id, emitted_port_name, _schema_id = _select_structured_spec_output_candidate(
             structured_output_name=structured_output.name,
             candidates=candidates,
@@ -1170,10 +1191,13 @@ def _infer_final_output_bindings(
             sink_schema_name_candidates=sink_schema_name_candidates,
             sink_schema_match_candidates=sink_schema_match_candidates,
             exact_name_candidates=exact_name_candidates,
+            leaf_non_source_exact_name_candidates=leaf_non_source_exact_name_candidates,
             non_source_exact_name_candidates=non_source_exact_name_candidates,
             schema_name_candidates=schema_name_candidates,
+            leaf_non_source_schema_name_candidates=leaf_non_source_schema_name_candidates,
             non_source_schema_name_candidates=non_source_schema_name_candidates,
             schema_match_candidates=schema_match_candidates,
+            leaf_non_source_schema_match_candidates=leaf_non_source_schema_match_candidates,
             non_source_schema_match_candidates=non_source_schema_match_candidates,
         )
         inferred[structured_output.name] = (component_id, emitted_port_name)
@@ -1194,6 +1218,28 @@ def _collect_non_source_output_candidates(
         for component_id, component in blueprint.components.items()
         if component.kind != "source"
         for port in component.output_ports
+    )
+
+
+def _collect_leaf_non_source_output_candidates(
+    blueprint: FrozenBlueprint,
+) -> list[tuple[str, str, str]]:
+    """Return non-source output candidates whose ports are not consumed downstream."""
+
+    bound_output_ports = {
+        (binding.from_component, binding.from_port)
+        for binding in blueprint.bindings
+    }
+    return sorted(
+        (
+            component_id,
+            port.name,
+            port.schema_id,
+        )
+        for component_id, component in blueprint.components.items()
+        if component.kind != "source"
+        for port in component.output_ports
+        if (component_id, port.name) not in bound_output_ports
     )
 
 
@@ -1230,10 +1276,13 @@ def _select_structured_spec_output_candidate(
     sink_schema_name_candidates: list[tuple[str, str, str]],
     sink_schema_match_candidates: list[tuple[str, str, str]],
     exact_name_candidates: list[tuple[str, str, str]],
+    leaf_non_source_exact_name_candidates: list[tuple[str, str, str]],
     non_source_exact_name_candidates: list[tuple[str, str, str]],
     schema_name_candidates: list[tuple[str, str, str]],
+    leaf_non_source_schema_name_candidates: list[tuple[str, str, str]],
     non_source_schema_name_candidates: list[tuple[str, str, str]],
     schema_match_candidates: list[tuple[str, str, str]],
+    leaf_non_source_schema_match_candidates: list[tuple[str, str, str]],
     non_source_schema_match_candidates: list[tuple[str, str, str]],
 ) -> tuple[str, str, str]:
     """Select one generated output candidate for one structured-spec final output or fail loud."""
@@ -1245,6 +1294,14 @@ def _select_structured_spec_output_candidate(
             "unable to infer one unique final component from structured spec output "
             f"{structured_output_name!r}: multiple sink-forward exact-name candidates "
             f"{_format_output_candidates(sink_exact_name_candidates)}",
+        )
+    if len(leaf_non_source_exact_name_candidates) == 1:
+        return leaf_non_source_exact_name_candidates[0]
+    if len(leaf_non_source_exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple leaf exact-name candidates "
+            f"{_format_output_candidates(leaf_non_source_exact_name_candidates)}",
         )
     if len(non_source_exact_name_candidates) == 1:
         return non_source_exact_name_candidates[0]
@@ -1270,6 +1327,14 @@ def _select_structured_spec_output_candidate(
             f"{structured_output_name!r}: multiple sink-forward schema-name candidates "
             f"{_format_output_candidates(sink_schema_name_candidates)}",
         )
+    if len(leaf_non_source_schema_name_candidates) == 1:
+        return leaf_non_source_schema_name_candidates[0]
+    if len(leaf_non_source_schema_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple leaf schema-name candidates "
+            f"{_format_output_candidates(leaf_non_source_schema_name_candidates)}",
+        )
     if len(non_source_schema_name_candidates) == 1:
         return non_source_schema_name_candidates[0]
     if len(non_source_schema_name_candidates) > 1:
@@ -1293,6 +1358,14 @@ def _select_structured_spec_output_candidate(
             "unable to infer one unique final component from structured spec output "
             f"{structured_output_name!r}: multiple sink-forward schema-matched candidates "
             f"{_format_output_candidates(sink_schema_match_candidates)}",
+        )
+    if len(leaf_non_source_schema_match_candidates) == 1:
+        return leaf_non_source_schema_match_candidates[0]
+    if len(leaf_non_source_schema_match_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple leaf schema-matched candidates "
+            f"{_format_output_candidates(leaf_non_source_schema_match_candidates)}",
         )
     if len(non_source_schema_match_candidates) == 1:
         return non_source_schema_match_candidates[0]

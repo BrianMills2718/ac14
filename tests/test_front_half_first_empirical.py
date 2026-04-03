@@ -452,6 +452,96 @@ def test_infer_runtime_contract_prefers_non_source_candidate_for_final_store(
     }
 
 
+def test_infer_runtime_contract_prefers_leaf_candidate_for_duplicate_final_entry(
+    tmp_path: Path,
+) -> None:
+    """Runtime contract inference should prefer the unique leaf final-entry output."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+    payload["proposed_components"] = [
+        {
+            "component_id": "decision_engine",
+            "semantic_responsibility": "emit_preliminary_scaling_decision",
+            "purpose": "Emit the intermediate final decision before recording it.",
+            "input_ports": [
+                {
+                    "port_name": "metrics_snapshot",
+                    "schema_name": "MetricsSnapshot",
+                    "description": "Incoming metrics snapshot.",
+                }
+            ],
+            "output_ports": [
+                {
+                    "port_name": "final_decision",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Intermediate scaling decision entry.",
+                }
+            ],
+            "packet_focus": ["keep threshold logic explicit"],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "decision_recorder",
+            "semantic_responsibility": "record_scaling_decision",
+            "purpose": "Emit the leaf final decision output and rolling store snapshot.",
+            "input_ports": [
+                {
+                    "port_name": "decision_in",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Intermediate decision entry to record.",
+                }
+            ],
+            "output_ports": [
+                {
+                    "port_name": "scaling_decision_entry_out",
+                    "schema_name": "ScalingDecisionEntry",
+                    "description": "Leaf final decision entry for system outputs.",
+                },
+                {
+                    "port_name": "scaling_decision_store",
+                    "schema_name": "ScalingDecisionStore",
+                    "description": "Leaf rolling scaling decision store output.",
+                },
+            ],
+            "packet_focus": ["preserve final decision and rolling store outputs"],
+            "dependency_notes": [],
+        },
+    ]
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "decision_engine",
+            "from_port": "final_decision",
+            "rationale": "Recorder consumes the intermediate decision and emits the leaf final outputs.",
+            "to_component": "decision_recorder",
+            "to_port": "decision_in",
+        }
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(
+        plan_path,
+        tmp_path / "draft_bundle",
+    )
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.final_component_id == "decision_recorder"
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "decision_recorder",
+        "scaling_decision_store": "decision_recorder",
+    }
+    assert contract.final_output_emitted_ports == {
+        "scaling_decision_entry": "scaling_decision_entry_out",
+        "scaling_decision_store": "scaling_decision_store",
+    }
+
+
 def test_infer_runtime_contract_rejects_extra_required_unbound_inputs(tmp_path: Path) -> None:
     """Runtime contract inference should fail loud on extra required unbound inputs."""
 

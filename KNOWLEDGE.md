@@ -219,6 +219,19 @@ asset through `reference` and `deterministic` final acceptance by keeping the
 required source fields explicit and decoding JSON-like CSV cells for list
 fields, rather than inventing hidden runtime normalization.
 
+### 2026-04-03 — codex — workaround
+Front-half smoke reruns must own a clean output directory and a single active
+runner. Concurrent smoke processes writing the same `.ac14_out/...` directory
+produce contaminated partial evidence and should be killed before the rerun is
+trusted.
+
+### 2026-04-03 — codex — best-practice
+When structured-spec final-output inference sees the same final-output schema
+from both an intermediate component and a downstream recorder, prefer the
+unique unbound leaf output. Failing loud on that duplicate pass-through pattern
+blocks real runtime evaluation even though the true system output surface is
+already present.
+
 ### 2026-04-02 — codex — best-practice
 When the empirical lane is blocked on benchmark fidelity, repair guidance must
 not stay as one undifferentiated summary copied to every component. AC14 now

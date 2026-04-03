@@ -130,13 +130,15 @@ current executable lane.
 | 120 | [Front-Half Runtime-Output Boundary II](120_front_half_runtime_output_boundary_ii.md) | Critical | Planned | 121 |
 | 121 | [Front-Half Runtime-Output Repair II And Smoke Rerun XII](121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) | Critical | Planned | - |
 | 122 | [Front-Half Runtime-Harness Boundary VI](122_front_half_runtime_harness_boundary_vi.md) | Critical | Planned | 123 |
-| 123 | [Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) | Critical | Planned | - |
+| 123 | [Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) | Critical | In Progress | 88, 120, 126, 128, 130 |
 | 124 | [Front-Half Structured Dependency Boundary](124_front_half_structured_dependency_boundary.md) | Critical | Complete | 125 |
-| 125 | [Front-Half Structured-Dependency Repair And Smoke Rerun XIV](125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md) | Critical | In Progress | 88, 120, 122, 126, 128 |
+| 125 | [Front-Half Structured-Dependency Repair And Smoke Rerun XIV](125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md) | Critical | Complete | 88, 120, 122, 126, 128 |
 | 126 | [Front-Half Dependency Boundary II](126_front_half_dependency_boundary_ii.md) | Critical | Planned | 127 |
 | 127 | [Front-Half Dependency Repair II And Smoke Rerun XV](127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) | Critical | Planned | - |
 | 128 | [Front-Half External Provider Boundary III](128_front_half_external_provider_boundary_iii.md) | Critical | Planned | 129 |
 | 129 | [Front-Half Provider Fallback And Smoke Rerun XVI](129_front_half_provider_fallback_and_smoke_rerun_xvi.md) | Critical | Planned | - |
+| 130 | [Front-Half Runtime-Harness Boundary VII](130_front_half_runtime_harness_boundary_vii.md) | Critical | Planned | 131 |
+| 131 | [Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) | Critical | Planned | - |
 
 ## Status Key
 

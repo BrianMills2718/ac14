@@ -1,6 +1,6 @@
 # Plan #125: Front-Half Structured-Dependency Repair And Smoke Rerun XIV
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 124
@@ -26,15 +26,15 @@ lane to work without relying on undeclared system Python packages.
 
 ## Acceptance Criteria
 
-- [ ] AC14 declares the structured `llm_client` dependency it actually uses for
+- [x] AC14 declares the structured `llm_client` dependency it actually uses for
       front-half and monolithic structured generation.
-- [ ] The repo-local `.venv` install flow can import `instructor` without
+- [x] The repo-local `.venv` install flow can import `instructor` without
       relying on system-site packages.
-- [ ] Targeted verification proves the dependency repair did not regress the
+- [x] Targeted verification proves the dependency repair did not regress the
       repaired Plan #119 lane.
-- [ ] One fresh smoke artifact exists after the repair at
+- [x] One fresh smoke artifact exists after the repair at
       `.ac14_out/front_half_first_smoke_14/`.
-- [ ] The next branch is explicit from the new artifact as Plan #88 + #100,
+- [x] The next branch is explicit from the new artifact as Plan #88 + #100,
       Plan #120 + #121, Plan #122 + #123, Plan #126 + #127, or
       Plan #128 + #129.
 
@@ -59,3 +59,18 @@ This plan must stay bounded:
    into Plan #126 then Plan #127
 8. if the rerun returns `blocked_on_infrastructure`, immediately continue into
    Plan #128 then Plan #129
+
+## Result
+
+The dependency repair landed truthfully:
+
+1. `pyproject.toml` now declares `llm_client[structured]`
+2. the repo-local `.venv` editable install imports `instructor` without relying
+   on hidden system packages
+3. targeted regression tests, `mypy`, and `ruff` all passed
+
+Smoke_14 then reran cleanly at `.ac14_out/front_half_first_smoke_14/`. The
+dependency blocker is gone, but the gate still ended `blocked_on_harness`
+because AC14 attempts 1 and 3 failed on repeated ambiguous final-output
+inference for `scaling_decision_entry`. That closed Plan #125 and activated the
+bounded harness branch in Plans #122 and #123.
