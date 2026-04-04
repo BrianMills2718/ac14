@@ -39,6 +39,14 @@ class CodegenContext(BaseModel):
     packet_test_cases: list[PacketTestCase] = Field(
         description="Packet-local test cases derived from fixtures.",
     )
+    structured_spec_business_rules: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Verbatim business rules from the structured spec, when the blueprint was "
+            "derived from a structured spec input. These ground the implementation in the "
+            "full rule set even when local_invariants are placeholder TODO strings."
+        ),
+    )
     rule_grounding_summaries: list[str] = Field(
         default_factory=list,
         description=(
@@ -56,6 +64,7 @@ def build_codegen_context(
     packet: ComponentPacket,
     packet_test_cases: list[PacketTestCase],
     repair_guidance: list[str] | None = None,
+    structured_spec_business_rules: list[str] | None = None,
 ) -> CodegenContext:
     """Project one component packet into the bounded code-generation context."""
 
@@ -75,6 +84,7 @@ def build_codegen_context(
         downstream_components=dict(packet.downstream_components),
         owned_state_stores=dict(packet.owned_state_stores),
         packet_test_cases=list(packet_test_cases),
+        structured_spec_business_rules=list(structured_spec_business_rules or []),
         rule_grounding_summaries=_build_rule_grounding_summaries(packet_test_cases),
         repair_guidance=list(repair_guidance or []),
     )
@@ -104,6 +114,7 @@ def render_codegen_context_text(context: CodegenContext) -> str:
             f"downstream_components: {downstream}",
             f"packet_test_cases: {tests}",
             f"rule_grounding_summaries: {len(context.rule_grounding_summaries)}",
+            f"structured_spec_business_rules: {len(context.structured_spec_business_rules)}",
         ],
     )
 

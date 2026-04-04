@@ -796,6 +796,7 @@ def _run_ac14_attempt(
                     llm_model=model,
                     llm_max_budget=max_budget,
                     trace_id_prefix=trace_prefix,
+                    structured_spec_business_rules=list(structured_bundle.structured_spec.business_rules),
                 )
                 packet_report = run_generated_packet_tests(
                     packet_bundle,
