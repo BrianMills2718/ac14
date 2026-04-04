@@ -98,7 +98,7 @@ current executable lane.
 | 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | Complete | 86 |
 | 86 | [Front-Half-First Smoke Gate Contract And Runner](86_front_half_first_smoke_gate.md) | Critical | Complete | 87 |
 | 87 | [Front-Half-First Smoke Execution](87_front_half_first_smoke_execution.md) | Critical | Complete | 88, 89 |
-| 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | Planned | - |
+| 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | In Progress | - |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
@@ -145,7 +145,7 @@ current executable lane.
 | 135 | [Front-Half Runtime-Output Boundary III](135_front_half_runtime_output_boundary_iii.md) | Critical | Complete | 136 |
 | 136 | [Front-Half Runtime-Output Repair III And Smoke Rerun XX](136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) | Critical | Complete | - |
 | 137 | [Front-Half Runtime-Harness Boundary IX](137_front_half_runtime_harness_boundary_ix.md) | Critical | Complete | 138 |
-| 138 | [Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) | Critical | In Progress | - |
+| 138 | [Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) | Critical | Complete | - |
 
 ## Status Key
 
