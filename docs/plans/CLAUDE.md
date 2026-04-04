@@ -142,6 +142,8 @@ current executable lane.
 | 132 | [Theory-Forge Input Contract](132_theory_forge_input_contract.md) | High | Planned | 88 |
 | 133 | [Front-Half Runtime-Harness Boundary VIII](133_front_half_runtime_harness_boundary_viii.md) | Critical | Complete | 134 |
 | 134 | [Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) | Critical | Complete | - |
+| 135 | [Front-Half Runtime-Output Boundary III](135_front_half_runtime_output_boundary_iii.md) | Critical | Complete | 136 |
+| 136 | [Front-Half Runtime-Output Repair III And Smoke Rerun XX](136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) | Critical | In Progress | - |
 
 ## Status Key
 
