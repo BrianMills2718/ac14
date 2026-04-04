@@ -1,6 +1,6 @@
 # Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 130
