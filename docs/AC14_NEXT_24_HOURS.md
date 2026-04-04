@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md)
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md)
 
 The explicit active chain is:
 
@@ -68,13 +68,12 @@ The explicit active chain is:
 - [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> complete, smoke_14 froze repeated ambiguous final-output inference as the dominant harness blocker
 - [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> complete, smoke_15 verdict `blocked_on_harness` (harness loaded draft bundle instead of approved retry bundle)
 - [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> complete, smoke_15 blocker documented: harness used `draft_bundle_dir` not `refined_draft_bundle_dir` from FreezeRetryArtifact; fix merged to master
-- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> complete, smoke_16 blocked_on_harness (terminal-tier fix: prefer port whose consumer doesn't produce same schema)
-- smoke_17 in progress at `.ac14_out/front_half_first_smoke_17` (PID 3739241)
-- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_17 says `blocked_on_runtime_outputs`
-- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> planned
-- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_17 still says `blocked_on_front_half`
+- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> complete, smoke_17 verdict `blocked_on_runtime_outputs` (all 3 attempts reached runtime eval; RSC-100..103 mismatched outputs)
+- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> complete, smoke_17 froze missing approval/strategy/alert/deploy-risk rules as dominant blocker
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> in progress: spec expanded with 19 rules (merged); smoke_18 PENDING
+- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_18 says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
-- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_17 says `blocked_on_infrastructure`
+- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_18 says `blocked_on_infrastructure`
 - [Plan #129: Front-Half Provider Fallback And Smoke Rerun XVI](/home/brian/projects/ac14/docs/plans/129_front_half_provider_fallback_and_smoke_rerun_xvi.md) -> planned
 
 The empirical gate remains frozen in
@@ -98,14 +97,17 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 6. [x] Plan #123 fix: when `retry_freeze_approved=True`, load `FreezeRetryArtifact.refined_draft_bundle_dir` — merged to master
 7. [x] run smoke_16 → verdict `blocked_on_harness` (two non-source candidates for scaling_decision_entry)
 8. [x] Plan #131: terminal-tier fix — prefer port consumed by component that doesn't produce same schema. Merged.
-9. [ ] run smoke_17 at `.ac14_out/front_half_first_smoke_17` (IN PROGRESS — PID 3739241)
-10. [ ] branch immediately from smoke_17 verdict:
-   - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
-   - if `blocked_on_runtime_outputs`: execute Plan #120, then execute Plan #121
-   - if `blocked_on_harness`: create Plan #133 (new boundary) + Plan #134 (repair + smoke_18)
-   - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
-   - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
-11. keep the harder back-half second gate closed unless smoke_17 says `ready_for_full_trials`
+9. [x] run smoke_17 → verdict `blocked_on_runtime_outputs` (all 3 attempts reached runtime eval; RSC-100..103 mismatched)
+10. [x] Plan #120: freeze smoke_17 dominant blocker — missing approval/strategy/alert/deploy-risk rules in structured spec
+11. [x] Plan #121: expand structured_spec_input.yaml with 19 detailed business rules — merged to master
+12. [ ] run smoke_18 at `.ac14_out/front_half_first_smoke_18` (NEXT)
+13. [ ] branch immediately from smoke_18 verdict:
+    - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
+    - if `blocked_on_runtime_outputs`: freeze Plan #133 (new boundary) + Plan #134 (repair + smoke_19)
+    - if `blocked_on_harness`: freeze Plan #133 (new harness boundary) + Plan #134 (repair + smoke_19)
+    - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
+    - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
+14. keep the harder back-half second gate closed unless smoke_18 says `ready_for_full_trials`
 
 ## Branch Matrix
 

@@ -1,7 +1,7 @@
 # AC14 TODO
 
 Status: Active control surface
-Last updated: 2026-04-03
+Last updated: 2026-04-04
 
 This file is the running checklist for the active numbered plan, not a full
 history log.
@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md)
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md)
 
 The explicit active chain is:
 
@@ -69,11 +69,11 @@ The explicit active chain is:
 - [Plan #124: Front-Half Structured Dependency Boundary](/home/brian/projects/ac14/docs/plans/124_front_half_structured_dependency_boundary.md) -> complete, smoke_13 froze the missing `llm_client[structured]` / `instructor` contract
 - [Plan #125: Front-Half Structured-Dependency Repair And Smoke Rerun XIV](/home/brian/projects/ac14/docs/plans/125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md) -> complete, smoke_14 cleared the dependency blocker but stayed `blocked_on_harness`
 - [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> complete, smoke_14 froze repeated ambiguous final-output inference as the dominant harness blocker
-- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> active
-- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_15 says `blocked_on_runtime_outputs`
-- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> planned
-- [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> planned if smoke_15 still says `blocked_on_harness`
-- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> planned
+- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> complete, smoke_15 verdict `blocked_on_harness` (terminal inference fix landed)
+- [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> complete, smoke_16 froze two-component-same-schema topology as next harness blocker
+- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> complete, smoke_17 verdict `blocked_on_runtime_outputs` (all attempts reached runtime eval, RSC-100..103 mismatched)
+- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> complete, smoke_17 froze missing approval/strategy/alert/deploy-risk rules in spec
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> in progress (spec expanded with 19 rules; smoke_18 pending)
 - [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_15 still says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
 - [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_15 says `blocked_on_infrastructure`
@@ -109,8 +109,10 @@ The experiment contract remains frozen in:
 - [x] Plan #123: Fix harness to load `refined_draft_bundle_dir` from FreezeRetryArtifact when `retry_freeze_approved=True`. Merged to master.
 - [x] Run smoke_16 at `.ac14_out/front_half_first_smoke_16` — verdict `blocked_on_harness` (attempt_2 new topology: PolicyEvaluator and ComplianceAndExecution both emitted scaling_decision_entry but neither was a leaf; `non_source_schema_name_candidates` tier found both).
 - [x] Plan #131: add `terminal_non_source_schema_name_candidates` tier — a port is terminal if its consuming component does NOT produce the same schema. Merged to master.
-- [ ] Run smoke_17 at `.ac14_out/front_half_first_smoke_17` (in progress — PID 3739241).
-- [ ] Branch immediately from smoke_17 verdict into Plan #88 + #100, Plan #120 + #121, Plan #126 + #127, or Plan #128 + #129.
+- [x] Run smoke_17 at `.ac14_out/front_half_first_smoke_17` — verdict `blocked_on_runtime_outputs`. All 3 attempts reached runtime evaluation (no harness inference failures). Code ran but outputs mismatched (RSC-100..103). Front-half success: true. Pre-runtime proof failed: true.
+- [x] Branch: smoke_17 `blocked_on_runtime_outputs` → execute Plan #120 (boundary) then Plan #121 (repair + smoke_18).
+- [ ] Plan #120: document the dominant runtime-output blocker from smoke_17.
+- [ ] Plan #121: repair it and run smoke_18.
 
 The completed execution lanes are:
 
