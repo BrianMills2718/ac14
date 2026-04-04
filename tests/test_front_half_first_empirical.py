@@ -842,3 +842,103 @@ def _condition_report(
         repair_loops_used=0,
         attempts=[attempt],
     )
+
+
+_SMOKE15_DRAFT_BUNDLE = Path(
+    ".ac14_out/front_half_first_smoke_15/trial_1/ac14/attempt_3/front_half/draft_bundle"
+)
+_SMOKE15_STRUCTURED_SPEC = Path(
+    ".ac14_out/front_half_first_smoke_15/trial_1/ac14/attempt_3/structured_spec/structured_spec_artifact.json"
+)
+
+
+@pytest.mark.skipif(
+    not _SMOKE15_DRAFT_BUNDLE.exists(),
+    reason="smoke_15 draft bundle artifact not present — skipped on fresh machines",
+)
+def test_infer_runtime_contract_fails_on_smoke15_draft_bundle() -> None:
+    """Contract inference must fail loud on the actual smoke_15 draft bundle topology
+    (recorder has a self-loop binding that makes recorder.emitted_entry non-leaf) —
+    proving the bug mode that was fixed by loading approved_bundle_dir instead."""
+    from ac14.structured_spec import StructuredSpecDocument
+
+    blueprint = load_blueprint_dir(_SMOKE15_DRAFT_BUNDLE)
+    artifact = json.loads(_SMOKE15_STRUCTURED_SPEC.read_text())
+    structured_spec = StructuredSpecDocument.model_validate(artifact["spec"])
+
+    with pytest.raises(ValueError, match="multiple non-source schema-name candidates"):
+        infer_runtime_contract_from_structured_spec(
+            blueprint=blueprint,
+            structured_spec=structured_spec,
+        )
+
+
+def test_infer_runtime_contract_succeeds_with_retry_bundle_topology(
+    tmp_path: Path,
+) -> None:
+    """Contract inference succeeds with the retry-bundle topology where recorder is the
+    true leaf — confirming that the harness fix (load from approved_bundle_dir not
+    draft_bundle_dir) resolves the smoke_15 repeated generation failure."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+
+    # Topology mirrors the smoke_15 retry/refined bundle:
+    #   compliance_execution emits ScalingDecisionEntry → consumed by recorder
+    #   recorder emits ScalingDecisionEntry as a true LEAF (not consumed by anything)
+    payload["proposed_components"] = [
+        {
+            "component_id": "compliance_execution",
+            "semantic_responsibility": "apply_compliance_rules",
+            "purpose": "Emit intermediate decision after compliance checks.",
+            "input_ports": [
+                {"port_name": "metrics_in", "schema_name": "RawScalingEvent", "description": "Raw event."}
+            ],
+            "output_ports": [
+                {"port_name": "final_entry", "schema_name": "ScalingDecisionEntry", "description": "Intermediate entry."}
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "recorder",
+            "semantic_responsibility": "record_decision",
+            "purpose": "Emit the leaf final decision and rolling store.",
+            "input_ports": [
+                {"port_name": "final_entry", "schema_name": "ScalingDecisionEntry", "description": "Decision from compliance."}
+            ],
+            "output_ports": [
+                {"port_name": "emitted_entry", "schema_name": "ScalingDecisionEntry", "description": "Leaf final decision."},
+                {"port_name": "store_snapshot", "schema_name": "ScalingDecisionStore", "description": "Leaf rolling store."},
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+    ]
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "compliance_execution",
+            "from_port": "final_entry",
+            "to_component": "recorder",
+            "to_port": "final_entry",
+            "rationale": "Compliance feeds recorder; recorder.emitted_entry is a true leaf.",
+        },
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(plan_path, tmp_path / "draft_bundle")
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    assert contract.final_component_id == "recorder"
+    assert contract.final_output_components == {
+        "scaling_decision_entry": "recorder",
+        "scaling_decision_store": "recorder",
+    }
+    assert contract.final_output_emitted_ports["scaling_decision_entry"] == "emitted_entry"
+    assert contract.final_output_emitted_ports["scaling_decision_store"] == "store_snapshot"
