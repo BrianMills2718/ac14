@@ -1,6 +1,6 @@
 # Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 137
@@ -25,8 +25,8 @@ inputs. Consolidate compliance logic in evaluate_thresholds_and_policy.
 - [x] evaluate_thresholds_and_policy explicitly instructed to compute compliance conflict
 - [x] YAML valid
 - [x] Changes merged to master
-- [ ] One fresh smoke artifact (smoke_21) exists
-- [ ] Next branch is explicit
+- [x] One fresh smoke artifact (smoke_21) exists — verdict: ready_for_full_trials
+- [x] Next branch is explicit: Plan #88 (full trial gate) → Plan #100 (verdict interpretation)
 
 ---
 
