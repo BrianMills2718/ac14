@@ -1,4 +1,111 @@
 journeys:
+- journey_id: ac14_master_journey
+  title: AC14 Master Journey — Structured Input to Validated System
+  notebook: notebooks/00_ac14_master_journey.ipynb
+  status: partial
+  purpose: Primary end-to-end journey notebook. Walks the full AC14 pipeline from
+    realistic structured input through blueprint loading, packet compilation,
+    deterministic component generation, recomposition proof, and acceptance review.
+    The empirical comparison gate appears as the final planned phase.
+  related_docs:
+  - docs/AC14_ROADMAP.md
+  - docs/AC14_ANTI_DRIFT_DOCTRINE.md
+  - docs/AC14_IMPLEMENTATION_STATUS.md
+  - CLAUDE.md
+  related_code:
+  - ac14/loader.py
+  - ac14/validation.py
+  - ac14/packets.py
+  - ac14/generated_codegen.py
+  - ac14/recomposition.py
+  - ac14/reference_components.py
+  related_tests:
+  - tests/test_loader.py
+  - tests/test_validation.py
+  - tests/test_packets.py
+  related_evidence:
+  - .ac14_out/full_trials_gate_1/experiment_decision.json
+  - .ac14_out/full_trials_gate_2/experiment_decision.json
+  phases:
+  - phase_id: phase_01_input_inspection
+    title: Input Inspection
+    status: proven
+    execution_mode: live
+    input_artifact: examples/support_ticket_digest/input/realistic_ticket_batch.json
+    output_artifact: field inventory — record count, field names, value shapes
+    acceptance_criteria:
+    - Input file loads without error.
+    - Record count is explicit.
+    - Structural anomalies are surfaced.
+  - phase_id: phase_02_front_half_overview
+    title: Front-Half Overview (Discovery to Freeze)
+    status: proven
+    execution_mode: fixture
+    input_artifact: examples/support_ticket_digest/input/realistic_ticket_batch.json
+    output_artifact: examples/support_ticket_digest/blueprint/ (six-file frozen bundle)
+    acceptance_criteria:
+    - All six required blueprint files exist.
+    - The metadata blueprint ID is explicit.
+    - Component and schema counts match discovery output.
+  - phase_id: phase_03_b1_validation
+    title: Blueprint Loading and B1 Validation
+    status: proven
+    execution_mode: live
+    input_artifact: examples/support_ticket_digest/blueprint/
+    output_artifact: FrozenBlueprint model + ValidationResult
+    acceptance_criteria:
+    - Blueprint loads into canonical model without error.
+    - B1 validation passes with zero findings.
+    - Every component has at least one output port.
+  - phase_id: phase_04_packet_compilation
+    title: Packet Compilation (B2)
+    status: proven
+    execution_mode: live
+    input_artifact: FrozenBlueprint
+    output_artifact: PacketBundle — one ComponentPacket per component
+    acceptance_criteria:
+    - A packet exists for every component.
+    - Each packet contains only its own schemas and bindings.
+  - phase_id: phase_05_component_generation
+    title: Deterministic Component Generation
+    status: proven
+    execution_mode: live
+    input_artifact: PacketBundle
+    output_artifact: GeneratedPackage — one Python module per component
+    acceptance_criteria:
+    - A module is emitted for every component.
+    - Every module is syntactically valid Python.
+    - Every module exposes build_component().
+  - phase_id: phase_06_recomposition_proof
+    title: Recomposition Proof
+    status: proven
+    execution_mode: live
+    input_artifact: FrozenBlueprint + reference component builders
+    output_artifact: RecompositionReport — per-scenario pass/fail
+    acceptance_criteria:
+    - All runnable scenarios execute without exception.
+    - All scenarios pass the categorical fixture check.
+  - phase_id: phase_07_acceptance_review
+    title: Acceptance Review
+    status: proven
+    execution_mode: dry_run
+    input_artifact: FrozenBlueprint + reference components
+    output_artifact: structural acceptance verdict
+    acceptance_criteria:
+    - Realistic input routes through reference components without exception.
+    - All executions are error-free.
+    notes: Semantic LLM review skipped in dry_run. Promote to live after smoke_15
+      produces ready_for_full_trials.
+  - phase_id: phase_08_empirical_gate
+    title: Empirical Comparison Gate (Front-Half-First)
+    status: planned
+    execution_mode: planned
+    input_artifact: structured-spec front-half artifact + runtime harness
+    output_artifact: smoke verdict (ready_for_full_trials / blocked_on_*)
+    acceptance_criteria:
+    - AC14 produces an approved structured-spec front-half artifact.
+    - Runtime hard-harness success is the end-to-end success surface.
+    - Smoke verdict is persisted before full five-trial budget is spent.
 - journey_id: ac14_execution_status_journey
   title: AC14 Governance Status Surface
   notebook: notebooks/01_ac14_execution_status_journey.ipynb
