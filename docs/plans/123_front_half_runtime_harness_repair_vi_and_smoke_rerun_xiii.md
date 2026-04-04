@@ -1,6 +1,6 @@
 # Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 122
