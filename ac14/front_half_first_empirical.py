@@ -1152,6 +1152,24 @@ def _infer_final_output_bindings(
             for candidate in leaf_non_source_candidates
             if candidate[1] == structured_output.name
         ]
+        # Terminal candidates for exact-name: non-source ports named exactly
+        # like the structured output whose consuming component does NOT also
+        # produce an output port with the same name.
+        # Example: in a 3-component pipeline A->B->C where A, B, and C all emit
+        # 'scaling_decision_entry', A feeds B (which also emits it → intermediate)
+        # and B feeds C (which also emits it → intermediate) and C feeds D (which
+        # does NOT emit it → terminal). Only C is the terminal producer.
+        consuming_produces_same_exact_name = {
+            (binding.from_component, binding.from_port)
+            for binding in blueprint.bindings
+            for port in blueprint.components[binding.to_component].output_ports
+            if port.name == structured_output.name
+        }
+        terminal_non_source_exact_name_candidates = [
+            candidate
+            for candidate in non_source_exact_name_candidates
+            if (candidate[0], candidate[1]) not in consuming_produces_same_exact_name
+        ]
         schema_name_candidates = [
             candidate
             for candidate in candidates
@@ -1223,6 +1241,7 @@ def _infer_final_output_bindings(
             sink_schema_match_candidates=sink_schema_match_candidates,
             exact_name_candidates=exact_name_candidates,
             leaf_non_source_exact_name_candidates=leaf_non_source_exact_name_candidates,
+            terminal_non_source_exact_name_candidates=terminal_non_source_exact_name_candidates,
             non_source_exact_name_candidates=non_source_exact_name_candidates,
             schema_name_candidates=schema_name_candidates,
             leaf_non_source_schema_name_candidates=leaf_non_source_schema_name_candidates,
@@ -1309,6 +1328,7 @@ def _select_structured_spec_output_candidate(
     sink_schema_match_candidates: list[tuple[str, str, str]],
     exact_name_candidates: list[tuple[str, str, str]],
     leaf_non_source_exact_name_candidates: list[tuple[str, str, str]],
+    terminal_non_source_exact_name_candidates: list[tuple[str, str, str]],
     non_source_exact_name_candidates: list[tuple[str, str, str]],
     schema_name_candidates: list[tuple[str, str, str]],
     leaf_non_source_schema_name_candidates: list[tuple[str, str, str]],
@@ -1335,6 +1355,14 @@ def _select_structured_spec_output_candidate(
             "unable to infer one unique final component from structured spec output "
             f"{structured_output_name!r}: multiple leaf exact-name candidates "
             f"{_format_output_candidates(leaf_non_source_exact_name_candidates)}",
+        )
+    if len(terminal_non_source_exact_name_candidates) == 1:
+        return terminal_non_source_exact_name_candidates[0]
+    if len(terminal_non_source_exact_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple terminal exact-name candidates "
+            f"{_format_output_candidates(terminal_non_source_exact_name_candidates)}",
         )
     if len(non_source_exact_name_candidates) == 1:
         return non_source_exact_name_candidates[0]
