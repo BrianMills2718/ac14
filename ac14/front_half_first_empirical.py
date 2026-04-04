@@ -29,13 +29,16 @@ from ac14.empirical_comparison import (
     BenchmarkBundle,
     CostObservation,
     RuntimeCaseExecution,
+    _archive_incomplete_trial_dir,
     _attempt_indicates_infrastructure_provider_failure,
     _build_failure_summary,
     _dynamic_field_exists,
     _is_infrastructure_provider_error,
+    _load_existing_model,
     _observe_llm_cost,
     _review_runtime_cases,
     _semantic_review_passed,
+    _semantic_score,
     _strip_dynamic_field_paths,
     load_benchmark_bundle,
 )
@@ -253,6 +256,36 @@ class FrontHalfFirstSmokeReadinessArtifact(BaseModel):
     )
 
 
+FrontHalfFirstDecisionVerdict = Literal["ac14_wins", "monolithic_wins", "inconclusive"]
+
+
+class FrontHalfFirstConditionAggregate(BaseModel):
+    """Aggregate condition metrics derived from front-half-first paired trials."""
+
+    condition: FrontHalfFirstCondition = Field(description="Compared condition.")
+    successes: int = Field(description="Trials that passed within the allowed attempts.")
+    average_repair_loops: float = Field(description="Average repair loops consumed per trial.")
+    average_semantic_score: float = Field(description="Average semantic-review score across attempts with reviews.")
+    average_duration_s: float = Field(description="Average wall-clock duration per trial.")
+    total_observed_cost_usd: float = Field(description="Total observed LLM cost across all attempts with cost rows.")
+    observed_cost_trials: int = Field(description="Trials with at least one observed LLM cost row.")
+    front_half_successes: int = Field(
+        description="Trials where AC14 produced an approved front-half artifact (always 0 for monolithic).",
+    )
+
+
+class FrontHalfFirstDecisionArtifact(BaseModel):
+    """Final persisted decision for the front-half-first full-trial gate."""
+
+    benchmark_id: str = Field(description="Benchmark identifier.")
+    trial_count: int = Field(description="Number of paired trials included in the decision.")
+    verdict: FrontHalfFirstDecisionVerdict = Field(description="Final experiment verdict.")
+    rationale: str = Field(description="Short explanation of the verdict.")
+    ac14: FrontHalfFirstConditionAggregate = Field(description="Aggregate AC14 metrics.")
+    monolithic: FrontHalfFirstConditionAggregate = Field(description="Aggregate monolithic metrics.")
+    trial_report_paths: list[str] = Field(description="Persisted paired-trial report paths.")
+
+
 class _RuntimeInjectedSourceComponent:
     """Synthetic runtime source used when a generated draft emits a zero-input source node."""
 
@@ -298,6 +331,176 @@ def run_front_half_first_smoke_gate(
     )
     atomic_write_json(destination / "smoke_readiness_report.json", artifact.model_dump(mode="json"))
     return artifact
+
+
+DEFAULT_FULL_TRIAL_COUNT = 5
+
+
+def run_front_half_first_full_trials(
+    benchmark_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    trial_count: int = DEFAULT_FULL_TRIAL_COUNT,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    model: str = DEFAULT_LLM_MODEL,
+    max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+) -> FrontHalfFirstDecisionArtifact:
+    """Run the full front-half-first paired-trial gate and persist the final decision."""
+
+    structured_bundle = load_structured_spec_benchmark_bundle(benchmark_dir)
+    reference_bundle = load_benchmark_bundle(structured_bundle.reference_benchmark_dir)
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    decision_path = destination / "front_half_first_decision.json"
+    existing_decision = _load_existing_model(decision_path, FrontHalfFirstDecisionArtifact)
+    if (
+        existing_decision is not None
+        and existing_decision.benchmark_id == structured_bundle.config.benchmark_id
+        and existing_decision.trial_count == trial_count
+    ):
+        return existing_decision
+
+    reports: list[FrontHalfFirstPairedTrialReport] = []
+    report_paths: list[str] = []
+    for trial_id in range(1, trial_count + 1):
+        trial_dir = destination / f"trial_{trial_id}"
+        report_path = trial_dir / "paired_trial_report.json"
+        existing_report = _load_existing_model(report_path, FrontHalfFirstPairedTrialReport)
+        if (
+            existing_report is not None
+            and existing_report.benchmark_id == structured_bundle.config.benchmark_id
+            and existing_report.trial_id == trial_id
+        ):
+            report = existing_report
+        else:
+            if trial_dir.exists() and any(trial_dir.iterdir()):
+                _archive_incomplete_trial_dir(destination=destination, trial_dir=trial_dir)
+            report = run_front_half_first_paired_trial(
+                structured_bundle=structured_bundle,
+                reference_bundle=reference_bundle,
+                output_dir=trial_dir,
+                trial_id=trial_id,
+                model=model,
+                max_budget=max_budget,
+                max_attempts=max_attempts,
+            )
+        reports.append(report)
+        report_paths.append(str(report_path))
+
+    decision = build_front_half_first_decision_artifact(
+        benchmark_id=structured_bundle.config.benchmark_id,
+        trial_reports=reports,
+        trial_report_paths=report_paths,
+    )
+    atomic_write_json(decision_path, decision.model_dump(mode="json"))
+    return decision
+
+
+def build_front_half_first_decision_artifact(
+    *,
+    benchmark_id: str,
+    trial_reports: list[FrontHalfFirstPairedTrialReport],
+    trial_report_paths: list[str],
+) -> FrontHalfFirstDecisionArtifact:
+    """Apply the frozen Plan #88 verdict rule to the front-half-first paired-trial reports."""
+
+    ac14_aggregate = _aggregate_front_half_first_condition(trial_reports, "ac14")
+    monolithic_aggregate = _aggregate_front_half_first_condition(trial_reports, "monolithic")
+    success_gap = ac14_aggregate.successes - monolithic_aggregate.successes
+
+    if success_gap >= 2:
+        verdict: FrontHalfFirstDecisionVerdict = "ac14_wins"
+        rationale = "AC14 beat the monolithic condition by at least two successful trials."
+    elif success_gap <= -2:
+        verdict = "monolithic_wins"
+        rationale = "The monolithic condition beat AC14 by at least two successful trials."
+    elif ac14_aggregate.successes == monolithic_aggregate.successes:
+        if (
+            ac14_aggregate.average_semantic_score >= monolithic_aggregate.average_semantic_score
+            and ac14_aggregate.average_repair_loops < monolithic_aggregate.average_repair_loops
+        ):
+            verdict = "ac14_wins"
+            rationale = (
+                "The conditions tied on success, but AC14 matched semantic quality and used "
+                "fewer repair loops."
+            )
+        elif (
+            monolithic_aggregate.average_semantic_score >= ac14_aggregate.average_semantic_score
+            and monolithic_aggregate.average_repair_loops < ac14_aggregate.average_repair_loops
+        ):
+            verdict = "monolithic_wins"
+            rationale = (
+                "The conditions tied on success, but the monolithic condition matched semantic "
+                "quality and used fewer repair loops."
+            )
+        else:
+            verdict = "inconclusive"
+            rationale = (
+                "The conditions tied on success and the secondary metrics did not separate them "
+                "cleanly."
+            )
+    else:
+        verdict = "inconclusive"
+        rationale = (
+            "The success gap was at most one trial and the secondary metrics were mixed."
+        )
+
+    return FrontHalfFirstDecisionArtifact(
+        benchmark_id=benchmark_id,
+        trial_count=len(trial_reports),
+        verdict=verdict,
+        rationale=rationale,
+        ac14=ac14_aggregate,
+        monolithic=monolithic_aggregate,
+        trial_report_paths=trial_report_paths,
+    )
+
+
+def _aggregate_front_half_first_condition(
+    trial_reports: list[FrontHalfFirstPairedTrialReport],
+    condition: FrontHalfFirstCondition,
+) -> FrontHalfFirstConditionAggregate:
+    """Aggregate one condition across all front-half-first paired trials."""
+
+    reports = [
+        trial_report.ac14 if condition == "ac14" else trial_report.monolithic
+        for trial_report in trial_reports
+    ]
+    semantic_scores = [
+        _semantic_score(attempt.semantic_review)
+        for report in reports
+        for attempt in report.attempts
+        if attempt.semantic_review is not None
+    ]
+    durations = [sum(attempt.duration_s for attempt in report.attempts) for report in reports]
+    observed_costs = [
+        attempt.llm_cost.cost_usd
+        for report in reports
+        for attempt in report.attempts
+        if attempt.llm_cost.status == "observed" and attempt.llm_cost.cost_usd is not None
+    ]
+    trials_with_observed_cost = sum(
+        1
+        for report in reports
+        if any(attempt.llm_cost.status == "observed" for attempt in report.attempts)
+    )
+    front_half_successes = sum(
+        1
+        for report in reports
+        if any(attempt.front_half_passed is True for attempt in report.attempts)
+    ) if condition == "ac14" else 0
+    return FrontHalfFirstConditionAggregate(
+        condition=condition,
+        successes=sum(1 for report in reports if report.passed),
+        average_repair_loops=(sum(report.repair_loops_used for report in reports) / len(reports)),
+        average_semantic_score=(
+            sum(semantic_scores) / len(semantic_scores) if semantic_scores else 0.0
+        ),
+        average_duration_s=(sum(durations) / len(durations)),
+        total_observed_cost_usd=sum(observed_costs),
+        observed_cost_trials=trials_with_observed_cost,
+        front_half_successes=front_half_successes,
+    )
 
 
 def run_front_half_first_paired_trial(
