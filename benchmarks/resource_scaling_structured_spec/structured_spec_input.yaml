@@ -24,11 +24,11 @@ business_rules:
   - "MIN HEALTHY: budget=1, standard=2, premium=3"
   - "AUTO SCALE ENABLED: true for standard and premium; false for budget"
   - "REQUIRES APPROVAL: false when premium tier OR (standard tier AND urgency in [low, medium]); true otherwise (standard+high/critical, any budget)"
-  - "APPROVAL TIER: auto when premium OR (standard AND urgency in [low, medium]); director when standard AND urgency=critical; manager when standard AND urgency=high OR any budget tier regardless of urgency"
-  - "STRATEGY AND COOLDOWN: immediate+5min when urgency=critical AND deploy_risk=low; staged+15min when deploy_risk in [high, medium] OR urgency=high; deferred+30min when urgency in [low, medium] AND deploy_risk=low; blocked+0min when execution gate blocks"
+  - "APPROVAL TIER: auto when premium OR (standard AND urgency in [low, medium]); director when standard AND urgency=critical; manager when (standard AND urgency=high) OR (any budget tier regardless of urgency)"
+  - "STRATEGY AND COOLDOWN: immediate+5min when urgency=critical AND deploy_risk=low; staged+15min when deploy_risk in [high, medium] OR urgency=high; deferred+30min when urgency in [low, medium] AND deploy_risk=low; blocked+0min when execution gate blocks. This strategy applies even when action=none."
   - "ALERT TIER: critical when error_breach is true OR urgency=critical; warning when urgency=high (no error breach, not critical); info otherwise"
   - "COMPLIANCE CONFLICT: true when (in_change_freeze AND urgency != critical) OR (in_maintenance_window AND action != none)"
-  - "AUTHORIZATION MODE: auto when NOT requires_approval AND auto_scale_enabled AND NOT conflict; manual when NOT conflict AND NOT auto; compliance_blocked when conflict is true"
+  - "AUTHORIZATION MODE: compliance_blocked FIRST when conflict is true; auto when NOT conflict AND NOT requires_approval AND auto_scale_enabled; manual otherwise (conflict=false but approval required or auto_scale disabled)"
   - "FINAL ACTION: blocked if execution_gate.blocked is true; else recommendation.action"
   - "FINAL STRATEGY: blocked if execution_gate.blocked is true; else scaling_plan.strategy"
   - bronze maps to budget, silver/gold to standard, platinum to premium
@@ -158,28 +158,52 @@ outputs:
         required: true
 workflow_hints:
   - hint_id: normalize_scaling_event
-    summary: Normalize the raw scaling event without dropping benchmark fields that later exact outputs depend on.
+    summary: Normalize and validate the raw scaling event; pass cleaned event data to downstream components.
     input_names: [raw_scaling_event]
-    output_names: [scaling_decision_entry]
+    output_names: [raw_scaling_event]
     business_rules:
-      - Preserve case_id, service_id, tier, deploy timing, and compliance flags explicitly for later stages.
+      - This component only normalizes and validates input fields (types, allowed values, ranges).
+      - "CRITICAL: This component must NOT emit scaling_decision_entry. Its output is the normalized
+        raw event (same fields as input, but validated). The decision fields (action, urgency, etc.)
+        are computed by the downstream policy evaluation component."
+      - Preserve case_id, service_id, tier, deploy timing, and compliance flags for later stages.
   - hint_id: evaluate_thresholds_and_policy
-    summary: Keep threshold, urgency, service-policy, and approval rules explicit and reviewable.
+    summary: Compute the full scaling recommendation from the normalized event; this component computes ALL decision fields.
     input_names: [raw_scaling_event]
     output_names: [scaling_decision_entry]
     business_rules:
+      - "This component computes ALL scaling decision fields: action, urgency, strategy, target_adjustment,
+        approval_tier, requires_approval, authorization_mode, alert_tier, scale_tier, min_healthy_instances,
+        cooldown_minutes, blocked, case_id, service_id."
       - Map service_tier to scale_tier exactly as bronze->budget, silver/gold->standard, platinum->premium.
-      - Keep target_adjustment, approval_tier, and min_healthy_instances deterministic and exact.
+      - Apply ALL threshold, urgency, tier mapping, deploy risk, target adjustment, approval, strategy, alert, and authorization rules.
+      - "APPROVAL TIER: auto when premium OR (standard AND urgency in [low, medium]); director when
+        standard AND urgency=critical; manager when (standard AND urgency=high) OR (any budget tier)."
+      - "AUTHORIZATION MODE: compliance_blocked FIRST when conflict=true; auto when not conflict AND
+        not requires_approval AND auto_scale_enabled; manual otherwise."
+      - "STRATEGY: deferred+30min when urgency in [low, medium] AND deploy_risk=low. This applies
+        even when action=none."
   - hint_id: apply_compliance_and_execution
-    summary: Apply maintenance and change-freeze blocking rules before emitting the final decision.
-    input_names: [raw_scaling_event]
+    summary: Apply compliance gating and emit the FINAL scaling_decision_entry with any overrides applied.
+    input_names: [raw_scaling_event, scaling_decision_entry]
     output_names: [scaling_decision_entry]
     business_rules:
-      - If the execution gate blocks, action must be explicit as blocked and strategy must be blocked.
+      - "CRITICAL: This is the TERMINAL emitter of scaling_decision_entry. It receives the recommendation
+        from the policy evaluator and applies the final compliance execution gate."
+      - If the execution gate blocks (compliance conflict with non-critical urgency during change freeze,
+        or during maintenance window), override action=blocked, strategy=blocked, cooldown_minutes=0,
+        authorization_mode=compliance_blocked.
+      - Pass through all other fields from the policy recommendation unchanged.
+      - "All fields in the output must have computed values (never placeholder strings like 'draft_action')."
   - hint_id: record_decision
     summary: Emit one exact decision entry and update a deterministic rolling store.
     input_names: [scaling_decision_entry]
     output_names: [scaling_decision_store]
+    business_rules:
+      - "CRITICAL: The input port receives scaling_decision_entry (the final decision) from the
+        apply_compliance_and_execution component. The input port name must match what the upstream
+        component emits. NEVER create an input port named 'scaling_decision_store'."
+      - Accumulate decisions in order; emit the updated rolling store.
 human_context_notes:
   - This front-half-first bundle intentionally mirrors the reused runtime cases and expected outputs so the benchmark contract stays truthful.
   - Keep the component graph bounded and reviewable; do not collapse all rules into one opaque function.
