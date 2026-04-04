@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md)
+- [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md)
 
 The explicit active chain is:
 
@@ -73,7 +73,9 @@ The explicit active chain is:
 - [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> complete, smoke_16 froze two-component-same-schema topology as next harness blocker
 - [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> complete, smoke_17 verdict `blocked_on_runtime_outputs` (all attempts reached runtime eval, RSC-100..103 mismatched)
 - [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> complete, smoke_17 froze missing approval/strategy/alert/deploy-risk rules in spec
-- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> in progress (spec expanded with 19 rules; smoke_18 pending)
+- [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> complete, smoke_18 verdict `blocked_on_harness` (3 exact-name candidates for scaling_decision_entry)
+- [Plan #133: Front-Half Runtime-Harness Boundary VIII](/home/brian/projects/ac14/docs/plans/133_front_half_runtime_harness_boundary_viii.md) -> complete, smoke_18 blocker: terminal exact-name tier missing
+- [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) -> complete (terminal_non_source_exact_name tier merged; smoke_19 pending)
 - [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_15 still says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
 - [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_15 says `blocked_on_infrastructure`

@@ -1,6 +1,6 @@
 # Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 120
@@ -31,8 +31,8 @@ correct approval, strategy, cooldown, and alert logic.
 - [x] structured_spec_input.yaml business_rules expanded from 7 vague to 19 detailed rules.
 - [x] YAML syntax verified valid (19 rules parsed correctly).
 - [x] Changes committed and merged to master.
-- [ ] One fresh smoke artifact exists (smoke_18) after the repair.
-- [ ] The next branch is explicit from the new artifact.
+- [x] One fresh smoke artifact exists (smoke_18) after the repair.
+- [x] The next branch is explicit: smoke_18 verdict `blocked_on_harness` (3 exact-name candidates) → Plan #133 boundary + Plan #134 repair.
 
 ---
 

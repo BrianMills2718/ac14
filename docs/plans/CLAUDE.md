@@ -140,6 +140,8 @@ current executable lane.
 | 130 | [Front-Half Runtime-Harness Boundary VII](130_front_half_runtime_harness_boundary_vii.md) | Critical | Planned | 131 |
 | 131 | [Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) | Critical | Planned | - |
 | 132 | [Theory-Forge Input Contract](132_theory_forge_input_contract.md) | High | Planned | 88 |
+| 133 | [Front-Half Runtime-Harness Boundary VIII](133_front_half_runtime_harness_boundary_viii.md) | Critical | Complete | 134 |
+| 134 | [Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) | Critical | Complete | - |
 
 ## Status Key
 
