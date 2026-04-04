@@ -32,7 +32,11 @@ from ac14.dependency_planning import (
     build_dependency_plan,
 )
 from ac14.empirical_comparison import run_empirical_comparison, run_empirical_smoke_gate
-from ac14.front_half_first_empirical import run_front_half_first_smoke_gate
+from ac14.front_half_first_empirical import (
+    DEFAULT_FULL_TRIAL_COUNT,
+    run_front_half_first_full_trials,
+    run_front_half_first_smoke_gate,
+)
 from ac14.discovery import (
     build_discovery_artifact,
     persist_environment_inventory,
@@ -537,6 +541,17 @@ def main() -> int:
     front_half_first_smoke_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
     front_half_first_smoke_parser.add_argument("--max-budget", type=float, default=0.50)
 
+    front_half_first_full_parser = subparsers.add_parser(
+        "front-half-first-full-trials",
+        help="Run the full front-half-first five-trial gate from a structured-spec benchmark bundle.",
+    )
+    front_half_first_full_parser.add_argument("benchmark_dir", type=Path)
+    front_half_first_full_parser.add_argument("--output-dir", type=Path, required=True)
+    front_half_first_full_parser.add_argument("--trials", type=int, default=DEFAULT_FULL_TRIAL_COUNT)
+    front_half_first_full_parser.add_argument("--max-attempts", type=int, default=3)
+    front_half_first_full_parser.add_argument("--model", default="gemini/gemini-2.5-flash-lite")
+    front_half_first_full_parser.add_argument("--max-budget", type=float, default=0.50)
+
     args = parser.parse_args()
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
@@ -837,6 +852,15 @@ def main() -> int:
         return _front_half_first_smoke_gate(
             args.benchmark_dir,
             args.output_dir,
+            args.max_attempts,
+            args.model,
+            args.max_budget,
+        )
+    if args.command == "front-half-first-full-trials":
+        return _front_half_first_full_trials(
+            args.benchmark_dir,
+            args.output_dir,
+            args.trials,
             args.max_attempts,
             args.model,
             args.max_budget,
@@ -1606,6 +1630,28 @@ def _front_half_first_smoke_gate(
     artifact = run_front_half_first_smoke_gate(
         benchmark_dir=benchmark_dir,
         output_dir=output_dir,
+        max_attempts=max_attempts,
+        model=model,
+        max_budget=max_budget,
+    )
+    print(json.dumps(artifact.model_dump(mode="json"), indent=2))
+    return 0
+
+
+def _front_half_first_full_trials(
+    benchmark_dir: Path,
+    output_dir: Path,
+    trials: int,
+    max_attempts: int,
+    model: str,
+    max_budget: float,
+) -> int:
+    """Run and print the full front-half-first five-trial gate decision artifact."""
+
+    artifact = run_front_half_first_full_trials(
+        benchmark_dir=benchmark_dir,
+        output_dir=output_dir,
+        trial_count=trials,
         max_attempts=max_attempts,
         model=model,
         max_budget=max_budget,

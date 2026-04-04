@@ -36,7 +36,7 @@ REQUIREMENTS ?= clarify input schema preserve bounded packets
 READINESS ?=
 BENCHMARK ?= benchmarks/order_exception_resolution
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input prepare-structured-spec inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan draft-blueprint-plan-from-structured-spec refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance structured-spec-front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate front-half-first-smoke-gate
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input prepare-structured-spec inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan draft-blueprint-plan-from-structured-spec refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance structured-spec-front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate front-half-first-smoke-gate front-half-first-full-trials
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -169,3 +169,6 @@ empirical-smoke-gate: ## Run one bounded paired smoke trial and persist a readin
 
 front-half-first-smoke-gate: ## Run one bounded front-half-first smoke trial from a structured-spec benchmark bundle (BENCHMARK=benchmarks/resource_scaling_structured_spec OUTPUT=.ac14_out/front_half_first_smoke MAX_ATTEMPTS=3)
 	$(PYTHON) -m ac14 front-half-first-smoke-gate "$(BENCHMARK)" --output-dir "$(OUTPUT)" --max-attempts "$(MAX_ATTEMPTS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
+
+front-half-first-full-trials: ## Run the full front-half-first five-trial gate (BENCHMARK=benchmarks/resource_scaling_structured_spec OUTPUT=.ac14_out/front_half_first_full TRIALS=5 MAX_ATTEMPTS=3)
+	$(PYTHON) -m ac14 front-half-first-full-trials "$(BENCHMARK)" --output-dir "$(OUTPUT)" --trials "$(TRIALS)" --max-attempts "$(MAX_ATTEMPTS)" --model "$(MODEL)" --max-budget "$(MAX_BUDGET)"
