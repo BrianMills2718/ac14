@@ -1,6 +1,6 @@
 # Plan #143: Front-Half-First Packet Grounding Repair And Gate Rerun
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 142
@@ -20,12 +20,45 @@ budget-neutral verdict that measures whether the repair closes the gap.
 
 ## Acceptance Criteria
 
-- [ ] Repair applied (as specified by Plan #142 boundary)
+- [x] Repair applied (as specified by Plan #142 boundary)
 - [ ] Gate_3 run at `.ac14_out/front_half_first_full_gate_3/` TRIALS=5 MAX_BUDGET=1.50
 - [ ] Decision artifact persisted
 - [ ] Verdict is one of: ac14_wins, monolithic_wins, inconclusive
 - [ ] If still monolithic_wins: freeze a repair-boundary plan per CLAUDE.md policy
 - [ ] If ac14_wins or inconclusive: interpret and plan next horizon
+
+---
+
+## Repair Applied
+
+**Files changed:**
+
+- `ac14/codegen_context.py`: Added `structured_spec_business_rules: list[str]` field to
+  `CodegenContext`. Added `structured_spec_business_rules: list[str] | None` parameter
+  to `build_codegen_context()`.
+
+- `ac14/generated_codegen.py`: Added `structured_spec_business_rules: list[str] | None = None`
+  to `emit_generated_package()` and `aemit_generated_package()`. Passed through to
+  `build_codegen_context()`.
+
+- `ac14/front_half_first_empirical.py`: Pass
+  `structured_spec_business_rules=list(structured_bundle.structured_spec.business_rules)`
+  to `emit_generated_package()`.
+
+- `prompts/generate_component.yaml` (v1.1): Added a "Business rules (from structured spec)"
+  block rendered before local_invariants. When non-empty, renders all 15 rules with explicit
+  instruction to "implement ALL rules exactly" and not use placeholder logic.
+
+**Tests:** 303 pass, 1 skipped. All existing tests green.
+
+---
+
+## Gate_3 Run
+
+- Output dir: `.ac14_out/front_half_first_full_gate_3/`
+- TRIALS=5, MAX_ATTEMPTS=3, MAX_BUDGET=1.50
+- Command: `make front-half-first-full-trials BENCHMARK=benchmarks/resource_scaling_structured_spec OUTPUT=.ac14_out/front_half_first_full_gate_3 TRIALS=5 MAX_ATTEMPTS=3 MAX_BUDGET=1.50`
+- Status: running
 
 ---
 
@@ -41,6 +74,7 @@ budget-neutral verdict that measures whether the repair closes the gap.
 
 ## Files Affected
 
-TBD based on Plan #142 diagnosis. Likely:
-- `ac14/generated_codegen.py` or packet context generation
-- Possibly structured spec business rules
+- `ac14/codegen_context.py` — added structured_spec_business_rules field
+- `ac14/generated_codegen.py` — thread business_rules through emit_generated_package
+- `ac14/front_half_first_empirical.py` — pass business_rules at codegen call site
+- `prompts/generate_component.yaml` — render business rules in code generation prompt
