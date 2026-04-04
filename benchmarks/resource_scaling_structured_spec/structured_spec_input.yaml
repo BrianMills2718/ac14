@@ -15,12 +15,24 @@ success_criteria:
   - blocked actions remain explicit instead of silently downgrading to no-op
   - the bundle stays truthful to the runtime assets it reuses
 business_rules:
-  - cpu>=0.80, memory>=0.85, error_rate>=0.05 are deterministic threshold breaches
-  - scale_out when both cpu and memory breach; scale_up when only cpu breaches; scale_down when no breach and request_rate_rps < 20; none otherwise
-  - urgency is critical on error breach or three breaches, high on two breaches, medium on one breach, low otherwise
+  - "THRESHOLD: cpu_breach = cpu_utilization >= 0.80; memory_breach = memory_utilization >= 0.85; error_breach = error_rate >= 0.05; breach_count = sum of true breach flags (0-3)"
+  - "ACTION: scale_out ONLY when BOTH cpu_breach AND memory_breach are true; scale_up ONLY when cpu_breach is true AND memory_breach is false; scale_down when no breach AND request_rate_rps < 20; none otherwise"
+  - "URGENCY: critical when error_breach is true OR breach_count >= 3; high when breach_count == 2 (and not critical); medium when breach_count == 1 (and not critical); low when breach_count == 0"
+  - "TIER MAPPING: bronze -> budget; silver -> standard; gold -> standard; platinum -> premium"
+  - "DEPLOY RISK: high when last_deploy_hours < 4; medium when last_deploy_hours < 24; low otherwise"
+  - "TARGET ADJUSTMENT: max(1, min(breach_count, max_scale_adjustment)) when action != none; 0 otherwise. max_scale_adjustment: budget=1, standard=2, premium=4"
+  - "MIN HEALTHY: budget=1, standard=2, premium=3"
+  - "AUTO SCALE ENABLED: true for standard and premium; false for budget"
+  - "REQUIRES APPROVAL: false when premium tier OR (standard tier AND urgency in [low, medium]); true otherwise (standard+high/critical, any budget)"
+  - "APPROVAL TIER: auto when premium OR (standard AND urgency in [low, medium]); director when standard AND urgency=critical; manager when standard AND urgency=high OR any budget tier regardless of urgency"
+  - "STRATEGY AND COOLDOWN: immediate+5min when urgency=critical AND deploy_risk=low; staged+15min when deploy_risk in [high, medium] OR urgency=high; deferred+30min when urgency in [low, medium] AND deploy_risk=low; blocked+0min when execution gate blocks"
+  - "ALERT TIER: critical when error_breach is true OR urgency=critical; warning when urgency=high (no error breach, not critical); info otherwise"
+  - "COMPLIANCE CONFLICT: true when (in_change_freeze AND urgency != critical) OR (in_maintenance_window AND action != none)"
+  - "AUTHORIZATION MODE: auto when NOT requires_approval AND auto_scale_enabled AND NOT conflict; manual when NOT conflict AND NOT auto; compliance_blocked when conflict is true"
+  - "FINAL ACTION: blocked if execution_gate.blocked is true; else recommendation.action"
+  - "FINAL STRATEGY: blocked if execution_gate.blocked is true; else scaling_plan.strategy"
   - bronze maps to budget, silver/gold to standard, platinum to premium
   - compliance blocks non-none actions during maintenance and blocks change-freeze actions unless urgency is critical
-  - the final decision action is blocked when execution_gate.blocked is true; otherwise it equals the recommendation action
   - all final-output fields are categorical, boolean, or integer and should match exactly
 inputs:
   - name: raw_scaling_event
