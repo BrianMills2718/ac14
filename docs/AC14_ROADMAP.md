@@ -1,6 +1,6 @@
 # AC14 Roadmap
 
-Last updated: 2026-04-02
+Last updated: 2026-04-04
 Status: Active roadmap
 
 ## Purpose
@@ -238,8 +238,13 @@ In order:
 14. (done — Plan #84) prove one full structured-spec front-half lane through freeze and semantic review
 15. (done — Plan #85) freeze one benchmark-ready structured-spec bundle anchored to the existing `resource_scaling` runtime evaluation assets
 16. (done — Plan #86) implement the front-half-first smoke contract and runner
-17. (now — Plan #87) spend one bounded front-half-first smoke trial
-18. (then — Plan #88 or #89) either run the full front-half-first gate or diagnose the blocker directly from the smoke verdict
+17. (done — Plans #87-#122) run front-half-first smoke trials (smoke_1 through
+    smoke_14) with interleaved harness repair cycles; blockers resolved in order:
+    front-half freeze fidelity, infrastructure/model propagation, runtime-harness
+    contract, structured dependency, and finally ambiguous final-output inference
+18. (active — Plan #123) repair the repeated ambiguous final-output inference
+    blocker and rerun smoke_15; the full branch tree from the smoke_15 verdict is
+    defined in `CLAUDE.md` and `docs/AC14_NEXT_24_HOURS.md`
 
 ## Current empirical branch rule
 
@@ -248,9 +253,10 @@ The harder back-half gate remains closed.
 - gate 1: `inconclusive`
 - gate 2: `monolithic_wins`
 - reusable packet-rule-grounding smoke rerun: still `0/3` AC14 successes
+- front-half-first smoke chain: Plans #87-#122 complete, Plan #123 active (smoke_15 pending)
 
-That means the next honest horizon is front-half-first, not more local tuning
-of `resource_scaling_v1`.
+The next honest horizon is front-half-first. The back-half gate does not reopen
+until the front-half-first verdict changes the empirical picture.
 
 ## Working Rule
 

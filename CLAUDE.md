@@ -184,53 +184,16 @@ For the active empirical-comparison lane, this rule is especially strict:
     opens the gate and the runner surface is still missing, implement that
     runner immediately as part of the next active plan and continue into the
     full gate without waiting for new human direction
-  - the current mandatory chain is:
-    1. Plan #86 runner contract and implementation -> complete
-    2. Plan #87 bounded smoke execution -> complete with `blocked_on_front_half`
-    3. Plan #89 blocker diagnosis -> complete
-    4. Plan #90 bounded contract-and-observability repair -> complete
-    5. Plan #91 smoke rerun -> complete with `blocked_on_front_half`
-    6. Plan #92 second blocker boundary -> complete
-    7. Plan #93 async-safe freeze review repair -> complete
-    8. Plan #94 smoke rerun II -> complete with `blocked_on_infrastructure`
-    9. Plan #95 front-half infrastructure boundary -> complete
-    10. Plan #96 smoke rerun III with explicit `MODEL=gpt-5-mini` -> complete with `blocked_on_infrastructure`
-    11. Plan #99 hidden-default-model infrastructure boundary -> complete
-    12. Plan #106 model-propagation repair plus smoke rerun IV -> complete with `blocked_on_front_half`
-    13. Plan #97 front-half freeze-fidelity boundary -> complete
-    14. Plan #104 freeze-fidelity repair plus smoke rerun V -> complete with `blocked_on_harness`
-    15. Plan #98 runtime-harness boundary -> complete
-    16. Plan #105 runtime-harness repair plus smoke rerun IV -> complete with `blocked_on_harness`
-    17. Plan #110 runtime-harness boundary II -> complete
-    18. Plan #111 runtime-harness repair II plus smoke rerun VII -> complete with smoke_9 verdict `blocked_on_harness`
-    19. Plan #112 runtime-harness boundary III -> complete
-    20. Plan #113 runtime-harness repair III plus smoke rerun VIII -> active
-    21. Plan #88 full trial gate if smoke_10 says `ready_for_full_trials`
-    22. Plan #100 verdict interpretation and next horizon immediately after Plan #88
-    23. Plan #107 external-provider boundary II if smoke_10 says `blocked_on_infrastructure`
-    24. Plan #108 front-half freeze-fidelity boundary II if smoke_10 regresses to `blocked_on_front_half`
-    25. Plan #109 freeze-fidelity repair II plus smoke rerun VI immediately after Plan #108
-    26. Plan #114 runtime-harness boundary IV if smoke_10 still says `blocked_on_harness`
-    27. Plan #115 runtime-harness repair IV plus smoke rerun IX immediately after Plan #114
+  - Plans #86-#122 are complete; the full completed chain is in `docs/TODO.md`
+  - the current mandatory chain from this point is defined at the top of this
+    file under "The current mandatory overnight chain"
   - for the current 24-hour branch tree, every unlocked verdict branch must
     already have its next numbered plan defined in docs before the rerun is
-    spent; \"we will decide after the artifact exists\" is not good enough
-  - once Plan #113 starts, the required behavior is:
-    1. repair the structured-spec/runtime contract blocker from smoke_9
-    2. keep both conditions on one truthful bounded input surface
-    3. support one unique top-level zero-input `source` component runtime contract
-    4. rerun the smoke gate with explicit `MODEL=gpt-5-mini`
-    5. update docs from the persisted verdict immediately
-    6. continue into Plan #88, #107, #108, or #114 with no permission pause
-    7. continue into Plan #100, #109, or #115 the moment that branch unlocks
-    6. leave every new uncertainty in `docs/UNCERTAINTIES.md` rather than
-       treating uncertainty as a stop condition
+    spent; "we will decide after the artifact exists" is not good enough
 - after Plan #60 and Plan #43, the first empirical comparison is now complete under `.ac14_out/full_trials_gate_1/` with verdict `inconclusive`
-- the active empirical chain is now:
-  1. Plan #44 verdict interpretation and doc lock
-  2. Plan #62 inconclusive-comparison diagnosis
-  3. freeze the next empirical direction before resuming unrelated blocked lanes
-  4. keep notebook remediation explicit as Plan #61 instead of leaving the notebook surface misleading
+- after Plans #66-#72, the second empirical gate is now complete under `.ac14_out/full_trials_gate_2/` with verdict `monolithic_wins`
+- the active empirical chain is now front-half-first (Plans #83-#123+); see
+  the mandatory overnight chain at the top of this file
 - maximize observability and testing protocol inside the empirical lane:
   - every empirical attempt must persist `packet_test_report.json` and `recomposition_report.json`
   - packet and recomposition failures must include bounded field-level mismatch details whenever the harness can derive them

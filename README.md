@@ -137,15 +137,18 @@ The second full empirical gate is now also complete:
 - `monolithic`: `5/5` successes
 - monolithic was faster and cheaper on the harder benchmark
 
-The next strategic gates are now:
-
-- [Plan #72: Second-Gate Verdict Interpretation](/home/brian/projects/ac14/docs/plans/72_second_gate_verdict_interpretation.md)
-- [Plan #73: Resource Scaling Failure Diagnosis](/home/brian/projects/ac14/docs/plans/73_resource_scaling_failure_diagnosis.md)
+Plans #72-#80 completed second-gate diagnosis and one reusable grounding repair.
+Plans #81-#86 established the strategic pivot and front-half-first empirical
+contract. Plans #87-#122 ran front-half-first smoke trials through smoke_14 with
+interleaved harness repair cycles. Plan #123 is the active plan (smoke_15
+pending). See [AC14_NEXT_24_HOURS.md](docs/AC14_NEXT_24_HOURS.md) for the full
+branch tree.
 
 The important point is that AC14 now has two real baseline artifacts. The
 harder second benchmark did separate the conditions cleanly, and the current
-result favors the monolithic baseline. That means the next work is diagnosis and
-strategic response, not pretending the thesis is already validated.
+result favors the monolithic baseline. The active empirical lane is now
+front-half-first — the back-half gate stays closed until the front-half-first
+verdict changes the picture.
 
 ## Quickstart
 
