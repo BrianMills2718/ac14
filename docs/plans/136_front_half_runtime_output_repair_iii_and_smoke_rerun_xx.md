@@ -25,7 +25,8 @@ address all four blockers, then run smoke_20.
 - [x] Approval tier rule disambiguated: explicit "(standard AND urgency=high) OR (any budget tier)"
 - [x] Strategy rule clarified: applies even when action=none
 - [x] Authorization mode reordered: compliance_blocked checked FIRST
-- [x] YAML syntax valid
+- [x] Record_decision input port naming clarified
+- [x] YAML syntax valid (19 business_rules, 4 workflow_hints)
 - [x] Changes committed and merged to master
 - [ ] One fresh smoke artifact (smoke_20) exists after the repair
 - [ ] The next branch is explicit from the new artifact

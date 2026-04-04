@@ -77,7 +77,7 @@ The explicit active chain is:
 - [Plan #133: Front-Half Runtime-Harness Boundary VIII](/home/brian/projects/ac14/docs/plans/133_front_half_runtime_harness_boundary_viii.md) -> complete, smoke_18 blocker: terminal exact-name tier missing
 - [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) -> complete, smoke_19 verdict `blocked_on_harness` (2/3 attempts runtime_outputs; 1/3 generation failure)
 - [Plan #135: Front-Half Runtime-Output Boundary III](/home/brian/projects/ac14/docs/plans/135_front_half_runtime_output_boundary_iii.md) -> complete, smoke_19 blocker: workflow hint architecture + rule ambiguity
-- [Plan #136: Front-Half Runtime-Output Repair III And Smoke Rerun XX](/home/brian/projects/ac14/docs/plans/136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) -> in progress (spec workflow hints + rule fixes; smoke_20 pending)
+- [Plan #136: Front-Half Runtime-Output Repair III And Smoke Rerun XX](/home/brian/projects/ac14/docs/plans/136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) -> in progress (spec fixes merged; smoke_20 pending)
 - [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_15 still says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
 - [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_15 says `blocked_on_infrastructure`

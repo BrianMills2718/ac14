@@ -105,14 +105,17 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 12. [x] run smoke_18 → verdict `blocked_on_harness` (3 exact-name candidates for scaling_decision_entry)
 13. [x] Plan #133: freeze smoke_18 harness blocker — terminal exact-name tier missing
 14. [x] Plan #134: add terminal_non_source_exact_name tier — 303 tests pass, merged to master
-15. [ ] run smoke_19 at `.ac14_out/front_half_first_smoke_19` (NEXT)
-16. [ ] branch immediately from smoke_19 verdict:
+15. [x] run smoke_19 → verdict `blocked_on_harness` (2/3 runtime_outputs, 1/3 generation failure)
+16. [x] Plan #135: freeze smoke_19 blocker — workflow hint architecture + rule ambiguity
+17. [x] Plan #136: fix spec (workflow hints + rule disambiguation) — merged to master
+18. [ ] run smoke_20 at `.ac14_out/front_half_first_smoke_20` (NEXT)
+19. [ ] branch immediately from smoke_20 verdict:
     - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
-    - if `blocked_on_runtime_outputs`: freeze Plan #135 (new boundary) + Plan #136 (repair + smoke_20)
-    - if `blocked_on_harness`: freeze Plan #135 (new harness boundary) + Plan #136 (repair + smoke_20)
+    - if `blocked_on_runtime_outputs`: freeze Plan #137 (new boundary) + Plan #138 (repair + smoke_21)
+    - if `blocked_on_harness`: freeze Plan #137 (new harness boundary) + Plan #138 (repair + smoke_21)
     - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
     - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
-17. keep the harder back-half second gate closed unless smoke_19 says `ready_for_full_trials`
+20. keep the harder back-half second gate closed unless smoke_20 says `ready_for_full_trials`
 
 ## Branch Matrix
 
