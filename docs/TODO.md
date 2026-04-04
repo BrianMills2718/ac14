@@ -138,7 +138,8 @@ The experiment contract remains frozen in:
 - [x] Plan #142: diagnose runtime code quality gap — root cause: structured spec business_rules never passed to codegen; all local_invariants are TODO placeholders
 - [x] Plan #143: repair (inject business_rules into CodegenContext + generate_component.yaml prompt); gate_3 complete — monolithic_wins (0/5 AC14, 4/5 mono), case accuracy 75%, RSC-102 spec ambiguity
 - [x] Plan #144: gate_3 verdict interpretation — repair worked (0%→75%), spec ambiguity in FINAL ACTION rule, repair-boundary freeze
-- [x] Plan #145: spec contract fix (FINAL ACTION → explicit BLOCKED FLAG rule) merged; gate_4 running at .ac14_out/front_half_first_full_gate_4
+- [x] Plan #145: spec contract fix (FINAL ACTION → explicit BLOCKED FLAG rule) merged; gate_4 complete — inconclusive (4/5 AC14, 5/5 mono), single trial_4 failure was generation instability (syntax error)
+- [x] Plan #146: gate_4 verdict interpretation — near-parity (80%), repair arc complete, thesis holds at "near-parity after spec clarity"
 
 The completed execution lanes are:
 

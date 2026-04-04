@@ -106,7 +106,8 @@ current executable lane.
 | 142 | [Front-Half-First Runtime Code Quality Boundary](142_front_half_first_runtime_code_quality_boundary.md) | Critical | Complete | 143 |
 | 143 | [Front-Half-First Packet Grounding Repair And Gate Rerun](143_front_half_first_packet_grounding_repair_and_gate_rerun.md) | Critical | Complete | - |
 | 144 | [Front-Half-First Gate_3 Verdict Interpretation](144_front_half_first_gate_3_verdict.md) | Critical | Complete | 145 |
-| 145 | [Front-Half-First Spec Contract Fix And Gate_4](145_front_half_first_spec_contract_fix_and_gate_4.md) | Critical | Planned | - |
+| 145 | [Front-Half-First Spec Contract Fix And Gate_4](145_front_half_first_spec_contract_fix_and_gate_4.md) | Critical | Complete | - |
+| 146 | [Front-Half-First Gate_4 Verdict Interpretation](146_front_half_first_gate_4_verdict.md) | Critical | Complete | 145 |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |

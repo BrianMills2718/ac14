@@ -1,6 +1,6 @@
 # Plan #145: Front-Half-First Spec Contract Fix And Gate_4
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 144
@@ -27,9 +27,9 @@ Run gate_4 at TRIALS=5 MAX_BUDGET=1.50 as the final gate in this repair arc.
   "BLOCKED FLAG" rule stating: "when compliance_conflict=True, set action='blocked',
   strategy='blocked', cooldown_minutes=0, blocked=True — override ALL other values"
 - [x] Gate_4 run at `.ac14_out/front_half_first_full_gate_4/` TRIALS=5 MAX_BUDGET=1.50 (running)
-- [ ] Decision artifact persisted
-- [ ] Verdict is one of: ac14_wins, monolithic_wins, inconclusive
-- [ ] Verdict interpretation frozen as next plan
+- [x] Decision artifact persisted: `.ac14_out/front_half_first_full_gate_4/front_half_first_decision.json`
+- [x] Verdict is one of: ac14_wins, monolithic_wins, inconclusive — verdict: `inconclusive` (4/5 AC14, 5/5 mono)
+- [x] Verdict interpretation frozen as next plan: Plan #146
 
 ---
 
