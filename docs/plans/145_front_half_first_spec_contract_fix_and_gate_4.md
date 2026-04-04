@@ -1,6 +1,6 @@
 # Plan #145: Front-Half-First Spec Contract Fix And Gate_4
 
-**Status:** Planned
+**Status:** In Progress
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 144
@@ -22,11 +22,11 @@ Run gate_4 at TRIALS=5 MAX_BUDGET=1.50 as the final gate in this repair arc.
 
 ## Acceptance Criteria
 
-- [ ] Spec fix: replace ambiguous "FINAL ACTION" / "FINAL STRATEGY" rules in
+- [x] Spec fix: replace ambiguous "FINAL ACTION" / "FINAL STRATEGY" rules in
   `benchmarks/resource_scaling_structured_spec/structured_spec_input.yaml` with explicit
   "BLOCKED FLAG" rule stating: "when compliance_conflict=True, set action='blocked',
   strategy='blocked', cooldown_minutes=0, blocked=True — override ALL other values"
-- [ ] Gate_4 run at `.ac14_out/front_half_first_full_gate_4/` TRIALS=5 MAX_BUDGET=1.50
+- [x] Gate_4 run at `.ac14_out/front_half_first_full_gate_4/` TRIALS=5 MAX_BUDGET=1.50 (running)
 - [ ] Decision artifact persisted
 - [ ] Verdict is one of: ac14_wins, monolithic_wins, inconclusive
 - [ ] Verdict interpretation frozen as next plan
