@@ -107,8 +107,10 @@ The experiment contract remains frozen in:
 - [x] Run smoke_15 at `.ac14_out/front_half_first_smoke_15` — verdict `blocked_on_harness` (harness was loading draft bundle instead of approved retry bundle; confirmed by 3rd attempt error "multiple non-source schema-name candidates").
 - [x] Plan #130: Lock smoke_15 blocked_on_harness verdict as harness boundary VII — root cause: harness loaded `draft_bundle_dir` not `refined_draft_bundle_dir` from FreezeRetryArtifact.
 - [x] Plan #123: Fix harness to load `refined_draft_bundle_dir` from FreezeRetryArtifact when `retry_freeze_approved=True`. Merged to master.
-- [ ] Run smoke_16 at `.ac14_out/front_half_first_smoke_16` (in progress — PID 3715173).
-- [ ] Branch immediately from smoke_16 verdict into Plan #88 + #100, Plan #120 + #121, Plan #131, Plan #126 + #127, or Plan #128 + #129.
+- [x] Run smoke_16 at `.ac14_out/front_half_first_smoke_16` — verdict `blocked_on_harness` (attempt_2 new topology: PolicyEvaluator and ComplianceAndExecution both emitted scaling_decision_entry but neither was a leaf; `non_source_schema_name_candidates` tier found both).
+- [x] Plan #131: add `terminal_non_source_schema_name_candidates` tier — a port is terminal if its consuming component does NOT produce the same schema. Merged to master.
+- [ ] Run smoke_17 at `.ac14_out/front_half_first_smoke_17` (in progress — PID 3739241).
+- [ ] Branch immediately from smoke_17 verdict into Plan #88 + #100, Plan #120 + #121, Plan #126 + #127, or Plan #128 + #129.
 
 The completed execution lanes are:
 
