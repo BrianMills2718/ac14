@@ -1,6 +1,6 @@
 # Plan #143: Front-Half-First Packet Grounding Repair And Gate Rerun
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 142
@@ -21,11 +21,10 @@ budget-neutral verdict that measures whether the repair closes the gap.
 ## Acceptance Criteria
 
 - [x] Repair applied (as specified by Plan #142 boundary)
-- [ ] Gate_3 run at `.ac14_out/front_half_first_full_gate_3/` TRIALS=5 MAX_BUDGET=1.50
-- [ ] Decision artifact persisted
-- [ ] Verdict is one of: ac14_wins, monolithic_wins, inconclusive
-- [ ] If still monolithic_wins: freeze a repair-boundary plan per CLAUDE.md policy
-- [ ] If ac14_wins or inconclusive: interpret and plan next horizon
+- [x] Gate_3 run at `.ac14_out/front_half_first_full_gate_3/` TRIALS=5 MAX_BUDGET=1.50
+- [x] Decision artifact persisted
+- [x] Verdict is `monolithic_wins` (0/5 AC14, 4/5 monolithic)
+- [x] Repair-boundary plan frozen: Plan #145 (spec contract fix + gate_4)
 
 ---
 
@@ -58,7 +57,9 @@ budget-neutral verdict that measures whether the repair closes the gap.
 - Output dir: `.ac14_out/front_half_first_full_gate_3/`
 - TRIALS=5, MAX_ATTEMPTS=3, MAX_BUDGET=1.50
 - Command: `make front-half-first-full-trials BENCHMARK=benchmarks/resource_scaling_structured_spec OUTPUT=.ac14_out/front_half_first_full_gate_3 TRIALS=5 MAX_ATTEMPTS=3 MAX_BUDGET=1.50`
-- Status: running
+- Status: complete — verdict `monolithic_wins` (0/5 AC14, 4/5 monolithic)
+- Decision artifact: `.ac14_out/front_half_first_full_gate_3/front_half_first_decision.json`
+- Key finding: repair moved case accuracy from 0% → 75%; RSC-102 fails due to spec ambiguity
 
 ---
 

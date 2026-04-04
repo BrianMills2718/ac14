@@ -136,7 +136,9 @@ The experiment contract remains frozen in:
 - [x] Plan #140: increase budget to $1.50, run full_gate_2 — verdict `monolithic_wins` (5/5 vs 0/5, genuine capability gap)
 - [x] Plan #141: gate_2 verdict interpretation — front_half 5/5, runtime 0/5, component code misapplies business rules
 - [x] Plan #142: diagnose runtime code quality gap — root cause: structured spec business_rules never passed to codegen; all local_invariants are TODO placeholders
-- [x] Plan #143: repair (inject business_rules into CodegenContext + generate_component.yaml prompt); gate_3 running at .ac14_out/front_half_first_full_gate_3
+- [x] Plan #143: repair (inject business_rules into CodegenContext + generate_component.yaml prompt); gate_3 complete — monolithic_wins (0/5 AC14, 4/5 mono), case accuracy 75%, RSC-102 spec ambiguity
+- [x] Plan #144: gate_3 verdict interpretation — repair worked (0%→75%), spec ambiguity in FINAL ACTION rule, repair-boundary freeze
+- [ ] Plan #145: spec contract fix (FINAL ACTION → explicit BLOCKED FLAG rule) + gate_4 as final gate
 
 The completed execution lanes are:
 
