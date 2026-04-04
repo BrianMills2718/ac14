@@ -1,7 +1,7 @@
 # AC14 Next 24 Hours
 
 Status: In Progress
-Last updated: 2026-04-03
+Last updated: 2026-04-04
 
 ## Purpose
 
@@ -66,14 +66,15 @@ The explicit active chain is:
 - [Plan #124: Front-Half Structured Dependency Boundary](/home/brian/projects/ac14/docs/plans/124_front_half_structured_dependency_boundary.md) -> complete, smoke_13 froze the missing `llm_client[structured]` / `instructor` contract
 - [Plan #125: Front-Half Structured-Dependency Repair And Smoke Rerun XIV](/home/brian/projects/ac14/docs/plans/125_front_half_structured_dependency_repair_and_smoke_rerun_xiv.md) -> complete, smoke_14 cleared the dependency blocker but stayed `blocked_on_harness`
 - [Plan #122: Front-Half Runtime-Harness Boundary VI](/home/brian/projects/ac14/docs/plans/122_front_half_runtime_harness_boundary_vi.md) -> complete, smoke_14 froze repeated ambiguous final-output inference as the dominant harness blocker
-- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> active
-- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_15 says `blocked_on_runtime_outputs`
+- [Plan #123: Front-Half Runtime-Harness Repair VI And Smoke Rerun XIII](/home/brian/projects/ac14/docs/plans/123_front_half_runtime_harness_repair_vi_and_smoke_rerun_xiii.md) -> complete, smoke_15 verdict `blocked_on_harness` (harness loaded draft bundle instead of approved retry bundle)
+- [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> complete, smoke_15 blocker documented: harness used `draft_bundle_dir` not `refined_draft_bundle_dir` from FreezeRetryArtifact; fix merged to master
+- smoke_16 in progress at `.ac14_out/front_half_first_smoke_16` (PID 3715173)
+- [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> planned if smoke_16 says `blocked_on_runtime_outputs`
 - [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> planned
-- [Plan #130: Front-Half Runtime-Harness Boundary VII](/home/brian/projects/ac14/docs/plans/130_front_half_runtime_harness_boundary_vii.md) -> planned if smoke_15 still says `blocked_on_harness`
-- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> planned
-- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_15 still says `blocked_on_front_half`
+- [Plan #131: Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](/home/brian/projects/ac14/docs/plans/131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) -> planned if smoke_16 still says `blocked_on_harness`
+- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_16 still says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
-- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_15 says `blocked_on_infrastructure`
+- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_16 says `blocked_on_infrastructure`
 - [Plan #129: Front-Half Provider Fallback And Smoke Rerun XVI](/home/brian/projects/ac14/docs/plans/129_front_half_provider_fallback_and_smoke_rerun_xvi.md) -> planned
 
 The empirical gate remains frozen in
@@ -89,25 +90,20 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 
 ## Active 24-Hour Chain
 
-1. lock smoke_14 as the canonical post-dependency boundary artifact
-2. repair only the repeated ambiguous final-output inference inside Plan #123:
-   - when one intermediate component emits a final-output schema and a downstream recorder emits the exact same final-output schema as an unbound leaf output, runtime-contract inference must prefer the unique leaf output
-   - do not reopen dependency, provider, or broad front-half lanes unless the fresh smoke artifact demands it
-   - keep the rerun branch tree explicit before smoke_15 is spent
-3. verify the repair with targeted tests, `mypy`, and `ruff`
-4. rerun one bounded front-half-first smoke trial with explicit `MODEL=gpt-5-mini` into `.ac14_out/front_half_first_smoke_15`
-5. branch immediately from the rerun verdict with no permission pause:
+1. [x] lock smoke_14 as the canonical post-dependency boundary artifact
+2. [x] repair only the repeated ambiguous final-output inference inside Plan #123
+3. [x] verify the repair with targeted tests, `mypy`, and `ruff`
+4. [x] run smoke_15 — verdict `blocked_on_harness` (harness was loading draft bundle instead of approved retry bundle from FreezeRetryArtifact)
+5. [x] Plan #130: document smoke_15 harness blocker (harness loaded `draft_bundle_dir` not `refined_draft_bundle_dir`)
+6. [x] Plan #123 fix: when `retry_freeze_approved=True`, load `FreezeRetryArtifact.refined_draft_bundle_dir` — merged to master
+7. [ ] run smoke_16 at `.ac14_out/front_half_first_smoke_16` (IN PROGRESS — PID 3715173)
+8. [ ] branch immediately from smoke_16 verdict:
    - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
    - if `blocked_on_runtime_outputs`: execute Plan #120, then execute Plan #121
-   - if `blocked_on_harness`: execute Plan #130, then execute Plan #131
+   - if `blocked_on_harness`: execute Plan #131 (additional harness repair + smoke_17)
    - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
    - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
-6. keep the harder back-half second gate closed and `resource_scaling_v1` local tuning frozen unless a new front-half-first artifact changes that state
-
-Live note: the first `smoke_15` rerun was terminated after repeated OpenRouter
-timeouts before attempt 1 persisted. Treat that as an active infrastructure
-uncertainty, not a branch verdict. The next valid branch still requires a
-persisted `smoke_readiness_report.json`.
+9. keep the harder back-half second gate closed unless smoke_16 says `ready_for_full_trials`
 
 ## Branch Matrix
 
