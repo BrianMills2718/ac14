@@ -85,6 +85,7 @@ def emit_generated_package(
     llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     trace_id_prefix: str = "ac14/generated_codegen",
     repair_guidance_by_component: dict[str, list[str]] | None = None,
+    structured_spec_business_rules: list[str] | None = None,
 ) -> GeneratedPackage:
     """Emit standalone Python modules for all components in a packet bundle."""
 
@@ -103,6 +104,7 @@ def emit_generated_package(
                 if repair_guidance_by_component is not None
                 else []
             ),
+            structured_spec_business_rules=structured_spec_business_rules,
         )
         try:
             module_source = _render_module_source(
@@ -135,6 +137,7 @@ async def aemit_generated_package(
     llm_max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     trace_id_prefix: str = "ac14/generated_codegen",
     repair_guidance_by_component: dict[str, list[str]] | None = None,
+    structured_spec_business_rules: list[str] | None = None,
 ) -> GeneratedPackage:
     """Async package emission for callers already running inside an event loop."""
 
@@ -153,6 +156,7 @@ async def aemit_generated_package(
                 if repair_guidance_by_component is not None
                 else []
             ),
+            structured_spec_business_rules=structured_spec_business_rules,
         )
         try:
             module_source = await _arender_module_source(

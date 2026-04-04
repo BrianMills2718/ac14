@@ -1,5 +1,5 @@
 name: ac14_generate_component
-version: "1.0"
+version: "1.1"
 description: Generate one standalone Python component module from an AC14 codegen context.
 messages:
   - role: system
@@ -38,6 +38,7 @@ messages:
       - end the file with real executable Python code and a real `build_component()` function; never stop at trailing prose, comments, or half-finished code
       - when mutating lists or dicts, use ordinary ASCII Python operations and method names only
       - do not annotate `build_component()` with `GeneratedComponent` unless the annotation is guaranteed to resolve safely at import time; the safest pattern is to omit the return annotation entirely
+      - when business rules are provided below, implement ALL of them exactly and completely — do not simplify, skip, or use placeholder logic for any rule
 
       Do not add markdown fences. Return only structured fields.
 
@@ -68,6 +69,19 @@ messages:
         - field {{ field.name }} (type={{ field.type }}, required={{ field.required }}): {{ field.description }}{% if not field.required %} optional_reason={{ field.optional_reason }} absence_meaning={{ field.absence_meaning }}{% endif %}
         {% endfor %}
       {% endfor %}
+
+      {% if context.structured_spec_business_rules %}
+      Business rules (from structured spec — implement ALL rules exactly):
+      {% for rule in context.structured_spec_business_rules %}
+      - {{ rule }}
+      {% endfor %}
+
+      IMPORTANT: The business rules above define the complete implementation contract for
+      this component. Implement every rule that is relevant to this component's
+      semantic responsibility. Do NOT use placeholder logic, do NOT simplify rules, and
+      do NOT skip any rule. Every categorical field in the output schema must be computed
+      from the rules above, not guessed or hardcoded.
+      {% endif %}
 
       Local invariants:
       {% for invariant in context.local_invariants %}
