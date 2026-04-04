@@ -29,8 +29,7 @@ business_rules:
   - "ALERT TIER: critical when error_breach is true OR urgency=critical; warning when urgency=high (no error breach, not critical); info otherwise"
   - "COMPLIANCE CONFLICT: true when (in_change_freeze AND urgency != critical) OR (in_maintenance_window AND action != none)"
   - "AUTHORIZATION MODE: compliance_blocked FIRST when conflict is true; auto when NOT conflict AND NOT requires_approval AND auto_scale_enabled; manual otherwise (conflict=false but approval required or auto_scale disabled)"
-  - "FINAL ACTION: blocked if execution_gate.blocked is true; else recommendation.action"
-  - "FINAL STRATEGY: blocked if execution_gate.blocked is true; else scaling_plan.strategy"
+  - "BLOCKED FLAG: when compliance_conflict is true, set blocked=True AND override: action='blocked' (the string value 'blocked'), strategy='blocked', cooldown_minutes=0, authorization_mode='compliance_blocked'. These four fields are overridden. All other fields (target_adjustment, approval_tier, min_healthy_instances, urgency, alert_tier, scale_tier, requires_approval, case_id, service_id) keep their computed values."
   - bronze maps to budget, silver/gold to standard, platinum to premium
   - compliance blocks non-none actions during maintenance and blocks change-freeze actions unless urgency is critical
   - all final-output fields are categorical, boolean, or integer and should match exactly
