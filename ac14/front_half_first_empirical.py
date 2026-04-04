@@ -1170,6 +1170,24 @@ def _infer_final_output_bindings(
             if _normalize_runtime_contract_identifier(candidate[2])
             == _normalize_runtime_contract_identifier(structured_output.name)
         ]
+        # Terminal candidates: non-source, non-leaf ports with the matching schema
+        # whose consuming components do NOT produce any output with the same schema.
+        # Example: PolicyEvaluator.recommendation_out feeds ComplianceAndExecution
+        # which itself emits the same schema — so it is intermediate, not terminal.
+        # ComplianceAndExecution.final_decision_out feeds DecisionRecorder which
+        # does NOT emit the same schema — so it IS terminal.
+        consuming_produces_same_schema_name = {
+            (binding.from_component, binding.from_port)
+            for binding in blueprint.bindings
+            for port in blueprint.components[binding.to_component].output_ports
+            if _normalize_runtime_contract_identifier(port.schema_id)
+            == _normalize_runtime_contract_identifier(structured_output.name)
+        }
+        terminal_non_source_schema_name_candidates = [
+            candidate
+            for candidate in non_source_schema_name_candidates
+            if (candidate[0], candidate[1]) not in consuming_produces_same_schema_name
+        ]
         schema_match_candidates = [
             candidate
             for candidate in candidates
@@ -1208,6 +1226,7 @@ def _infer_final_output_bindings(
             non_source_exact_name_candidates=non_source_exact_name_candidates,
             schema_name_candidates=schema_name_candidates,
             leaf_non_source_schema_name_candidates=leaf_non_source_schema_name_candidates,
+            terminal_non_source_schema_name_candidates=terminal_non_source_schema_name_candidates,
             non_source_schema_name_candidates=non_source_schema_name_candidates,
             schema_match_candidates=schema_match_candidates,
             leaf_non_source_schema_match_candidates=leaf_non_source_schema_match_candidates,
@@ -1293,6 +1312,7 @@ def _select_structured_spec_output_candidate(
     non_source_exact_name_candidates: list[tuple[str, str, str]],
     schema_name_candidates: list[tuple[str, str, str]],
     leaf_non_source_schema_name_candidates: list[tuple[str, str, str]],
+    terminal_non_source_schema_name_candidates: list[tuple[str, str, str]],
     non_source_schema_name_candidates: list[tuple[str, str, str]],
     schema_match_candidates: list[tuple[str, str, str]],
     leaf_non_source_schema_match_candidates: list[tuple[str, str, str]],
@@ -1347,6 +1367,14 @@ def _select_structured_spec_output_candidate(
             "unable to infer one unique final component from structured spec output "
             f"{structured_output_name!r}: multiple leaf schema-name candidates "
             f"{_format_output_candidates(leaf_non_source_schema_name_candidates)}",
+        )
+    if len(terminal_non_source_schema_name_candidates) == 1:
+        return terminal_non_source_schema_name_candidates[0]
+    if len(terminal_non_source_schema_name_candidates) > 1:
+        raise ValueError(
+            "unable to infer one unique final component from structured spec output "
+            f"{structured_output_name!r}: multiple terminal schema-name candidates "
+            f"{_format_output_candidates(terminal_non_source_schema_name_candidates)}",
         )
     if len(non_source_schema_name_candidates) == 1:
         return non_source_schema_name_candidates[0]

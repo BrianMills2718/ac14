@@ -942,3 +942,130 @@ def test_infer_runtime_contract_succeeds_with_retry_bundle_topology(
     }
     assert contract.final_output_emitted_ports["scaling_decision_entry"] == "emitted_entry"
     assert contract.final_output_emitted_ports["scaling_decision_store"] == "store_snapshot"
+
+
+def test_infer_runtime_contract_selects_terminal_candidate_when_multiple_non_leaf(
+    tmp_path: Path,
+) -> None:
+    """Terminal tier must select the last computation of a schema before it flows to a
+    component that does not produce the same schema.
+
+    Topology (mirrors smoke_16 attempt_2):
+        EventNormalizer.normalized_event_out:raw_scaling_event
+            → PolicyEvaluator.event_in
+            → ComplianceAndExecution.event_in
+        PolicyEvaluator.recommendation_out:scaling_decision_entry
+            → ComplianceAndExecution.recommendation_in        ← INTERMEDIATE (consumer produces same schema)
+        ComplianceAndExecution.final_decision_out:scaling_decision_entry
+            → DecisionRecorder.decision_in                    ← TERMINAL (consumer produces different schema)
+        DecisionRecorder.store_out:scaling_decision_store     ← leaf
+
+    Expected: final_component_id = 'ComplianceAndExecution' (terminal for scaling_decision_entry)
+              scaling_decision_store resolved to DecisionRecorder (leaf)
+    """
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    source_path = benchmark_dir / "structured_spec_input.yaml"
+    plan_path = write_front_half_first_plan_fixture(tmp_path / "plan_fixture.json")
+    payload = json.loads(plan_path.read_text())
+
+    payload["proposed_components"] = [
+        {
+            "component_id": "EventNormalizer",
+            "semantic_responsibility": "normalize_input",
+            "purpose": "Normalize raw event.",
+            "input_ports": [
+                {"port_name": "raw_in", "schema_name": "RawScalingEvent", "description": "Raw event."}
+            ],
+            "output_ports": [
+                {"port_name": "normalized_event_out", "schema_name": "RawScalingEvent", "description": "Normalized event."}
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "PolicyEvaluator",
+            "semantic_responsibility": "evaluate_policy",
+            "purpose": "Produce a recommendation (intermediate scaling_decision_entry).",
+            "input_ports": [
+                {"port_name": "event_in", "schema_name": "RawScalingEvent", "description": "Normalized event."}
+            ],
+            "output_ports": [
+                {"port_name": "recommendation_out", "schema_name": "ScalingDecisionEntry", "description": "Intermediate recommendation."}
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "ComplianceAndExecution",
+            "semantic_responsibility": "apply_compliance",
+            "purpose": "Apply compliance rules; emit terminal scaling_decision_entry.",
+            "input_ports": [
+                {"port_name": "recommendation_in", "schema_name": "ScalingDecisionEntry", "description": "Recommendation from policy."},
+                {"port_name": "event_in", "schema_name": "RawScalingEvent", "description": "Normalized event."},
+            ],
+            "output_ports": [
+                {"port_name": "final_decision_out", "schema_name": "ScalingDecisionEntry", "description": "Terminal scaling decision."}
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+        {
+            "component_id": "DecisionRecorder",
+            "semantic_responsibility": "record_decision",
+            "purpose": "Record decision and emit rolling store.",
+            "input_ports": [
+                {"port_name": "decision_in", "schema_name": "ScalingDecisionEntry", "description": "Decision to record."}
+            ],
+            "output_ports": [
+                {"port_name": "store_out", "schema_name": "ScalingDecisionStore", "description": "Rolling store — leaf."}
+            ],
+            "packet_focus": [],
+            "dependency_notes": [],
+        },
+    ]
+    payload["proposed_bindings"] = [
+        {
+            "from_component": "EventNormalizer",
+            "from_port": "normalized_event_out",
+            "to_component": "PolicyEvaluator",
+            "to_port": "event_in",
+            "rationale": "Feed event to policy.",
+        },
+        {
+            "from_component": "EventNormalizer",
+            "from_port": "normalized_event_out",
+            "to_component": "ComplianceAndExecution",
+            "to_port": "event_in",
+            "rationale": "Feed event to compliance.",
+        },
+        {
+            "from_component": "PolicyEvaluator",
+            "from_port": "recommendation_out",
+            "to_component": "ComplianceAndExecution",
+            "to_port": "recommendation_in",
+            "rationale": "Policy recommendation is intermediate — compliance may override.",
+        },
+        {
+            "from_component": "ComplianceAndExecution",
+            "from_port": "final_decision_out",
+            "to_component": "DecisionRecorder",
+            "to_port": "decision_in",
+            "rationale": "Terminal decision flows to recorder.",
+        },
+    ]
+    plan_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+
+    manifest = materialize_draft_blueprint_bundle(plan_path, tmp_path / "draft_bundle")
+    blueprint = load_blueprint_dir(Path(manifest.draft_bundle_dir))
+    contract = infer_runtime_contract_from_structured_spec(
+        blueprint=blueprint,
+        structured_spec=load_structured_spec_document(source_path),
+    )
+
+    # ComplianceAndExecution is the terminal for scaling_decision_entry:
+    # it feeds DecisionRecorder which produces only scaling_decision_store (different schema)
+    assert contract.final_output_components["scaling_decision_entry"] == "ComplianceAndExecution"
+    assert contract.final_output_emitted_ports["scaling_decision_entry"] == "final_decision_out"
+    # DecisionRecorder.store_out is the leaf for scaling_decision_store
+    assert contract.final_output_components["scaling_decision_store"] == "DecisionRecorder"
+    assert contract.final_output_emitted_ports["scaling_decision_store"] == "store_out"
