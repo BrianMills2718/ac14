@@ -39,6 +39,7 @@ from ac14.empirical_comparison import (
     _strip_dynamic_field_paths,
     load_benchmark_bundle,
 )
+from ac14.freeze_retry import FreezeRetryArtifact
 from ac14.front_half_acceptance import (
     StructuredSpecFrontHalfAcceptanceArtifact,
     build_structured_spec_front_half_acceptance_report,
@@ -547,8 +548,20 @@ def _run_ac14_attempt(
         )
 
         if front_half_artifact.final_freeze_approved:
-            draft_bundle_dir = Path(front_half_artifact.artifact_paths.draft_bundle_dir)
-            blueprint = load_blueprint_dir(draft_bundle_dir)
+            # When the freeze was approved via the retry path, use the refined bundle
+            # from the retry artifact — the original draft bundle may have a different
+            # (and possibly invalid) component topology.
+            if (
+                front_half_artifact.retry_freeze_approved
+                and front_half_artifact.artifact_paths.retry_freeze_artifact_path
+            ):
+                _retry = FreezeRetryArtifact.model_validate_json(
+                    Path(front_half_artifact.artifact_paths.retry_freeze_artifact_path).read_text()
+                )
+                approved_bundle_dir = Path(_retry.refined_draft_bundle_dir)
+            else:
+                approved_bundle_dir = Path(front_half_artifact.artifact_paths.draft_bundle_dir)
+            blueprint = load_blueprint_dir(approved_bundle_dir)
             runtime_contract = infer_runtime_contract_from_structured_spec(
                 blueprint=blueprint,
                 structured_spec=structured_bundle.structured_spec,
@@ -589,7 +602,7 @@ def _run_ac14_attempt(
                     llm_max_budget=max_budget,
                 )
                 recomposition_report = run_generated_recomposition_proof(
-                    draft_bundle_dir,
+                    approved_bundle_dir,
                     generated_package,
                     llm_model=model,
                     trace_id=f"{trace_prefix}/recomp_eval",
