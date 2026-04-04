@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #140: Front-Half-First Budget Repair And Rerun](/home/brian/projects/ac14/docs/plans/140_front_half_first_budget_repair_and_rerun.md)
+- [Plan #142: Front-Half-First Runtime Code Quality Boundary](/home/brian/projects/ac14/docs/plans/142_front_half_first_runtime_code_quality_boundary.md)
 
 The explicit active chain is:
 
@@ -133,7 +133,10 @@ The experiment contract remains frozen in:
 - [x] Plan #88: implement full trial runner, run full_gate_1 — verdict `monolithic_wins` (budget overflow).
 - [x] Plan #100: interpret verdict — root cause is $0.50 budget cap, not capability.
 - [x] Plan #139: freeze budget boundary.
-- [ ] Plan #140: increase budget to $1.50, run full_gate_2.
+- [x] Plan #140: increase budget to $1.50, run full_gate_2 — verdict `monolithic_wins` (5/5 vs 0/5, genuine capability gap)
+- [x] Plan #141: gate_2 verdict interpretation — front_half 5/5, runtime 0/5, component code misapplies business rules
+- [ ] Plan #142: diagnose runtime code quality gap (read generated code + packet context)
+- [ ] Plan #143: repair + gate_3 rerun
 
 The completed execution lanes are:
 

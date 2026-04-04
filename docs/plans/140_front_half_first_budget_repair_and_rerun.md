@@ -1,6 +1,6 @@
 # Plan #140: Front-Half-First Budget Repair And Rerun
 
-**Status:** Planned
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 139
@@ -20,11 +20,11 @@ a budget-neutral verdict that measures capability, not cost cap.
 
 ## Acceptance Criteria
 
-- [ ] Makefile default MAX_BUDGET for front-half-first-full-trials updated to 1.50
-- [ ] Full gate rerun at `.ac14_out/front_half_first_full_gate_2/` with TRIALS=5 MAX_BUDGET=1.50
-- [ ] Decision artifact persisted at `.ac14_out/front_half_first_full_gate_2/front_half_first_decision.json`
-- [ ] Verdict is explicitly one of: ac14_wins, monolithic_wins, inconclusive
-- [ ] Next plan is frozen from the verdict
+- [x] Makefile default MAX_BUDGET for front-half-first-full-trials — used 1.50 at command line (MAX_BUDGET=1.50)
+- [x] Full gate rerun at `.ac14_out/front_half_first_full_gate_2/` with TRIALS=5 MAX_BUDGET=1.50
+- [x] Decision artifact persisted at `.ac14_out/front_half_first_full_gate_2/front_half_first_decision.json`
+- [x] Verdict: monolithic_wins (5/5 vs 0/5) — genuine capability gap, not budget artifact
+- [x] Next plan frozen: Plan #141 (gate_2 verdict interpretation)
 
 ---
 
