@@ -9,7 +9,7 @@ This document is the tactical summary for the active numbered plan.
 
 The authoritative implementation contract for the current lane is:
 
-- [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md)
+- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md)
 
 The explicit active chain is:
 
@@ -72,10 +72,14 @@ The explicit active chain is:
 - [Plan #120: Front-Half Runtime-Output Boundary II](/home/brian/projects/ac14/docs/plans/120_front_half_runtime_output_boundary_ii.md) -> complete, smoke_17 froze missing approval/strategy/alert/deploy-risk rules as dominant blocker
 - [Plan #121: Front-Half Runtime-Output Repair II And Smoke Rerun XII](/home/brian/projects/ac14/docs/plans/121_front_half_runtime_output_repair_ii_and_smoke_rerun_xii.md) -> complete, smoke_18 verdict `blocked_on_harness` (3 exact-name candidates)
 - [Plan #133: Front-Half Runtime-Harness Boundary VIII](/home/brian/projects/ac14/docs/plans/133_front_half_runtime_harness_boundary_viii.md) -> complete, smoke_18 blocker: terminal exact-name tier missing for 3-component pipelines
-- [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) -> complete (terminal_non_source_exact_name tier merged; smoke_19 PENDING)
-- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_18 says `blocked_on_front_half`
+- [Plan #134: Front-Half Runtime-Harness Repair VIII And Smoke Rerun XIX](/home/brian/projects/ac14/docs/plans/134_front_half_runtime_harness_repair_viii_and_smoke_rerun_xix.md) -> complete, smoke_19 verdict `blocked_on_harness` (1/3 generation failure; 2/3 runtime_outputs with mismatches)
+- [Plan #135: Front-Half Runtime-Output Boundary III](/home/brian/projects/ac14/docs/plans/135_front_half_runtime_output_boundary_iii.md) -> complete, smoke_19 blocker: workflow hint architecture + rule ambiguity
+- [Plan #136: Front-Half Runtime-Output Repair III And Smoke Rerun XX](/home/brian/projects/ac14/docs/plans/136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) -> complete, smoke_20 verdict `blocked_on_harness` (source inference collision introduced by spec change)
+- [Plan #137: Front-Half Runtime-Harness Boundary IX](/home/brian/projects/ac14/docs/plans/137_front_half_runtime_harness_boundary_ix.md) -> complete, root cause: apply_compliance_and_execution had raw_scaling_event input port
+- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) -> in progress (spec fix merged; smoke_21 PENDING)
+- [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_21 says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
-- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_18 says `blocked_on_infrastructure`
+- [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_21 says `blocked_on_infrastructure`
 - [Plan #129: Front-Half Provider Fallback And Smoke Rerun XVI](/home/brian/projects/ac14/docs/plans/129_front_half_provider_fallback_and_smoke_rerun_xvi.md) -> planned
 
 The empirical gate remains frozen in
@@ -108,14 +112,17 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 15. [x] run smoke_19 → verdict `blocked_on_harness` (2/3 runtime_outputs, 1/3 generation failure)
 16. [x] Plan #135: freeze smoke_19 blocker — workflow hint architecture + rule ambiguity
 17. [x] Plan #136: fix spec (workflow hints + rule disambiguation) — merged to master
-18. [ ] run smoke_20 at `.ac14_out/front_half_first_smoke_20` (NEXT)
-19. [ ] branch immediately from smoke_20 verdict:
+18. [x] run smoke_20 at `.ac14_out/front_half_first_smoke_20` — verdict `blocked_on_harness` (source inference collision)
+19. [x] Plan #137: freeze smoke_20 harness boundary — apply_compliance_and_execution had raw_scaling_event input port
+20. [x] Plan #138: fix apply_compliance_and_execution input_names → [scaling_decision_entry]; consolidate compliance conflict in evaluate_thresholds_and_policy — merged to master
+21. [ ] run smoke_21 at `.ac14_out/front_half_first_smoke_21` (NEXT)
+22. [ ] branch immediately from smoke_21 verdict:
     - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
-    - if `blocked_on_runtime_outputs`: freeze Plan #137 (new boundary) + Plan #138 (repair + smoke_21)
-    - if `blocked_on_harness`: freeze Plan #137 (new harness boundary) + Plan #138 (repair + smoke_21)
+    - if `blocked_on_runtime_outputs`: freeze Plan #139 (new boundary) + Plan #140 (repair + smoke_22)
+    - if `blocked_on_harness`: freeze Plan #139 (new harness boundary) + Plan #140 (repair + smoke_22)
     - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
     - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
-20. keep the harder back-half second gate closed unless smoke_20 says `ready_for_full_trials`
+23. keep the harder back-half second gate closed unless smoke_21 says `ready_for_full_trials`
 
 ## Branch Matrix
 

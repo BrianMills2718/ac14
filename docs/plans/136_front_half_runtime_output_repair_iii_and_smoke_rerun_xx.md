@@ -1,6 +1,6 @@
 # Plan #136: Front-Half Runtime-Output Repair III And Smoke Rerun XX
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** implementation + evaluation
 **Priority:** Critical
 **Blocked By:** 135
@@ -28,8 +28,8 @@ address all four blockers, then run smoke_20.
 - [x] Record_decision input port naming clarified
 - [x] YAML syntax valid (19 business_rules, 4 workflow_hints)
 - [x] Changes committed and merged to master
-- [ ] One fresh smoke artifact (smoke_20) exists after the repair
-- [ ] The next branch is explicit from the new artifact
+- [x] One fresh smoke artifact (smoke_20) exists after the repair — verdict: blocked_on_harness (source inference collision introduced by this plan's spec change, diagnosed in Plan #137, fixed in Plan #138)
+- [x] The next branch is explicit: Plan #137 (boundary) → Plan #138 (repair) → smoke_21
 
 ---
 
