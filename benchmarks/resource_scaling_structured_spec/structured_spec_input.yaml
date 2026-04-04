@@ -168,7 +168,7 @@ workflow_hints:
         are computed by the downstream policy evaluation component."
       - Preserve case_id, service_id, tier, deploy timing, and compliance flags for later stages.
   - hint_id: evaluate_thresholds_and_policy
-    summary: Compute the full scaling recommendation from the normalized event; this component computes ALL decision fields.
+    summary: Compute the full scaling recommendation including compliance conflict from the normalized event; this component computes ALL decision fields.
     input_names: [raw_scaling_event]
     output_names: [scaling_decision_entry]
     business_rules:
@@ -179,21 +179,26 @@ workflow_hints:
       - Apply ALL threshold, urgency, tier mapping, deploy risk, target adjustment, approval, strategy, alert, and authorization rules.
       - "APPROVAL TIER: auto when premium OR (standard AND urgency in [low, medium]); director when
         standard AND urgency=critical; manager when (standard AND urgency=high) OR (any budget tier)."
+      - "COMPLIANCE CONFLICT: compute conflict = (in_change_freeze AND urgency != critical) OR
+        (in_maintenance_window AND action != none). Use in_change_freeze and in_maintenance_window
+        from the raw_scaling_event input."
       - "AUTHORIZATION MODE: compliance_blocked FIRST when conflict=true; auto when not conflict AND
         not requires_approval AND auto_scale_enabled; manual otherwise."
       - "STRATEGY: deferred+30min when urgency in [low, medium] AND deploy_risk=low. This applies
         even when action=none."
+      - "BLOCKED FLAG: set blocked=true and override action=blocked, strategy=blocked, cooldown_minutes=0,
+        authorization_mode=compliance_blocked when compliance conflict is true."
   - hint_id: apply_compliance_and_execution
-    summary: Apply compliance gating and emit the FINAL scaling_decision_entry with any overrides applied.
-    input_names: [raw_scaling_event, scaling_decision_entry]
+    summary: Validate and pass through the final scaling_decision_entry from the policy evaluator.
+    input_names: [scaling_decision_entry]
     output_names: [scaling_decision_entry]
     business_rules:
-      - "CRITICAL: This is the TERMINAL emitter of scaling_decision_entry. It receives the recommendation
-        from the policy evaluator and applies the final compliance execution gate."
-      - If the execution gate blocks (compliance conflict with non-critical urgency during change freeze,
-        or during maintenance window), override action=blocked, strategy=blocked, cooldown_minutes=0,
-        authorization_mode=compliance_blocked.
-      - Pass through all other fields from the policy recommendation unchanged.
+      - "CRITICAL: This is the TERMINAL emitter of scaling_decision_entry. It receives the fully-computed
+        recommendation from evaluate_thresholds_and_policy (which has already applied compliance gating)
+        and passes it through as the final output."
+      - "This component does NOT receive raw_scaling_event. All compliance and execution gate logic
+        has already been applied by evaluate_thresholds_and_policy."
+      - Pass through all fields from the policy recommendation unchanged.
       - "All fields in the output must have computed values (never placeholder strings like 'draft_action')."
   - hint_id: record_decision
     summary: Emit one exact decision entry and update a deterministic rolling store.
