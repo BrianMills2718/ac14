@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md)
+- [Plan #140: Front-Half-First Budget Repair And Rerun](/home/brian/projects/ac14/docs/plans/140_front_half_first_budget_repair_and_rerun.md)
 
 The explicit active chain is:
 
@@ -79,7 +79,11 @@ The explicit active chain is:
 - [Plan #135: Front-Half Runtime-Output Boundary III](/home/brian/projects/ac14/docs/plans/135_front_half_runtime_output_boundary_iii.md) -> complete, smoke_19 blocker: workflow hint architecture + rule ambiguity
 - [Plan #136: Front-Half Runtime-Output Repair III And Smoke Rerun XX](/home/brian/projects/ac14/docs/plans/136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) -> complete, smoke_20 verdict `blocked_on_harness` (source inference collision introduced by spec change)
 - [Plan #137: Front-Half Runtime-Harness Boundary IX](/home/brian/projects/ac14/docs/plans/137_front_half_runtime_harness_boundary_ix.md) -> complete, smoke_20 blocker: apply_compliance_and_execution had raw_scaling_event input port
-- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) -> in progress (spec fix merged; smoke_21 pending)
+- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) -> complete, smoke_21 verdict `ready_for_full_trials`
+- [Plan #88: Front-Half-First Full Trial Gate](/home/brian/projects/ac14/docs/plans/88_front_half_first_full_trial_gate.md) -> complete, full_gate_1 verdict `monolithic_wins` (5/5 vs 0/5, budget overflow)
+- [Plan #100: Front-Half-First Verdict Interpretation And Next Horizon](/home/brian/projects/ac14/docs/plans/100_front_half_first_verdict_interpretation.md) -> complete, root cause: $0.50/attempt budget insufficient; next: Plan #139 + #140
+- [Plan #139: Front-Half-First Full-Gate Budget Boundary](/home/brian/projects/ac14/docs/plans/139_front_half_first_full_gate_budget_boundary.md) -> complete
+- [Plan #140: Front-Half-First Budget Repair And Rerun](/home/brian/projects/ac14/docs/plans/140_front_half_first_budget_repair_and_rerun.md) -> active (budget fix + full_gate_2 rerun)
 - [Plan #126: Front-Half Dependency Boundary II](/home/brian/projects/ac14/docs/plans/126_front_half_dependency_boundary_ii.md) -> planned if smoke_15 still says `blocked_on_front_half`
 - [Plan #127: Front-Half Dependency Repair II And Smoke Rerun XV](/home/brian/projects/ac14/docs/plans/127_front_half_dependency_repair_ii_and_smoke_rerun_xv.md) -> planned
 - [Plan #128: Front-Half External Provider Boundary III](/home/brian/projects/ac14/docs/plans/128_front_half_external_provider_boundary_iii.md) -> planned if smoke_15 says `blocked_on_infrastructure`
@@ -125,7 +129,11 @@ The experiment contract remains frozen in:
 - [x] Plan #136: fix spec (workflow hints + rules), run smoke_20 — verdict `blocked_on_harness` (source inference collision).
 - [x] Plan #137: freeze smoke_20 boundary — apply_compliance_and_execution had raw_scaling_event port.
 - [x] Plan #138: fix apply_compliance_and_execution input_names → [scaling_decision_entry]; merge to master.
-- [ ] Run smoke_21 at `.ac14_out/front_half_first_smoke_21`.
+- [x] Run smoke_21 at `.ac14_out/front_half_first_smoke_21` — verdict `ready_for_full_trials`.
+- [x] Plan #88: implement full trial runner, run full_gate_1 — verdict `monolithic_wins` (budget overflow).
+- [x] Plan #100: interpret verdict — root cause is $0.50 budget cap, not capability.
+- [x] Plan #139: freeze budget boundary.
+- [ ] Plan #140: increase budget to $1.50, run full_gate_2.
 
 The completed execution lanes are:
 

@@ -1,6 +1,6 @@
 # Plan #88: Front-Half-First Full Trial Gate
 
-**Status:** In Progress
+**Status:** Complete
 **Type:** evaluation
 **Priority:** Critical
 **Blocked By:** 87
@@ -26,10 +26,9 @@ the benchmark is worth spending.
 ## Acceptance Criteria
 
 - [x] Full trial runner surface added: run_front_half_first_full_trials(), CLI command front-half-first-full-trials, Makefile target
-- [ ] A full front-half-first trial artifact set exists (5 trials).
-- [ ] The final empirical verdict is persisted explicitly.
-- [ ] The repo updates its story surfaces from that verdict instead of from
-      expectation.
+- [x] A full front-half-first trial artifact set exists (5 trials) at .ac14_out/front_half_first_full_gate_1/
+- [x] The final empirical verdict is persisted: monolithic_wins (5/5 vs 0/5)
+- [x] The repo updates its story surfaces from that verdict: Plan #100 interpretation + Plans #139/#140 frozen
 
 ---
 

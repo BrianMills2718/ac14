@@ -98,7 +98,10 @@ current executable lane.
 | 85 | [Structured-Spec Benchmark Bundle](85_structured_spec_benchmark_bundle.md) | Critical | Complete | 86 |
 | 86 | [Front-Half-First Smoke Gate Contract And Runner](86_front_half_first_smoke_gate.md) | Critical | Complete | 87 |
 | 87 | [Front-Half-First Smoke Execution](87_front_half_first_smoke_execution.md) | Critical | Complete | 88, 89 |
-| 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | In Progress | - |
+| 88 | [Front-Half-First Full Trial Gate](88_front_half_first_full_trial_gate.md) | Critical | Complete | - |
+| 100 | [Front-Half-First Verdict Interpretation And Next Horizon](100_front_half_first_verdict_interpretation.md) | Critical | Complete | - |
+| 139 | [Front-Half-First Full-Gate Budget Boundary](139_front_half_first_full_gate_budget_boundary.md) | Critical | Complete | 140 |
+| 140 | [Front-Half-First Budget Repair And Rerun](140_front_half_first_budget_repair_and_rerun.md) | Critical | Planned | - |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
@@ -110,7 +113,6 @@ current executable lane.
 | 97 | [Front-Half Freeze Fidelity Boundary](97_front_half_freeze_fidelity_boundary.md) | Critical | Complete | 104 |
 | 98 | [Front-Half Runtime-Harness Boundary](98_front_half_runtime_harness_boundary.md) | Critical | Complete | 105 |
 | 99 | [Front-Half Infrastructure Boundary For Hidden Default Model Paths](99_front_half_infrastructure_availability_boundary.md) | Critical | Complete | 106 |
-| 100 | [Front-Half-First Verdict Interpretation And Next Horizon](100_front_half_first_verdict_interpretation.md) | Critical | Planned | - |
 | 104 | [Front-Half Freeze-Fidelity Repair And Smoke Rerun V](104_front_half_freeze_fidelity_repair_and_smoke_rerun_iv.md) | Critical | Complete | 98 |
 | 105 | [Front-Half Runtime-Harness Repair And Smoke Rerun IV](105_front_half_runtime_harness_repair_and_smoke_rerun_iv.md) | Critical | Complete | 110 |
 | 106 | [Front-Half Model Propagation Repair And Smoke Rerun IV](106_front_half_provider_fallback_and_smoke_rerun_iv.md) | Critical | Complete | 97 |
