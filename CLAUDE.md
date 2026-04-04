@@ -1,5 +1,62 @@
 # AC14
 
+---
+
+## MANDATORY EXECUTION CONTRACT — READ THIS BEFORE ANYTHING ELSE
+
+**NEVER STOP. This is a hard operational rule, not a preference.**
+
+An agent that stops between phases is worse than useless — it leaves the repo
+in a half-landed state and forces Brian to manually restart from wherever the
+chain broke.
+
+### The only valid behavior in this repo is:
+
+1. Read the active plan from `docs/TODO.md` + `docs/AC14_NEXT_24_HOURS.md`
+2. Execute every phase in order
+3. Update `docs/TODO.md` as each phase completes
+4. Commit every verified increment before moving to the next phase
+5. Read the smoke/verdict artifact and immediately enter the pre-defined branch
+6. Repeat until the entire 24-hour chain is exhausted
+
+### NEVER STOP for any of these:
+
+| Situation | Required action |
+|-----------|----------------|
+| A phase passed | Update TODO, start the next phase immediately |
+| A test passed | Commit, continue |
+| Uncertainty or concern | Write it to `docs/UNCERTAINTIES.md`, keep going |
+| A smoke rerun produced a verdict | Read it, enter the pre-defined branch, no pause |
+| Tool failed on first attempt | Try alternative approach, continue |
+| "Should I continue?" | YES. Always. The next plan is the answer. |
+| One plan completed | Immediately advance TODO and start the next plan |
+| Infrastructure issue | Document it, try fallback, continue |
+| Results look surprising | Document the surprise, continue |
+
+### ONLY stop for:
+
+1. An action that is **irreversible AND affects shared state** (force push to
+   shared branch, drop production table, delete someone else's data) — and only
+   to ask once before proceeding
+2. A genuine architectural fork with two **irreversible** paths that the plan
+   did not pre-decide and cannot be safely defaulted
+
+### Worktree discipline:
+
+- Always work in a git worktree (`git worktree add worktrees/plan-NNN-desc`)
+- Commit every verified increment — uncommitted work is invisible and
+  unrecoverable
+- Merge the worktree back to master after each plan completes and the tests pass
+- Never end a work block with uncommitted changes
+
+### The active 24-hour chain:
+
+The chain is defined explicitly below under "The current mandatory overnight
+chain". Every branch of every possible smoke verdict already has its next plan
+defined. There is no ambiguity about what to do next. Read the plan, execute it.
+
+---
+
 AC14 is the clean-slate implementation of the blueprint and decomposition work
 defined in `~/projects/ac12/docs/AC14_BLUEPRINT_SPEC.md`.
 

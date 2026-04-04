@@ -1,7 +1,7 @@
 # AC14 Implementation Plans
 
 Status: Canonical numbered-plan index
-Last updated: 2026-04-03
+Last updated: 2026-04-04
 
 Use numbered plans for implementation work that changes AC14's code or active
 control surfaces. The roadmap defines direction; numbered plans define the
@@ -139,6 +139,7 @@ current executable lane.
 | 129 | [Front-Half Provider Fallback And Smoke Rerun XVI](129_front_half_provider_fallback_and_smoke_rerun_xvi.md) | Critical | Planned | - |
 | 130 | [Front-Half Runtime-Harness Boundary VII](130_front_half_runtime_harness_boundary_vii.md) | Critical | Planned | 131 |
 | 131 | [Front-Half Runtime-Harness Repair VII And Smoke Rerun XVII](131_front_half_runtime_harness_repair_vii_and_smoke_rerun_xvii.md) | Critical | Planned | - |
+| 132 | [Theory-Forge Input Contract](132_theory_forge_input_contract.md) | High | Planned | 88 |
 
 ## Status Key
 

@@ -494,40 +494,36 @@ across components, and expected outputs that are categorical-dominant so the
 success criterion stays clean. A benchmark where both conditions trivially pass
 runtime tests is not measuring the decomposition thesis.
 
-### 2026-04-02 — claude-code — integration-issue
+### 2026-04-04 — claude-code — integration-issue (updated from 2026-04-02)
 Theory-forge (`~/projects/theory-forge`) is the first intended consumer of AC14's
-NL-to-blueprint path (listed as "not implemented yet" in AC14_IMPLEMENTATION_STATUS.md).
-The integration design is: theory-forge feeds its v14 theory schema (JSON, 11 sections)
-plus natural language context (analysis goal, input data type, optionally the paper text)
-into AC14's NL path → AC14 generates the blueprint → AC14 compiles compute.py.
+front-half pipeline. See `ac14/docs/plans/132_theory_forge_input_contract.md` for
+the design contract. Key facts:
 
-**What theory-forge would provide to AC14's NL path:**
-- `v14_schema` (JSON): full 11-section schema — `algorithms` and `operations` define what
-  functions to generate; `parameters` define their arguments; `constructs`/`categories`
-  define extraction types (AC14 does NOT need to generate these)
-- `analysis_goal` (str): e.g. "analyze news articles for framing devices" or "compute
-  graph tie-strength metrics on social network edge lists"
+- Theory-forge now uses **v15** schema (not v14 — v15 reliability overhaul, Plan #9 complete).
+  11 sections remain; v15 adds `typed_inputs`, `output_type`, `invariants`, `golden_cases`
+  on algorithm definitions.
+- The integration does NOT require a new "NL disambiguation loop". The packet model is
+  general — a formula is just text in a component description. What's needed is that
+  AC14's discovery/blueprint-planning prompts receive the v15 meta-schema as context so
+  they interpret `algorithms`/`operations` as "functions to generate" rather than data fields.
+- The likely sufficient interface: v15 schema JSON + optional paper text + analysis goal
+  as a directory bundle; AC14's front-half prompts include the v15 meta-schema definition
+  as a planning context document. No new pipeline path required — just appropriate context.
+
+**What theory-forge provides to AC14:**
+- `v15_schema` (JSON): `algorithms` and `operations` define what functions to generate;
+  `parameters` define arguments; `constructs`/`categories` are extraction types (AC14 does NOT generate these)
+- `analysis_goal` (str): e.g. "analyze news articles for framing devices"
 - `paper_text` (str, optional): raw academic paper text for richer semantic grounding
 
-**What theory-forge expects back from AC14:**
-- A Python module (`compute.py`) implementing the `algorithms` and computation-phase
-  `operations` from the v14 schema
-- Function names and parameter names must match the operation names in the schema
-- Pure Python only (no os/subprocess/eval/exec — runs in a sandboxed subprocess)
-- Must pass theory-forge's AST structural validator and pytest test suite
+**What AC14 produces:**
+- `compute.py`: functions implementing `algorithms` + computation-phase `operations`
+- Must pass theory-forge's AST validator + pytest suite
 
-**What AC14 does NOT need to generate:**
-- `extract.py` (theory-forge generates from v14 `constructs` + `categories`)
-- `orchestrate.yaml` (theory-forge generates from v14 `operations` wiring)
-- `prompts/stage_*.yaml` (theory-forge generates qualitative stage prompts)
-- `manifest.yaml` (theory-forge owns)
+**What AC14 does NOT generate:**
+- `extract.py`, `orchestrate.yaml`, `prompts/stage_*.yaml`, `manifest.yaml` — theory-forge owns these
 
-**Why this matters for the NL path design:**
-The v14 schema is already a structured, semantically rich document — not free prose.
-The NL disambiguation loop needs to understand that it is receiving a *theory specification*
-(not a data pipeline spec) and that its job is to generate compute functions, not data
-extraction or orchestration logic. See `theory-forge/docs/plans/08_ac14_codegen_integration.md`
-for the full integration plan.
+See `theory-forge/docs/plans/08_ac14_codegen_integration.md` for the full integration plan.
 
 ### 2026-04-02 — codex — best-practice
 Interrupted empirical gates should be restart-safe, not manually cleaned up.
