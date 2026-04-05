@@ -167,6 +167,13 @@ find the first `ac14_wins` verdict.
     - Root cause: information asymmetry + pipeline fragility. Full doc: `docs/theory_forge/series_conclusion.md`
     - **DECISION POINT for Brian:** Scale_50 test? OR Planning step synthesis? OR Application domain pivot?
     - Recommended: declare series complete, pivot to next major project phase
+27. zeta_scale_40 bonus gate (unplanned, run after Plan #175) -> `monolithic_wins`
+    - 40-component dual-option portfolio built and gated with Gemini flash
+    - Mono: 4/5 | AC14: 0/5 | AC14 cost 2.7x higher, 4.5x slower
+    - AC14 failure mode: pipeline fragility — generation + port-wrapping fails at 40 components
+    - Confirms Plan #175 conclusion: threshold >> 40 components, but AC14 success prob → 0 at scale
+    - Verdict doc: `docs/theory_forge/zeta_scale40_verdict.md`
+    - **STOPPING HERE** — genuine decision point per Plan #175. Next direction requires Brian input.
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid

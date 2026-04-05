@@ -1,0 +1,16 @@
+benchmark:
+  benchmark_id: zeta_scale_40_v1
+  name: "Zeta-Modified Dual-Option Portfolio: 40-Component Scale Test"
+  purpose: >
+    Scale test extending zeta_scale_20 (20 components) to 40 components by running
+    two parallel zeta-option pipelines (Option A and B) with a terminal portfolio
+    assembler. Tests whether AC14 decomposition advantage appears at 40-component
+    scale. Monolithic must generate ~3200 lines of code with consistent dual-pipeline
+    naming. AC14 decomposes into 40 bounded packets of ~80 lines each.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

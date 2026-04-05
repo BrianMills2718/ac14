@@ -1,0 +1,162 @@
+fixtures:
+- component_id: receive_portfolio_request
+  description: Base portfolio request pass-through.
+  expected_outputs:
+    portfolio_params_output: &id001
+      T_a: 1.0
+      T_b: 1.0
+      alpha_a: 0.85
+      alpha_b: 0.85
+      case_id: base_spread
+      rate_a: 0.05
+      rate_b: 0.05
+      spot_a: 100.0
+      spot_b: 100.0
+      strike_a: 100.0
+      strike_b: 110.0
+      vol_a: 0.2
+      vol_b: 0.2
+      zeta_a: 0.7
+      zeta_b: 0.7
+  fixture_id: fixture_receive_portfolio_request_base
+  inputs:
+    portfolio_request: *id001
+  scenario_id: semantic_acceptance_base
+- component_id: compute_option_a_d_params
+  description: 'Option A d-params: d1=0.3200, disc_alpha=0.9246.'
+  expected_outputs:
+    option_a_params_output: &id002
+      T_a: 1.0
+      T_b: 1.0
+      alpha_a: 0.85
+      alpha_b: 0.85
+      case_id: base_spread
+      d1_zeta_a: 0.32
+      d2_zeta_a: 0.18000000000000002
+      dd1_dT_a: 0.0
+      disc_alpha_a: 0.9246264814269951
+      rate_a: 0.05
+      rate_b: 0.05
+      spot_a: 100.0
+      spot_b: 100.0
+      strike_a: 100.0
+      strike_b: 110.0
+      vol_a: 0.2
+      vol_b: 0.2
+      zeta_a: 0.7
+      zeta_b: 0.7
+  fixture_id: fixture_option_a_d_params_base
+  inputs:
+    portfolio_params_output: *id001
+  scenario_id: semantic_acceptance_base
+- component_id: compute_option_a_delta
+  description: Option A delta_call=0.4379 (zeta*N(d1), NOT N(d1)).
+  expected_outputs:
+    option_a_delta_output:
+      T_a: 1.0
+      T_b: 1.0
+      alpha_a: 0.85
+      alpha_b: 0.85
+      case_id: base_spread
+      d1_zeta_a: 0.32
+      d2_zeta_a: 0.18000000000000002
+      dd1_dT_a: 0.0
+      delta_call_a: 0.43786108430632403
+      delta_put_a: -0.562138915693676
+      disc_alpha_a: 0.9246264814269951
+      rate_a: 0.05
+      rate_b: 0.05
+      spot_a: 100.0
+      spot_b: 100.0
+      strike_a: 100.0
+      strike_b: 110.0
+      vol_a: 0.2
+      vol_b: 0.2
+      zeta_a: 0.7
+      zeta_b: 0.7
+  fixture_id: fixture_option_a_delta_base
+  inputs:
+    option_a_params_output: *id002
+  scenario_id: semantic_acceptance_base
+- component_id: assemble_portfolio_results
+  description: portfolio_delta=0.7443 = delta_call_a + delta_call_b.
+  expected_outputs:
+    portfolio_results:
+      call_price_a: 9.716233488593133
+      call_price_b: 4.784264737708611
+      case_id: base_spread
+      charm_a: 0.04245141892910259
+      charm_b: 0.10986763037732239
+      color_a: -0.007312256910537922
+      color_b: -0.006036466317374687
+      d1_zeta_a: 0.32
+      d1_zeta_b: -0.15655089902162445
+      d2_zeta_a: 0.18000000000000002
+      d2_zeta_b: -0.29655089902162446
+      delta_call_a: 0.43786108430632403
+      delta_call_b: 0.3064595807561203
+      delta_put_a: -0.562138915693676
+      delta_put_b: -0.6935404192438797
+      disc_alpha_a: 0.9246264814269951
+      disc_alpha_b: 0.9246264814269951
+      dual_delta_call_a: -0.5283534998373888
+      dual_delta_call_b: -0.35450613973007805
+      dual_delta_put_a: 0.3962729815896064
+      dual_delta_put_b: 0.570120341696917
+      gamma_a: 0.01326606841534456
+      gamma_b: 0.01379292026564391
+      portfolio_delta: 0.7443206650624443
+      portfolio_gamma: 0.02705898868098847
+      portfolio_rho: 122.3384175507903
+      portfolio_theta: -12.60817523918536
+      portfolio_vega: 64.68335482234589
+      put_price_a: 2.17888163129264
+      put_price_b: 6.493177694678067
+      rho_call_a: 70.38790085194117
+      rho_call_b: 51.950516698849135
+      rho_put_a: -52.79197231970052
+      rho_put_b: -83.54734378995673
+      speed_a: -0.0003449177787989585
+      speed_b: -2.9964499270432238e-05
+      theta_call_a: -6.793678439065451
+      theta_call_b: -5.814496800119908
+      theta_put_a: 0.45219645338406034
+      theta_put_b: 2.1559655815745553
+      ultima_a: -8.634484993851423
+      ultima_b: -5.997332984160886
+      vanna_a: -0.23878923147620207
+      vanna_b: 0.40903029049102846
+      vega_a: 31.711969006814403
+      vega_b: 32.97138581553149
+      veta_a: 14.232331690258304
+      veta_b: 18.54147133191218
+      volga_a: 9.13304707396255
+      volga_b: 7.653534012938614
+      zomma_a: -0.06250971437310356
+      zomma_b: -0.06576289834304722
+  fixture_id: fixture_portfolio_results_base
+  inputs:
+    option_a_delta_output:
+      T_a: 1.0
+      T_b: 1.0
+      alpha_a: 0.85
+      alpha_b: 0.85
+      case_id: base_spread
+      d1_zeta_a: 0.32
+      d2_zeta_a: 0.18000000000000002
+      dd1_dT_a: 0.0
+      delta_call_a: 0.43786108430632403
+      delta_put_a: -0.562138915693676
+      disc_alpha_a: 0.9246264814269951
+      rate_a: 0.05
+      rate_b: 0.05
+      spot_a: 100.0
+      spot_b: 100.0
+      strike_a: 100.0
+      strike_b: 110.0
+      vol_a: 0.2
+      vol_b: 0.2
+      zeta_a: 0.7
+      zeta_b: 0.7
+    option_a_params_output: *id002
+  scenario_id: semantic_acceptance_base

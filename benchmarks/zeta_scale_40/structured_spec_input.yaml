@@ -1,0 +1,764 @@
+system_name: Zeta-Modified Dual-Option Portfolio Pricing
+purpose: >
+  Compute a complete portfolio of two independent European options using a modified
+  formula that introduces two free parameters: zeta and alpha. For each option (A
+  and B), compute all first-order and second-order zeta-modified Greeks. Then
+  aggregate into portfolio-level Greeks.
+  The system has 40 components: 1 portfolio request receiver + 19 per option pipeline
+  (d_params + 9 first-order + 9 second-order) + 1 terminal portfolio assembler.
+requirements:
+  - "Accept portfolio_request with fields: case_id, spot_a, strike_a, rate_a, vol_a, T_a, zeta_a, alpha_a, spot_b, strike_b, rate_b, vol_b, T_b, zeta_b, alpha_b"
+  - "Produce portfolio_results with all Option A Greeks (suffix _a), all Option B Greeks (suffix _b), and portfolio-level Greeks"
+  - "All formulas use zeta and alpha modifications to standard Black-Scholes"
+  - "For Option A: disc_alpha_a = exp(-(rate_a**alpha_a)*T_a), NOT exp(-rate_a*T_a)"
+  - "For Option B: disc_alpha_b = exp(-(rate_b**alpha_b)*T_b), NOT exp(-rate_b*T_b)"
+  - "All Greek computations for Option A use _a suffix variables only"
+  - "All Greek computations for Option B use _b suffix variables only"
+  - "Never mix Option A and Option B variables in the same component"
+success_criteria:
+  - "base_spread case Option A: d1_zeta_a approx 0.32, disc_alpha_a approx 0.9246 (NOT exp(-0.05)=0.9512)"
+  - "base_spread case Option A: call_price_a approx 9.716, delta_call_a approx 0.438 (NOT N(d1) = 0.626)"
+  - "base_spread case Option B: call_price_b approx 4.29, delta_call_b approx 0.266 (zeta*N(d1_b))"
+  - "base_spread case: portfolio_delta = delta_call_a + delta_call_b approx 0.704"
+  - "For each option: delta_call = zeta * N(d1_zeta), NOT N(d1_zeta)"
+  - "For each option: vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5 (includes zeta^0.5 factor)"
+business_rules:
+  - "disc_alpha = exp(-(rate**alpha) * T) for each option"
+  - "d1_zeta = (log(S/K) + (rate + zeta*sigma^2/2)*T) / (sigma*sqrt(T)) for each option"
+  - "d2_zeta = d1_zeta - zeta*sigma*sqrt(T) for each option"
+  - "dd1_dT = (rate + zeta*sigma^2/2) / (sigma*sqrt(T)) - d1_zeta / (2*T)"
+  - "call = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta)"
+  - "put = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta)"
+  - "delta_call = zeta*N(d1_zeta) [NOT N(d1_zeta)]; delta_put = zeta*N(d1_zeta) - 1"
+  - "gamma = zeta*N'(d1_zeta) / (S*sigma*sqrt(T))"
+  - "vega = S*N'(d1_zeta)*sqrt(T)*zeta^0.5"
+  - "theta_call = -(S*N'(d1)*sigma*zeta)/(2*sqrt(T)) - (rate^alpha)*K*disc_alpha*N(d2)"
+  - "theta_put = -(S*N'(d1)*sigma*zeta)/(2*sqrt(T)) + (rate^alpha)*K*disc_alpha*N(-d2)"
+  - "rho_call = alpha*K*T*(rate^(alpha-1))*disc_alpha*N(d2)"
+  - "rho_put = -alpha*K*T*(rate^(alpha-1))*disc_alpha*N(-d2)"
+  - "vanna = -zeta*N'(d1)*d2/sigma"
+  - "volga = vega*d1*d2/sigma"
+  - "charm = zeta*N'(d1)*dd1_dT"
+  - "veta = S*(zeta^0.5)*N'(d1)*(1/(2*sqrt(T)) - d1*dd1_dT)"
+  - "speed = -gamma*(1 + d1/(sigma*sqrt(T)))/S"
+  - "zomma = gamma*(d1*d2 - 1)/sigma"
+  - "color = -gamma*(d1*dd1_dT + 1/(2*T))"
+  - "dual_delta_call = -disc_alpha*N(d2) [NO alpha factor]"
+  - "dual_delta_put = disc_alpha*N(-d2)"
+  - "ultima = -volga/sigma*(d1*d2*(1-d1*d2) + d1^2 + d2^2)"
+  - "portfolio_delta = delta_call_a + delta_call_b"
+  - "portfolio_gamma = gamma_a + gamma_b"
+  - "portfolio_vega = vega_a + vega_b"
+  - "portfolio_theta = theta_call_a + theta_call_b"
+  - "portfolio_rho = rho_call_a + rho_call_b"
+  - "Use scipy.stats.norm for CDF and PDF"
+inputs:
+  - name: portfolio_request
+    kind: record
+    description: Flat portfolio specification with market parameters for both Option A and Option B.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to all outputs.
+        required: true
+      - field_name: spot_a
+        field_type: float
+        description: Current spot price of the underlying for Option A.
+        required: true
+      - field_name: strike_a
+        field_type: float
+        description: Strike price for Option A.
+        required: true
+      - field_name: rate_a
+        field_type: float
+        description: Annualized risk-free rate for Option A.
+        required: true
+      - field_name: vol_a
+        field_type: float
+        description: Annualized implied volatility for Option A.
+        required: true
+      - field_name: T_a
+        field_type: float
+        description: Time to expiry in years for Option A.
+        required: true
+      - field_name: zeta_a
+        field_type: float
+        description: Zeta variance scaling parameter for Option A (0 < zeta_a <= 1).
+        required: true
+      - field_name: alpha_a
+        field_type: float
+        description: Alpha fractional exponent for Option A (0 < alpha_a <= 1).
+        required: true
+      - field_name: spot_b
+        field_type: float
+        description: Current spot price of the underlying for Option B.
+        required: true
+      - field_name: strike_b
+        field_type: float
+        description: Strike price for Option B.
+        required: true
+      - field_name: rate_b
+        field_type: float
+        description: Annualized risk-free rate for Option B.
+        required: true
+      - field_name: vol_b
+        field_type: float
+        description: Annualized implied volatility for Option B.
+        required: true
+      - field_name: T_b
+        field_type: float
+        description: Time to expiry in years for Option B.
+        required: true
+      - field_name: zeta_b
+        field_type: float
+        description: Zeta variance scaling parameter for Option B (0 < zeta_b <= 1).
+        required: true
+      - field_name: alpha_b
+        field_type: float
+        description: Alpha fractional exponent for Option B (0 < alpha_b <= 1).
+        required: true
+outputs:
+  - name: portfolio_results
+    kind: record
+    description: Complete portfolio output with all Greeks for Option A, Option B, and portfolio-level.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier.
+        required: true
+      # Option A Greeks
+      - field_name: d1_zeta_a
+        field_type: float
+        description: Zeta-modified d1 parameter for Option A.
+        required: true
+      - field_name: d2_zeta_a
+        field_type: float
+        description: Zeta-modified d2 parameter for Option A.
+        required: true
+      - field_name: disc_alpha_a
+        field_type: float
+        description: Alpha-modified discount factor for Option A.
+        required: true
+      - field_name: call_price_a
+        field_type: float
+        description: Fair value of zeta-modified European call for Option A.
+        required: true
+      - field_name: put_price_a
+        field_type: float
+        description: Fair value of zeta-modified European put for Option A.
+        required: true
+      - field_name: delta_call_a
+        field_type: float
+        description: Zeta-scaled delta of call for Option A.
+        required: true
+      - field_name: delta_put_a
+        field_type: float
+        description: Zeta-scaled delta of put for Option A.
+        required: true
+      - field_name: gamma_a
+        field_type: float
+        description: Zeta-scaled gamma for Option A.
+        required: true
+      - field_name: theta_call_a
+        field_type: float
+        description: Zeta-alpha-modified theta for Option A call.
+        required: true
+      - field_name: theta_put_a
+        field_type: float
+        description: Zeta-alpha-modified theta for Option A put.
+        required: true
+      - field_name: vega_a
+        field_type: float
+        description: Zeta-corrected vega for Option A.
+        required: true
+      - field_name: rho_call_a
+        field_type: float
+        description: Alpha-modified rho for Option A call.
+        required: true
+      - field_name: rho_put_a
+        field_type: float
+        description: Alpha-modified rho for Option A put.
+        required: true
+      - field_name: vanna_a
+        field_type: float
+        description: Zeta-modified vanna for Option A.
+        required: true
+      - field_name: volga_a
+        field_type: float
+        description: Zeta-modified volga for Option A.
+        required: true
+      - field_name: charm_a
+        field_type: float
+        description: Zeta-modified charm for Option A.
+        required: true
+      - field_name: veta_a
+        field_type: float
+        description: Zeta-modified veta for Option A.
+        required: true
+      - field_name: speed_a
+        field_type: float
+        description: Zeta-modified speed for Option A.
+        required: true
+      - field_name: zomma_a
+        field_type: float
+        description: Zeta-modified zomma for Option A.
+        required: true
+      - field_name: color_a
+        field_type: float
+        description: Zeta-modified color for Option A.
+        required: true
+      - field_name: dual_delta_call_a
+        field_type: float
+        description: Dual delta of call for Option A.
+        required: true
+      - field_name: dual_delta_put_a
+        field_type: float
+        description: Dual delta of put for Option A.
+        required: true
+      - field_name: ultima_a
+        field_type: float
+        description: Zeta-modified ultima for Option A.
+        required: true
+      # Option B Greeks
+      - field_name: d1_zeta_b
+        field_type: float
+        description: Zeta-modified d1 parameter for Option B.
+        required: true
+      - field_name: d2_zeta_b
+        field_type: float
+        description: Zeta-modified d2 parameter for Option B.
+        required: true
+      - field_name: disc_alpha_b
+        field_type: float
+        description: Alpha-modified discount factor for Option B.
+        required: true
+      - field_name: call_price_b
+        field_type: float
+        description: Fair value of zeta-modified European call for Option B.
+        required: true
+      - field_name: put_price_b
+        field_type: float
+        description: Fair value of zeta-modified European put for Option B.
+        required: true
+      - field_name: delta_call_b
+        field_type: float
+        description: Zeta-scaled delta of call for Option B.
+        required: true
+      - field_name: delta_put_b
+        field_type: float
+        description: Zeta-scaled delta of put for Option B.
+        required: true
+      - field_name: gamma_b
+        field_type: float
+        description: Zeta-scaled gamma for Option B.
+        required: true
+      - field_name: theta_call_b
+        field_type: float
+        description: Zeta-alpha-modified theta for Option B call.
+        required: true
+      - field_name: theta_put_b
+        field_type: float
+        description: Zeta-alpha-modified theta for Option B put.
+        required: true
+      - field_name: vega_b
+        field_type: float
+        description: Zeta-corrected vega for Option B.
+        required: true
+      - field_name: rho_call_b
+        field_type: float
+        description: Alpha-modified rho for Option B call.
+        required: true
+      - field_name: rho_put_b
+        field_type: float
+        description: Alpha-modified rho for Option B put.
+        required: true
+      - field_name: vanna_b
+        field_type: float
+        description: Zeta-modified vanna for Option B.
+        required: true
+      - field_name: volga_b
+        field_type: float
+        description: Zeta-modified volga for Option B.
+        required: true
+      - field_name: charm_b
+        field_type: float
+        description: Zeta-modified charm for Option B.
+        required: true
+      - field_name: veta_b
+        field_type: float
+        description: Zeta-modified veta for Option B.
+        required: true
+      - field_name: speed_b
+        field_type: float
+        description: Zeta-modified speed for Option B.
+        required: true
+      - field_name: zomma_b
+        field_type: float
+        description: Zeta-modified zomma for Option B.
+        required: true
+      - field_name: color_b
+        field_type: float
+        description: Zeta-modified color for Option B.
+        required: true
+      - field_name: dual_delta_call_b
+        field_type: float
+        description: Dual delta of call for Option B.
+        required: true
+      - field_name: dual_delta_put_b
+        field_type: float
+        description: Dual delta of put for Option B.
+        required: true
+      - field_name: ultima_b
+        field_type: float
+        description: Zeta-modified ultima for Option B.
+        required: true
+      # Portfolio Greeks
+      - field_name: portfolio_delta
+        field_type: float
+        description: Portfolio delta = delta_call_a + delta_call_b.
+        required: true
+      - field_name: portfolio_gamma
+        field_type: float
+        description: Portfolio gamma = gamma_a + gamma_b.
+        required: true
+      - field_name: portfolio_vega
+        field_type: float
+        description: Portfolio vega = vega_a + vega_b.
+        required: true
+      - field_name: portfolio_theta
+        field_type: float
+        description: Portfolio theta = theta_call_a + theta_call_b.
+        required: true
+      - field_name: portfolio_rho
+        field_type: float
+        description: Portfolio rho = rho_call_a + rho_call_b.
+        required: true
+workflow_hints:
+  # ─── SOURCE ─────────────────────────────────────────────────────────────────
+  - hint_id: receive_portfolio_request
+    summary: >
+      PIPELINE STAGE 1 (SOURCE). Receive the flat portfolio_request and pass all
+      fields through as portfolio_params_output. This component performs no computation
+      beyond passing through the flat input record.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). Receives portfolio_request as the sole external input."
+      - "Pass through all fields: case_id, spot_a, strike_a, rate_a, vol_a, T_a, zeta_a, alpha_a, spot_b, strike_b, rate_b, vol_b, T_b, zeta_b, alpha_b."
+      - "Emit portfolio_params_output containing all input fields unchanged."
+
+  # ─── OPTION A PIPELINE ─────────────────────────────────────────────────────
+  - hint_id: compute_option_a_d_params
+    summary: >
+      PIPELINE STAGE 2 (OPTION A). Receive portfolio_params_output. Compute
+      d1_zeta_a, d2_zeta_a, disc_alpha_a, dd1_dT_a using _a suffix fields ONLY.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 2 (OPTION A). Receives portfolio_params_output from receive_portfolio_request."
+      - "USE ONLY _a suffix fields: spot_a, strike_a, rate_a, vol_a, T_a, zeta_a, alpha_a."
+      - "disc_alpha_a = exp(-(rate_a**alpha_a)*T_a)"
+      - "d1_zeta_a = (log(spot_a/strike_a) + (rate_a + zeta_a*vol_a^2/2)*T_a) / (vol_a*sqrt(T_a))"
+      - "d2_zeta_a = d1_zeta_a - zeta_a*vol_a*sqrt(T_a)"
+      - "dd1_dT_a = (rate_a + zeta_a*vol_a^2/2) / (vol_a*sqrt(T_a)) - d1_zeta_a/(2*T_a)"
+      - "Emit option_a_params_output with all portfolio_params fields plus d1_zeta_a, d2_zeta_a, disc_alpha_a, dd1_dT_a."
+
+  - hint_id: price_option_a_call
+    summary: >
+      PIPELINE STAGE 3 (OPTION A). Compute call_price_a using disc_alpha_a.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 3 (OPTION A). Receives option_a_params_output from compute_option_a_d_params."
+      - "call_price_a = spot_a*N(d1_zeta_a) - strike_a*disc_alpha_a*N(d2_zeta_a)"
+      - "Emit option_a_call_output."
+
+  - hint_id: price_option_a_put
+    summary: >
+      PIPELINE STAGE 4 (OPTION A). Compute put_price_a.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 4 (OPTION A). Receives option_a_params_output from compute_option_a_d_params."
+      - "put_price_a = strike_a*disc_alpha_a*N(-d2_zeta_a) - spot_a*N(-d1_zeta_a)"
+      - "Emit option_a_put_output."
+
+  - hint_id: compute_option_a_delta
+    summary: >
+      PIPELINE STAGE 5 (OPTION A). Compute zeta-scaled delta for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 5 (OPTION A). Receives option_a_params_output from compute_option_a_d_params."
+      - "delta_call_a = zeta_a * N(d1_zeta_a) [zeta_a SCALES delta]"
+      - "delta_put_a = zeta_a * N(d1_zeta_a) - 1"
+      - "Emit option_a_delta_output."
+
+  - hint_id: compute_option_a_gamma
+    summary: >
+      PIPELINE STAGE 6 (OPTION A). Compute zeta-scaled gamma for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 6 (OPTION A). Receives option_a_params_output from compute_option_a_d_params."
+      - "gamma_a = zeta_a * N'(d1_zeta_a) / (spot_a * vol_a * sqrt(T_a))"
+      - "Emit option_a_gamma_output."
+
+  - hint_id: compute_option_a_theta_call
+    summary: >
+      PIPELINE STAGE 7 (OPTION A). Compute theta for Option A call.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 7 (OPTION A). Receives option_a_params_output."
+      - "theta_call_a = -(spot_a*N'(d1_zeta_a)*vol_a*zeta_a)/(2*sqrt(T_a)) - (rate_a**alpha_a)*strike_a*disc_alpha_a*N(d2_zeta_a)"
+      - "Second term uses rate_a**alpha_a (NOT rate_a**(alpha_a-1)). theta_call_a is negative."
+      - "Emit option_a_theta_call_output."
+
+  - hint_id: compute_option_a_theta_put
+    summary: >
+      PIPELINE STAGE 8 (OPTION A). Compute theta for Option A put.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 8 (OPTION A). Receives option_a_params_output."
+      - "theta_put_a = -(spot_a*N'(d1_zeta_a)*vol_a*zeta_a)/(2*sqrt(T_a)) + (rate_a**alpha_a)*strike_a*disc_alpha_a*N(-d2_zeta_a)"
+      - "Second term is POSITIVE and uses N(-d2_zeta_a)."
+      - "Emit option_a_theta_put_output."
+
+  - hint_id: compute_option_a_vega
+    summary: >
+      PIPELINE STAGE 9 (OPTION A). Compute vega for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 9 (OPTION A). Receives option_a_params_output."
+      - "vega_a = spot_a * N'(d1_zeta_a) * sqrt(T_a) * (zeta_a**0.5)"
+      - "Includes zeta_a^0.5 factor."
+      - "Emit option_a_vega_output."
+
+  - hint_id: compute_option_a_rho_call
+    summary: >
+      PIPELINE STAGE 10 (OPTION A). Compute rho for Option A call.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 10 (OPTION A). Receives option_a_params_output."
+      - "rho_call_a = alpha_a * strike_a * T_a * (rate_a**(alpha_a-1)) * disc_alpha_a * N(d2_zeta_a)"
+      - "Emit option_a_rho_call_output."
+
+  - hint_id: compute_option_a_rho_put
+    summary: >
+      PIPELINE STAGE 11 (OPTION A). Compute rho for Option A put.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 11 (OPTION A). Receives option_a_params_output."
+      - "rho_put_a = -alpha_a * strike_a * T_a * (rate_a**(alpha_a-1)) * disc_alpha_a * N(-d2_zeta_a)"
+      - "Emit option_a_rho_put_output."
+
+  - hint_id: compute_option_a_vanna
+    summary: >
+      PIPELINE STAGE 12 (OPTION A). Compute vanna for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 12 (OPTION A). Receives option_a_params_output."
+      - "vanna_a = -zeta_a * N'(d1_zeta_a) * d2_zeta_a / vol_a"
+      - "Emit option_a_vanna_output."
+
+  - hint_id: compute_option_a_volga
+    summary: >
+      PIPELINE STAGE 13 (OPTION A). Compute volga for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 13 (OPTION A). Receives option_a_params_output AND option_a_vega_output."
+      - "volga_a = vega_a * d1_zeta_a * d2_zeta_a / vol_a"
+      - "Emit option_a_volga_output."
+
+  - hint_id: compute_option_a_charm
+    summary: >
+      PIPELINE STAGE 14 (OPTION A). Compute charm for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 14 (OPTION A). Receives option_a_params_output (dd1_dT_a available)."
+      - "charm_a = zeta_a * N'(d1_zeta_a) * dd1_dT_a"
+      - "Emit option_a_charm_output."
+
+  - hint_id: compute_option_a_veta
+    summary: >
+      PIPELINE STAGE 15 (OPTION A). Compute veta for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 15 (OPTION A). Receives option_a_params_output."
+      - "veta_a = spot_a*(zeta_a**0.5)*N'(d1_zeta_a)*(1/(2*sqrt(T_a)) - d1_zeta_a*dd1_dT_a)"
+      - "Emit option_a_veta_output."
+
+  - hint_id: compute_option_a_speed
+    summary: >
+      PIPELINE STAGE 16 (OPTION A). Compute speed for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 16 (OPTION A). Receives option_a_params_output AND option_a_gamma_output."
+      - "speed_a = -gamma_a * (1 + d1_zeta_a/(vol_a*sqrt(T_a))) / spot_a"
+      - "Emit option_a_speed_output."
+
+  - hint_id: compute_option_a_zomma
+    summary: >
+      PIPELINE STAGE 17 (OPTION A). Compute zomma for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 17 (OPTION A). Receives option_a_params_output AND option_a_gamma_output."
+      - "zomma_a = gamma_a * (d1_zeta_a * d2_zeta_a - 1) / vol_a"
+      - "Emit option_a_zomma_output."
+
+  - hint_id: compute_option_a_color
+    summary: >
+      PIPELINE STAGE 18 (OPTION A). Compute color for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 18 (OPTION A). Receives option_a_params_output AND option_a_gamma_output."
+      - "color_a = -gamma_a * (d1_zeta_a * dd1_dT_a + 1/(2*T_a))"
+      - "Emit option_a_color_output."
+
+  - hint_id: compute_option_a_dual_delta
+    summary: >
+      PIPELINE STAGE 19 (OPTION A). Compute dual delta for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 19 (OPTION A). Receives option_a_params_output."
+      - "dual_delta_call_a = -disc_alpha_a * N(d2_zeta_a)"
+      - "dual_delta_put_a = disc_alpha_a * N(-d2_zeta_a)"
+      - "Emit option_a_dual_delta_output."
+
+  - hint_id: compute_option_a_ultima
+    summary: >
+      PIPELINE STAGE 20 (OPTION A). Compute ultima for Option A.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 20 (OPTION A). Receives option_a_params_output AND option_a_volga_output."
+      - "ultima_a = -volga_a/vol_a * (d1_zeta_a*d2_zeta_a*(1-d1_zeta_a*d2_zeta_a) + d1_zeta_a^2 + d2_zeta_a^2)"
+      - "Emit option_a_ultima_output."
+
+  # ─── OPTION B PIPELINE ─────────────────────────────────────────────────────
+  - hint_id: compute_option_b_d_params
+    summary: >
+      PIPELINE STAGE 21 (OPTION B). Receive portfolio_params_output. Compute
+      d1_zeta_b, d2_zeta_b, disc_alpha_b, dd1_dT_b using _b suffix fields ONLY.
+      Do NOT use any Option A variables.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 21 (OPTION B). Receives portfolio_params_output from receive_portfolio_request."
+      - "USE ONLY _b suffix fields: spot_b, strike_b, rate_b, vol_b, T_b, zeta_b, alpha_b."
+      - "disc_alpha_b = exp(-(rate_b**alpha_b)*T_b)"
+      - "d1_zeta_b = (log(spot_b/strike_b) + (rate_b + zeta_b*vol_b^2/2)*T_b) / (vol_b*sqrt(T_b))"
+      - "d2_zeta_b = d1_zeta_b - zeta_b*vol_b*sqrt(T_b)"
+      - "dd1_dT_b = (rate_b + zeta_b*vol_b^2/2) / (vol_b*sqrt(T_b)) - d1_zeta_b/(2*T_b)"
+      - "Emit option_b_params_output with all portfolio_params fields plus d1_zeta_b, d2_zeta_b, disc_alpha_b, dd1_dT_b."
+
+  - hint_id: price_option_b_call
+    summary: >
+      PIPELINE STAGE 22 (OPTION B). Compute call_price_b using disc_alpha_b.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 22 (OPTION B). Receives option_b_params_output from compute_option_b_d_params."
+      - "call_price_b = spot_b*N(d1_zeta_b) - strike_b*disc_alpha_b*N(d2_zeta_b)"
+      - "Emit option_b_call_output."
+
+  - hint_id: price_option_b_put
+    summary: >
+      PIPELINE STAGE 23 (OPTION B). Compute put_price_b.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 23 (OPTION B). Receives option_b_params_output from compute_option_b_d_params."
+      - "put_price_b = strike_b*disc_alpha_b*N(-d2_zeta_b) - spot_b*N(-d1_zeta_b)"
+      - "Emit option_b_put_output."
+
+  - hint_id: compute_option_b_delta
+    summary: >
+      PIPELINE STAGE 24 (OPTION B). Compute zeta-scaled delta for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 24 (OPTION B). Receives option_b_params_output."
+      - "delta_call_b = zeta_b * N(d1_zeta_b)"
+      - "delta_put_b = zeta_b * N(d1_zeta_b) - 1"
+      - "Emit option_b_delta_output."
+
+  - hint_id: compute_option_b_gamma
+    summary: >
+      PIPELINE STAGE 25 (OPTION B). Compute zeta-scaled gamma for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 25 (OPTION B). Receives option_b_params_output."
+      - "gamma_b = zeta_b * N'(d1_zeta_b) / (spot_b * vol_b * sqrt(T_b))"
+      - "Emit option_b_gamma_output."
+
+  - hint_id: compute_option_b_theta_call
+    summary: >
+      PIPELINE STAGE 26 (OPTION B). Compute theta for Option B call.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 26 (OPTION B). Receives option_b_params_output."
+      - "theta_call_b = -(spot_b*N'(d1_zeta_b)*vol_b*zeta_b)/(2*sqrt(T_b)) - (rate_b**alpha_b)*strike_b*disc_alpha_b*N(d2_zeta_b)"
+      - "Emit option_b_theta_call_output."
+
+  - hint_id: compute_option_b_theta_put
+    summary: >
+      PIPELINE STAGE 27 (OPTION B). Compute theta for Option B put.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 27 (OPTION B). Receives option_b_params_output."
+      - "theta_put_b = -(spot_b*N'(d1_zeta_b)*vol_b*zeta_b)/(2*sqrt(T_b)) + (rate_b**alpha_b)*strike_b*disc_alpha_b*N(-d2_zeta_b)"
+      - "Emit option_b_theta_put_output."
+
+  - hint_id: compute_option_b_vega
+    summary: >
+      PIPELINE STAGE 28 (OPTION B). Compute vega for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 28 (OPTION B). Receives option_b_params_output."
+      - "vega_b = spot_b * N'(d1_zeta_b) * sqrt(T_b) * (zeta_b**0.5)"
+      - "Emit option_b_vega_output."
+
+  - hint_id: compute_option_b_rho_call
+    summary: >
+      PIPELINE STAGE 29 (OPTION B). Compute rho for Option B call.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 29 (OPTION B). Receives option_b_params_output."
+      - "rho_call_b = alpha_b * strike_b * T_b * (rate_b**(alpha_b-1)) * disc_alpha_b * N(d2_zeta_b)"
+      - "Emit option_b_rho_call_output."
+
+  - hint_id: compute_option_b_rho_put
+    summary: >
+      PIPELINE STAGE 30 (OPTION B). Compute rho for Option B put.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 30 (OPTION B). Receives option_b_params_output."
+      - "rho_put_b = -alpha_b * strike_b * T_b * (rate_b**(alpha_b-1)) * disc_alpha_b * N(-d2_zeta_b)"
+      - "Emit option_b_rho_put_output."
+
+  - hint_id: compute_option_b_vanna
+    summary: >
+      PIPELINE STAGE 31 (OPTION B). Compute vanna for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 31 (OPTION B). Receives option_b_params_output."
+      - "vanna_b = -zeta_b * N'(d1_zeta_b) * d2_zeta_b / vol_b"
+      - "Emit option_b_vanna_output."
+
+  - hint_id: compute_option_b_volga
+    summary: >
+      PIPELINE STAGE 32 (OPTION B). Compute volga for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 32 (OPTION B). Receives option_b_params_output AND option_b_vega_output."
+      - "volga_b = vega_b * d1_zeta_b * d2_zeta_b / vol_b"
+      - "Emit option_b_volga_output."
+
+  - hint_id: compute_option_b_charm
+    summary: >
+      PIPELINE STAGE 33 (OPTION B). Compute charm for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 33 (OPTION B). Receives option_b_params_output."
+      - "charm_b = zeta_b * N'(d1_zeta_b) * dd1_dT_b"
+      - "Emit option_b_charm_output."
+
+  - hint_id: compute_option_b_veta
+    summary: >
+      PIPELINE STAGE 34 (OPTION B). Compute veta for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 34 (OPTION B). Receives option_b_params_output."
+      - "veta_b = spot_b*(zeta_b**0.5)*N'(d1_zeta_b)*(1/(2*sqrt(T_b)) - d1_zeta_b*dd1_dT_b)"
+      - "Emit option_b_veta_output."
+
+  - hint_id: compute_option_b_speed
+    summary: >
+      PIPELINE STAGE 35 (OPTION B). Compute speed for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 35 (OPTION B). Receives option_b_params_output AND option_b_gamma_output."
+      - "speed_b = -gamma_b * (1 + d1_zeta_b/(vol_b*sqrt(T_b))) / spot_b"
+      - "Emit option_b_speed_output."
+
+  - hint_id: compute_option_b_zomma
+    summary: >
+      PIPELINE STAGE 36 (OPTION B). Compute zomma for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 36 (OPTION B). Receives option_b_params_output AND option_b_gamma_output."
+      - "zomma_b = gamma_b * (d1_zeta_b * d2_zeta_b - 1) / vol_b"
+      - "Emit option_b_zomma_output."
+
+  - hint_id: compute_option_b_color
+    summary: >
+      PIPELINE STAGE 37 (OPTION B). Compute color for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 37 (OPTION B). Receives option_b_params_output AND option_b_gamma_output."
+      - "color_b = -gamma_b * (d1_zeta_b * dd1_dT_b + 1/(2*T_b))"
+      - "Emit option_b_color_output."
+
+  - hint_id: compute_option_b_dual_delta
+    summary: >
+      PIPELINE STAGE 38 (OPTION B). Compute dual delta for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 38 (OPTION B). Receives option_b_params_output."
+      - "dual_delta_call_b = -disc_alpha_b * N(d2_zeta_b)"
+      - "dual_delta_put_b = disc_alpha_b * N(-d2_zeta_b)"
+      - "Emit option_b_dual_delta_output."
+
+  - hint_id: compute_option_b_ultima
+    summary: >
+      PIPELINE STAGE 39 (OPTION B). Compute ultima for Option B.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 39 (OPTION B). Receives option_b_params_output AND option_b_volga_output."
+      - "ultima_b = -volga_b/vol_b * (d1_zeta_b*d2_zeta_b*(1-d1_zeta_b*d2_zeta_b) + d1_zeta_b^2 + d2_zeta_b^2)"
+      - "Emit option_b_ultima_output."
+
+  # ─── TERMINAL PORTFOLIO ASSEMBLER ─────────────────────────────────────────
+  - hint_id: assemble_portfolio_results
+    summary: >
+      PIPELINE STAGE 40 (TERMINAL SINK). Receive all Option A and Option B Greek
+      outputs. Compute portfolio-level Greeks and emit portfolio_results.
+    input_names: [portfolio_request]
+    output_names: [portfolio_results]
+    business_rules:
+      - "STAGE 40 (TERMINAL SINK). Receives outputs from all 38 upstream components."
+      - "portfolio_delta = delta_call_a + delta_call_b"
+      - "portfolio_gamma = gamma_a + gamma_b"
+      - "portfolio_vega = vega_a + vega_b"
+      - "portfolio_theta = theta_call_a + theta_call_b"
+      - "portfolio_rho = rho_call_a + rho_call_b"
+      - "Emit portfolio_results with all _a fields, all _b fields, and all portfolio_ fields."

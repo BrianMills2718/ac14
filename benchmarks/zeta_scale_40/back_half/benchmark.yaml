@@ -1,0 +1,71 @@
+benchmark:
+  benchmark_id: zeta_scale_40_v1
+  name: "Zeta-Modified Dual-Option Portfolio: 40-Component Scale Test"
+  purpose: >
+    Back-half evaluation assets for the zeta_scale_40 benchmark. Contains the
+    reference blueprint, runtime cases, and expected outputs for the 40-component
+    dual-option portfolio benchmark.
+  comparison_scope: decomposition_vs_monolithic_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+    - scipy
+    - scipy.stats
+  primary_source_component_id: receive_portfolio_request
+  primary_source_port_name: portfolio_request
+  final_component_id: assemble_portfolio_results
+  final_output_ports:
+    - portfolio_results
+  system_requirements:
+    - "disc_alpha = exp(-(r**alpha) * T), NOT exp(-r*T)"
+    - "d1_zeta = (log(S/K) + (r + zeta*sigma^2/2)*T) / (sigma*sqrt(T))"
+    - "d2_zeta = d1_zeta - zeta*sigma*sqrt(T)"
+    - "call = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta)"
+    - "put = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta)"
+    - "delta_call = zeta*N(d1_zeta) [NOT N(d1_zeta)]; delta_put = zeta*N(d1_zeta) - 1"
+    - "gamma = zeta*N'(d1_zeta) / (S*sigma*sqrt(T))"
+    - "vega = S*N'(d1_zeta)*sqrt(T)*zeta^0.5"
+    - "rho_call = alpha*K*T*(r^(alpha-1))*disc_alpha*N(d2_zeta)"
+    - "rho_put = -alpha*K*T*(r^(alpha-1))*disc_alpha*N(-d2_zeta)"
+    - "vanna = -zeta*N'(d1_zeta)*d2_zeta/sigma"
+    - "volga = vega*d1_zeta*d2_zeta/sigma"
+    - "charm = zeta*N'(d1_zeta)*dd1_dT"
+    - "veta = S*zeta^0.5*N'(d1_zeta)*(1/(2*sqrt(T)) - d1_zeta*dd1_dT)"
+    - "speed = -gamma*(1 + d1_zeta/(sigma*sqrt(T)))/S"
+    - "zomma = gamma*(d1_zeta*d2_zeta - 1)/sigma"
+    - "color = -gamma*(d1_zeta*dd1_dT + 1/(2*T))"
+    - "dual_delta_call = -disc_alpha*N(d2_zeta) [NO alpha factor]"
+    - "dual_delta_put = disc_alpha*N(-d2_zeta)"
+    - "ultima = -volga/sigma*(d1_zeta*d2_zeta*(1-d1_zeta*d2_zeta) + d1_zeta^2 + d2_zeta^2)"
+    - "portfolio_delta = delta_call_a + delta_call_b"
+    - "portfolio_gamma = gamma_a + gamma_b"
+    - "portfolio_vega = vega_a + vega_b"
+    - "portfolio_theta = theta_call_a + theta_call_b"
+    - "portfolio_rho = rho_call_a + rho_call_b"
+    - "All Option A computations use _a suffix variables ONLY"
+    - "All Option B computations use _b suffix variables ONLY"
+  dynamic_output_fields:
+    - "portfolio_results.T_a"
+    - "portfolio_results.T_b"
+    - "portfolio_results.alpha_a"
+    - "portfolio_results.alpha_b"
+    - "portfolio_results.dd1_dT_a"
+    - "portfolio_results.dd1_dT_b"
+    - "portfolio_results.rate_a"
+    - "portfolio_results.rate_b"
+    - "portfolio_results.spot_a"
+    - "portfolio_results.spot_b"
+    - "portfolio_results.strike_a"
+    - "portfolio_results.strike_b"
+    - "portfolio_results.vol_a"
+    - "portfolio_results.vol_b"
+    - "portfolio_results.zeta_a"
+    - "portfolio_results.zeta_b"
+  semantic_review_policy: advisory_on_exact_match

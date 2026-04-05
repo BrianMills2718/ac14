@@ -1,0 +1,984 @@
+components:
+- component_id: receive_portfolio_request
+  failure_semantics: []
+  implementation_constraints:
+  - Pass all fields from portfolio_request to portfolio_params_output unchanged.
+  input_ports:
+  - arrival_policy: required_latest
+    description: Full portfolio specification.
+    name: portfolio_request
+    required: true
+    schema_id: PortfolioRequest
+  kind: source
+  local_invariants:
+  - output contains all input fields unchanged
+  output_ports:
+  - description: All portfolio fields passed through.
+    name: portfolio_params_output
+    schema_id: PortfolioParams
+  purpose: Receive flat portfolio_request and pass all fields through as portfolio_params_output.
+  semantic_responsibility: receive_and_pass_through_portfolio_request
+- component_id: compute_option_a_d_params
+  failure_semantics: []
+  implementation_constraints:
+  - disc_alpha_a = exp(-(rate_a**alpha_a)*T_a)
+  - d1_zeta_a = (log(spot_a/strike_a) + (rate_a + zeta_a*vol_a**2/2)*T_a) / (vol_a*sqrt(T_a))
+  - d2_zeta_a = d1_zeta_a - zeta_a*vol_a*sqrt(T_a)
+  - dd1_dT_a = (rate_a + zeta_a*vol_a**2/2) / (vol_a*sqrt(T_a)) - d1_zeta_a/(2*T_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Portfolio params from source.
+    name: portfolio_params_output
+    required: true
+    schema_id: PortfolioParams
+  kind: transform
+  local_invariants:
+  - disc_alpha_a == exp(-(rate_a**alpha_a)*T_a)
+  - d2_zeta_a == d1_zeta_a - zeta_a*vol_a*sqrt(T_a)
+  output_ports:
+  - description: Option A d-params output.
+    name: option_a_params_output
+    schema_id: OptionAParams
+  purpose: Compute d1_zeta_a, d2_zeta_a, disc_alpha_a, dd1_dT_a for Option A.
+  semantic_responsibility: compute_option_a_zeta_d_params
+- component_id: price_option_a_call
+  failure_semantics: []
+  implementation_constraints:
+  - call_price_a = spot_a*N(d1_zeta_a) - strike_a*disc_alpha_a*N(d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute call_price_a. output.
+    name: option_a_call_output
+    schema_id: OptionACallOutput
+  purpose: Compute call_price_a.
+  semantic_responsibility: price_option_a_call
+- component_id: price_option_a_put
+  failure_semantics: []
+  implementation_constraints:
+  - put_price_a = strike_a*disc_alpha_a*N(-d2_zeta_a) - spot_a*N(-d1_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute put_price_a. output.
+    name: option_a_put_output
+    schema_id: OptionAPutOutput
+  purpose: Compute put_price_a.
+  semantic_responsibility: price_option_a_put
+- component_id: compute_option_a_delta
+  failure_semantics: []
+  implementation_constraints:
+  - delta_call_a = zeta_a*N(d1_zeta_a)
+  - delta_put_a = zeta_a*N(d1_zeta_a) - 1
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-scaled delta for Option A. output.
+    name: option_a_delta_output
+    schema_id: OptionADeltaOutput
+  purpose: Compute zeta-scaled delta for Option A.
+  semantic_responsibility: compute_option_a_delta
+- component_id: compute_option_a_gamma
+  failure_semantics: []
+  implementation_constraints:
+  - gamma_a = zeta_a*N'(d1_zeta_a)/(spot_a*vol_a*sqrt(T_a))
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-scaled gamma for Option A. output.
+    name: option_a_gamma_output
+    schema_id: OptionAGammaOutput
+  purpose: Compute zeta-scaled gamma for Option A.
+  semantic_responsibility: compute_option_a_gamma
+- component_id: compute_option_a_theta_call
+  failure_semantics: []
+  implementation_constraints:
+  - theta_call_a = -(spot_a*N'(d1_zeta_a)*vol_a*zeta_a)/(2*sqrt(T_a)) - (rate_a**alpha_a)*strike_a*disc_alpha_a*N(d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute theta for Option A call. output.
+    name: option_a_theta_call_output
+    schema_id: OptionAThetaCallOutput
+  purpose: Compute theta for Option A call.
+  semantic_responsibility: compute_option_a_theta_call
+- component_id: compute_option_a_theta_put
+  failure_semantics: []
+  implementation_constraints:
+  - theta_put_a = -(spot_a*N'(d1_zeta_a)*vol_a*zeta_a)/(2*sqrt(T_a)) + (rate_a**alpha_a)*strike_a*disc_alpha_a*N(-d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute theta for Option A put. output.
+    name: option_a_theta_put_output
+    schema_id: OptionAThetaPutOutput
+  purpose: Compute theta for Option A put.
+  semantic_responsibility: compute_option_a_theta_put
+- component_id: compute_option_a_vega
+  failure_semantics: []
+  implementation_constraints:
+  - vega_a = spot_a*N'(d1_zeta_a)*sqrt(T_a)*(zeta_a**0.5)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-corrected vega for Option A. output.
+    name: option_a_vega_output
+    schema_id: OptionAVegaOutput
+  purpose: Compute zeta-corrected vega for Option A.
+  semantic_responsibility: compute_option_a_vega
+- component_id: compute_option_a_rho_call
+  failure_semantics: []
+  implementation_constraints:
+  - rho_call_a = alpha_a*strike_a*T_a*(rate_a**(alpha_a-1))*disc_alpha_a*N(d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute rho_call for Option A. output.
+    name: option_a_rho_call_output
+    schema_id: OptionARhoCallOutput
+  purpose: Compute rho_call for Option A.
+  semantic_responsibility: compute_option_a_rho_call
+- component_id: compute_option_a_rho_put
+  failure_semantics: []
+  implementation_constraints:
+  - rho_put_a = -alpha_a*strike_a*T_a*(rate_a**(alpha_a-1))*disc_alpha_a*N(-d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute rho_put for Option A. output.
+    name: option_a_rho_put_output
+    schema_id: OptionARhoPutOutput
+  purpose: Compute rho_put for Option A.
+  semantic_responsibility: compute_option_a_rho_put
+- component_id: compute_option_a_vanna
+  failure_semantics: []
+  implementation_constraints:
+  - vanna_a = -zeta_a*N'(d1_zeta_a)*d2_zeta_a/vol_a
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute vanna for Option A. output.
+    name: option_a_vanna_output
+    schema_id: OptionAVannaOutput
+  purpose: Compute vanna for Option A.
+  semantic_responsibility: compute_option_a_vanna
+- component_id: compute_option_a_volga
+  failure_semantics: []
+  implementation_constraints:
+  - volga_a = vega_a*d1_zeta_a*d2_zeta_a/vol_a
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: vega_a
+    name: option_a_vega_output
+    required: true
+    schema_id: OptionAVegaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute volga for Option A. output.
+    name: option_a_volga_output
+    schema_id: OptionAVolgaOutput
+  purpose: Compute volga for Option A.
+  semantic_responsibility: compute_option_a_volga
+- component_id: compute_option_a_charm
+  failure_semantics: []
+  implementation_constraints:
+  - charm_a = zeta_a*N'(d1_zeta_a)*dd1_dT_a
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute charm for Option A. output.
+    name: option_a_charm_output
+    schema_id: OptionACharmOutput
+  purpose: Compute charm for Option A.
+  semantic_responsibility: compute_option_a_charm
+- component_id: compute_option_a_veta
+  failure_semantics: []
+  implementation_constraints:
+  - veta_a = spot_a*(zeta_a**0.5)*N'(d1_zeta_a)*(1/(2*sqrt(T_a)) - d1_zeta_a*dd1_dT_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute veta for Option A. output.
+    name: option_a_veta_output
+    schema_id: OptionAVetaOutput
+  purpose: Compute veta for Option A.
+  semantic_responsibility: compute_option_a_veta
+- component_id: compute_option_a_speed
+  failure_semantics: []
+  implementation_constraints:
+  - speed_a = -gamma_a*(1 + d1_zeta_a/(vol_a*sqrt(T_a)))/spot_a
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: gamma_a
+    name: option_a_gamma_output
+    required: true
+    schema_id: OptionAGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute speed for Option A. output.
+    name: option_a_speed_output
+    schema_id: OptionASpeedOutput
+  purpose: Compute speed for Option A.
+  semantic_responsibility: compute_option_a_speed
+- component_id: compute_option_a_zomma
+  failure_semantics: []
+  implementation_constraints:
+  - zomma_a = gamma_a*(d1_zeta_a*d2_zeta_a - 1)/vol_a
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: gamma_a
+    name: option_a_gamma_output
+    required: true
+    schema_id: OptionAGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zomma for Option A. output.
+    name: option_a_zomma_output
+    schema_id: OptionAZommaOutput
+  purpose: Compute zomma for Option A.
+  semantic_responsibility: compute_option_a_zomma
+- component_id: compute_option_a_color
+  failure_semantics: []
+  implementation_constraints:
+  - color_a = -gamma_a*(d1_zeta_a*dd1_dT_a + 1/(2*T_a))
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: gamma_a
+    name: option_a_gamma_output
+    required: true
+    schema_id: OptionAGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute color for Option A. output.
+    name: option_a_color_output
+    schema_id: OptionAColorOutput
+  purpose: Compute color for Option A.
+  semantic_responsibility: compute_option_a_color
+- component_id: compute_option_a_dual_delta
+  failure_semantics: []
+  implementation_constraints:
+  - dual_delta_call_a = -disc_alpha_a*N(d2_zeta_a)
+  - dual_delta_put_a = disc_alpha_a*N(-d2_zeta_a)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute dual delta for Option A. output.
+    name: option_a_dual_delta_output
+    schema_id: OptionADualDeltaOutput
+  purpose: Compute dual delta for Option A.
+  semantic_responsibility: compute_option_a_dual_delta
+- component_id: compute_option_a_ultima
+  failure_semantics: []
+  implementation_constraints:
+  - ultima_a = -volga_a/vol_a*(d1_zeta_a*d2_zeta_a*(1-d1_zeta_a*d2_zeta_a) + d1_zeta_a**2
+    + d2_zeta_a**2)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A d-params.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: volga_a
+    name: option_a_volga_output
+    required: true
+    schema_id: OptionAVolgaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute ultima for Option A. output.
+    name: option_a_ultima_output
+    schema_id: OptionAUltimaOutput
+  purpose: Compute ultima for Option A.
+  semantic_responsibility: compute_option_a_ultima
+- component_id: compute_option_b_d_params
+  failure_semantics: []
+  implementation_constraints:
+  - disc_alpha_b = exp(-(rate_b**alpha_b)*T_b)
+  - d1_zeta_b = (log(spot_b/strike_b) + (rate_b + zeta_b*vol_b**2/2)*T_b) / (vol_b*sqrt(T_b))
+  - d2_zeta_b = d1_zeta_b - zeta_b*vol_b*sqrt(T_b)
+  - dd1_dT_b = (rate_b + zeta_b*vol_b**2/2) / (vol_b*sqrt(T_b)) - d1_zeta_b/(2*T_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Portfolio params from source.
+    name: portfolio_params_output
+    required: true
+    schema_id: PortfolioParams
+  kind: transform
+  local_invariants:
+  - disc_alpha_b == exp(-(rate_b**alpha_b)*T_b)
+  - d2_zeta_b == d1_zeta_b - zeta_b*vol_b*sqrt(T_b)
+  output_ports:
+  - description: Option B d-params output.
+    name: option_b_params_output
+    schema_id: OptionBParams
+  purpose: Compute d1_zeta_b, d2_zeta_b, disc_alpha_b, dd1_dT_b for Option B.
+  semantic_responsibility: compute_option_b_zeta_d_params
+- component_id: price_option_b_call
+  failure_semantics: []
+  implementation_constraints:
+  - call_price_b = spot_b*N(d1_zeta_b) - strike_b*disc_alpha_b*N(d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute call_price_b. output.
+    name: option_b_call_output
+    schema_id: OptionBCallOutput
+  purpose: Compute call_price_b.
+  semantic_responsibility: price_option_b_call
+- component_id: price_option_b_put
+  failure_semantics: []
+  implementation_constraints:
+  - put_price_b = strike_b*disc_alpha_b*N(-d2_zeta_b) - spot_b*N(-d1_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute put_price_b. output.
+    name: option_b_put_output
+    schema_id: OptionBPutOutput
+  purpose: Compute put_price_b.
+  semantic_responsibility: price_option_b_put
+- component_id: compute_option_b_delta
+  failure_semantics: []
+  implementation_constraints:
+  - delta_call_b = zeta_b*N(d1_zeta_b)
+  - delta_put_b = zeta_b*N(d1_zeta_b) - 1
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-scaled delta for Option B. output.
+    name: option_b_delta_output
+    schema_id: OptionBDeltaOutput
+  purpose: Compute zeta-scaled delta for Option B.
+  semantic_responsibility: compute_option_b_delta
+- component_id: compute_option_b_gamma
+  failure_semantics: []
+  implementation_constraints:
+  - gamma_b = zeta_b*N'(d1_zeta_b)/(spot_b*vol_b*sqrt(T_b))
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-scaled gamma for Option B. output.
+    name: option_b_gamma_output
+    schema_id: OptionBGammaOutput
+  purpose: Compute zeta-scaled gamma for Option B.
+  semantic_responsibility: compute_option_b_gamma
+- component_id: compute_option_b_theta_call
+  failure_semantics: []
+  implementation_constraints:
+  - theta_call_b = -(spot_b*N'(d1_zeta_b)*vol_b*zeta_b)/(2*sqrt(T_b)) - (rate_b**alpha_b)*strike_b*disc_alpha_b*N(d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute theta for Option B call. output.
+    name: option_b_theta_call_output
+    schema_id: OptionBThetaCallOutput
+  purpose: Compute theta for Option B call.
+  semantic_responsibility: compute_option_b_theta_call
+- component_id: compute_option_b_theta_put
+  failure_semantics: []
+  implementation_constraints:
+  - theta_put_b = -(spot_b*N'(d1_zeta_b)*vol_b*zeta_b)/(2*sqrt(T_b)) + (rate_b**alpha_b)*strike_b*disc_alpha_b*N(-d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute theta for Option B put. output.
+    name: option_b_theta_put_output
+    schema_id: OptionBThetaPutOutput
+  purpose: Compute theta for Option B put.
+  semantic_responsibility: compute_option_b_theta_put
+- component_id: compute_option_b_vega
+  failure_semantics: []
+  implementation_constraints:
+  - vega_b = spot_b*N'(d1_zeta_b)*sqrt(T_b)*(zeta_b**0.5)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zeta-corrected vega for Option B. output.
+    name: option_b_vega_output
+    schema_id: OptionBVegaOutput
+  purpose: Compute zeta-corrected vega for Option B.
+  semantic_responsibility: compute_option_b_vega
+- component_id: compute_option_b_rho_call
+  failure_semantics: []
+  implementation_constraints:
+  - rho_call_b = alpha_b*strike_b*T_b*(rate_b**(alpha_b-1))*disc_alpha_b*N(d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute rho_call for Option B. output.
+    name: option_b_rho_call_output
+    schema_id: OptionBRhoCallOutput
+  purpose: Compute rho_call for Option B.
+  semantic_responsibility: compute_option_b_rho_call
+- component_id: compute_option_b_rho_put
+  failure_semantics: []
+  implementation_constraints:
+  - rho_put_b = -alpha_b*strike_b*T_b*(rate_b**(alpha_b-1))*disc_alpha_b*N(-d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute rho_put for Option B. output.
+    name: option_b_rho_put_output
+    schema_id: OptionBRhoPutOutput
+  purpose: Compute rho_put for Option B.
+  semantic_responsibility: compute_option_b_rho_put
+- component_id: compute_option_b_vanna
+  failure_semantics: []
+  implementation_constraints:
+  - vanna_b = -zeta_b*N'(d1_zeta_b)*d2_zeta_b/vol_b
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute vanna for Option B. output.
+    name: option_b_vanna_output
+    schema_id: OptionBVannaOutput
+  purpose: Compute vanna for Option B.
+  semantic_responsibility: compute_option_b_vanna
+- component_id: compute_option_b_volga
+  failure_semantics: []
+  implementation_constraints:
+  - volga_b = vega_b*d1_zeta_b*d2_zeta_b/vol_b
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: vega_b
+    name: option_b_vega_output
+    required: true
+    schema_id: OptionBVegaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute volga for Option B. output.
+    name: option_b_volga_output
+    schema_id: OptionBVolgaOutput
+  purpose: Compute volga for Option B.
+  semantic_responsibility: compute_option_b_volga
+- component_id: compute_option_b_charm
+  failure_semantics: []
+  implementation_constraints:
+  - charm_b = zeta_b*N'(d1_zeta_b)*dd1_dT_b
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute charm for Option B. output.
+    name: option_b_charm_output
+    schema_id: OptionBCharmOutput
+  purpose: Compute charm for Option B.
+  semantic_responsibility: compute_option_b_charm
+- component_id: compute_option_b_veta
+  failure_semantics: []
+  implementation_constraints:
+  - veta_b = spot_b*(zeta_b**0.5)*N'(d1_zeta_b)*(1/(2*sqrt(T_b)) - d1_zeta_b*dd1_dT_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute veta for Option B. output.
+    name: option_b_veta_output
+    schema_id: OptionBVetaOutput
+  purpose: Compute veta for Option B.
+  semantic_responsibility: compute_option_b_veta
+- component_id: compute_option_b_speed
+  failure_semantics: []
+  implementation_constraints:
+  - speed_b = -gamma_b*(1 + d1_zeta_b/(vol_b*sqrt(T_b)))/spot_b
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: gamma_b
+    name: option_b_gamma_output
+    required: true
+    schema_id: OptionBGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute speed for Option B. output.
+    name: option_b_speed_output
+    schema_id: OptionBSpeedOutput
+  purpose: Compute speed for Option B.
+  semantic_responsibility: compute_option_b_speed
+- component_id: compute_option_b_zomma
+  failure_semantics: []
+  implementation_constraints:
+  - zomma_b = gamma_b*(d1_zeta_b*d2_zeta_b - 1)/vol_b
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: gamma_b
+    name: option_b_gamma_output
+    required: true
+    schema_id: OptionBGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute zomma for Option B. output.
+    name: option_b_zomma_output
+    schema_id: OptionBZommaOutput
+  purpose: Compute zomma for Option B.
+  semantic_responsibility: compute_option_b_zomma
+- component_id: compute_option_b_color
+  failure_semantics: []
+  implementation_constraints:
+  - color_b = -gamma_b*(d1_zeta_b*dd1_dT_b + 1/(2*T_b))
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: gamma_b
+    name: option_b_gamma_output
+    required: true
+    schema_id: OptionBGammaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute color for Option B. output.
+    name: option_b_color_output
+    schema_id: OptionBColorOutput
+  purpose: Compute color for Option B.
+  semantic_responsibility: compute_option_b_color
+- component_id: compute_option_b_dual_delta
+  failure_semantics: []
+  implementation_constraints:
+  - dual_delta_call_b = -disc_alpha_b*N(d2_zeta_b)
+  - dual_delta_put_b = disc_alpha_b*N(-d2_zeta_b)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute dual delta for Option B. output.
+    name: option_b_dual_delta_output
+    schema_id: OptionBDualDeltaOutput
+  purpose: Compute dual delta for Option B.
+  semantic_responsibility: compute_option_b_dual_delta
+- component_id: compute_option_b_ultima
+  failure_semantics: []
+  implementation_constraints:
+  - ultima_b = -volga_b/vol_b*(d1_zeta_b*d2_zeta_b*(1-d1_zeta_b*d2_zeta_b) + d1_zeta_b**2
+    + d2_zeta_b**2)
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option B d-params.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: volga_b
+    name: option_b_volga_output
+    required: true
+    schema_id: OptionBVolgaOutput
+  kind: transform
+  local_invariants: []
+  output_ports:
+  - description: Compute ultima for Option B. output.
+    name: option_b_ultima_output
+    schema_id: OptionBUltimaOutput
+  purpose: Compute ultima for Option B.
+  semantic_responsibility: compute_option_b_ultima
+- component_id: assemble_portfolio_results
+  failure_semantics: []
+  implementation_constraints:
+  - portfolio_delta = delta_call_a + delta_call_b
+  - portfolio_gamma = gamma_a + gamma_b
+  - portfolio_vega = vega_a + vega_b
+  - portfolio_theta = theta_call_a + theta_call_b
+  - portfolio_rho = rho_call_a + rho_call_b
+  - Emit portfolio_results with all _a fields, all _b fields, and portfolio_ fields.
+  input_ports:
+  - arrival_policy: required_latest
+    description: Option A option_a_params_output.
+    name: option_a_params_output
+    required: true
+    schema_id: OptionAParams
+  - arrival_policy: required_latest
+    description: Option A option_a_call_output.
+    name: option_a_call_output
+    required: true
+    schema_id: OptionACallOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_put_output.
+    name: option_a_put_output
+    required: true
+    schema_id: OptionAPutOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_delta_output.
+    name: option_a_delta_output
+    required: true
+    schema_id: OptionADeltaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_gamma_output.
+    name: option_a_gamma_output
+    required: true
+    schema_id: OptionAGammaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_theta_call_output.
+    name: option_a_theta_call_output
+    required: true
+    schema_id: OptionAThetaCallOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_theta_put_output.
+    name: option_a_theta_put_output
+    required: true
+    schema_id: OptionAThetaPutOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_vega_output.
+    name: option_a_vega_output
+    required: true
+    schema_id: OptionAVegaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_rho_call_output.
+    name: option_a_rho_call_output
+    required: true
+    schema_id: OptionARhoCallOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_rho_put_output.
+    name: option_a_rho_put_output
+    required: true
+    schema_id: OptionARhoPutOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_vanna_output.
+    name: option_a_vanna_output
+    required: true
+    schema_id: OptionAVannaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_volga_output.
+    name: option_a_volga_output
+    required: true
+    schema_id: OptionAVolgaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_charm_output.
+    name: option_a_charm_output
+    required: true
+    schema_id: OptionACharmOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_veta_output.
+    name: option_a_veta_output
+    required: true
+    schema_id: OptionAVetaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_speed_output.
+    name: option_a_speed_output
+    required: true
+    schema_id: OptionASpeedOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_zomma_output.
+    name: option_a_zomma_output
+    required: true
+    schema_id: OptionAZommaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_color_output.
+    name: option_a_color_output
+    required: true
+    schema_id: OptionAColorOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_dual_delta_output.
+    name: option_a_dual_delta_output
+    required: true
+    schema_id: OptionADualDeltaOutput
+  - arrival_policy: required_latest
+    description: Option A option_a_ultima_output.
+    name: option_a_ultima_output
+    required: true
+    schema_id: OptionAUltimaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_params_output.
+    name: option_b_params_output
+    required: true
+    schema_id: OptionBParams
+  - arrival_policy: required_latest
+    description: Option B option_b_call_output.
+    name: option_b_call_output
+    required: true
+    schema_id: OptionBCallOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_put_output.
+    name: option_b_put_output
+    required: true
+    schema_id: OptionBPutOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_delta_output.
+    name: option_b_delta_output
+    required: true
+    schema_id: OptionBDeltaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_gamma_output.
+    name: option_b_gamma_output
+    required: true
+    schema_id: OptionBGammaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_theta_call_output.
+    name: option_b_theta_call_output
+    required: true
+    schema_id: OptionBThetaCallOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_theta_put_output.
+    name: option_b_theta_put_output
+    required: true
+    schema_id: OptionBThetaPutOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_vega_output.
+    name: option_b_vega_output
+    required: true
+    schema_id: OptionBVegaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_rho_call_output.
+    name: option_b_rho_call_output
+    required: true
+    schema_id: OptionBRhoCallOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_rho_put_output.
+    name: option_b_rho_put_output
+    required: true
+    schema_id: OptionBRhoPutOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_vanna_output.
+    name: option_b_vanna_output
+    required: true
+    schema_id: OptionBVannaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_volga_output.
+    name: option_b_volga_output
+    required: true
+    schema_id: OptionBVolgaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_charm_output.
+    name: option_b_charm_output
+    required: true
+    schema_id: OptionBCharmOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_veta_output.
+    name: option_b_veta_output
+    required: true
+    schema_id: OptionBVetaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_speed_output.
+    name: option_b_speed_output
+    required: true
+    schema_id: OptionBSpeedOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_zomma_output.
+    name: option_b_zomma_output
+    required: true
+    schema_id: OptionBZommaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_color_output.
+    name: option_b_color_output
+    required: true
+    schema_id: OptionBColorOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_dual_delta_output.
+    name: option_b_dual_delta_output
+    required: true
+    schema_id: OptionBDualDeltaOutput
+  - arrival_policy: required_latest
+    description: Option B option_b_ultima_output.
+    name: option_b_ultima_output
+    required: true
+    schema_id: OptionBUltimaOutput
+  kind: sink
+  local_invariants:
+  - portfolio_delta == delta_call_a + delta_call_b
+  - portfolio_gamma == gamma_a + gamma_b
+  - portfolio_vega == vega_a + vega_b
+  - portfolio_theta == theta_call_a + theta_call_b
+  - portfolio_rho == rho_call_a + rho_call_b
+  output_ports:
+  - description: Complete portfolio results.
+    name: portfolio_results
+    schema_id: PortfolioResults
+  purpose: Assemble all Option A and Option B Greeks into portfolio_results with portfolio-level
+    Greeks.
+  semantic_responsibility: assemble_portfolio_results

@@ -1,0 +1,3542 @@
+schemas:
+- description: Flat portfolio specification for both Option A and Option B.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  kind: object
+  schema_id: PortfolioRequest
+- description: Portfolio parameters passed through from receive_portfolio_request.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  kind: object
+  schema_id: PortfolioParams
+- description: Option A d-params plus all portfolio request fields.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAParams
+- description: Option B d-params plus all portfolio request fields.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBParams
+- description: Option A Call output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified call price for Option A.
+    name: call_price_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionACallOutput
+- description: Option A Put output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified put price for Option A.
+    name: put_price_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAPutOutput
+- description: Option A Delta output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-scaled delta_call for Option A.
+    name: delta_call_a
+    required: true
+    type: float
+  - description: Zeta-scaled delta_put for Option A.
+    name: delta_put_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionADeltaOutput
+- description: Option A Gamma output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-scaled gamma for Option A.
+    name: gamma_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAGammaOutput
+- description: Option A ThetaCall output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Theta for Option A call.
+    name: theta_call_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAThetaCallOutput
+- description: Option A ThetaPut output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Theta for Option A put.
+    name: theta_put_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAThetaPutOutput
+- description: Option A Vega output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-corrected vega for Option A.
+    name: vega_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAVegaOutput
+- description: Option A RhoCall output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Alpha-modified rho_call for Option A.
+    name: rho_call_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionARhoCallOutput
+- description: Option A RhoPut output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Alpha-modified rho_put for Option A.
+    name: rho_put_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionARhoPutOutput
+- description: Option A Vanna output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified vanna for Option A.
+    name: vanna_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAVannaOutput
+- description: Option A Volga output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified volga for Option A.
+    name: volga_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAVolgaOutput
+- description: Option A Charm output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified charm for Option A.
+    name: charm_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionACharmOutput
+- description: Option A Veta output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified veta for Option A.
+    name: veta_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAVetaOutput
+- description: Option A Speed output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified speed for Option A.
+    name: speed_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionASpeedOutput
+- description: Option A Zomma output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified zomma for Option A.
+    name: zomma_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAZommaOutput
+- description: Option A Color output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified color for Option A.
+    name: color_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAColorOutput
+- description: Option A DualDelta output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Dual delta call for Option A.
+    name: dual_delta_call_a
+    required: true
+    type: float
+  - description: Dual delta put for Option A.
+    name: dual_delta_put_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionADualDeltaOutput
+- description: Option A Ultima output extending OptionAParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option A.
+    name: dd1_dT_a
+    required: true
+    type: float
+  - description: Zeta-modified ultima for Option A.
+    name: ultima_a
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionAUltimaOutput
+- description: Option B Call output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified call price for Option B.
+    name: call_price_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBCallOutput
+- description: Option B Put output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified put price for Option B.
+    name: put_price_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBPutOutput
+- description: Option B Delta output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-scaled delta_call for Option B.
+    name: delta_call_b
+    required: true
+    type: float
+  - description: Zeta-scaled delta_put for Option B.
+    name: delta_put_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBDeltaOutput
+- description: Option B Gamma output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-scaled gamma for Option B.
+    name: gamma_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBGammaOutput
+- description: Option B ThetaCall output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Theta for Option B call.
+    name: theta_call_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBThetaCallOutput
+- description: Option B ThetaPut output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Theta for Option B put.
+    name: theta_put_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBThetaPutOutput
+- description: Option B Vega output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-corrected vega for Option B.
+    name: vega_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBVegaOutput
+- description: Option B RhoCall output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Alpha-modified rho_call for Option B.
+    name: rho_call_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBRhoCallOutput
+- description: Option B RhoPut output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Alpha-modified rho_put for Option B.
+    name: rho_put_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBRhoPutOutput
+- description: Option B Vanna output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified vanna for Option B.
+    name: vanna_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBVannaOutput
+- description: Option B Volga output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified volga for Option B.
+    name: volga_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBVolgaOutput
+- description: Option B Charm output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified charm for Option B.
+    name: charm_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBCharmOutput
+- description: Option B Veta output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified veta for Option B.
+    name: veta_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBVetaOutput
+- description: Option B Speed output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified speed for Option B.
+    name: speed_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBSpeedOutput
+- description: Option B Zomma output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified zomma for Option B.
+    name: zomma_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBZommaOutput
+- description: Option B Color output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified color for Option B.
+    name: color_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBColorOutput
+- description: Option B DualDelta output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Dual delta call for Option B.
+    name: dual_delta_call_b
+    required: true
+    type: float
+  - description: Dual delta put for Option B.
+    name: dual_delta_put_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBDualDeltaOutput
+- description: Option B Ultima output extending OptionBParams.
+  fields:
+  - description: Stable benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: Spot price for Option A.
+    name: spot_a
+    required: true
+    type: float
+  - description: Strike price for Option A.
+    name: strike_a
+    required: true
+    type: float
+  - description: Risk-free rate for Option A.
+    name: rate_a
+    required: true
+    type: float
+  - description: Volatility for Option A.
+    name: vol_a
+    required: true
+    type: float
+  - description: Time to expiry for Option A.
+    name: T_a
+    required: true
+    type: float
+  - description: Zeta parameter for Option A.
+    name: zeta_a
+    required: true
+    type: float
+  - description: Alpha parameter for Option A.
+    name: alpha_a
+    required: true
+    type: float
+  - description: Spot price for Option B.
+    name: spot_b
+    required: true
+    type: float
+  - description: Strike price for Option B.
+    name: strike_b
+    required: true
+    type: float
+  - description: Risk-free rate for Option B.
+    name: rate_b
+    required: true
+    type: float
+  - description: Volatility for Option B.
+    name: vol_b
+    required: true
+    type: float
+  - description: Time to expiry for Option B.
+    name: T_b
+    required: true
+    type: float
+  - description: Zeta parameter for Option B.
+    name: zeta_b
+    required: true
+    type: float
+  - description: Alpha parameter for Option B.
+    name: alpha_b
+    required: true
+    type: float
+  - description: Zeta-modified d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: Zeta-modified d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: Alpha-modified discount for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Time derivative of d1 for Option B.
+    name: dd1_dT_b
+    required: true
+    type: float
+  - description: Zeta-modified ultima for Option B.
+    name: ultima_b
+    required: true
+    type: float
+  kind: object
+  schema_id: OptionBUltimaOutput
+- description: Complete portfolio results with all Option A, Option B, and portfolio-level
+    Greeks.
+  fields:
+  - description: Benchmark case identifier.
+    name: case_id
+    required: true
+    type: string
+  - description: d1 for Option A.
+    name: d1_zeta_a
+    required: true
+    type: float
+  - description: d2 for Option A.
+    name: d2_zeta_a
+    required: true
+    type: float
+  - description: disc_alpha for Option A.
+    name: disc_alpha_a
+    required: true
+    type: float
+  - description: Call price for Option A.
+    name: call_price_a
+    required: true
+    type: float
+  - description: Put price for Option A.
+    name: put_price_a
+    required: true
+    type: float
+  - description: delta_call for Option A.
+    name: delta_call_a
+    required: true
+    type: float
+  - description: delta_put for Option A.
+    name: delta_put_a
+    required: true
+    type: float
+  - description: gamma for Option A.
+    name: gamma_a
+    required: true
+    type: float
+  - description: theta_call for Option A.
+    name: theta_call_a
+    required: true
+    type: float
+  - description: theta_put for Option A.
+    name: theta_put_a
+    required: true
+    type: float
+  - description: vega for Option A.
+    name: vega_a
+    required: true
+    type: float
+  - description: rho_call for Option A.
+    name: rho_call_a
+    required: true
+    type: float
+  - description: rho_put for Option A.
+    name: rho_put_a
+    required: true
+    type: float
+  - description: vanna for Option A.
+    name: vanna_a
+    required: true
+    type: float
+  - description: volga for Option A.
+    name: volga_a
+    required: true
+    type: float
+  - description: charm for Option A.
+    name: charm_a
+    required: true
+    type: float
+  - description: veta for Option A.
+    name: veta_a
+    required: true
+    type: float
+  - description: speed for Option A.
+    name: speed_a
+    required: true
+    type: float
+  - description: zomma for Option A.
+    name: zomma_a
+    required: true
+    type: float
+  - description: color for Option A.
+    name: color_a
+    required: true
+    type: float
+  - description: dual_delta_call for Option A.
+    name: dual_delta_call_a
+    required: true
+    type: float
+  - description: dual_delta_put for Option A.
+    name: dual_delta_put_a
+    required: true
+    type: float
+  - description: ultima for Option A.
+    name: ultima_a
+    required: true
+    type: float
+  - description: d1 for Option B.
+    name: d1_zeta_b
+    required: true
+    type: float
+  - description: d2 for Option B.
+    name: d2_zeta_b
+    required: true
+    type: float
+  - description: disc_alpha for Option B.
+    name: disc_alpha_b
+    required: true
+    type: float
+  - description: Call price for Option B.
+    name: call_price_b
+    required: true
+    type: float
+  - description: Put price for Option B.
+    name: put_price_b
+    required: true
+    type: float
+  - description: delta_call for Option B.
+    name: delta_call_b
+    required: true
+    type: float
+  - description: delta_put for Option B.
+    name: delta_put_b
+    required: true
+    type: float
+  - description: gamma for Option B.
+    name: gamma_b
+    required: true
+    type: float
+  - description: theta_call for Option B.
+    name: theta_call_b
+    required: true
+    type: float
+  - description: theta_put for Option B.
+    name: theta_put_b
+    required: true
+    type: float
+  - description: vega for Option B.
+    name: vega_b
+    required: true
+    type: float
+  - description: rho_call for Option B.
+    name: rho_call_b
+    required: true
+    type: float
+  - description: rho_put for Option B.
+    name: rho_put_b
+    required: true
+    type: float
+  - description: vanna for Option B.
+    name: vanna_b
+    required: true
+    type: float
+  - description: volga for Option B.
+    name: volga_b
+    required: true
+    type: float
+  - description: charm for Option B.
+    name: charm_b
+    required: true
+    type: float
+  - description: veta for Option B.
+    name: veta_b
+    required: true
+    type: float
+  - description: speed for Option B.
+    name: speed_b
+    required: true
+    type: float
+  - description: zomma for Option B.
+    name: zomma_b
+    required: true
+    type: float
+  - description: color for Option B.
+    name: color_b
+    required: true
+    type: float
+  - description: dual_delta_call for Option B.
+    name: dual_delta_call_b
+    required: true
+    type: float
+  - description: dual_delta_put for Option B.
+    name: dual_delta_put_b
+    required: true
+    type: float
+  - description: ultima for Option B.
+    name: ultima_b
+    required: true
+    type: float
+  - description: delta_call_a + delta_call_b.
+    name: portfolio_delta
+    required: true
+    type: float
+  - description: gamma_a + gamma_b.
+    name: portfolio_gamma
+    required: true
+    type: float
+  - description: vega_a + vega_b.
+    name: portfolio_vega
+    required: true
+    type: float
+  - description: theta_call_a + theta_call_b.
+    name: portfolio_theta
+    required: true
+    type: float
+  - description: rho_call_a + rho_call_b.
+    name: portfolio_rho
+    required: true
+    type: float
+  kind: object
+  schema_id: PortfolioResults

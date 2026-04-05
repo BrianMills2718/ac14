@@ -1,0 +1,19 @@
+metadata:
+  blueprint_id: zeta_scale_40_v1
+  name: "Zeta-Modified Dual-Option Portfolio (Scale-40)"
+  version: "0.1.0"
+  purpose: >
+    40-component scale test with two parallel zeta-option pipelines (Option A and B)
+    plus a terminal portfolio assembler. Tests whether AC14 decomposition advantage
+    appears at 40-component scale. Monolithic must maintain consistent _a/_b naming
+    across ~3200 lines; AC14 generates each component in isolation.
+  source_kind: benchmark_fixture
+  created_from: "AC14 Theory Forge scale test Plan #174"
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

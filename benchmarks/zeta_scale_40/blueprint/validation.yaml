@@ -1,0 +1,42 @@
+global_invariants:
+- invariant_id: portfolio_delta_sum
+  description: portfolio_delta = delta_call_a + delta_call_b
+- invariant_id: disc_alpha_formula
+  description: disc_alpha = exp(-(rate**alpha)*T), NOT exp(-rate*T)
+- invariant_id: delta_call_zeta_scaled
+  description: delta_call = zeta*N(d1_zeta), NOT N(d1_zeta) alone
+evaluators:
+- evaluator_id: exact_outputs_scale40
+  kind: programmatic_exact
+  description: >
+    Compare all numeric outputs from assemble_portfolio_results to declared
+    fixture outputs with tolerance 1e-8.
+- evaluator_id: llm_dual_option_greeks
+  kind: llm_requirements_acceptance
+  description: >
+    LLM judge verifying both Option A and Option B use correct zeta/alpha-modified
+    formulas, and portfolio Greeks aggregate correctly.
+scenarios:
+- scenario_id: semantic_acceptance_base
+  kind: semantic_acceptance
+  description: >
+    Full pipeline test with base_spread case. Verify all Option A and B Greek
+    outputs match reference values and portfolio Greeks aggregate correctly.
+  evaluator_ids:
+  - llm_dual_option_greeks
+  realistic_input: true
+  requirements:
+  - "disc_alpha_a = exp(-(rate_a**alpha_a)*T_a) NOT exp(-rate_a*T_a)"
+  - "delta_call_a = zeta_a*N(d1_zeta_a) NOT N(d1_zeta_a)"
+  - "vega_a = spot_a*N'(d1_zeta_a)*sqrt(T_a)*(zeta_a**0.5)"
+  - "rho_call_a = alpha_a*strike_a*T_a*(rate_a**(alpha_a-1))*disc_alpha_a*N(d2_zeta_a)"
+  - "portfolio_delta = delta_call_a + delta_call_b"
+  - "portfolio_gamma = gamma_a + gamma_b"
+  - "portfolio_vega = vega_a + vega_b"
+  - "All _a computations use _a suffix variables ONLY"
+  - "All _b computations use _b suffix variables ONLY"
+  fixture_ids:
+  - fixture_receive_portfolio_request_base
+  - fixture_option_a_d_params_base
+  - fixture_option_a_delta_base
+  - fixture_portfolio_results_base
