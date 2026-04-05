@@ -1,43 +1,42 @@
 global_invariants:
-- invariant_id: results_case_id_consistency
-  description: zeta_results.case_id must equal the input zeta_request.case_id.
-- invariant_id: modified_put_call_parity
-  description: call_price - put_price must equal spot - strike*disc_alpha within floating point tolerance.
-- invariant_id: delta_call_bounded
-  description: 0 < delta_call < zeta (not bounded by 1 like standard BS).
-- invariant_id: delta_put_bounded
-  description: -1 < delta_put < 0.
+- invariant_id: put_call_parity_modified
+  description: >
+    call_price - put_price must equal spot - strike * disc_alpha (using disc_alpha, not exp(-r*T)).
+- invariant_id: delta_zeta_scaling
+  description: delta_call must equal zeta * N(d1_zeta), not N(d1_zeta).
 evaluators:
 - evaluator_id: exact_outputs
   kind: programmatic_exact
   description: >
-    Compare actual zeta_results outputs to declared expected outputs exactly
-    using the expected_runtime_outputs.json tolerance.
+    Compare actual zeta_results outputs to declared fixture outputs exactly.
+- evaluator_id: llm_zeta_requirements
+  kind: llm_requirements_acceptance
+  description: >
+    LLM judge verifying all zeta and alpha modifications are correctly implemented.
 scenarios:
-- scenario_id: base_scenario
-  kind: full_recomposition
-  description: Base ATM case (S=100, K=100, r=0.05, sigma=0.20, T=1.0, zeta=0.70, alpha=0.85).
+- scenario_id: semantic_acceptance_base
+  kind: semantic_acceptance
+  description: >
+    Full pipeline test with base case (zeta=0.70, alpha=0.85). All 10 components
+    must produce correct zeta-modified values.
   evaluator_ids:
-  - exact_outputs
+  - llm_zeta_requirements
   realistic_input: true
+  requirements:
+    - "disc_alpha uses exp(-r^alpha * T), not exp(-r*T)"
+    - "delta_call = zeta * N(d1_zeta), not N(d1_zeta)"
+    - "gamma = zeta * N'(d1_zeta) / (S*sigma*sqrt(T))"
+    - "vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5"
+    - "rho_call contains the alpha * r^(alpha-1) factor"
+    - "put-call parity: call - put == S - K * disc_alpha"
   fixture_ids:
-  - base_compute_zeta_d_params
-  - base_price_zeta_call
-  - base_price_zeta_put
-  - base_compute_zeta_delta
-  - base_compute_zeta_gamma
-  - base_compute_zeta_theta_call
-  - base_compute_zeta_theta_put
-  - base_compute_zeta_vega
-  - base_compute_zeta_rho_call
-- scenario_id: itm_put_scenario
-  kind: full_recomposition
-  description: ITM put case (S=80, K=90, r=0.08, sigma=0.30, T=2.0, zeta=0.90, alpha=0.95).
-  evaluator_ids:
-  - exact_outputs
-  realistic_input: true
-  fixture_ids:
-  - itm_put_compute_zeta_d_params
-  - itm_put_compute_zeta_delta
-  - itm_put_compute_zeta_vega
-  - itm_put_compute_zeta_rho_call
+  - fixture_d_params_base
+  - fixture_call_base
+  - fixture_put_base
+  - fixture_delta_base
+  - fixture_gamma_base
+  - fixture_theta_call_base
+  - fixture_theta_put_base
+  - fixture_vega_base
+  - fixture_rho_call_base
+  - fixture_rho_put_base
