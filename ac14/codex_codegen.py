@@ -70,6 +70,7 @@ def generate_component_with_codex(
             _CODEX_EXEC,
             "exec",
             "--dangerously-bypass-approvals-and-sandbox",
+            "--json",
             "-C", str(work_dir),
             "--output-last-message", str(last_msg_file),
             prompt,
@@ -112,12 +113,38 @@ def generate_component_with_codex(
     (trace_dir / f"{context.component_id}.py").write_text(module_code)
 
     last_msg = last_msg_file.read_text().strip() if last_msg_file.exists() else ""
-    tokens_used = _parse_tokens_used(result.stderr)
+    tokens_used = _parse_tokens_from_events(result.stdout) or _parse_tokens_used(result.stderr)
     token_note = f" tokens={tokens_used:,}" if tokens_used else ""
     return GeneratedModuleResponse(
         module_code=module_code,
         implementation_notes=[f"Codex exec (self-verified).{token_note} {last_msg[:200]}"],
     )
+
+
+def _parse_tokens_from_events(jsonl: str) -> int | None:
+    """Extract total token count from --json JSONL event stream.
+
+    Looks for usage fields in turn.completed or similar events.
+    Returns the highest cumulative total found, or None if not present.
+    """
+    total = 0
+    for line in jsonl.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        # Try common locations for token usage in OpenAI event schemas
+        usage = event.get("usage") or event.get("response", {}).get("usage", {})
+        if usage:
+            t = usage.get("total_tokens") or (
+                usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+            )
+            if t:
+                total = max(total, t)
+    return total or None
 
 
 def _parse_tokens_used(stderr: str) -> int | None:
@@ -225,9 +252,13 @@ def _render_packet_tests(context: CodegenContext) -> str:
 
 
 def _persist_codex_trace(trace_dir: Path, component_id: str, result: subprocess.CompletedProcess[str]) -> None:
-    """Persist codex subprocess stdout/stderr for diagnosis."""
+    """Persist codex subprocess stdout/stderr for diagnosis.
+
+    With --json, stdout is a JSONL event stream (one JSON object per line).
+    stderr is the human-readable transcript (tool calls, reasoning summaries).
+    """
     if result.stdout:
-        (trace_dir / f"{component_id}.codex_stdout.txt").write_text(result.stdout)
+        (trace_dir / f"{component_id}.codex_events.jsonl").write_text(result.stdout)
     if result.stderr:
         (trace_dir / f"{component_id}.codex_stderr.txt").write_text(result.stderr)
     (trace_dir / f"{component_id}.codex_exit.txt").write_text(str(result.returncode))
