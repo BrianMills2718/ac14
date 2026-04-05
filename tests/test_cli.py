@@ -28,6 +28,7 @@ from ac14.dependency_planning import (
 from ac14.examples import discover_shipped_blueprints
 from ac14.generated_codegen import emit_generated_package
 from ac14.loader import load_blueprint_dir
+from ac14.model_validation import normalize_and_validate_model
 from ac14.packets import compile_packets
 from ac14.structured_spec import build_structured_spec_artifact
 from tests.front_half_first_fixtures import (
@@ -43,6 +44,16 @@ from tests.front_half_first_fixtures import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_DIR = REPO_ROOT / "examples" / "support_ticket_digest" / "blueprint"
 EXAMPLES_ROOT = REPO_ROOT / "examples"
+
+
+def test_normalize_and_validate_model_canonicalizes_gpt54_to_codex_sdk() -> None:
+    """AC14 model preflight should align with llm_client's gpt-5.4 Codex routing."""
+
+    assert normalize_and_validate_model("gpt-5.4") == "codex/gpt-5.4"
+    assert (
+        normalize_and_validate_model("openrouter/openai/gpt-5.4")
+        == "codex/gpt-5.4"
+    )
 
 
 def _write_plan_artifact(path: Path) -> Path:
