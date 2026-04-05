@@ -12,10 +12,22 @@ from __future__ import annotations
 import json
 import subprocess
 import textwrap
+import time
 from pathlib import Path
 
 from ac14.codegen_context import CodegenContext
 from ac14.llm_codegen import GeneratedModuleResponse, GeneratedModuleValidationError, _validate_generated_module
+
+try:
+    from llm_client.sdk.agents_codex import (  # type: ignore[import-not-found]
+        parse_codex_exec_events as _parse_codex_exec_events,
+        log_codex_exec_session as _log_codex_exec_session,
+    )
+    _LLMCLIENT_OBSERVABILITY = True
+except ImportError:
+    _LLMCLIENT_OBSERVABILITY = False
+    _parse_codex_exec_events = None  # type: ignore[assignment]
+    _log_codex_exec_session = None   # type: ignore[assignment]
 
 
 _CODEX_EXEC = "codex"
@@ -65,6 +77,7 @@ def generate_component_with_codex(
 
     prompt = _build_prompt(context, output_file=output_file, test_file=test_file)
 
+    _t0 = time.monotonic()
     result = subprocess.run(
         [
             _CODEX_EXEC,
@@ -79,6 +92,7 @@ def generate_component_with_codex(
         text=True,
         timeout=timeout_s,
     )
+    _elapsed = time.monotonic() - _t0
 
     # Persist trace files in trace_dir (standard naming for diagnostics)
     _persist_codex_trace(trace_dir, context.component_id, result)
@@ -113,49 +127,25 @@ def generate_component_with_codex(
     (trace_dir / f"{context.component_id}.py").write_text(module_code)
 
     last_msg = last_msg_file.read_text().strip() if last_msg_file.exists() else ""
-    tokens_used = _parse_tokens_from_events(result.stdout) or _parse_tokens_used(result.stderr)
+
+    session = _parse_codex_exec_events(result.stdout, result.stderr) if _LLMCLIENT_OBSERVABILITY else {}  # type: ignore[misc]
+    tokens_used = session.get("total_tokens") if session else None
     token_note = f" tokens={tokens_used:,}" if tokens_used else ""
+
+    if _LLMCLIENT_OBSERVABILITY and session:
+        _log_codex_exec_session(  # type: ignore[misc]
+            session,
+            task=f"ac14/{context.component_id}",
+            trace_id=f"codex_exec/{trace_dir.parent.parent.name}/{context.component_id}",
+            latency_s=_elapsed,
+            component_id=context.component_id,
+            exit_code=result.returncode,
+        )
+
     return GeneratedModuleResponse(
         module_code=module_code,
         implementation_notes=[f"Codex exec (self-verified).{token_note} {last_msg[:200]}"],
     )
-
-
-def _parse_tokens_from_events(jsonl: str) -> int | None:
-    """Extract total token count from --json JSONL event stream.
-
-    Looks for usage fields in turn.completed or similar events.
-    Returns the highest cumulative total found, or None if not present.
-    """
-    total = 0
-    for line in jsonl.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            event = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        # Try common locations for token usage in OpenAI event schemas
-        usage = event.get("usage") or event.get("response", {}).get("usage", {})
-        if usage:
-            t = usage.get("total_tokens") or (
-                usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
-            )
-            if t:
-                total = max(total, t)
-    return total or None
-
-
-def _parse_tokens_used(stderr: str) -> int | None:
-    """Extract token count from Codex stderr: 'tokens used\\nNNNNN'."""
-    lines = stderr.splitlines()
-    for i, line in enumerate(lines):
-        if line.strip() == "tokens used" and i + 1 < len(lines):
-            raw = lines[i + 1].strip().replace(",", "")
-            if raw.isdigit():
-                return int(raw)
-    return None
 
 
 def _build_prompt(context: CodegenContext, *, output_file: Path, test_file: Path) -> str:
