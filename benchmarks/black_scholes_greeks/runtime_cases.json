@@ -1,58 +1,38 @@
 [
   {
     "case_id": "atm_call_full",
-    "inputs": {
-      "bs_request": {
-        "case_id": "atm_call_full",
-        "S": 100.0,
-        "K": 100.0,
-        "r": 0.05,
-        "sigma": 0.2,
-        "T": 1.0,
-        "market_price_for_iv": 10.450583572185565
-      }
-    }
+    "S": 100.0,
+    "K": 100.0,
+    "r": 0.05,
+    "sigma": 0.2,
+    "T": 1.0,
+    "market_price_for_iv": 10.450583572185565
   },
   {
     "case_id": "itm_put_full",
-    "inputs": {
-      "bs_request": {
-        "case_id": "itm_put_full",
-        "S": 90.0,
-        "K": 100.0,
-        "r": 0.05,
-        "sigma": 0.2,
-        "T": 1.0,
-        "market_price_for_iv": 5.091222078817552
-      }
-    }
+    "S": 90.0,
+    "K": 100.0,
+    "r": 0.05,
+    "sigma": 0.2,
+    "T": 1.0,
+    "market_price_for_iv": 5.091222078817552
   },
   {
     "case_id": "otm_near_expiry",
-    "inputs": {
-      "bs_request": {
-        "case_id": "otm_near_expiry",
-        "S": 100.0,
-        "K": 105.0,
-        "r": 0.05,
-        "sigma": 0.25,
-        "T": 0.1,
-        "market_price_for_iv": 1.4674274961338583
-      }
-    }
+    "S": 100.0,
+    "K": 105.0,
+    "r": 0.05,
+    "sigma": 0.25,
+    "T": 0.1,
+    "market_price_for_iv": 1.4674274961338583
   },
   {
     "case_id": "iv_recovery_atm",
-    "inputs": {
-      "bs_request": {
-        "case_id": "iv_recovery_atm",
-        "S": 100.0,
-        "K": 100.0,
-        "r": 0.05,
-        "sigma": 0.2,
-        "T": 1.0,
-        "market_price_for_iv": 10.45
-      }
-    }
+    "S": 100.0,
+    "K": 100.0,
+    "r": 0.05,
+    "sigma": 0.2,
+    "T": 1.0,
+    "market_price_for_iv": 10.45
   }
 ]
