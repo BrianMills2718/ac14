@@ -13,6 +13,15 @@ from pathlib import Path
 from typing import Any, Literal
 from pydantic import BaseModel, Field
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.structured_inputs import (
     InputFormat,
     detect_input_format,
@@ -193,6 +202,12 @@ class _FieldAccumulator:
             self.sample_values.append(rendered)
 
 
+@boundary(
+    name="ac14.discovery_artifact",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["freeze_pipeline"],
+)
 def build_discovery_artifact(
     input_path: Path | str,
     output_dir: Path | str,

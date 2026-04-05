@@ -20,6 +20,15 @@ from typing import Any, Literal, cast
 from pydantic import BaseModel, Field
 import yaml  # type: ignore[import-untyped]
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.blueprint_planning import DraftBlueprintPlanArtifact
 from ac14.draft_authoring import FreezeReadinessReport
 from ac14.loader import REQUIRED_FILES, load_blueprint_dir
@@ -267,6 +276,12 @@ async def abuild_freeze_decision(
     return decision
 
 
+@boundary(
+    name="ac14.freeze_decision",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def build_freeze_decision(
     bundle_dir: Path | str,
     output_dir: Path | str,

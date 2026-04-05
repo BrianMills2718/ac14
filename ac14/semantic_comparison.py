@@ -8,6 +8,15 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.generated_codegen import emit_generated_package, load_generated_component_builders
 from ac14.loader import load_blueprint_dir
 from ac14.models import FrozenBlueprint
@@ -78,6 +87,12 @@ class SemanticComparisonReport(BaseModel):
     modes: list[SemanticModeReport] = Field(description="Per-mode semantic comparison results.")
 
 
+@boundary(
+    name="ac14.semantic_comparison",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def build_semantic_comparison_report(
     blueprint_dir: Path | str,
     output_dir: Path | str,

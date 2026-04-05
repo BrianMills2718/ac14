@@ -21,6 +21,15 @@ from typing import Any, Literal, Protocol, Sequence, cast
 from pydantic import BaseModel, Field
 from llm_client.io_log import activate_feature_profile, experiment_run  # type: ignore[import-not-found]
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.acceptance import AcceptanceReviewResponse, acall_llm_structured, render_prompt
 from ac14.atomic_io import atomic_write_json, atomic_write_text
 from ac14.empirical_comparison import (
@@ -299,6 +308,12 @@ class _RuntimeInjectedSourceComponent:
         return {self._output_port_name: copy.deepcopy(self._payload)}
 
 
+@boundary(
+    name="ac14.front_half_processing",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_runner"],
+)
 def run_front_half_first_smoke_gate(
     benchmark_dir: Path | str,
     output_dir: Path | str,
@@ -336,6 +351,12 @@ def run_front_half_first_smoke_gate(
 DEFAULT_FULL_TRIAL_COUNT = 5
 
 
+@boundary(
+    name="ac14.front_half_empirical",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def run_front_half_first_full_trials(
     benchmark_dir: Path | str,
     output_dir: Path | str,

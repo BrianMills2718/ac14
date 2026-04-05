@@ -11,6 +11,15 @@ from typing import Any, Literal, cast
 
 from pydantic import BaseModel, Field
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.blueprint_planning import (
     DEFAULT_BLUEPRINT_PLAN_MAX_BUDGET,
     DEFAULT_BLUEPRINT_PLAN_MODEL,
@@ -420,6 +429,12 @@ async def abuild_front_half_acceptance_report(
     return artifact
 
 
+@boundary(
+    name="ac14.front_half_acceptance",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def build_front_half_acceptance_report(
     input_path: Path | str,
     output_dir: Path | str,
