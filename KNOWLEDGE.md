@@ -574,4 +574,11 @@ structured boundary. Fix: add CLI ingress validation/normalization so stale
 unsupported model ids fail immediately with a replacement hint before any front
 half or empirical run starts.
 
+### 2026-04-05 — codex — integration-issue
+AC14 cannot assume the caller's active `llm_client` installation already
+contains the newest shared routing fix. Exact `gpt-5.4` overrides now
+normalize to `codex/gpt-5.4` at AC14 CLI ingress as well, so benchmark and
+smoke commands stay aligned with the subscription-backed Codex path even
+before the shared `llm_client` update is merged into the active environment.
+
 ---

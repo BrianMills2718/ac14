@@ -30,8 +30,8 @@ _KNOWN_GOOD_EXAMPLES = (
     "gemini/gemini-2.5-flash-lite",
     "gemini/gemini-2.5-flash",
     "openrouter/openai/gpt-4.1",
-    "openrouter/openai/gpt-5.4",
     "codex",
+    "codex/gpt-5.4",
 )
 
 
@@ -54,6 +54,8 @@ def _normalize_ac14_model_alias(model: str) -> str:
 
     raw = model.strip()
     lower = raw.lower()
+    if lower in {"gpt-5.4", "openai/gpt-5.4", "openrouter/openai/gpt-5.4"}:
+        return "codex/gpt-5.4"
     if lower.startswith("google/gemini-"):
         return f"openrouter/{raw}"
     return normalize_model_for_policy(raw, "openrouter")
