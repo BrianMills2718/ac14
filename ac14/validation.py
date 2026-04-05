@@ -455,15 +455,22 @@ def _is_named_schema_reference(field_type: str) -> bool:
     if field_type.startswith("enum:"):
         return False
     stripped = _strip_container(field_type)
-    primitives = {"string", "integer", "number", "boolean", "object", "str", "int", "float", "bool", "record", "dict"}
+    primitives = {
+        "string", "integer", "number", "boolean", "object",
+        "str", "int", "float", "bool", "record", "dict",
+        # bare container types without element info are valid
+        "list", "array",
+    }
     return stripped not in primitives
 
 
 def _strip_container(field_type: str) -> str:
-    """Strip simple list[...] wrappers from field types."""
+    """Strip list[...] or array[...] wrappers from field types."""
 
     if field_type.startswith("list[") and field_type.endswith("]"):
         return field_type[5:-1]
+    if field_type.startswith("array[") and field_type.endswith("]"):
+        return field_type[6:-1]
     return field_type
 
 

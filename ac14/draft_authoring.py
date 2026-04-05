@@ -456,6 +456,18 @@ def _draft_value_for_field_type(
                 visited=visited,
             ),
         ]
+    if normalized.startswith("array[") and normalized.endswith("]"):
+        inner = normalized[6:-1].strip()
+        return [
+            _draft_value_for_field_type(
+                inner,
+                field_name=field_name,
+                schema_lookup=schema_lookup,
+                visited=visited,
+            ),
+        ]
+    if normalized in ("list", "array"):
+        return []
     if normalized == "string":
         return f"draft_{field_name}"
     if normalized == "integer":
