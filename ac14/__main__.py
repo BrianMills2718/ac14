@@ -63,6 +63,7 @@ from ac14.front_half_acceptance import (
 from ac14.generated_codegen import GeneratorKind, emit_generated_package
 from ac14.generated_evidence import run_fresh_generation_trials
 from ac14.loader import load_blueprint_dir
+from ac14.model_validation import normalize_and_validate_model
 from ac14.packets import compile_packets
 from ac14.packet_sufficiency import build_packet_sufficiency_report
 from ac14.recommendation import (
@@ -553,6 +554,7 @@ def main() -> int:
     front_half_first_full_parser.add_argument("--max-budget", type=float, default=0.50)
 
     args = parser.parse_args()
+    _normalize_cli_model_overrides(args=args, parser=parser)
     if args.command == "verify-blueprint":
         return _verify_blueprint(args.blueprint_dir)
     if args.command == "packet-sufficiency":
@@ -866,6 +868,22 @@ def main() -> int:
             args.max_budget,
         )
     raise ValueError(f"unknown command: {args.command}")
+
+
+def _normalize_cli_model_overrides(*, args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    """Normalize all CLI model overrides before any workflow work begins."""
+
+    for field_name in ("model", "retry_model"):
+        if not hasattr(args, field_name):
+            continue
+        raw_value = getattr(args, field_name)
+        if not isinstance(raw_value, str):
+            continue
+        try:
+            normalized = normalize_and_validate_model(raw_value, field_name=field_name)
+        except ValueError as exc:
+            parser.error(str(exc))
+        setattr(args, field_name, normalized)
 
 
 def _verify_blueprint(blueprint_dir: Path) -> int:
