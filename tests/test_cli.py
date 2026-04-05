@@ -2330,6 +2330,83 @@ def test_cli_front_half_first_smoke_gate_runs_end_to_end(tmp_path: Path) -> None
     assert (tmp_path / "front_half_first_smoke" / "smoke_readiness_report.json").exists()
 
 
+def test_cli_front_half_first_smoke_gate_normalizes_google_gemini_alias(tmp_path: Path) -> None:
+    """CLI model preflight should normalize the stale google/gemini alias before execution."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    env = os.environ.copy()
+    env["AC14_STRUCTURED_SPEC_FRONT_HALF_ACCEPTANCE_FIXTURE"] = str(
+        write_front_half_first_structured_spec_front_half_fixture(
+            tmp_path / "front_half_first_structured_spec_front_half_fixture.json",
+            benchmark_dir=benchmark_dir,
+            plan_fixture_path=write_front_half_first_plan_fixture(
+                tmp_path / "front_half_first_plan_fixture.json",
+            ),
+        ),
+    )
+    env["AC14_LLM_CODEGEN_FIXTURE"] = str(
+        write_front_half_first_llm_codegen_fixture(tmp_path / "front_half_first_llm_codegen_fixture.json"),
+    )
+    env["AC14_FRONT_HALF_FIRST_MONOLITHIC_FIXTURE"] = str(
+        write_front_half_first_monolithic_fixture(tmp_path / "front_half_first_monolithic_fixture.json"),
+    )
+    env["AC14_ACCEPTANCE_REVIEW_FIXTURE"] = str(
+        write_front_half_first_acceptance_review_fixture(tmp_path / "front_half_first_acceptance_review_fixture.json"),
+    )
+    env["AC14_LLM_OBSERVABILITY_DB"] = str(tmp_path / "missing_observability.db")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "front-half-first-smoke-gate",
+            str(benchmark_dir),
+            "--output-dir",
+            str(tmp_path / "front_half_first_smoke_alias"),
+            "--max-attempts",
+            "1",
+            "--model",
+            "google/gemini-2.0-flash-001",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["verdict"] == "ready_for_full_trials"
+
+
+def test_cli_front_half_first_smoke_gate_rejects_known_invalid_model(tmp_path: Path) -> None:
+    """CLI model preflight should fail before running with unsupported benchmark-era model ids."""
+
+    benchmark_dir = write_front_half_first_benchmark_bundle(tmp_path)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "ac14",
+            "front-half-first-smoke-gate",
+            str(benchmark_dir),
+            "--output-dir",
+            str(tmp_path / "front_half_first_invalid"),
+            "--max-attempts",
+            "1",
+            "--model",
+            "claude-haiku-4-5-20251001",
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+    assert "Unsupported model" in result.stderr
+    assert "gemini/gemini-2.5-flash-lite" in result.stderr
+
+
 def test_cli_front_half_acceptance_runs_end_to_end(tmp_path: Path) -> None:
     """Front-half acceptance command should persist the realistic-input artifact chain."""
 

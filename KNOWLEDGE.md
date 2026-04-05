@@ -564,4 +564,14 @@ relative `.ac14_out/...` directories, and a later cwd shift or interrupted-run
 rename can otherwise turn a valid `draft_blueprint_plan.json` into a false
 file-not-found harness failure.
 
+### 2026-04-05 — codex — bug-pattern
+Benchmark and smoke commands should not accept arbitrary `MODEL=` overrides and
+only fail deep inside `llm_client.acall_llm_structured`. The live `ac14`
+anomaly bucket came from stale benchmark-era model strings like
+`claude-haiku-4-5-20251001` and `google/gemini-2.0-flash-001` reaching the
+structured boundary. Fix: add CLI ingress validation/normalization so stale
+`google/gemini-*` aliases are rewritten to the OpenRouter form and known
+unsupported model ids fail immediately with a replacement hint before any front
+half or empirical run starts.
+
 ---
