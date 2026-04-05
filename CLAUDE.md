@@ -126,12 +126,13 @@ find the first `ac14_wins` verdict.
 13. [Plan #162](./docs/plans/162_zeta_gate_1_verdict.md) -> complete, zeta gate_1 `inconclusive` (4/5 vs 5/5 gpt-4.1); gpt-4.1 implements ALL zeta/alpha mods correctly; AC14 fails due to codegen errors not formula
 14. [Plan #163](./docs/plans/163_zeta_gemini_flash_gate.md) -> complete, zeta Gemini flash `monolithic_wins` (1/5 AC14 vs 5/5 mono); AC14 failed due to budget split ($0.30 limit) + formula bugs in pricer components
 15. [Plan #164](./docs/plans/164_zeta_gemini_flash_verdict.md) -> complete, strategic finding: structured_spec gives mono same hints as AC14; monolithic 5/5 on all benchmarks
-16. **[Plan #165](./docs/plans/165_haiku_zeta_gate.md)** -> **ACTIVE** — run zeta options with claude-haiku-4-5
-    - Hypothesis: haiku (weakest model) may fail monolithically on 10-component novel formula spec
-    - Command: `make front-half-first-full-trials BENCHMARK=benchmarks/zeta_options OUTPUT=.ac14_out/zeta_haiku_gate_1 MODEL=claude-haiku-4-5-20251001 MAX_BUDGET=0.80 TRIALS=5 MAX_ATTEMPTS=3`
-    - if `ac14_wins`: first thesis validation → write ADR
-    - if `inconclusive`: run 10-trial gate
-    - if `monolithic_wins`: design 50+ component benchmark
+16. [Plan #165](./docs/plans/165_haiku_zeta_gate.md) -> complete, haiku/gpt-4o-mini not available on OpenRouter; DeepSeek correct on formulas, fails on output structure only. Formula memorization hypothesis DEFINITIVELY FALSIFIED.
+17. **[Plan #166](./docs/plans/166_scale_test_design.md)** -> **ACTIVE** — strategic pivot after 7 benchmarks all showing mono 5/5
+    - Decision: design noisy-spec variant removing CRITICAL DIFFERENCE callouts from mono
+    - Monolithic spec: ambiguous descriptions; AC14 packets: explicit formulas
+    - This tests the REAL AC14 advantage: explicit per-component implementation contracts
+    - Build: create `benchmarks/zeta_options_noisy_spec/` with ambiguous structured_spec_input.yaml
+    - Run gate_1 with gpt-4.1; if mono fails → first `ac14_wins`
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
