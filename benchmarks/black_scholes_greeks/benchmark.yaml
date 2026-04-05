@@ -1,0 +1,20 @@
+benchmark:
+  benchmark_id: black_scholes_greeks_v1
+  name: "Black-Scholes Option Pricing & Greeks Suite"
+  purpose: >
+    Front-half-first Theory Forge benchmark testing whether decomposition
+    helps on a harder quantitative finance pipeline. Nine components implement
+    the Black-Scholes pricing model: d-values, normal CDF/PDF values,
+    vanilla call/put pricing, delta, gamma, theta (call and put share a
+    common first term but diverge on the second), vega and rho pair
+    (sign-flip confusion), and Newton-Raphson implied volatility. Multiple
+    formula pairs differ by a single sign or by N(d) vs N(-d) — exactly the
+    confusion AC14 decomposition should eliminate by keeping each component's
+    context isolated.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

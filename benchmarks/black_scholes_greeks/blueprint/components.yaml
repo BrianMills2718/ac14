@@ -1,0 +1,237 @@
+components:
+- component_id: compute_d_values
+  kind: transform
+  purpose: >
+    Compute the two standardized log-return values d1 and d2, plus auxiliary
+    quantities sqrt_T and discount_factor. This is Stage 1 of 9.
+  semantic_responsibility: compute_black_scholes_d_values
+  input_ports:
+  - name: bs_request
+    schema_id: BSRequest
+    description: Complete option specification.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: d_values_state
+    schema_id: DValuesState
+    description: d1, d2, sqrt_T, discount_factor plus all request fields.
+  local_invariants:
+  - d_values_state.case_id must equal bs_request.case_id
+  - d_values_state.d2 must equal d_values_state.d1 - bs_request.sigma * d_values_state.sqrt_T
+  - d_values_state.discount_factor must be in (0, 1] for r >= 0
+  failure_semantics:
+  - fail loud if S <= 0 or K <= 0 or T <= 0 or sigma <= 0
+  implementation_constraints:
+  - "use math.log for natural log, math.sqrt, math.exp"
+  - "d1 = (math.log(S/K) + (r + sigma**2/2)*T) / (sigma*sqrt_T)"
+  - "d2 = d1 - sigma*sqrt_T"
+
+- component_id: compute_normal_values
+  kind: transform
+  purpose: >
+    Evaluate the standard normal CDF and PDF at d1 and d2. Five values: N(d1),
+    N(d2), N(-d1), N(-d2), N'(d1). Stage 2 of 9.
+  semantic_responsibility: compute_standard_normal_cdf_pdf_values
+  input_ports:
+  - name: d_values_state
+    schema_id: DValuesState
+    description: State from Stage 1 containing d1, d2.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: normal_values_state
+    schema_id: NormalValuesState
+    description: All DValuesState fields plus five normal distribution values.
+  local_invariants:
+  - normal_values_state.N_d1 + normal_values_state.N_neg_d1 must approximately equal 1.0
+  - normal_values_state.N_d2 + normal_values_state.N_neg_d2 must approximately equal 1.0
+  - normal_values_state.N_prime_d1 must be positive
+  failure_semantics:
+  - fail loud if any computed CDF value is outside [0, 1]
+  implementation_constraints:
+  - "from scipy.stats import norm"
+  - "N_neg_d1 = norm.cdf(-d1) — call with negative argument, not 1 - N_d1"
+  - "N_neg_d2 = norm.cdf(-d2) — call with negative argument, not 1 - N_d2"
+
+- component_id: price_vanilla_call
+  kind: transform
+  purpose: >
+    Compute Black-Scholes vanilla call price: S*N(d1) - K*discount_factor*N(d2).
+    Stage 3 of 9.
+  semantic_responsibility: compute_black_scholes_call_price
+  input_ports:
+  - name: normal_values_state
+    schema_id: NormalValuesState
+    description: State from Stage 2 containing all normal distribution values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: call_priced_state
+    schema_id: CallPricedState
+    description: All NormalValuesState fields plus call_price.
+  local_invariants:
+  - call_priced_state.call_price must be >= 0
+  - call_priced_state.call_price must be <= call_priced_state.S
+  failure_semantics:
+  - fail loud if call_price is negative (indicates formula error)
+  implementation_constraints:
+  - "call_price = S * N_d1 - K * discount_factor * N_d2"
+  - "S-term uses N_d1 (positive d1 argument); K-term uses N_d2 (positive d2 argument)"
+
+- component_id: price_vanilla_put
+  kind: transform
+  purpose: >
+    Compute Black-Scholes vanilla put price: K*discount_factor*N(-d2) - S*N(-d1).
+    Stage 4 of 9.
+  semantic_responsibility: compute_black_scholes_put_price
+  input_ports:
+  - name: call_priced_state
+    schema_id: CallPricedState
+    description: State from Stage 3 containing call_price and all normal values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: put_priced_state
+    schema_id: PutPricedState
+    description: All CallPricedState fields plus put_price.
+  local_invariants:
+  - put_priced_state.put_price must be >= 0
+  - "put-call parity: call_price - put_price approximately equals S - K*discount_factor"
+  failure_semantics:
+  - fail loud if put_price is negative (indicates formula error)
+  implementation_constraints:
+  - "put_price = K * discount_factor * N_neg_d2 - S * N_neg_d1"
+  - "K-term comes first and uses N_neg_d2; S-term is subtracted and uses N_neg_d1"
+  - "Sign pattern is opposite to call: K-S order reversed from S-K"
+
+- component_id: compute_delta
+  kind: transform
+  purpose: >
+    Compute delta_call = N(d1) and delta_put = N(d1) - 1.0. Stage 5 of 9.
+  semantic_responsibility: compute_option_deltas
+  input_ports:
+  - name: put_priced_state
+    schema_id: PutPricedState
+    description: State from Stage 4 containing pricing and normal values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: delta_state
+    schema_id: DeltaState
+    description: All PutPricedState fields plus delta_call and delta_put.
+  local_invariants:
+  - delta_state.delta_call must be in (0, 1)
+  - delta_state.delta_put must be in (-1, 0)
+  - delta_state.delta_call + abs(delta_state.delta_put) must approximately equal 1.0
+  failure_semantics:
+  - fail loud if delta_call is outside (0, 1) or delta_put is outside (-1, 0)
+  implementation_constraints:
+  - "delta_call = N_d1"
+  - "delta_put = N_d1 - 1.0 — uses N_d1, NOT N_neg_d1"
+
+- component_id: compute_gamma
+  kind: transform
+  purpose: >
+    Compute gamma = N'(d1) / (S * sigma * sqrt_T). Uses PDF, not CDF. Same for call
+    and put. Stage 6 of 9.
+  semantic_responsibility: compute_option_gamma
+  input_ports:
+  - name: delta_state
+    schema_id: DeltaState
+    description: State from Stage 5 containing N_prime_d1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: gamma_state
+    schema_id: GammaState
+    description: All DeltaState fields plus gamma.
+  local_invariants:
+  - gamma_state.gamma must be positive
+  failure_semantics:
+  - fail loud if gamma is zero or negative
+  implementation_constraints:
+  - "gamma = N_prime_d1 / (S * sigma * sqrt_T)"
+  - "N_prime_d1 is the PDF value norm.pdf(d1), NOT the CDF norm.cdf(d1)"
+
+- component_id: compute_theta
+  kind: transform
+  purpose: >
+    Compute theta_call and theta_put. They share a common first term but differ
+    on the second term: call subtracts r*K*disc*N(d2), put adds r*K*disc*N(-d2).
+    Stage 7 of 9.
+  semantic_responsibility: compute_option_thetas
+  input_ports:
+  - name: gamma_state
+    schema_id: GammaState
+    description: State from Stage 6 containing all pricing and Greek values so far.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: theta_state
+    schema_id: ThetaState
+    description: All GammaState fields plus theta_call and theta_put.
+  local_invariants:
+  - theta_state.theta_call must be negative (time decay always costs)
+  failure_semantics:
+  - fail loud if theta_call is positive (indicates formula error)
+  implementation_constraints:
+  - "shared_first = -(S * N_prime_d1 * sigma) / (2 * sqrt_T)"
+  - "theta_call = shared_first - r * K * discount_factor * N_d2"
+  - "theta_put  = shared_first + r * K * discount_factor * N_neg_d2"
+  - "The ONLY differences: minus vs plus, AND N_d2 vs N_neg_d2"
+
+- component_id: compute_vega_rho
+  kind: transform
+  purpose: >
+    Compute vega = S*N'(d1)*sqrt_T (same for call/put), rho_call = K*T*disc*N(d2)
+    (positive), rho_put = -K*T*disc*N(-d2) (negative). Stage 8 of 9.
+  semantic_responsibility: compute_option_vega_and_rho
+  input_ports:
+  - name: theta_state
+    schema_id: ThetaState
+    description: State from Stage 7 containing all accumulated values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: vega_rho_state
+    schema_id: VegaRhoState
+    description: All ThetaState fields plus vega, rho_call, rho_put.
+  local_invariants:
+  - vega_rho_state.vega must be positive
+  - vega_rho_state.rho_call must be positive
+  - vega_rho_state.rho_put must be negative
+  failure_semantics:
+  - fail loud if vega is zero or negative
+  implementation_constraints:
+  - "vega = S * N_prime_d1 * sqrt_T"
+  - "rho_call = K * T * discount_factor * N_d2 (positive, uses N_d2)"
+  - "rho_put  = -K * T * discount_factor * N_neg_d2 (negative leading sign, uses N_neg_d2)"
+
+- component_id: compute_implied_volatility_and_assemble
+  kind: transform
+  purpose: >
+    Compute implied volatility via Newton-Raphson (20 iterations, sigma_0=0.25)
+    targeting market_price_for_iv, then assemble the final BSGreeksResult output.
+    Stage 9 of 9 (terminal).
+  semantic_responsibility: compute_implied_volatility_and_assemble_greeks_result
+  input_ports:
+  - name: vega_rho_state
+    schema_id: VegaRhoState
+    description: State from Stage 8 containing all accumulated values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: bs_greeks_result
+    schema_id: BSGreeksResult
+    description: Final assembled Black-Scholes pricing and Greeks result.
+  local_invariants:
+  - bs_greeks_result.case_id must equal vega_rho_state.case_id
+  - bs_greeks_result.call_price must equal vega_rho_state.call_price
+  - bs_greeks_result.implied_volatility must be positive
+  failure_semantics:
+  - fail loud if Newton-Raphson sigma_iv becomes non-positive during iteration
+  implementation_constraints:
+  - "sigma_iv = 0.25 (fixed initial guess)"
+  - "repeat exactly 20 times: recompute d1_iv, d2_iv, bs_call_iv, vega_iv using sigma_iv; update sigma_iv = sigma_iv - (bs_call_iv - market_price_for_iv) / vega_iv"
+  - "implied_volatility = sigma_iv after 20 iterations"
+  - "assemble bs_greeks_result from all accumulated pipeline values"

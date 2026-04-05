@@ -1,0 +1,78 @@
+[
+  {
+    "case_id": "atm_call_full",
+    "expected_outputs": {
+      "bs_greeks_result": {
+        "case_id": "atm_call_full",
+        "call_price": 10.450583572185565,
+        "put_price": 5.573526022256971,
+        "delta_call": 0.6368306511756191,
+        "delta_put": -0.3631693488243809,
+        "gamma": 0.018762017345846895,
+        "theta_call": -6.414027546438197,
+        "theta_put": -1.657880423934626,
+        "vega": 37.52403469169379,
+        "rho_call": 53.232481545376345,
+        "rho_put": -41.89046090469506,
+        "implied_volatility": 0.2000000000000002
+      }
+    }
+  },
+  {
+    "case_id": "itm_put_full",
+    "expected_outputs": {
+      "bs_greeks_result": {
+        "case_id": "itm_put_full",
+        "call_price": 5.091222078817552,
+        "put_price": 10.214164528888958,
+        "delta_call": 0.42983173188954316,
+        "delta_put": -0.5701682681104568,
+        "gamma": 0.021819747579660095,
+        "theta_call": -5.214480797467002,
+        "theta_put": -0.45833367496343147,
+        "vega": 35.34799107904935,
+        "rho_call": 33.59363379124133,
+        "rho_put": -61.529308658830075,
+        "implied_volatility": 0.2
+      }
+    }
+  },
+  {
+    "case_id": "otm_near_expiry",
+    "expected_outputs": {
+      "bs_greeks_result": {
+        "case_id": "otm_near_expiry",
+        "call_price": 1.4674274961338583,
+        "put_price": 5.943737811365494,
+        "delta_call": 0.3034938125404106,
+        "delta_put": -0.6965061874595895,
+        "gamma": 0.044209558495236875,
+        "theta_call": -15.259584717656882,
+        "theta_put": -10.0357692018953,
+        "vega": 11.05238962380922,
+        "rho_call": 2.88819537579072,
+        "rho_put": -7.559435655732444,
+        "implied_volatility": 0.25
+      }
+    }
+  },
+  {
+    "case_id": "iv_recovery_atm",
+    "expected_outputs": {
+      "bs_greeks_result": {
+        "case_id": "iv_recovery_atm",
+        "call_price": 10.450583572185565,
+        "put_price": 5.573526022256971,
+        "delta_call": 0.6368306511756191,
+        "delta_put": -0.3631693488243809,
+        "gamma": 0.018762017345846895,
+        "theta_call": -6.414027546438197,
+        "theta_put": -1.657880423934626,
+        "vega": 37.52403469169379,
+        "rho_call": 53.232481545376345,
+        "rho_put": -41.89046090469506,
+        "implied_volatility": 0.19998444801094403
+      }
+    }
+  }
+]

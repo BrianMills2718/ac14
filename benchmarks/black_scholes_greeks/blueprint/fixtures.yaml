@@ -1,0 +1,825 @@
+fixtures:
+# ============================================================
+# Scenario: atm_full (S=100, K=100, r=0.05, sigma=0.20, T=1.0)
+# ATM call/put with IV round-trip recovery.
+# ============================================================
+
+- fixture_id: atm_full_compute_d_values
+  scenario_id: atm_full_recomposition
+  component_id: compute_d_values
+  description: ATM case. S=K=100, so ln(S/K)=0. d1=(0.05+0.02)/0.20=0.35, d2=0.15.
+  inputs:
+    bs_request:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+  expected_outputs:
+    d_values_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+
+- fixture_id: atm_full_compute_normal_values
+  scenario_id: atm_full_recomposition
+  component_id: compute_normal_values
+  description: Normal CDF and PDF values for ATM case.
+  inputs:
+    d_values_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+  expected_outputs:
+    normal_values_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+
+- fixture_id: atm_full_price_vanilla_call
+  scenario_id: atm_full_recomposition
+  component_id: price_vanilla_call
+  description: ATM call price = 100*0.6368 - 100*0.9512*0.5596 = 10.4506.
+  inputs:
+    normal_values_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+  expected_outputs:
+    call_priced_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+
+- fixture_id: atm_full_price_vanilla_put
+  scenario_id: atm_full_recomposition
+  component_id: price_vanilla_put
+  description: ATM put price = 100*0.9512*0.4404 - 100*0.3632 = 5.5735.
+  inputs:
+    call_priced_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+  expected_outputs:
+    put_priced_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+
+- fixture_id: atm_full_compute_delta
+  scenario_id: atm_full_recomposition
+  component_id: compute_delta
+  description: ATM delta_call=N(d1)=0.6368, delta_put=N(d1)-1=-0.3632.
+  inputs:
+    put_priced_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+  expected_outputs:
+    delta_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+
+- fixture_id: atm_full_compute_gamma
+  scenario_id: atm_full_recomposition
+  component_id: compute_gamma
+  description: ATM gamma = N'(0.35)/(100*0.20*1.0) = 0.3752/20 = 0.01876.
+  inputs:
+    delta_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+  expected_outputs:
+    gamma_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+
+- fixture_id: atm_full_compute_theta
+  scenario_id: atm_full_recomposition
+  component_id: compute_theta
+  description: >
+    ATM theta pair. theta_call=-6.414, theta_put=-1.658. Second term differs by sign and N(d2) vs N(-d2).
+  inputs:
+    gamma_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+  expected_outputs:
+    theta_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+      theta_call: -6.414027546438197
+      theta_put: -1.657880423934626
+
+- fixture_id: atm_full_compute_vega_rho
+  scenario_id: atm_full_recomposition
+  component_id: compute_vega_rho
+  description: >
+    ATM vega=37.52, rho_call=53.23 (positive), rho_put=-41.89 (negative, uses N(-d2)).
+  inputs:
+    theta_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+      theta_call: -6.414027546438197
+      theta_put: -1.657880423934626
+  expected_outputs:
+    vega_rho_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+      theta_call: -6.414027546438197
+      theta_put: -1.657880423934626
+      vega: 37.52403469169379
+      rho_call: 53.232481545376345
+      rho_put: -41.89046090469506
+
+- fixture_id: atm_full_compute_iv_and_assemble
+  scenario_id: atm_full_recomposition
+  component_id: compute_implied_volatility_and_assemble
+  description: >
+    ATM IV recovery. market_price=call_price, so IV converges to sigma=0.20.
+    Final assembly of all 11 output fields.
+  inputs:
+    vega_rho_state:
+      case_id: atm_call_full
+      S: 100.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 10.450583572185565
+      sqrt_T: 1.0
+      d1: 0.35000000000000003
+      d2: 0.15000000000000002
+      discount_factor: 0.951229424500714
+      N_d1: 0.6368306511756191
+      N_d2: 0.5596176923702425
+      N_neg_d1: 0.3631693488243809
+      N_neg_d2: 0.4403823076297575
+      N_prime_d1: 0.3752403469169379
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+      theta_call: -6.414027546438197
+      theta_put: -1.657880423934626
+      vega: 37.52403469169379
+      rho_call: 53.232481545376345
+      rho_put: -41.89046090469506
+  expected_outputs:
+    bs_greeks_result:
+      case_id: atm_call_full
+      call_price: 10.450583572185565
+      put_price: 5.573526022256971
+      delta_call: 0.6368306511756191
+      delta_put: -0.3631693488243809
+      gamma: 0.018762017345846895
+      theta_call: -6.414027546438197
+      theta_put: -1.657880423934626
+      vega: 37.52403469169379
+      rho_call: 53.232481545376345
+      rho_put: -41.89046090469506
+      implied_volatility: 0.2000000000000002
+
+# ============================================================
+# Scenario: itm_put (S=90, K=100, r=0.05, sigma=0.20, T=1.0)
+# ITM put case. d1=-0.1768, d2=-0.3768.
+# ============================================================
+
+- fixture_id: itm_put_compute_d_values
+  scenario_id: itm_put_recomposition
+  component_id: compute_d_values
+  description: ITM put case. S=90, K=100. d1=-0.1768, d2=-0.3768.
+  inputs:
+    bs_request:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+  expected_outputs:
+    d_values_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+
+- fixture_id: itm_put_compute_normal_values
+  scenario_id: itm_put_recomposition
+  component_id: compute_normal_values
+  description: Normal CDF and PDF for ITM put case. d1 and d2 are both negative.
+  inputs:
+    d_values_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+  expected_outputs:
+    normal_values_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+
+- fixture_id: itm_put_price_vanilla_call
+  scenario_id: itm_put_recomposition
+  component_id: price_vanilla_call
+  description: ITM put case call price = 5.0912.
+  inputs:
+    normal_values_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+  expected_outputs:
+    call_priced_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+
+- fixture_id: itm_put_price_vanilla_put
+  scenario_id: itm_put_recomposition
+  component_id: price_vanilla_put
+  description: ITM put case put price = 10.2142.
+  inputs:
+    call_priced_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+  expected_outputs:
+    put_priced_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+
+- fixture_id: itm_put_compute_delta
+  scenario_id: itm_put_recomposition
+  component_id: compute_delta
+  description: ITM put delta_call=0.4298, delta_put=-0.5702.
+  inputs:
+    put_priced_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+  expected_outputs:
+    delta_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+
+- fixture_id: itm_put_compute_gamma
+  scenario_id: itm_put_recomposition
+  component_id: compute_gamma
+  description: ITM put gamma = N'(-0.1768)/(90*0.20*1.0) = 0.02182.
+  inputs:
+    delta_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+  expected_outputs:
+    gamma_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+
+- fixture_id: itm_put_compute_theta
+  scenario_id: itm_put_recomposition
+  component_id: compute_theta
+  description: >
+    ITM put theta pair. theta_call=-5.214, theta_put=-0.458.
+    Note: theta_put is closer to zero because K*r*disc*N(-d2) offset is larger.
+  inputs:
+    gamma_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+  expected_outputs:
+    theta_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+      theta_call: -5.214480797467002
+      theta_put: -0.45833367496343147
+
+- fixture_id: itm_put_compute_vega_rho
+  scenario_id: itm_put_recomposition
+  component_id: compute_vega_rho
+  description: ITM put vega=35.35, rho_call=33.59, rho_put=-61.53.
+  inputs:
+    theta_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+      theta_call: -5.214480797467002
+      theta_put: -0.45833367496343147
+  expected_outputs:
+    vega_rho_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+      theta_call: -5.214480797467002
+      theta_put: -0.45833367496343147
+      vega: 35.34799107904935
+      rho_call: 33.59363379124133
+      rho_put: -61.529308658830075
+
+- fixture_id: itm_put_compute_iv_and_assemble
+  scenario_id: itm_put_recomposition
+  component_id: compute_implied_volatility_and_assemble
+  description: >
+    ITM put IV recovery. market_price=call_price for S=90, so IV converges to sigma=0.20.
+  inputs:
+    vega_rho_state:
+      case_id: itm_put_full
+      S: 90.0
+      K: 100.0
+      r: 0.05
+      sigma: 0.2
+      T: 1.0
+      market_price_for_iv: 5.091222078817552
+      sqrt_T: 1.0
+      d1: -0.17680257828913137
+      d2: -0.3768025782891314
+      discount_factor: 0.951229424500714
+      N_d1: 0.42983173188954316
+      N_d2: 0.35316016226972924
+      N_neg_d1: 0.5701682681104568
+      N_neg_d2: 0.6468398377302708
+      N_prime_d1: 0.3927554564338817
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+      theta_call: -5.214480797467002
+      theta_put: -0.45833367496343147
+      vega: 35.34799107904935
+      rho_call: 33.59363379124133
+      rho_put: -61.529308658830075
+  expected_outputs:
+    bs_greeks_result:
+      case_id: itm_put_full
+      call_price: 5.091222078817552
+      put_price: 10.214164528888958
+      delta_call: 0.42983173188954316
+      delta_put: -0.5701682681104568
+      gamma: 0.021819747579660095
+      theta_call: -5.214480797467002
+      theta_put: -0.45833367496343147
+      vega: 35.34799107904935
+      rho_call: 33.59363379124133
+      rho_put: -61.529308658830075
+      implied_volatility: 0.2

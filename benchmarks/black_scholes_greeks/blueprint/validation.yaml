@@ -1,0 +1,58 @@
+global_invariants:
+- invariant_id: bs_greeks_result_case_id_consistency
+  description: bs_greeks_result.case_id must equal the input bs_request.case_id.
+- invariant_id: bs_greeks_result_put_call_parity
+  description: >
+    call_price - put_price must approximately equal S - K*exp(-r*T)
+    (put-call parity). Validates that both pricing components used consistent formulas.
+- invariant_id: bs_greeks_result_delta_bounds
+  description: >
+    delta_call must be in (0, 1) and delta_put must be in (-1, 0).
+    delta_call + abs(delta_put) must approximately equal 1.0.
+- invariant_id: bs_greeks_result_gamma_positive
+  description: gamma must be strictly positive.
+- invariant_id: bs_greeks_result_vega_positive
+  description: vega must be strictly positive.
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual bs_greeks_result outputs to declared fixture outputs exactly
+    (with floating-point tolerance 0.001 for all numeric fields).
+scenarios:
+- scenario_id: atm_full_recomposition
+  kind: full_recomposition
+  description: >
+    ATM option (S=K=100) yields call_price≈10.45, put_price≈5.57. All Greeks and
+    IV recovery validated. IV converges back to input sigma=0.20.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - atm_full_compute_d_values
+  - atm_full_compute_normal_values
+  - atm_full_price_vanilla_call
+  - atm_full_price_vanilla_put
+  - atm_full_compute_delta
+  - atm_full_compute_gamma
+  - atm_full_compute_theta
+  - atm_full_compute_vega_rho
+  - atm_full_compute_iv_and_assemble
+- scenario_id: itm_put_recomposition
+  kind: full_recomposition
+  description: >
+    ITM put case (S=90, K=100). Negative d1 and d2. Delta_put is more negative
+    than ATM. IV recovery from call price converges to sigma=0.20.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - itm_put_compute_d_values
+  - itm_put_compute_normal_values
+  - itm_put_price_vanilla_call
+  - itm_put_price_vanilla_put
+  - itm_put_compute_delta
+  - itm_put_compute_gamma
+  - itm_put_compute_theta
+  - itm_put_compute_vega_rho
+  - itm_put_compute_iv_and_assemble

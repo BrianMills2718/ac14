@@ -1,0 +1,264 @@
+system_name: Black-Scholes Option Pricing & Greeks Suite
+purpose: >
+  Compute Black-Scholes vanilla call/put prices, all five option Greeks (delta,
+  gamma, theta, vega, rho), and Newton-Raphson implied volatility for a given
+  set of option parameters. The system implements nine operations as a sequential
+  pipeline: (1) compute d1/d2/sqrt_T/discount_factor, (2) evaluate standard normal
+  CDF and PDF at d1/d2, (3) price call, (4) price put, (5) compute delta pair,
+  (6) compute gamma, (7) compute theta pair (sign-flip between call and put),
+  (8) compute vega and rho pair (sign-flip on rho), and (9) Newton-Raphson IV
+  plus final assembly. Use scipy.stats.norm.cdf for N(x) and scipy.stats.norm.pdf
+  for N'(x) throughout. Parameters: S (stock price), K (strike), r (risk-free
+  rate), sigma (volatility), T (time to expiry), market_price_for_iv (used only
+  for IV computation).
+requirements:
+  - "implement Black-Scholes d1 = (ln(S/K) + (r + sigma**2/2)*T) / (sigma*sqrt(T)); d2 = d1 - sigma*sqrt(T)"
+  - "use scipy.stats.norm.cdf for N(x) and scipy.stats.norm.pdf for N'(x) — no custom approximations"
+  - "compute N_neg_d1 = norm.cdf(-d1) and N_neg_d2 = norm.cdf(-d2) directly (not as 1-N_d1)"
+  - "call_price = S*N(d1) - K*disc*N(d2); put_price = K*disc*N(-d2) - S*N(-d1)"
+  - "delta_call = N(d1); delta_put = N(d1) - 1.0 (NOT N(-d1))"
+  - "gamma = N'(d1) / (S*sigma*sqrt_T) — uses PDF not CDF, same for call and put"
+  - "theta_call uses minus on r*K*disc*N(d2); theta_put uses plus on r*K*disc*N(-d2)"
+  - "rho_call = K*T*disc*N(d2); rho_put = -K*T*disc*N(-d2) — sign flip AND N(d2) vs N(-d2)"
+  - "implied_volatility via Newton-Raphson: exactly 20 iterations starting at sigma_0=0.25; uses market_price_for_iv as target call price"
+success_criteria:
+  - "ATM case (S=K=100) yields call_price ≈ 10.45, delta_call ≈ 0.637, gamma ≈ 0.019"
+  - "delta_put is always negative (in [-1, 0]); delta_call is always positive (in (0, 1))"
+  - "gamma is always positive; vega is always positive"
+  - "put-call parity holds: call_price - put_price = S - K*discount_factor"
+  - "IV round-trip: if market_price_for_iv equals call_price, implied_volatility ≈ sigma"
+  - "near-expiry OTM call has low delta (close to 0) and high gamma relative to ATM"
+business_rules:
+  - "D-VALUES: d1 = (log(S/K) + (r + sigma**2/2)*T) / (sigma*sqrt_T); d2 = d1 - sigma*sqrt_T. Use math.log (natural log). sqrt_T = math.sqrt(T). discount_factor = math.exp(-r*T)."
+  - "NORMAL VALUES: Import scipy.stats.norm. N_d1=norm.cdf(d1), N_d2=norm.cdf(d2), N_neg_d1=norm.cdf(-d1), N_neg_d2=norm.cdf(-d2), N_prime_d1=norm.pdf(d1). Call with negative argument for N_neg variants."
+  - "CALL PRICE: S * N_d1 - K * discount_factor * N_d2. S-term uses N_d1, K-term uses N_d2."
+  - "PUT PRICE: K * discount_factor * N_neg_d2 - S * N_neg_d1. K-term comes first; uses N_neg_d2 and N_neg_d1 (negative-argument CDFs)."
+  - "DELTA: delta_call = N_d1; delta_put = N_d1 - 1.0. Delta_put uses N_d1 (not N_neg_d1) minus 1."
+  - "GAMMA: N_prime_d1 / (S * sigma * sqrt_T). Uses PDF (N_prime_d1), not CDF. Same value for call and put."
+  - "THETA CALL: -(S * N_prime_d1 * sigma) / (2 * sqrt_T) - r * K * discount_factor * N_d2. Second term is SUBTRACTED and uses N_d2."
+  - "THETA PUT: -(S * N_prime_d1 * sigma) / (2 * sqrt_T) + r * K * discount_factor * N_neg_d2. Second term is ADDED and uses N_neg_d2. The only difference from theta_call is the sign (+ vs -) and CDF argument (N_neg_d2 vs N_d2)."
+  - "VEGA: S * N_prime_d1 * sqrt_T. Uses PDF. Same for call and put."
+  - "RHO CALL: K * T * discount_factor * N_d2. Positive."
+  - "RHO PUT: -K * T * discount_factor * N_neg_d2. Negative (leading minus sign) and uses N_neg_d2."
+  - "IMPLIED VOLATILITY: Newton-Raphson 20 iterations starting at sigma_iv=0.25. Each iteration: recompute d1_iv=(log(S/K)+(r+sigma_iv**2/2)*T)/(sigma_iv*sqrt_T), d2_iv=d1_iv-sigma_iv*sqrt_T, bs_call_iv=S*norm.cdf(d1_iv)-K*discount_factor*norm.cdf(d2_iv), vega_iv=S*norm.pdf(d1_iv)*sqrt_T; update sigma_iv = sigma_iv - (bs_call_iv - market_price_for_iv) / vega_iv."
+inputs:
+  - name: bs_request
+    kind: record
+    description: Complete option specification with pricing parameters and IV target price.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to the final output.
+        required: true
+      - field_name: S
+        field_type: float
+        description: Current stock price (spot price). Strictly positive.
+        required: true
+      - field_name: K
+        field_type: float
+        description: Option strike price. Strictly positive.
+        required: true
+      - field_name: r
+        field_type: float
+        description: Continuously compounded risk-free interest rate (e.g., 0.05 for 5%).
+        required: true
+      - field_name: sigma
+        field_type: float
+        description: Volatility of the underlying asset. Used for d1/d2 computation and all Greeks.
+        required: true
+      - field_name: T
+        field_type: float
+        description: Time to option expiry in years (e.g., 1.0 for one year, 0.1 for ~5 weeks).
+        required: true
+      - field_name: market_price_for_iv
+        field_type: float
+        description: >
+          Market call price used as target for Newton-Raphson implied volatility computation.
+          This is the observed call price in the market. When equal to call_price, IV should
+          recover the input sigma.
+        required: true
+outputs:
+  - name: bs_greeks_result
+    kind: record
+    description: >
+      Final output containing all Black-Scholes pricing and Greeks. Produced by Stage 9
+      (compute_implied_volatility_and_assemble) by collecting outputs from all upstream stages.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from input).
+        required: true
+      - field_name: call_price
+        field_type: float
+        description: "Black-Scholes vanilla call price: S*N(d1) - K*disc*N(d2)."
+        required: true
+      - field_name: put_price
+        field_type: float
+        description: "Black-Scholes vanilla put price: K*disc*N(-d2) - S*N(-d1)."
+        required: true
+      - field_name: delta_call
+        field_type: float
+        description: "Call delta = N(d1). In (0, 1). Sensitivity of call price to stock price."
+        required: true
+      - field_name: delta_put
+        field_type: float
+        description: "Put delta = N(d1) - 1.0. In (-1, 0). NOT N(-d1)."
+        required: true
+      - field_name: gamma
+        field_type: float
+        description: "Gamma = N'(d1) / (S*sigma*sqrt_T). Positive. Same for call and put."
+        required: true
+      - field_name: theta_call
+        field_type: float
+        description: "Theta (call): -(S*N'(d1)*sigma)/(2*sqrt_T) - r*K*disc*N(d2). Typically negative."
+        required: true
+      - field_name: theta_put
+        field_type: float
+        description: "Theta (put): -(S*N'(d1)*sigma)/(2*sqrt_T) + r*K*disc*N(-d2). Differs from call by sign and N(-d2) vs N(d2)."
+        required: true
+      - field_name: vega
+        field_type: float
+        description: "Vega = S*N'(d1)*sqrt_T. Positive. Same for call and put."
+        required: true
+      - field_name: rho_call
+        field_type: float
+        description: "Rho (call) = K*T*disc*N(d2). Positive."
+        required: true
+      - field_name: rho_put
+        field_type: float
+        description: "Rho (put) = -K*T*disc*N(-d2). Negative."
+        required: true
+      - field_name: implied_volatility
+        field_type: float
+        description: >
+          Implied volatility from Newton-Raphson (20 iterations, sigma_0=0.25) targeting
+          market_price_for_iv. When market_price_for_iv equals call_price, this converges to sigma.
+        required: true
+workflow_hints:
+  - hint_id: compute_d_values
+    summary: >
+      PIPELINE STAGE 1 of 9. Receive bs_request and compute the two standardized
+      log-return values d1 and d2, plus auxiliary quantities sqrt_T and discount_factor.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 1 (SOURCE). This component receives bs_request as the sole external input."
+      - "sqrt_T = math.sqrt(T). Store this; it is reused in many downstream stages."
+      - "d1 = (math.log(S/K) + (r + sigma**2/2) * T) / (sigma * sqrt_T)."
+      - "d2 = d1 - sigma * sqrt_T. Computed from d1, not independently."
+      - "discount_factor = math.exp(-r * T)."
+      - "Emit a d_values_state record with: case_id, d1, d2, sqrt_T, discount_factor, S, K, r, sigma, T, market_price_for_iv. Wire to compute_normal_values."
+
+  - hint_id: compute_normal_values
+    summary: >
+      PIPELINE STAGE 2 of 9. Receive d_values_state and evaluate the standard
+      normal CDF and PDF at d1 and d2. Five values: N(d1), N(d2), N(-d1), N(-d2), N'(d1).
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 2. This component receives d_values_state from compute_d_values."
+      - "from scipy.stats import norm. Use norm.cdf and norm.pdf."
+      - "N_d1 = norm.cdf(d1). N_d2 = norm.cdf(d2)."
+      - "N_neg_d1 = norm.cdf(-d1). N_neg_d2 = norm.cdf(-d2). Pass -d1 and -d2 as arguments."
+      - "N_prime_d1 = norm.pdf(d1). This is the PDF at d1, used for gamma, theta, and vega."
+      - "Emit normal_values_state with: case_id, d1, d2, sqrt_T, discount_factor, S, K, r, sigma, T, market_price_for_iv, N_d1, N_d2, N_neg_d1, N_neg_d2, N_prime_d1. Wire to price_vanilla_call."
+
+  - hint_id: price_vanilla_call
+    summary: >
+      PIPELINE STAGE 3 of 9. Receive normal_values_state and compute the
+      Black-Scholes vanilla call price: S*N(d1) - K*disc*N(d2).
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 3. This component receives normal_values_state from compute_normal_values."
+      - "call_price = S * N_d1 - K * discount_factor * N_d2."
+      - "S-term uses N_d1 (positive d1 argument). K-term uses N_d2 (positive d2 argument)."
+      - "Emit call_priced_state with all fields from normal_values_state plus call_price. Wire to price_vanilla_put."
+
+  - hint_id: price_vanilla_put
+    summary: >
+      PIPELINE STAGE 4 of 9. Receive call_priced_state and compute the
+      Black-Scholes vanilla put price: K*disc*N(-d2) - S*N(-d1).
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 4. This component receives call_priced_state from price_vanilla_call."
+      - "put_price = K * discount_factor * N_neg_d2 - S * N_neg_d1."
+      - "K-term comes first and uses N_neg_d2 (negative d2 argument). S-term is subtracted and uses N_neg_d1."
+      - "This is the opposite sign pattern from call_price: K-term minus S-term, vs call's S-term minus K-term."
+      - "Emit put_priced_state with all prior fields plus put_price. Wire to compute_delta."
+
+  - hint_id: compute_delta
+    summary: >
+      PIPELINE STAGE 5 of 9. Receive put_priced_state and compute the option
+      deltas. delta_call = N(d1). delta_put = N(d1) - 1.0.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 5. This component receives put_priced_state from price_vanilla_put."
+      - "delta_call = N_d1."
+      - "delta_put = N_d1 - 1.0. CRITICAL: this uses N_d1 (not N_neg_d1) and subtracts 1."
+      - "delta_put is always in (-1, 0). It equals N(d1) - 1, which is negative since N(d1) < 1."
+      - "Emit delta_state with all prior fields plus delta_call and delta_put. Wire to compute_gamma."
+
+  - hint_id: compute_gamma
+    summary: >
+      PIPELINE STAGE 6 of 9. Receive delta_state and compute gamma.
+      gamma = N'(d1) / (S * sigma * sqrt_T). Uses PDF (not CDF). Same for call and put.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 6. This component receives delta_state from compute_delta."
+      - "gamma = N_prime_d1 / (S * sigma * sqrt_T)."
+      - "Uses N_prime_d1 which is norm.pdf(d1) — the PDF, not the CDF. Gamma is always positive."
+      - "Emit gamma_state with all prior fields plus gamma. Wire to compute_theta."
+
+  - hint_id: compute_theta
+    summary: >
+      PIPELINE STAGE 7 of 9. Receive gamma_state and compute theta for call and
+      put. The first term is shared; the second term differs by sign and CDF argument.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 7. This component receives gamma_state from compute_gamma."
+      - "shared_first = -(S * N_prime_d1 * sigma) / (2 * sqrt_T). This term is identical for call and put."
+      - "theta_call = shared_first - r * K * discount_factor * N_d2. Second term SUBTRACTED, uses N_d2."
+      - "theta_put  = shared_first + r * K * discount_factor * N_neg_d2. Second term ADDED, uses N_neg_d2."
+      - "The ONLY difference between theta_call and theta_put: minus vs plus, AND N_d2 vs N_neg_d2."
+      - "Emit theta_state with all prior fields plus theta_call and theta_put. Wire to compute_vega_rho."
+
+  - hint_id: compute_vega_rho
+    summary: >
+      PIPELINE STAGE 8 of 9. Receive theta_state and compute vega, rho_call, rho_put.
+      Rho pair has sign flip and argument flip between call and put.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 8. This component receives theta_state from compute_theta."
+      - "vega = S * N_prime_d1 * sqrt_T. Uses PDF. Positive. Same for call and put."
+      - "rho_call = K * T * discount_factor * N_d2. Positive."
+      - "rho_put  = -K * T * discount_factor * N_neg_d2. Negative (leading minus sign), uses N_neg_d2."
+      - "The difference between rho_call and rho_put: sign flip AND N_d2 vs N_neg_d2."
+      - "Emit vega_rho_state with all prior fields plus vega, rho_call, rho_put. Wire to compute_implied_volatility_and_assemble."
+
+  - hint_id: compute_implied_volatility_and_assemble
+    summary: >
+      PIPELINE STAGE 9 of 9 (TERMINAL). Receive vega_rho_state, compute implied
+      volatility via Newton-Raphson (20 iterations, sigma_0=0.25), then assemble
+      the final bs_greeks_result output record.
+    input_names: [bs_request]
+    output_names: [bs_greeks_result]
+    business_rules:
+      - "STAGE 9 (TERMINAL). This component receives vega_rho_state from compute_vega_rho."
+      - "Newton-Raphson: sigma_iv = 0.25. Repeat exactly 20 times: d1_iv=(math.log(S/K)+(r+sigma_iv**2/2)*T)/(sigma_iv*sqrt_T); d2_iv=d1_iv-sigma_iv*sqrt_T; bs_call_iv=S*norm.cdf(d1_iv)-K*discount_factor*norm.cdf(d2_iv); vega_iv=S*norm.pdf(d1_iv)*sqrt_T; sigma_iv=sigma_iv-(bs_call_iv-market_price_for_iv)/vega_iv."
+      - "implied_volatility = sigma_iv after 20 iterations."
+      - "Assemble bs_greeks_result: case_id (from input), call_price, put_price, delta_call, delta_put, gamma, theta_call, theta_put, vega, rho_call, rho_put, implied_volatility."
+      - "This is the terminal emitter of bs_greeks_result."
+
+human_context_notes:
+  - "Black-Scholes (1973) assumes log-normal returns, no dividends, continuous trading, constant r and sigma."
+  - "The Greeks are first and second order partial derivatives of the option price with respect to inputs."
+  - "Theta is reported as per-year time decay (negative for long options). To convert to per-day, divide by 365."
+  - "Implied volatility is the sigma value that makes the model call price equal to the observed market price."
+  - "Gamma and vega are the same for both call and put options (put-call parity symmetry)."
+  - "The confusion-prone formula pairs: theta (sign + argument flip), rho (sign + argument flip), delta_put (N(d1)-1 not N(-d1))."

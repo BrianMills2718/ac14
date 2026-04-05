@@ -1,0 +1,751 @@
+schemas:
+- schema_id: BSRequest
+  kind: object
+  description: >
+    Complete option specification with pricing parameters. This is the sole external
+    input to the pipeline, received by compute_d_values.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier passed through to the final output.
+  - name: S
+    type: number
+    required: true
+    description: Current stock price (spot price). Strictly positive.
+  - name: K
+    type: number
+    required: true
+    description: Option strike price. Strictly positive.
+  - name: r
+    type: number
+    required: true
+    description: Continuously compounded risk-free interest rate.
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility of the underlying asset. Used for d1/d2 and all Greeks.
+  - name: T
+    type: number
+    required: true
+    description: Time to option expiry in years.
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price used as target for Newton-Raphson IV computation.
+
+- schema_id: DValuesState
+  kind: object
+  description: >
+    State after Stage 1: d1, d2, sqrt_T, and discount_factor computed, plus all
+    original request fields passed through.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through from BSRequest.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: Square root of T. Precomputed for reuse.
+  - name: d1
+    type: number
+    required: true
+    description: "d1 = (ln(S/K) + (r + sigma^2/2)*T) / (sigma*sqrt_T)."
+  - name: d2
+    type: number
+    required: true
+    description: "d2 = d1 - sigma*sqrt_T."
+  - name: discount_factor
+    type: number
+    required: true
+    description: "exp(-r*T). Precomputed for reuse."
+
+- schema_id: NormalValuesState
+  kind: object
+  description: >
+    State after Stage 2: standard normal CDF and PDF values computed at d1 and d2.
+    All DValuesState fields plus five normal distribution values.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through from Stage 1).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through from Stage 1).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through from Stage 1).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through from Stage 1).
+  - name: N_d1
+    type: number
+    required: true
+    description: "N(d1) = norm.cdf(d1). Standard normal CDF at d1."
+  - name: N_d2
+    type: number
+    required: true
+    description: "N(d2) = norm.cdf(d2). Standard normal CDF at d2."
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: "N(-d1) = norm.cdf(-d1). Called with negative argument."
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: "N(-d2) = norm.cdf(-d2). Called with negative argument."
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: "N'(d1) = norm.pdf(d1). Standard normal PDF at d1. Used for gamma, theta, vega."
+
+- schema_id: CallPricedState
+  kind: object
+  description: >
+    State after Stage 3: call_price added. All NormalValuesState fields plus call_price.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: "S*N(d1) - K*discount_factor*N(d2)."
+
+- schema_id: PutPricedState
+  kind: object
+  description: >
+    State after Stage 4: put_price added. All CallPricedState fields plus put_price.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: Call price (passed through).
+  - name: put_price
+    type: number
+    required: true
+    description: "K*discount_factor*N(-d2) - S*N(-d1)."
+
+- schema_id: DeltaState
+  kind: object
+  description: >
+    State after Stage 5: delta_call and delta_put added. All PutPricedState fields
+    plus delta_call and delta_put.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: Call price (passed through).
+  - name: put_price
+    type: number
+    required: true
+    description: Put price (passed through).
+  - name: delta_call
+    type: number
+    required: true
+    description: "N(d1). In (0, 1)."
+  - name: delta_put
+    type: number
+    required: true
+    description: "N(d1) - 1.0. In (-1, 0)."
+
+- schema_id: GammaState
+  kind: object
+  description: >
+    State after Stage 6: gamma added. All DeltaState fields plus gamma.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: Call price (passed through).
+  - name: put_price
+    type: number
+    required: true
+    description: Put price (passed through).
+  - name: delta_call
+    type: number
+    required: true
+    description: delta_call (passed through).
+  - name: delta_put
+    type: number
+    required: true
+    description: delta_put (passed through).
+  - name: gamma
+    type: number
+    required: true
+    description: "N'(d1) / (S * sigma * sqrt_T). Positive."
+
+- schema_id: ThetaState
+  kind: object
+  description: >
+    State after Stage 7: theta_call and theta_put added. All GammaState fields
+    plus theta_call and theta_put.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: Call price (passed through).
+  - name: put_price
+    type: number
+    required: true
+    description: Put price (passed through).
+  - name: delta_call
+    type: number
+    required: true
+    description: delta_call (passed through).
+  - name: delta_put
+    type: number
+    required: true
+    description: delta_put (passed through).
+  - name: gamma
+    type: number
+    required: true
+    description: gamma (passed through).
+  - name: theta_call
+    type: number
+    required: true
+    description: "-(S*N'(d1)*sigma)/(2*sqrt_T) - r*K*disc*N(d2). Typically negative."
+  - name: theta_put
+    type: number
+    required: true
+    description: "-(S*N'(d1)*sigma)/(2*sqrt_T) + r*K*disc*N(-d2). Sign and argument differ from theta_call."
+
+- schema_id: VegaRhoState
+  kind: object
+  description: >
+    State after Stage 8: vega, rho_call, rho_put added. All ThetaState fields
+    plus vega, rho_call, rho_put.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: S
+    type: number
+    required: true
+    description: Stock price (passed through).
+  - name: K
+    type: number
+    required: true
+    description: Strike price (passed through).
+  - name: r
+    type: number
+    required: true
+    description: Risk-free rate (passed through).
+  - name: sigma
+    type: number
+    required: true
+    description: Volatility (passed through).
+  - name: T
+    type: number
+    required: true
+    description: Time to expiry (passed through).
+  - name: market_price_for_iv
+    type: number
+    required: true
+    description: Market call price for IV (passed through).
+  - name: sqrt_T
+    type: number
+    required: true
+    description: sqrt(T) (passed through).
+  - name: d1
+    type: number
+    required: true
+    description: d1 (passed through).
+  - name: d2
+    type: number
+    required: true
+    description: d2 (passed through).
+  - name: discount_factor
+    type: number
+    required: true
+    description: exp(-r*T) (passed through).
+  - name: N_d1
+    type: number
+    required: true
+    description: N(d1) (passed through).
+  - name: N_d2
+    type: number
+    required: true
+    description: N(d2) (passed through).
+  - name: N_neg_d1
+    type: number
+    required: true
+    description: N(-d1) (passed through).
+  - name: N_neg_d2
+    type: number
+    required: true
+    description: N(-d2) (passed through).
+  - name: N_prime_d1
+    type: number
+    required: true
+    description: N'(d1) (passed through).
+  - name: call_price
+    type: number
+    required: true
+    description: Call price (passed through).
+  - name: put_price
+    type: number
+    required: true
+    description: Put price (passed through).
+  - name: delta_call
+    type: number
+    required: true
+    description: delta_call (passed through).
+  - name: delta_put
+    type: number
+    required: true
+    description: delta_put (passed through).
+  - name: gamma
+    type: number
+    required: true
+    description: gamma (passed through).
+  - name: theta_call
+    type: number
+    required: true
+    description: theta_call (passed through).
+  - name: theta_put
+    type: number
+    required: true
+    description: theta_put (passed through).
+  - name: vega
+    type: number
+    required: true
+    description: "S*N'(d1)*sqrt_T. Positive."
+  - name: rho_call
+    type: number
+    required: true
+    description: "K*T*discount_factor*N(d2). Positive."
+  - name: rho_put
+    type: number
+    required: true
+    description: "-K*T*discount_factor*N(-d2). Negative."
+
+- schema_id: BSGreeksResult
+  kind: object
+  description: >
+    Final output record containing all Black-Scholes pricing and Greeks.
+    Emitted by compute_implied_volatility_and_assemble (Stage 9).
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through from input).
+  - name: call_price
+    type: number
+    required: true
+    description: "S*N(d1) - K*disc*N(d2)."
+  - name: put_price
+    type: number
+    required: true
+    description: "K*disc*N(-d2) - S*N(-d1)."
+  - name: delta_call
+    type: number
+    required: true
+    description: "N(d1). In (0,1)."
+  - name: delta_put
+    type: number
+    required: true
+    description: "N(d1) - 1.0. In (-1,0)."
+  - name: gamma
+    type: number
+    required: true
+    description: "N'(d1)/(S*sigma*sqrt_T). Positive."
+  - name: theta_call
+    type: number
+    required: true
+    description: Theta for call option. Typically negative.
+  - name: theta_put
+    type: number
+    required: true
+    description: Theta for put option. Typically negative but less negative than theta_call.
+  - name: vega
+    type: number
+    required: true
+    description: "S*N'(d1)*sqrt_T. Positive."
+  - name: rho_call
+    type: number
+    required: true
+    description: "K*T*disc*N(d2). Positive."
+  - name: rho_put
+    type: number
+    required: true
+    description: "-K*T*disc*N(-d2). Negative."
+  - name: implied_volatility
+    type: number
+    required: true
+    description: Newton-Raphson IV from market_price_for_iv (20 iter, sigma_0=0.25).

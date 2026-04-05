@@ -1,0 +1,21 @@
+metadata:
+  blueprint_id: black_scholes_greeks_v1
+  name: Black-Scholes Option Pricing & Greeks Suite
+  version: 0.1.0
+  purpose: >
+    Reference blueprint for the Black-Scholes greeks Theory Forge benchmark. Nine
+    components form a sequential pipeline: compute d-values, evaluate normal CDF/PDF,
+    price call, price put, compute delta pair, compute gamma, compute theta pair
+    (sign-flip), compute vega and rho pair (sign-flip), and Newton-Raphson implied
+    volatility plus final assembly. The monolithic baseline sees all nine formulas
+    simultaneously; AC14 isolates each component to prevent sign-flip confusion.
+  source_kind: benchmark_fixture
+  created_from: AC14 Theory Forge benchmark Plan #157
+compiler_profile:
+  target_backend: python
+  execution_model: latest_value_dag
+  component_model: typed_component_graph
+  validation_profile: code_component_v1
+generation_policy:
+  packet_test_mode: fixture_first
+  codegen_target: python

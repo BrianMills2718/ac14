@@ -1,0 +1,37 @@
+benchmark:
+  benchmark_id: black_scholes_greeks_v1
+  name: Black-Scholes Option Pricing & Greeks Suite
+  purpose: >
+    Back-half evaluation assets for the Black-Scholes greeks benchmark. Contains
+    the reference blueprint, runtime cases, and expected outputs. Used by
+    the structured-spec front-half runner to evaluate AC14-generated code.
+  comparison_scope: front_half_first_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+    - scipy
+    - scipy.stats
+  primary_source_component_id: compute_d_values
+  primary_source_port_name: bs_request
+  final_component_id: compute_implied_volatility_and_assemble
+  final_output_ports:
+    - bs_greeks_result
+  system_requirements:
+    - "d1 = (ln(S/K) + (r + sigma^2/2)*T) / (sigma*sqrt_T); d2 = d1 - sigma*sqrt_T."
+    - "Use scipy.stats.norm.cdf for N(x) and scipy.stats.norm.pdf for N'(x)."
+    - "call_price = S*N(d1) - K*exp(-r*T)*N(d2)."
+    - "put_price = K*exp(-r*T)*N(-d2) - S*N(-d1)."
+    - "delta_call = N(d1); delta_put = N(d1) - 1.0 (NOT N(-d1))."
+    - "gamma = N'(d1) / (S*sigma*sqrt_T). Uses PDF."
+    - "theta_call: minus sign on second term, uses N(d2). theta_put: plus sign, uses N(-d2)."
+    - "vega = S*N'(d1)*sqrt_T. rho_call = K*T*disc*N(d2). rho_put = -K*T*disc*N(-d2)."
+    - "IV via Newton-Raphson: 20 iterations, sigma_0=0.25, targeting market_price_for_iv."
+  dynamic_output_fields: []
+  semantic_review_policy: advisory_on_exact_match

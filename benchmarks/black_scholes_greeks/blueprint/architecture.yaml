@@ -1,0 +1,34 @@
+bindings:
+- from_component: compute_d_values
+  from_port: d_values_state
+  to_component: compute_normal_values
+  to_port: d_values_state
+- from_component: compute_normal_values
+  from_port: normal_values_state
+  to_component: price_vanilla_call
+  to_port: normal_values_state
+- from_component: price_vanilla_call
+  from_port: call_priced_state
+  to_component: price_vanilla_put
+  to_port: call_priced_state
+- from_component: price_vanilla_put
+  from_port: put_priced_state
+  to_component: compute_delta
+  to_port: put_priced_state
+- from_component: compute_delta
+  from_port: delta_state
+  to_component: compute_gamma
+  to_port: delta_state
+- from_component: compute_gamma
+  from_port: gamma_state
+  to_component: compute_theta
+  to_port: gamma_state
+- from_component: compute_theta
+  from_port: theta_state
+  to_component: compute_vega_rho
+  to_port: theta_state
+- from_component: compute_vega_rho
+  from_port: vega_rho_state
+  to_component: compute_implied_volatility_and_assemble
+  to_port: vega_rho_state
+state_stores: []
