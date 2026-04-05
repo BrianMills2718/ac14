@@ -40,14 +40,20 @@ def generate_component_with_codex(
 ) -> GeneratedModuleResponse:
     """Generate one component module using Codex exec with self-verification.
 
-    Codex writes the module to {component_id}.py inside trace_dir, runs the
-    packet tests, and iterates until green. We read the file back on success.
+    Codex runs in an isolated per-component work_dir so it cannot see (and
+    therefore cannot waste tokens reading) sibling components in trace_dir.
+    After success the generated .py is copied back into trace_dir.
     """
     trace_dir = trace_dir.resolve()
-    output_file = trace_dir / f"{context.component_id}.py"
-    context_file = trace_dir / f"{context.component_id}.context.json"
-    test_file = trace_dir / f"test_{context.component_id}_packet.py"
-    last_msg_file = trace_dir / f"{context.component_id}.codex_last_msg.txt"
+
+    # Isolated working directory — only this component's files land here.
+    work_dir = trace_dir / f"_work_{context.component_id}"
+    work_dir.mkdir(exist_ok=True)
+
+    output_file = work_dir / f"{context.component_id}.py"
+    context_file = work_dir / f"{context.component_id}.context.json"
+    test_file = work_dir / f"test_{context.component_id}_packet.py"
+    last_msg_file = work_dir / f"{context.component_id}.codex_last_msg.txt"
 
     timeout_s = _compute_timeout(context)
 
@@ -64,7 +70,7 @@ def generate_component_with_codex(
             _CODEX_EXEC,
             "exec",
             "--dangerously-bypass-approvals-and-sandbox",
-            "-C", str(trace_dir),
+            "-C", str(work_dir),
             "--output-last-message", str(last_msg_file),
             prompt,
         ],
@@ -73,7 +79,12 @@ def generate_component_with_codex(
         timeout=timeout_s,
     )
 
+    # Persist trace files in trace_dir (standard naming for diagnostics)
     _persist_codex_trace(trace_dir, context.component_id, result)
+    # Also keep a copy of the context.json at the trace_dir level for make diagnose-attempt
+    (trace_dir / f"{context.component_id}.context.json").write_text(
+        context_file.read_text()
+    )
 
     if not output_file.exists():
         stderr = result.stderr.strip()
@@ -96,6 +107,9 @@ def generate_component_with_codex(
             module_code=module_code,
             message=str(exc),
         ) from exc
+
+    # Copy the generated module into trace_dir so the recomposition runner finds it
+    (trace_dir / f"{context.component_id}.py").write_text(module_code)
 
     last_msg = last_msg_file.read_text().strip() if last_msg_file.exists() else ""
     tokens_used = _parse_tokens_used(result.stderr)
