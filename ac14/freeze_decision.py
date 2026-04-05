@@ -8,6 +8,7 @@ system execution.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import shutil
@@ -754,7 +755,7 @@ async def areview_freeze_semantic_quality(
             messages,
             response_model=FreezeSemanticReviewResponse,
             task="ac14_freeze_semantic_review",
-            trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}",
+            trace_id=f"ac14/freeze_semantic/{source_bundle_dir.name}/{hashlib.md5(str(source_bundle_dir).encode()).hexdigest()[:8]}",
             max_budget=max_budget,
         ),
     )
