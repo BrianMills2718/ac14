@@ -165,6 +165,29 @@ current executable lane.
 | 136 | [Front-Half Runtime-Output Repair III And Smoke Rerun XX](136_front_half_runtime_output_repair_iii_and_smoke_rerun_xx.md) | Critical | Complete | - |
 | 137 | [Front-Half Runtime-Harness Boundary IX](137_front_half_runtime_harness_boundary_ix.md) | Critical | Complete | 138 |
 | 138 | [Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md) | Critical | Complete | - |
+| 139 | [Front-Half-First Full-Gate Budget Boundary](139_front_half_first_full_gate_budget_boundary.md) | Critical | Complete | 140 |
+| 140 | [Front-Half-First Budget Repair And Rerun](140_front_half_first_budget_repair_and_rerun.md) | Critical | Complete | - |
+| 141 | [Front-Half-First Full-Gate-2 Verdict Interpretation](141_front_half_first_full_gate_2_verdict.md) | Critical | Complete | - |
+| 142 | [Front-Half-First Runtime Code Quality Boundary](142_front_half_first_runtime_code_quality_boundary.md) | Critical | Complete | 143 |
+| 143 | [Front-Half-First Packet Grounding Repair And Gate Rerun](143_front_half_first_packet_grounding_repair_and_gate_rerun.md) | Critical | Complete | - |
+| 144 | [Front-Half-First Gate_3 Verdict Interpretation](144_front_half_first_gate_3_verdict.md) | Critical | Complete | 145 |
+| 145 | [Front-Half-First Spec Contract Fix And Gate_4](145_front_half_first_spec_contract_fix_and_gate_4.md) | Critical | Complete | - |
+| 146 | [Front-Half-First Gate_4 Verdict Interpretation](146_front_half_first_gate_4_verdict.md) | Critical | Complete | 145 |
+| 147 | [Codegen Observability](147_codegen_observability.md) | High | Complete | - |
+| 148 | [Gate_5 Ten-Trial Statistical Confirmation](148_gate_5_ten_trials.md) | High | Complete | - |
+| 149 | [Theory Forge Benchmark Design](149_theory_forge_benchmark_design.md) | High | Complete | 148 |
+| 150 | [Theory Forge Information Theory Benchmark](150_theory_forge_information_theory_benchmark.md) | High | Complete | 149 |
+| 151 | [Gate_5 Verdict Interpretation](151_gate_5_verdict.md) | High | Complete | 148 |
+| 152 | [IT Gate_1 Verdict Interpretation](152_it_gate_1_verdict.md) | High | Complete | 150 |
+| 153 | [Prospect Theory Benchmark](153_prospect_theory_benchmark.md) | High | Complete | 152 |
+| 154 | [PT Gate_1 Verdict Interpretation](154_pt_gate_1_verdict.md) | High | Complete | 153 |
+| 155 | [PT Gate_2 Repair And Rerun](155_pt_gate_2_repair_and_rerun.md) | High | Complete | 154 |
+| 156 | [PT Gate_2d Verdict Interpretation](156_pt_gate_2d_verdict.md) | High | Complete | 155 |
+| 157 | [Theory Forge Model-Capability Comparison](157_model_capability_comparison.md) | High | Complete | 156 |
+| 158 | [PT Gemini Flash Gate Verdict](158_gemini_flash_gate_verdict.md) | High | Complete | 157 |
+| 159 | [BS Gate_1 Verdict](159_bs_gate_1_verdict.md) | High | Complete | - |
+| 160 | [BS Gemini Flash Gate Verdict](160_bs_gemini_flash_verdict.md) | High | Complete | 159 |
+| 161 | [Harder Benchmark Design](161_harder_benchmark_design.md) | High | Active | 160 |
 
 ## Status Key
 

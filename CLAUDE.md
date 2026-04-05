@@ -106,21 +106,30 @@ plan for that verdict.
 The current mandatory overnight chain is:
 
 **Context**: The resource_scaling front-half-first chain (Plans #83-#138) is complete.
-Gate_1 through gate_5 all pass. The active lane is now the Theory Forge benchmark series
-(Plans #149-#157+) which tests whether AC14 decomposition helps when model capability matters.
+Gate_1 through gate_5 all pass. The Theory Forge benchmark series (Plans #149-#160) is
+now complete. All tried benchmarks (IT, PT, BS) with both gpt-4.1 and Gemini flash
+show monolithic_wins or inconclusive — known math formulas are too tractable. The active
+lane is now designing a harder benchmark that stresses context capacity or novel formulas.
 
 1. [Plan #149](./docs/plans/149_theory_forge_benchmark_design.md) -> complete
-2. [Plan #150](./docs/plans/150_theory_forge_information_theory_benchmark.md) -> complete, IT gate_1 `inconclusive` (both 5/5 with gpt-4.1)
-3. [Plan #152](./docs/plans/152_it_gate_1_verdict.md) -> complete, IT tractable for gpt-4.1; PT next
-4. [Plan #153](./docs/plans/153_prospect_theory_benchmark.md) -> complete, PT benchmark bundle created
-5. [Plan #154](./docs/plans/154_pt_gate_1_verdict.md) -> complete, gate_1 `monolithic_wins` (infra bugs, not capability)
-6. [Plan #155](./docs/plans/155_pt_gate_2_repair_and_rerun.md) -> complete, list/array validation fix + hint rules threading + Codex SDK fix
-7. [Plan #156](./docs/plans/156_pt_gate_2d_verdict.md) -> complete, gate_2d `monolithic_wins` (tied 5/5; mono wins on repair loops)
-8. [Plan #157](./docs/plans/157_model_capability_comparison.md) -> **ACTIVE** (gemini-flash gate running now)
-9. Read verdict from `.ac14_out/pt_gate_gemini_flash/front_half_first_decision.json` and write Plan #158:
-   - if `ac14_wins` or `monolithic_wins` with AC14>mono: thesis validated on weaker model — write ADR
-   - if `monolithic_wins` with both failing: both too weak, design harder benchmark
-   - if `inconclusive`: run 10-trial statistical confirmation
+2. [Plan #150](./docs/plans/150_theory_forge_information_theory_benchmark.md) -> complete, IT gate_1 `inconclusive` (both 5/5 gpt-4.1)
+3. [Plan #152](./docs/plans/152_it_gate_1_verdict.md) -> complete, IT tractable; PT next
+4. [Plan #153](./docs/plans/153_prospect_theory_benchmark.md) -> complete, PT bundle created
+5. [Plan #154](./docs/plans/154_pt_gate_1_verdict.md) -> complete, gate_1 `monolithic_wins` (infra bugs)
+6. [Plan #155](./docs/plans/155_pt_gate_2_repair_and_rerun.md) -> complete, validation+hint fixes
+7. [Plan #156](./docs/plans/156_pt_gate_2d_verdict.md) -> complete, gate_2d `monolithic_wins` (efficiency)
+8. [Plan #157](./docs/plans/157_model_capability_comparison.md) -> complete, PT Gemini flash
+9. [Plan #158](./docs/plans/158_gemini_flash_gate_verdict.md) -> complete, PT Gemini flash `monolithic_wins` (2/5 vs 5/5)
+10. [Plan #159](./docs/plans/159_bs_gate_1_verdict.md) -> complete, BS gate_1 `inconclusive` (both 5/5 gpt-4.1)
+11. [Plan #160](./docs/plans/160_bs_gemini_flash_verdict.md) -> complete, BS Gemini flash `inconclusive` (4/5 vs 5/5)
+12. **[Plan #161](./docs/plans/161_harder_benchmark_design.md)** -> **ACTIVE** — design benchmark that breaks monolithic with gpt-4.1
+    - Target: mono fails ≥1/5 with gpt-4.1; AC14 ≥4/5
+    - Options: large spec (20+ components), novel formulas, cross-component invariants
+    - After design: run gate directly (no smoke needed if bundle validates)
+13. After Plan #161 benchmark is ready: run gate_1 with gpt-4.1
+    - if `ac14_wins`: thesis validated — write ADR + Plan #162 for confirmation
+    - if `monolithic_wins`: diagnose which dimension failed, design Plan #162 with next approach
+    - if `inconclusive`: run 10-trial gate and write verdict
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
