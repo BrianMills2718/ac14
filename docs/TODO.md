@@ -12,7 +12,7 @@ Detailed uncertainty tracking lives in:
 
 The active implementation contract is:
 
-- [Plan #142: Front-Half-First Runtime Code Quality Boundary](/home/brian/projects/ac14/docs/plans/142_front_half_first_runtime_code_quality_boundary.md)
+- [Plan #168: Strategic Direction After Theory Forge Series](/home/brian/projects/ac14/docs/plans/168_strategic_direction.md)
 
 The explicit active chain is:
 

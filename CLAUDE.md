@@ -127,12 +127,17 @@ find the first `ac14_wins` verdict.
 14. [Plan #163](./docs/plans/163_zeta_gemini_flash_gate.md) -> complete, zeta Gemini flash `monolithic_wins` (1/5 AC14 vs 5/5 mono); AC14 failed due to budget split ($0.30 limit) + formula bugs in pricer components
 15. [Plan #164](./docs/plans/164_zeta_gemini_flash_verdict.md) -> complete, strategic finding: structured_spec gives mono same hints as AC14; monolithic 5/5 on all benchmarks
 16. [Plan #165](./docs/plans/165_haiku_zeta_gate.md) -> complete, haiku/gpt-4o-mini not available on OpenRouter; DeepSeek correct on formulas, fails on output structure only. Formula memorization hypothesis DEFINITIVELY FALSIFIED.
-17. **[Plan #166](./docs/plans/166_scale_test_design.md)** -> **ACTIVE** — strategic pivot after 7 benchmarks all showing mono 5/5
-    - Decision: design noisy-spec variant removing CRITICAL DIFFERENCE callouts from mono
-    - Monolithic spec: ambiguous descriptions; AC14 packets: explicit formulas
-    - This tests the REAL AC14 advantage: explicit per-component implementation contracts
-    - Build: create `benchmarks/zeta_options_noisy_spec/` with ambiguous structured_spec_input.yaml
-    - Run gate_1 with gpt-4.1; if mono fails → first `ac14_wins`
+17. [Plan #166](./docs/plans/166_scale_test_design.md) -> complete — noisy-spec benchmark built
+18. [Plan #167](./docs/plans/167_noisy_spec_verdict.md) -> complete — `both_fail_hypothesis_falsified`
+    - AC14 1/13 fields correct (planning step guessed wrong disc_alpha formula)
+    - Mono 10/13 correct (fails only on subtle vega zeta^0.5 and rho r^(alpha-1))
+    - Finding: AC14 planning step does NOT synthesize formulas from vague specs
+    - Noisy-spec hypothesis FALSIFIED: AC14 planning step passes descriptions through, not infers
+19. **[Plan #168](./docs/plans/168_strategic_direction.md)** -> **ACTIVE** — strategic direction after Theory Forge series
+    - Evidence: 8 benchmarks, monolithic consistently wins or ties at 10-component scale
+    - Root cause: 10 components is within trivial context capacity of modern LLMs
+    - Recommended: scale test — build 20-component zeta benchmark, find minimum failing scale
+    - Next: build `benchmarks/zeta_scale_20/` with second-order Greeks (vanna, volga, charm, etc.)
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid

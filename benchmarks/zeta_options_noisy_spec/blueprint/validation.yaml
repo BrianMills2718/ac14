@@ -1,0 +1,42 @@
+global_invariants:
+- invariant_id: put_call_parity_modified
+  description: >
+    call_price - put_price must equal spot - strike * disc_alpha (using disc_alpha, not exp(-r*T)).
+- invariant_id: delta_zeta_scaling
+  description: delta_call must equal zeta * N(d1_zeta), not N(d1_zeta).
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual zeta_results outputs to declared fixture outputs exactly.
+- evaluator_id: llm_zeta_requirements
+  kind: llm_requirements_acceptance
+  description: >
+    LLM judge verifying all zeta and alpha modifications are correctly implemented.
+scenarios:
+- scenario_id: semantic_acceptance_base
+  kind: semantic_acceptance
+  description: >
+    Full pipeline test with base case (zeta=0.70, alpha=0.85). All 10 components
+    must produce correct zeta-modified values.
+  evaluator_ids:
+  - llm_zeta_requirements
+  realistic_input: true
+  requirements:
+    - "disc_alpha uses exp(-r^alpha * T), not exp(-r*T)"
+    - "delta_call = zeta * N(d1_zeta), not N(d1_zeta)"
+    - "gamma = zeta * N'(d1_zeta) / (S*sigma*sqrt(T))"
+    - "vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5"
+    - "rho_call contains the alpha * r^(alpha-1) factor"
+    - "put-call parity: call - put == S - K * disc_alpha"
+  fixture_ids:
+  - fixture_d_params_base
+  - fixture_call_base
+  - fixture_put_base
+  - fixture_delta_base
+  - fixture_gamma_base
+  - fixture_theta_call_base
+  - fixture_theta_put_base
+  - fixture_vega_base
+  - fixture_rho_call_base
+  - fixture_rho_put_base

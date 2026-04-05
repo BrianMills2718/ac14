@@ -1,0 +1,239 @@
+system_name: Zeta-Modified European Option Pricing
+purpose: >
+  Compute European option prices and all nine first-order Greeks for call and put options
+  using a modified formula that introduces two free parameters: zeta and alpha.
+  The zeta parameter (0 < zeta < 1) is a variance scaling factor that modifies how
+  volatility enters the pricing formulas. The alpha parameter (0 < alpha <= 1) is a
+  fractional exponent that modifies the discount rate computation.
+  The system computes 10 values: d-parameters, call price, put price, delta, gamma,
+  theta (call), theta (put), vega, rho (call), and rho (put).
+requirements:
+  - "Accept zeta_request with fields: case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha"
+  - "Produce zeta_results with fields: case_id, d1_zeta, d2_zeta, disc_alpha, call_price, put_price, delta_call, delta_put, gamma, theta_call, theta_put, vega, rho_call, rho_put"
+  - "All formulas are modifications of standard Black-Scholes using the zeta and alpha parameters"
+  - "The zeta parameter modifies how variance enters d1, d2, delta, gamma, theta, and vega"
+  - "The alpha parameter modifies the discount factor computation and appears in rho"
+success_criteria:
+  - "base case (S=100, K=100, r=0.05, sigma=0.20, T=1.0, zeta=0.70, alpha=0.85): call_price approx 9.716"
+  - "base case: put_price approx 2.179"
+  - "base case: disc_alpha approx 0.9246 (NOT the standard exp(-rT) = 0.9512)"
+  - "base case: delta_call approx 0.438 (NOT the standard N(d1) = 0.636)"
+  - "put-call parity holds using the alpha-modified discount factor"
+business_rules:
+  - "Use scipy.stats.norm for CDF and PDF computations"
+  - "The zeta parameter modifies the standard Black-Scholes formulas in a specific mathematical way"
+  - "The alpha parameter appears as an exponent in the discount factor computation"
+  - "The discount factor disc_alpha uses the alpha parameter: disc_alpha is NOT exp(-rate*T)"
+  - "The delta formulas are scaled by zeta: delta_call is NOT equal to N(d1_zeta)"
+  - "The vega formula includes a zeta correction factor"
+  - "The rho formulas include an alpha correction factor and its derivative"
+inputs:
+  - name: zeta_request
+    kind: record
+    description: Complete option specification with market parameters and zeta/alpha modifiers.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to all outputs.
+        required: true
+      - field_name: spot
+        field_type: float
+        description: Current spot price S of the underlying asset. Must be positive.
+        required: true
+      - field_name: strike
+        field_type: float
+        description: Option strike price K. Must be positive.
+        required: true
+      - field_name: rate
+        field_type: float
+        description: Annualized continuous risk-free rate r.
+        required: true
+      - field_name: volatility
+        field_type: float
+        description: Annualized implied volatility sigma.
+        required: true
+      - field_name: time_to_expiry
+        field_type: float
+        description: Time to option expiry T in years. Must be positive.
+        required: true
+      - field_name: zeta
+        field_type: float
+        description: Zeta variance scaling parameter (0 < zeta <= 1). Modifies how volatility enters the formulas.
+        required: true
+      - field_name: alpha
+        field_type: float
+        description: Alpha fractional exponent (0 < alpha <= 1). Modifies the discount factor and rho.
+        required: true
+outputs:
+  - name: zeta_results
+    kind: record
+    description: Complete zeta-modified option pricing output with prices and all Greeks.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from input).
+        required: true
+      - field_name: d1_zeta
+        field_type: float
+        description: Zeta-modified d1 parameter.
+        required: true
+      - field_name: d2_zeta
+        field_type: float
+        description: Zeta-modified d2 parameter.
+        required: true
+      - field_name: disc_alpha
+        field_type: float
+        description: Alpha-modified discount factor.
+        required: true
+      - field_name: call_price
+        field_type: float
+        description: Fair value of zeta-modified European call option.
+        required: true
+      - field_name: put_price
+        field_type: float
+        description: Fair value of zeta-modified European put option.
+        required: true
+      - field_name: delta_call
+        field_type: float
+        description: Zeta-scaled delta of call option.
+        required: true
+      - field_name: delta_put
+        field_type: float
+        description: Zeta-scaled delta of put option.
+        required: true
+      - field_name: gamma
+        field_type: float
+        description: Zeta-scaled gamma of the option.
+        required: true
+      - field_name: theta_call
+        field_type: float
+        description: Zeta-alpha-modified theta for call. Negative for long calls.
+        required: true
+      - field_name: theta_put
+        field_type: float
+        description: Zeta-alpha-modified theta for put.
+        required: true
+      - field_name: vega
+        field_type: float
+        description: Zeta-corrected vega.
+        required: true
+      - field_name: rho_call
+        field_type: float
+        description: Alpha-modified rho for call. Positive value.
+        required: true
+      - field_name: rho_put
+        field_type: float
+        description: Alpha-modified rho for put. Negative value.
+        required: true
+workflow_hints:
+  - hint_id: compute_zeta_d_params
+    summary: >
+      PIPELINE STAGE 1 (SOURCE). Receive zeta_request and compute the three fundamental
+      parameters: d1_zeta, d2_zeta, and disc_alpha using zeta and alpha modifications.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). Receives zeta_request as the sole external input."
+      - "Compute disc_alpha using the alpha parameter."
+      - "Compute d1_zeta using the zeta parameter to modify the variance term."
+      - "Compute d2_zeta from d1_zeta using the zeta parameter."
+      - "Emit d_params_output with all input fields plus d1_zeta, d2_zeta, disc_alpha."
+
+  - hint_id: price_zeta_call
+    summary: >
+      PIPELINE STAGE 2. Receive d_params_output and compute the zeta-modified call price.
+      Uses the alpha-modified discount factor disc_alpha.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 2. Receives d_params_output from compute_zeta_d_params."
+      - "Compute call_price using the standard call formula structure but with disc_alpha."
+      - "Emit call_price_output with d_params fields plus call_price."
+
+  - hint_id: price_zeta_put
+    summary: >
+      PIPELINE STAGE 3. Receive d_params_output and compute the zeta-modified put price.
+      Uses disc_alpha and negative normal distribution arguments.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 3. Receives d_params_output from compute_zeta_d_params."
+      - "Compute put_price using N(-d2_zeta) and N(-d1_zeta) with disc_alpha."
+      - "Emit put_price_output with d_params fields plus put_price."
+
+  - hint_id: compute_zeta_delta
+    summary: >
+      PIPELINE STAGE 4. Compute zeta-scaled delta for both call and put.
+      The zeta parameter scales the delta values.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 4. Receives d_params_output from compute_zeta_d_params."
+      - "Compute delta_call using zeta scaling and N(d1_zeta)."
+      - "Compute delta_put from delta_call minus 1."
+      - "Emit delta_output with d_params fields plus delta_call, delta_put."
+
+  - hint_id: compute_zeta_gamma
+    summary: >
+      PIPELINE STAGE 5. Compute zeta-scaled gamma.
+      The zeta parameter modifies the standard gamma formula.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 5. Receives d_params_output from compute_zeta_d_params."
+      - "Compute gamma using zeta, N'(d1_zeta), spot, volatility, and time_to_expiry."
+      - "Emit gamma_output with d_params fields plus gamma."
+
+  - hint_id: compute_zeta_theta_call
+    summary: >
+      PIPELINE STAGE 6. Compute zeta-alpha-modified theta for the CALL option.
+      Uses both zeta and alpha modifications.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 6. Receives d_params_output from compute_zeta_d_params."
+      - "Compute theta_call with zeta-modified first term and alpha-modified second term."
+      - "The second term uses r^alpha and disc_alpha. theta_call is negative for long calls."
+      - "Emit theta_call_output with d_params fields plus theta_call."
+
+  - hint_id: compute_zeta_theta_put
+    summary: >
+      PIPELINE STAGE 7. Compute zeta-alpha-modified theta for the PUT option.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 7. Receives d_params_output from compute_zeta_d_params."
+      - "Compute theta_put with zeta-modified first term and alpha-modified second term."
+      - "The second term for put uses N(-d2_zeta) with a POSITIVE sign."
+      - "Emit theta_put_output with d_params fields plus theta_put."
+
+  - hint_id: compute_zeta_vega
+    summary: >
+      PIPELINE STAGE 8. Compute zeta-corrected vega.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 8. Receives d_params_output from compute_zeta_d_params."
+      - "Compute vega using N'(d1_zeta), spot, sqrt(T), and a zeta correction factor."
+      - "Emit vega_output with d_params fields plus vega."
+
+  - hint_id: compute_zeta_rho_call
+    summary: >
+      PIPELINE STAGE 9. Compute alpha-modified rho for the CALL option.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 9. Receives d_params_output from compute_zeta_d_params."
+      - "Compute rho_call using alpha, strike, time_to_expiry, rate, disc_alpha, N(d2_zeta)."
+      - "Emit rho_call_output with d_params fields plus rho_call."
+
+  - hint_id: compute_zeta_rho_put
+    summary: >
+      PIPELINE STAGE 10 (SINK). Compute alpha-modified rho for the PUT option and assemble
+      the final zeta_results output from all upstream components.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 10 (SINK). Receives all upstream component outputs."
+      - "Compute rho_put using alpha, strike, time_to_expiry, rate, disc_alpha, N(-d2_zeta). Negative value."
+      - "Assemble and emit zeta_results from call_price_output, put_price_output, delta_output, gamma_output, theta_call_output, theta_put_output, vega_output, rho_call_output, rho_put."

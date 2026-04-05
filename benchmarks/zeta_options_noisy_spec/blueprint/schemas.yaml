@@ -1,0 +1,575 @@
+schemas:
+- schema_id: ZetaRequest
+  kind: object
+  description: Input request with option parameters and zeta/alpha modification factors.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable identifier passed through to all outputs.
+  - name: spot
+    type: float
+    required: true
+    description: Current spot price S.
+  - name: strike
+    type: float
+    required: true
+    description: Option strike price K.
+  - name: rate
+    type: float
+    required: true
+    description: Annualized risk-free rate r.
+  - name: volatility
+    type: float
+    required: true
+    description: Annualized volatility sigma.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry T in years.
+  - name: zeta
+    type: float
+    required: true
+    description: Variance scaling parameter 0.0-1.0. Scales d1/d2/delta/gamma/theta/vega.
+  - name: alpha
+    type: float
+    required: true
+    description: Discount exponent 0.0-1.0. Used in disc_alpha=exp(-r^alpha*T) and rho.
+
+- schema_id: DParamsOutput
+  kind: object
+  description: d1_zeta, d2_zeta, disc_alpha plus all input fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+
+- schema_id: CallPriceOutput
+  kind: object
+  description: DParamsOutput plus call_price.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: call_price
+    type: float
+    required: true
+    description: Zeta-modified call price.
+
+- schema_id: PutPriceOutput
+  kind: object
+  description: DParamsOutput plus put_price.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: put_price
+    type: float
+    required: true
+    description: Zeta-modified put price.
+
+- schema_id: DeltaOutput
+  kind: object
+  description: DParamsOutput plus delta_call, delta_put.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: delta_call
+    type: float
+    required: true
+    description: Delta of call = zeta * N(d1_zeta).
+  - name: delta_put
+    type: float
+    required: true
+    description: Delta of put = zeta * N(d1_zeta) - 1.
+
+- schema_id: GammaOutput
+  kind: object
+  description: DParamsOutput plus gamma.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: gamma
+    type: float
+    required: true
+    description: Gamma = zeta * N'(d1_zeta) / (S * sigma * sqrt(T)).
+
+- schema_id: ThetaCallOutput
+  kind: object
+  description: DParamsOutput plus theta_call.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: theta_call
+    type: float
+    required: true
+    description: Theta of call option.
+
+- schema_id: ThetaPutOutput
+  kind: object
+  description: DParamsOutput plus theta_put.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: theta_put
+    type: float
+    required: true
+    description: Theta of put option.
+
+- schema_id: VegaOutput
+  kind: object
+  description: DParamsOutput plus vega.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: vega
+    type: float
+    required: true
+    description: Vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5.
+
+- schema_id: RhoCallOutput
+  kind: object
+  description: DParamsOutput plus rho_call.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: spot
+    type: float
+    required: true
+    description: Spot price.
+  - name: strike
+    type: float
+    required: true
+    description: Strike price.
+  - name: rate
+    type: float
+    required: true
+    description: Risk-free rate.
+  - name: volatility
+    type: float
+    required: true
+    description: Volatility.
+  - name: time_to_expiry
+    type: float
+    required: true
+    description: Time to expiry.
+  - name: zeta
+    type: float
+    required: true
+    description: Zeta parameter.
+  - name: alpha
+    type: float
+    required: true
+    description: Alpha parameter.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: rho_call
+    type: float
+    required: true
+    description: Rho of call = alpha*K*T*r^(alpha-1)*disc_alpha*N(d2_zeta).
+
+- schema_id: ZetaResults
+  kind: object
+  description: Complete output with all prices and Greeks.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Passed through.
+  - name: d1_zeta
+    type: float
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: float
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: float
+    required: true
+    description: Alpha-modified discount factor.
+  - name: call_price
+    type: float
+    required: true
+    description: Zeta-modified call price.
+  - name: put_price
+    type: float
+    required: true
+    description: Zeta-modified put price.
+  - name: delta_call
+    type: float
+    required: true
+    description: Delta of call.
+  - name: delta_put
+    type: float
+    required: true
+    description: Delta of put.
+  - name: gamma
+    type: float
+    required: true
+    description: Gamma.
+  - name: theta_call
+    type: float
+    required: true
+    description: Theta of call.
+  - name: theta_put
+    type: float
+    required: true
+    description: Theta of put.
+  - name: vega
+    type: float
+    required: true
+    description: Vega.
+  - name: rho_call
+    type: float
+    required: true
+    description: Rho of call.
+  - name: rho_put
+    type: float
+    required: true
+    description: Rho of put.

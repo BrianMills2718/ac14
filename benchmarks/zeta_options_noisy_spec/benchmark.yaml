@@ -1,0 +1,17 @@
+benchmark:
+  benchmark_id: zeta_options_noisy_spec_v1
+  name: "Zeta-Modified European Option Pricing — Noisy Spec Bundle"
+  purpose: >
+    Front-half-first Theory Forge benchmark testing whether AC14 decomposition helps
+    when the monolithic spec contains only VAGUE descriptions (no explicit formulas).
+    AC14 advantage: the planning step infers exact per-component contracts (zeta/alpha
+    modifications) from the vague spec and writes them explicitly into each component
+    packet. Monolithic must figure out the formulas from ambiguous descriptions alone.
+    This tests the REAL AC14 advantage: explicit per-component implementation contracts.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

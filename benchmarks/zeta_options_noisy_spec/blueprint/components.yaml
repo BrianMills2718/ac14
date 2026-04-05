@@ -1,0 +1,245 @@
+components:
+- component_id: compute_zeta_d_params
+  kind: source
+  purpose: Compute d1_zeta, d2_zeta, disc_alpha from the input request.
+  semantic_responsibility: compute_zeta_modified_d_parameters_and_discount
+  input_ports:
+  - name: zeta_request
+    schema_id: ZetaRequest
+    description: Option parameters including zeta and alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha plus all input fields.
+  local_invariants:
+  - d2_zeta == d1_zeta - zeta * volatility * sqrt(time_to_expiry)
+  - disc_alpha == exp(-rate^alpha * time_to_expiry)
+  failure_semantics:
+  - fail if spot <= 0 or strike <= 0 or time_to_expiry <= 0
+  implementation_constraints:
+  - "disc_alpha = exp(-(rate**alpha) * time_to_expiry)"
+  - "d1_zeta = (log(spot/strike) + (rate + zeta*volatility**2/2)*time_to_expiry) / (volatility*sqrt(time_to_expiry))"
+  - d2_zeta = d1_zeta - zeta * volatility * sqrt(time_to_expiry)
+
+- component_id: price_zeta_call
+  kind: transform
+  purpose: Compute the zeta-modified call price.
+  semantic_responsibility: compute_zeta_call_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    description: Call price plus d_params fields.
+  local_invariants:
+  - call_price >= 0
+  failure_semantics: []
+  implementation_constraints:
+  - call_price = spot * N(d1_zeta) - strike * disc_alpha * N(d2_zeta)
+
+- component_id: price_zeta_put
+  kind: transform
+  purpose: Compute the zeta-modified put price.
+  semantic_responsibility: compute_zeta_put_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    description: Put price plus d_params fields.
+  local_invariants:
+  - put_price >= 0
+  failure_semantics: []
+  implementation_constraints:
+  - put_price = strike * disc_alpha * N(-d2_zeta) - spot * N(-d1_zeta)
+
+- component_id: compute_zeta_delta
+  kind: transform
+  purpose: Compute delta for call and put using zeta scaling.
+  semantic_responsibility: compute_zeta_scaled_delta
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: delta_output
+    schema_id: DeltaOutput
+    description: delta_call and delta_put.
+  local_invariants:
+  - delta_call == zeta * N(d1_zeta)
+  - delta_put == zeta * N(d1_zeta) - 1
+  failure_semantics: []
+  implementation_constraints:
+  - "delta_call = zeta * norm.cdf(d1_zeta)  # NOT norm.cdf(d1_zeta)"
+  - delta_put = zeta * norm.cdf(d1_zeta) - 1.0
+
+- component_id: compute_zeta_gamma
+  kind: transform
+  purpose: Compute gamma using zeta scaling.
+  semantic_responsibility: compute_zeta_scaled_gamma
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: gamma.
+  local_invariants:
+  - gamma > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "gamma = zeta * norm.pdf(d1_zeta) / (spot * volatility * sqrt(time_to_expiry))"
+
+- component_id: compute_zeta_theta_call
+  kind: transform
+  purpose: Compute theta for the call option.
+  semantic_responsibility: compute_zeta_theta_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    description: theta_call.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "theta_call = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2*sqrt(T)) - (rate**alpha) * strike * disc_alpha * norm.cdf(d2_zeta)"
+
+- component_id: compute_zeta_theta_put
+  kind: transform
+  purpose: Compute theta for the put option.
+  semantic_responsibility: compute_zeta_theta_put
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    description: theta_put.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "theta_put = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2*sqrt(T)) + (rate**alpha) * strike * disc_alpha * norm.cdf(-d2_zeta)"
+
+- component_id: compute_zeta_vega
+  kind: transform
+  purpose: Compute vega with zeta^0.5 scaling.
+  semantic_responsibility: compute_zeta_scaled_vega
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: vega_output
+    schema_id: VegaOutput
+    description: vega.
+  local_invariants:
+  - vega > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "vega = spot * norm.pdf(d1_zeta) * sqrt(time_to_expiry) * (zeta ** 0.5)"
+
+- component_id: compute_zeta_rho_call
+  kind: transform
+  purpose: Compute rho_call with alpha * r^(alpha-1) scaling.
+  semantic_responsibility: compute_zeta_rho_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    description: rho_call.
+  local_invariants:
+  - rho_call > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "rho_call = alpha * strike * time_to_expiry * (rate ** (alpha-1)) * disc_alpha * norm.cdf(d2_zeta)"
+
+- component_id: compute_zeta_rho_put
+  kind: sink
+  purpose: Compute rho_put and assemble the final zeta_results output.
+  semantic_responsibility: compute_zeta_rho_put_and_assemble_results
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d2_zeta, disc_alpha.
+    required: true
+    arrival_policy: required_latest
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    description: call_price from price_zeta_call.
+    required: true
+    arrival_policy: required_latest
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    description: put_price from price_zeta_put.
+    required: true
+    arrival_policy: required_latest
+  - name: delta_output
+    schema_id: DeltaOutput
+    description: delta_call, delta_put.
+    required: true
+    arrival_policy: required_latest
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: gamma.
+    required: true
+    arrival_policy: required_latest
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    description: theta_call.
+    required: true
+    arrival_policy: required_latest
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    description: theta_put.
+    required: true
+    arrival_policy: required_latest
+  - name: vega_output
+    schema_id: VegaOutput
+    description: vega.
+    required: true
+    arrival_policy: required_latest
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    description: rho_call.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: zeta_results
+    schema_id: ZetaResults
+    description: Complete zeta_results with all prices and Greeks.
+  local_invariants:
+  - rho_put < 0
+  failure_semantics: []
+  implementation_constraints:
+  - "rho_put = -alpha * strike * time_to_expiry * (rate ** (alpha-1)) * disc_alpha * norm.cdf(-d2_zeta)"
+  - Assemble zeta_results from all upstream outputs.

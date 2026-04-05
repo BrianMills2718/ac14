@@ -1,0 +1,43 @@
+benchmark:
+  benchmark_id: zeta_options_noisy_spec_v1
+  name: "Zeta-Modified European Option Pricing — Noisy Spec Back Half"
+  purpose: >
+    Back-half evaluation assets for the noisy-spec zeta-modified options benchmark.
+    Contains the reference blueprint, runtime cases, and expected outputs. Used by the
+    structured-spec front-half runner to evaluate AC14-generated code vs monolithic.
+    The monolithic model receives the vague structured_spec_input.yaml with no explicit
+    formulas; AC14 receives per-component packets that include explicit formula contracts
+    derived during the planning step.
+  comparison_scope: decomposition_vs_monolithic_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+    - scipy
+    - scipy.stats
+  primary_source_component_id: compute_zeta_d_params
+  primary_source_port_name: zeta_request
+  final_component_id: compute_zeta_rho_put
+  final_output_ports:
+    - zeta_results
+  system_requirements:
+    - "disc_alpha = exp(-r^alpha * T)"
+    - "d1_zeta = (log(S/K) + (r + zeta*sigma^2/2)*T) / (sigma*sqrt(T))"
+    - "d2_zeta = d1_zeta - zeta*sigma*sqrt(T)"
+    - "call = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta)"
+    - "put = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta)"
+    - "delta_call = zeta*N(d1_zeta), delta_put = zeta*N(d1_zeta) - 1"
+    - "gamma = zeta*N'(d1_zeta) / (S*sigma*sqrt(T))"
+    - "theta_call = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) - r^alpha*K*disc_alpha*N(d2_zeta)"
+    - "theta_put = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) + r^alpha*K*disc_alpha*N(-d2_zeta)"
+    - "vega = S*N'(d1_zeta)*sqrt(T)*zeta^0.5"
+    - "rho_call = alpha*K*T*(r^(alpha-1))*disc_alpha*N(d2_zeta)"
+    - "rho_put = -alpha*K*T*(r^(alpha-1))*disc_alpha*N(-d2_zeta)"
+  dynamic_output_fields: []
+  semantic_review_policy: advisory_on_exact_match
