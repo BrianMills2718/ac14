@@ -109,6 +109,8 @@ current executable lane.
 | 145 | [Front-Half-First Spec Contract Fix And Gate_4](145_front_half_first_spec_contract_fix_and_gate_4.md) | Critical | Complete | - |
 | 146 | [Front-Half-First Gate_4 Verdict Interpretation](146_front_half_first_gate_4_verdict.md) | Critical | Complete | 145 |
 | 147 | [Codegen Observability](147_codegen_observability.md) | High | Complete | - |
+| 148 | [Gate_5 Ten-Trial Statistical Confirmation](148_gate_5_ten_trials.md) | High | Planned | - |
+| 149 | [Theory Forge Benchmark Design](149_theory_forge_benchmark_design.md) | High | Planned | 148 |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |
