@@ -140,11 +140,16 @@ find the first `ac14_wins` verdict.
     - 20-component build unlikely to discriminate (threshold estimated at 50-100+ for math pipeline)
     - Three viable paths: (A) 50+ component scale, (B) complex-interdependency domain, (C) declare series complete
     - Theory Forge series summary at `docs/theory_forge_series_summary.md`
-21. **DECISION POINT** — Brian must choose next direction:
-    - Option A: Build 50-component benchmark (5-10 days, uncertain discrimination)
-    - Option B: Complex-interdependency benchmark (~20 components, compiler/protocol/risk system)
-    - Option C: Declare Theory Forge complete, focus on human-workflow value
-    - Option D: Build zeta_scale_20 as proof of Option A feasibility (1-2 days, likely shows mono 5/5)
+21. [Plan #170](./docs/plans/170_information_asymmetry_finding.md) -> complete — information asymmetry root cause + theory forge conclusion
+    - Root cause: monolithic saw success_criteria numerical hints (disc_alpha≈0.9246); AC14 codegen did not
+    - Core gap: AC14 planning step is structural decomposer, not formula synthesizer
+    - AC14 advantage requires EITHER (a) information synthesis in planning step, OR (b) scale >> 50 components
+    - Theory Forge series: COMPLETE (Plans #149-#170). 8 benchmarks, consistent evidence.
+22. **DECISION POINT** — Brian must choose next direction:
+    - Option A: Large-scale benchmark `benchmarks/zeta_scale_50/` (5-7 days, likely discriminates)
+    - Option B: Improve planning step with information synthesis (library lookups, 3-5 days)
+    - Option C: Accept current evidence, document thesis scope, focus on other directions
+    - **Default if continuing**: Option B (planning step synthesis improvement is highest-value)
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
