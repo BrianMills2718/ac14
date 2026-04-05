@@ -17,6 +17,8 @@ success_criteria:
   - "base case (S=100, K=100, r=0.05, sigma=0.20, T=1.0, zeta=0.70, alpha=0.85): call_price approx 9.716"
   - "base case: put_price approx 2.179"
   - "base case: disc_alpha approx 0.9246 (NOT the standard exp(-rT) = 0.9512)"
+  - "base case: d1_zeta approx 0.32 (NOT the standard BS d1 = 0.35)"
+  - "base case: d2_zeta approx 0.18 (NOT the standard BS d2 = 0.15)"
   - "base case: delta_call approx 0.438 (NOT the standard N(d1) = 0.636)"
   - "put-call parity holds using the alpha-modified discount factor"
 business_rules:

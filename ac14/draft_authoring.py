@@ -291,7 +291,9 @@ def _build_components_file(plan: DraftBlueprintPlanArtifact) -> ComponentsFile:
             ],
             local_invariants=[PLACEHOLDER_INVARIANT],
             failure_semantics=[PLACEHOLDER_FAILURE],
-            implementation_constraints=[PLACEHOLDER_CONSTRAINT],
+            implementation_constraints=(
+                list(component.packet_focus) if component.packet_focus else [PLACEHOLDER_CONSTRAINT]
+            ),
         )
         for component in plan.proposed_components
     ]

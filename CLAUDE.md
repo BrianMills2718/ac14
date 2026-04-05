@@ -145,11 +145,17 @@ find the first `ac14_wins` verdict.
     - Core gap: AC14 planning step is structural decomposer, not formula synthesizer
     - AC14 advantage requires EITHER (a) information synthesis in planning step, OR (b) scale >> 50 components
     - Theory Forge series: COMPLETE (Plans #149-#170). 8 benchmarks, consistent evidence.
-22. **DECISION POINT** — Brian must choose next direction:
-    - Option A: Large-scale benchmark `benchmarks/zeta_scale_50/` (5-7 days, likely discriminates)
-    - Option B: Improve planning step with information synthesis (library lookups, 3-5 days)
-    - Option C: Accept current evidence, document thesis scope, focus on other directions
-    - **Default if continuing**: Option B (planning step synthesis improvement is highest-value)
+22. [Plan #169b](./docs/plans/169_zeta_scale_20_benchmark.md) -> complete — zeta_scale_20 blueprint built
+    - 20 components (9 second-order Greeks + terminal assembler), B1 passes
+    - Gate_3 (10-trial Gemini flash on zeta_options): `monolithic_wins` (9/10 vs 6/10, $0.36 vs $1.45)
+    - AC14 front-half: 10/10; AC14 runtime: 6/10; Cost per trial ~10x monolithic
+23. [Plan #172](./docs/plans/172_zeta_scale20_gate_1.md) -> **ACTIVE** — zeta_scale_20 smoke + gate
+    - Smoke gate launched: `make front-half-first-smoke-gate BENCHMARK=benchmarks/zeta_scale_20 OUTPUT=.ac14_out/zeta_scale20_smoke_1`
+    - Pre-defined next branches at Plan #173
+24. **Plan #173**: write zeta_scale_20 gate verdict
+    - If `ac14_wins`: declare scale threshold found, document minimum discriminating scale
+    - If `monolithic_wins`: scale-20 insufficient; escalate to scale-50 or planning step synthesis
+    - If `inconclusive`: run scale-50 or pivit to planning step
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid

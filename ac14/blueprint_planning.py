@@ -74,7 +74,16 @@ class PlannedComponent(BaseModel):
     input_ports: list[PlannedPort] = Field(description="Draft input ports for the component.")
     output_ports: list[PlannedPort] = Field(description="Draft output ports for the component.")
     packet_focus: list[str] = Field(
-        description="What the local coder packet must emphasize for this component.",
+        description=(
+            "EXACT implementation contracts for this component. "
+            "Derive the explicit formula, algorithm, or implementation rule from the "
+            "structured spec, success criteria, and requirements — do NOT be vague. "
+            "Write the actual formula or contract (e.g., "
+            "'disc_alpha = exp(-(rate**alpha) * T), NOT exp(-rate*T)' or "
+            "'delta_call = zeta * N(d1_zeta), NOT N(d1_zeta)'). "
+            "The code generator will use these as its primary implementation constraints, "
+            "so every non-obvious formula must be stated explicitly here."
+        ),
     )
     dependency_notes: list[str] = Field(
         description="Dependency or library considerations relevant to this component.",
