@@ -259,6 +259,29 @@ For the active empirical-comparison lane, this rule is especially strict:
   - empirical attempts must run inside a real `llm_client` experiment context and feature profile instead of relying on warning-only guardrails
   - if a semantic-eval prompt path crashes on fixture data types such as `datetime`, fix the harness before tuning more benchmark logic
 
+## Codegen Diagnostics (Plan #147)
+
+Before writing a diagnosis plan for bad generated code, run these first:
+
+```bash
+# Did the LLM receive the right context? Flags zero/TODO fields across all trials.
+make context-audit OUTPUT=.ac14_out/front_half_first_full_gate_N
+
+# Show context summary + runtime mismatches for one specific failure.
+make diagnose-attempt OUTPUT=.ac14_out/front_half_first_full_gate_N TRIAL=N ATTEMPT=M
+
+# Show the exact prompt the LLM received for a specific component.
+make diagnose-attempt OUTPUT=... TRIAL=N ATTEMPT=M COMPONENT=evaluate_thresholds_and_policy
+```
+
+Each generated component now writes two trace files alongside its `.py` in `generated/`:
+- `{component_id}.context.json` — full `CodegenContext` (business rules count, test cases, invariants)
+- `{component_id}.prompt.json` — exact messages sent to the LLM
+
+The #1 failure mode is a context wiring bug (rules not threaded through, invariants are TODO
+placeholders). `context-audit` surfaces this immediately. Do not write a diagnosis plan until
+you have checked whether `structured_spec_business_rules` is non-zero in the context traces.
+
 Treat waiting for further permission before the active plan is complete as a
 process failure. The required behavior is:
 
