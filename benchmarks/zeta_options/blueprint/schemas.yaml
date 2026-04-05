@@ -1,0 +1,575 @@
+schemas:
+- schema_id: ZetaRequest
+  kind: object
+  description: Input option specification with zeta and alpha parameters.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power for discount.
+
+- schema_id: ZetaDParamsOutput
+  kind: object
+  description: Zeta-modified d1, d2, and fractional-power discount factor plus all original params.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1 parameter.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2 parameter. d2_zeta = d1_zeta - zeta*sigma*sqrt(T).
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount exp(-r^alpha * T).
+
+- schema_id: ZetaCallOutput
+  kind: object
+  description: Zeta-modified call price plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: call_price
+    type: number
+    required: true
+    description: Zeta-modified call option price.
+
+- schema_id: ZetaPutOutput
+  kind: object
+  description: Zeta-modified put price plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: put_price
+    type: number
+    required: true
+    description: Zeta-modified put option price.
+
+- schema_id: ZetaDeltaOutput
+  kind: object
+  description: Zeta-scaled delta for call and put plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: delta_call
+    type: number
+    required: true
+    description: Zeta-scaled call delta.
+  - name: delta_put
+    type: number
+    required: true
+    description: Zeta-scaled put delta.
+
+- schema_id: ZetaGammaOutput
+  kind: object
+  description: Zeta-scaled gamma plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: gamma
+    type: number
+    required: true
+    description: Zeta-scaled gamma.
+
+- schema_id: ZetaThetaCallOutput
+  kind: object
+  description: Zeta-alpha theta for call plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: theta_call
+    type: number
+    required: true
+    description: Zeta-alpha theta for call.
+
+- schema_id: ZetaThetaPutOutput
+  kind: object
+  description: Zeta-alpha theta for put plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: theta_put
+    type: number
+    required: true
+    description: Zeta-alpha theta for put.
+
+- schema_id: ZetaVegaOutput
+  kind: object
+  description: Zeta-sqrt vega plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: vega
+    type: number
+    required: true
+    description: Zeta-sqrt vega.
+
+- schema_id: ZetaRhoCallOutput
+  kind: object
+  description: Alpha-modified rho for call plus all d_params fields.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: zeta
+    type: number
+    required: true
+    description: Zeta scaling parameter.
+  - name: alpha
+    type: number
+    required: true
+    description: Alpha fractional power.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount.
+  - name: rho_call
+    type: number
+    required: true
+    description: Alpha-modified rho for call.
+
+- schema_id: ZetaResults
+  kind: object
+  description: Complete zeta-modified option pricing results.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: d1_zeta
+    type: number
+    required: true
+    description: Zeta-modified d1.
+  - name: d2_zeta
+    type: number
+    required: true
+    description: Zeta-modified d2.
+  - name: disc_alpha
+    type: number
+    required: true
+    description: Fractional discount exp(-r^alpha*T).
+  - name: call_price
+    type: number
+    required: true
+    description: Zeta call price.
+  - name: put_price
+    type: number
+    required: true
+    description: Zeta put price.
+  - name: delta_call
+    type: number
+    required: true
+    description: Zeta-scaled call delta.
+  - name: delta_put
+    type: number
+    required: true
+    description: Zeta-scaled put delta.
+  - name: gamma
+    type: number
+    required: true
+    description: Zeta-scaled gamma.
+  - name: theta_call
+    type: number
+    required: true
+    description: Zeta-alpha theta for call.
+  - name: theta_put
+    type: number
+    required: true
+    description: Zeta-alpha theta for put.
+  - name: vega
+    type: number
+    required: true
+    description: Zeta-sqrt vega.
+  - name: rho_call
+    type: number
+    required: true
+    description: Alpha-modified rho for call.
+  - name: rho_put
+    type: number
+    required: true
+    description: Alpha-modified rho for put.

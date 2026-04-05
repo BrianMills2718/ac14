@@ -1,0 +1,16 @@
+benchmark:
+  benchmark_id: zeta_options_structured_spec_v1
+  name: "Zeta-Modified European Option Pricing — Structured Spec Bundle"
+  purpose: >
+    Front-half-first Theory Forge benchmark testing whether decomposition helps
+    on a 10-component financial mathematics pipeline where formulas look like
+    Black-Scholes but use novel zeta and alpha parameters that are NOT in training data.
+    Monolithic models risk reverting to memorized BS formulas; AC14 advantage is that
+    each packet explicitly calls out the modification with a CRITICAL DIFFERENCE callout.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md
