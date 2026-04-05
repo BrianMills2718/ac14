@@ -1,0 +1,43 @@
+global_invariants:
+- invariant_id: results_case_id_consistency
+  description: zeta_results.case_id must equal the input zeta_request.case_id.
+- invariant_id: modified_put_call_parity
+  description: call_price - put_price must equal spot - strike*disc_alpha within floating point tolerance.
+- invariant_id: delta_call_bounded
+  description: 0 < delta_call < zeta (not bounded by 1 like standard BS).
+- invariant_id: delta_put_bounded
+  description: -1 < delta_put < 0.
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual zeta_results outputs to declared expected outputs exactly
+    using the expected_runtime_outputs.json tolerance.
+scenarios:
+- scenario_id: base_scenario
+  kind: full_recomposition
+  description: Base ATM case (S=100, K=100, r=0.05, sigma=0.20, T=1.0, zeta=0.70, alpha=0.85).
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - base_compute_zeta_d_params
+  - base_price_zeta_call
+  - base_price_zeta_put
+  - base_compute_zeta_delta
+  - base_compute_zeta_gamma
+  - base_compute_zeta_theta_call
+  - base_compute_zeta_theta_put
+  - base_compute_zeta_vega
+  - base_compute_zeta_rho_call
+- scenario_id: itm_put_scenario
+  kind: full_recomposition
+  description: ITM put case (S=80, K=90, r=0.08, sigma=0.30, T=2.0, zeta=0.90, alpha=0.95).
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - itm_put_compute_zeta_d_params
+  - itm_put_compute_zeta_delta
+  - itm_put_compute_zeta_vega
+  - itm_put_compute_zeta_rho_call

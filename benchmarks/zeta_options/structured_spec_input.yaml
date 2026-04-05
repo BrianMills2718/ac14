@@ -1,0 +1,298 @@
+system_name: Zeta-Modified European Option Pricing
+purpose: >
+  Compute European option prices and all nine first-order Greeks for both call and put options
+  using a MODIFIED formula that introduces two free parameters: zeta and alpha.
+  These parameters modify the standard Black-Scholes structure in specific ways that are
+  NOT memorized in training data. The system implements ten operations: (1) compute d1_zeta,
+  d2_zeta, and disc_alpha parameters, (2) price the zeta call, (3) price the zeta put,
+  (4) compute zeta delta, (5) compute zeta gamma, (6) compute zeta theta for call,
+  (7) compute zeta theta for put, (8) compute zeta vega, (9) compute zeta rho for call,
+  (10) compute zeta rho for put and assemble final output.
+  Parameters: spot S, strike K, risk-free rate r, volatility sigma, time_to_expiry T,
+  zeta (scaling parameter, 0 < zeta < 1), alpha (fractional power for discount, 0 < alpha <= 1).
+requirements:
+  - "disc_alpha = exp(-r^alpha * T)  [NOT exp(-rT): the exponent uses r^alpha, NOT r]"
+  - "d1_zeta = (ln(S/K) + (r + zeta*sigma^2/2)*T) / (sigma*sqrt(T))  [zeta scales the variance term]"
+  - "d2_zeta = d1_zeta - zeta*sigma*sqrt(T)  [zeta scales the d1-d2 gap, NOT sigma*sqrt(T)]"
+  - "call_price = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta)"
+  - "put_price = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta)"
+  - "delta_call = zeta * N(d1_zeta)  [CRITICAL: zeta SCALES delta, unlike standard BS where delta_call = N(d1)]"
+  - "delta_put = zeta * N(d1_zeta) - 1"
+  - "gamma = zeta * N_prime(d1_zeta) / (S*sigma*sqrt(T))  [zeta SCALES gamma]"
+  - "theta_call = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) - r^alpha*K*disc_alpha*N(d2_zeta)"
+  - "theta_put = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) + r^alpha*K*disc_alpha*N(-d2_zeta)"
+  - "vega = S*N'(d1_zeta)*sqrt(T)*zeta^0.5  [zeta^0.5 correction, NOT zeta]"
+  - "rho_call = alpha*K*T*(r^(alpha-1))*disc_alpha*N(d2_zeta)  [three differences from standard BS]"
+  - "rho_put = -alpha*K*T*(r^(alpha-1))*disc_alpha*N(-d2_zeta)"
+success_criteria:
+  - "base case (S=100,K=100,r=0.05,sigma=0.20,T=1.0,zeta=0.70,alpha=0.85): call_price approx 9.716"
+  - "base case: disc_alpha = exp(-0.05^0.85 * 1.0) approx 0.9246, NOT exp(-0.05*1.0)=0.9512"
+  - "base case: d1_zeta = 0.32 (NOT the standard BS d1 of 0.35, because zeta=0.70 scales variance term)"
+  - "base case: delta_call = 0.70 * N(d1_zeta) approx 0.438, NOT N(d1_zeta) alone"
+  - "Modified put-call parity holds: call_price - put_price = S - K*disc_alpha (uses disc_alpha not exp(-rT))"
+  - "rho_call uses alpha*K*T*(r^(alpha-1))*disc_alpha*N(d2_zeta), NOT K*T*exp(-rT)*N(d2)"
+  - "vega uses zeta^0.5 correction: vega = S*N'(d1_zeta)*sqrt(T)*sqrt(zeta)"
+business_rules:
+  - "NORMAL CDF: Use scipy.stats.norm.cdf(x) for N(x). The standard normal density N'(x) = norm.pdf(x). Import: from scipy.stats import norm"
+  - "FRACTIONAL DISCOUNT: disc_alpha = math.exp(-(rate ** alpha) * time_to_expiry). This is NOT exp(-rate*T). The rate is raised to the power alpha FIRST."
+  - "D1_ZETA FORMULA: d1_zeta = (math.log(spot/strike) + (rate + zeta * volatility**2 / 2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry)). The zeta parameter multiplies volatility**2/2, not the entire numerator."
+  - "D2_ZETA FORMULA: d2_zeta = d1_zeta - zeta * volatility * math.sqrt(time_to_expiry). CRITICAL: zeta scales the entire d1-d2 gap. Standard BS uses sigma*sqrt(T); here it is zeta*sigma*sqrt(T)."
+  - "DELTA SCALING: delta_call = zeta * norm.cdf(d1_zeta). CRITICAL DIFFERENCE FROM STANDARD BS: Standard BS uses N(d1) alone. Zeta-modified uses zeta * N(d1_zeta). With zeta=0.70, delta_call is 30% smaller than standard BS."
+  - "DELTA PUT: delta_put = zeta * norm.cdf(d1_zeta) - 1. Same zeta scaling as delta_call."
+  - "GAMMA SCALING: gamma = zeta * norm.pdf(d1_zeta) / (spot * volatility * math.sqrt(time_to_expiry)). CRITICAL: zeta scales gamma. Standard BS uses N'(d1)/(S*sigma*sqrt(T)) without zeta."
+  - "THETA FIRST TERM: -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2 * math.sqrt(time_to_expiry)). CRITICAL: zeta multiplies the first term. Standard BS has no zeta here."
+  - "THETA CALL SECOND TERM: -(rate ** alpha) * strike * disc_alpha * norm.cdf(d2_zeta). Uses r^alpha NOT r, and disc_alpha NOT exp(-rT). The MINUS sign applies."
+  - "THETA PUT SECOND TERM: +(rate ** alpha) * strike * disc_alpha * norm.cdf(-d2_zeta). CRITICAL DIFFERENCES: (1) PLUS sign (not minus), (2) uses N(-d2_zeta) not N(d2_zeta)."
+  - "VEGA: vega = spot * norm.pdf(d1_zeta) * math.sqrt(time_to_expiry) * (zeta ** 0.5). CRITICAL: The correction factor is zeta^0.5 (square root of zeta), NOT zeta."
+  - "RHO CALL: rho_call = alpha * strike * time_to_expiry * (rate ** (alpha - 1)) * disc_alpha * norm.cdf(d2_zeta). THREE DIFFERENCES from standard BS: (1) alpha multiplier out front, (2) r^(alpha-1) not r^1, (3) disc_alpha not exp(-rT)."
+  - "RHO PUT: rho_put = -alpha * strike * time_to_expiry * (rate ** (alpha - 1)) * disc_alpha * norm.cdf(-d2_zeta). Leading MINUS sign and uses N(-d2_zeta)."
+inputs:
+  - name: zeta_request
+    kind: record
+    description: Complete option specification with market parameters and zeta/alpha modifiers.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to all outputs.
+        required: true
+      - field_name: spot
+        field_type: float
+        description: Current spot price S of the underlying asset. Must be positive.
+        required: true
+      - field_name: strike
+        field_type: float
+        description: Option strike price K. Must be positive.
+        required: true
+      - field_name: rate
+        field_type: float
+        description: Annualized continuous risk-free rate r. Typically 0.01 to 0.10.
+        required: true
+      - field_name: volatility
+        field_type: float
+        description: Annualized implied volatility sigma. Typically 0.10 to 0.60.
+        required: true
+      - field_name: time_to_expiry
+        field_type: float
+        description: Time to option expiry T in years. Must be positive.
+        required: true
+      - field_name: zeta
+        field_type: float
+        description: Zeta scaling parameter. Modifies d1-d2 gap, delta, gamma, theta, vega. Typically 0.40 to 0.90.
+        required: true
+      - field_name: alpha
+        field_type: float
+        description: Alpha fractional power for discount. Modifies disc_alpha and rho. Typically 0.70 to 0.95.
+        required: true
+outputs:
+  - name: zeta_results
+    kind: record
+    description: Complete zeta-modified option pricing output with prices and all Greeks.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from input).
+        required: true
+      - field_name: d1_zeta
+        field_type: float
+        description: Zeta-modified d1 parameter. Differs from standard d1 due to zeta scaling.
+        required: true
+      - field_name: d2_zeta
+        field_type: float
+        description: Zeta-modified d2 parameter. d2_zeta = d1_zeta - zeta*sigma*sqrt(T).
+        required: true
+      - field_name: disc_alpha
+        field_type: float
+        description: Fractional-power discount factor exp(-r^alpha * T). NOT exp(-rT).
+        required: true
+      - field_name: call_price
+        field_type: float
+        description: Fair value of zeta-modified European call option.
+        required: true
+      - field_name: put_price
+        field_type: float
+        description: Fair value of zeta-modified European put option.
+        required: true
+      - field_name: delta_call
+        field_type: float
+        description: Zeta-scaled delta of call option. delta_call = zeta*N(d1_zeta).
+        required: true
+      - field_name: delta_put
+        field_type: float
+        description: Zeta-scaled delta of put option. delta_put = zeta*N(d1_zeta) - 1.
+        required: true
+      - field_name: gamma
+        field_type: float
+        description: Zeta-scaled gamma. gamma = zeta*N'(d1_zeta)/(S*sigma*sqrt(T)).
+        required: true
+      - field_name: theta_call
+        field_type: float
+        description: Zeta-alpha-modified theta for call. Negative for long calls.
+        required: true
+      - field_name: theta_put
+        field_type: float
+        description: Zeta-alpha-modified theta for put. Second term is POSITIVE.
+        required: true
+      - field_name: vega
+        field_type: float
+        description: Zeta-sqrt-modified vega. vega = S*N'(d1_zeta)*sqrt(T)*sqrt(zeta).
+        required: true
+      - field_name: rho_call
+        field_type: float
+        description: Alpha-modified rho for call. Uses alpha, r^(alpha-1), disc_alpha.
+        required: true
+      - field_name: rho_put
+        field_type: float
+        description: Alpha-modified rho for put. Negative value. Uses N(-d2_zeta).
+        required: true
+workflow_hints:
+  - hint_id: compute_zeta_d_params
+    summary: >
+      PIPELINE STAGE 1 (SOURCE). Receive zeta_request and compute the three fundamental
+      parameters: d1_zeta, d2_zeta, and disc_alpha. All downstream components depend on these.
+      CRITICAL: disc_alpha uses r^alpha NOT r; d2_zeta uses zeta*sigma*sqrt(T) NOT sigma*sqrt(T).
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). Receives zeta_request as the sole external input."
+      - "disc_alpha = math.exp(-(rate ** alpha) * time_to_expiry)  [rate raised to power alpha, then negated and multiplied by T]"
+      - "d1_zeta = (math.log(spot/strike) + (rate + zeta * volatility**2 / 2) * time_to_expiry) / (volatility * math.sqrt(time_to_expiry))"
+      - "d2_zeta = d1_zeta - zeta * volatility * math.sqrt(time_to_expiry)  [zeta scales the gap, NOT just sigma*sqrt(T)]"
+      - "Emit d_params_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha}. Wire to ALL downstream components."
+
+  - hint_id: price_zeta_call
+    summary: >
+      PIPELINE STAGE 2. Receive d_params_output and compute the zeta-modified call price.
+      Formula: call_price = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta).
+      Uses disc_alpha (fractional-power discount) NOT exp(-rT).
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 2. Receives d_params_output from compute_zeta_d_params."
+      - "call_price = spot * norm.cdf(d1_zeta) - strike * disc_alpha * norm.cdf(d2_zeta)"
+      - "CRITICAL: Uses disc_alpha NOT exp(-rate*time_to_expiry). The disc_alpha was computed in stage 1."
+      - "from scipy.stats import norm"
+      - "Emit call_price_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, call_price}."
+
+  - hint_id: price_zeta_put
+    summary: >
+      PIPELINE STAGE 3. Receive d_params_output and compute the zeta-modified put price.
+      Formula: put_price = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta).
+      Uses disc_alpha and NEGATIVE arguments inside N().
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 3. Receives d_params_output from compute_zeta_d_params."
+      - "put_price = strike * disc_alpha * norm.cdf(-d2_zeta) - spot * norm.cdf(-d1_zeta)"
+      - "CRITICAL: Uses N(-d2_zeta) and N(-d1_zeta) with NEGATIVE arguments, and disc_alpha NOT exp(-rT)."
+      - "from scipy.stats import norm"
+      - "Emit put_price_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, put_price}."
+
+  - hint_id: compute_zeta_delta
+    summary: >
+      PIPELINE STAGE 4. Compute zeta-scaled delta for both call and put.
+      CRITICAL DIFFERENCE FROM STANDARD BS: delta_call = zeta * N(d1_zeta), NOT N(d1_zeta) alone.
+      delta_put = zeta * N(d1_zeta) - 1.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 4. Receives d_params_output from compute_zeta_d_params."
+      - "delta_call = zeta * norm.cdf(d1_zeta)  [MULTIPLY by zeta; standard BS does NOT scale by zeta]"
+      - "delta_put = zeta * norm.cdf(d1_zeta) - 1  [same zeta scaling, then subtract 1]"
+      - "CRITICAL: With zeta=0.70, delta_call is 70% of standard N(d1). Do NOT write delta_call = norm.cdf(d1_zeta) without zeta."
+      - "Emit delta_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, delta_call, delta_put}."
+
+  - hint_id: compute_zeta_gamma
+    summary: >
+      PIPELINE STAGE 5. Compute zeta-scaled gamma.
+      CRITICAL: gamma = zeta * N'(d1_zeta) / (S*sigma*sqrt(T)).
+      Standard BS omits the zeta multiplier. Here zeta scales the entire gamma.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 5. Receives d_params_output from compute_zeta_d_params."
+      - "gamma = zeta * norm.pdf(d1_zeta) / (spot * volatility * math.sqrt(time_to_expiry))"
+      - "CRITICAL: zeta multiplies the entire gamma. Standard BS uses N'(d1)/(S*sigma*sqrt(T)) without zeta."
+      - "N'(x) = norm.pdf(x). gamma is always POSITIVE."
+      - "Emit gamma_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, gamma}."
+
+  - hint_id: compute_zeta_theta_call
+    summary: >
+      PIPELINE STAGE 6. Compute zeta-alpha-modified theta for the CALL option.
+      Two modifications from standard BS: (1) zeta multiplies the first term,
+      (2) second term uses r^alpha and disc_alpha instead of r and exp(-rT).
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 6. Receives d_params_output from compute_zeta_d_params."
+      - "term1 = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2 * math.sqrt(time_to_expiry))"
+      - "term2 = -(rate ** alpha) * strike * disc_alpha * norm.cdf(d2_zeta)"
+      - "theta_call = term1 + term2  [both terms negative for long call]"
+      - "CRITICAL: term1 has zeta multiplier (standard BS does not). term2 uses r^alpha and disc_alpha (standard BS uses r and exp(-rT))."
+      - "Emit theta_call_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, theta_call}."
+
+  - hint_id: compute_zeta_theta_put
+    summary: >
+      PIPELINE STAGE 7. Compute zeta-alpha-modified theta for the PUT option.
+      Same first term as call (negative, zeta-scaled). Second term is POSITIVE and uses N(-d2_zeta).
+      CRITICAL DIFFERENCES from theta_call: sign is + and argument to N() is -d2_zeta.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 7. Receives d_params_output from compute_zeta_d_params."
+      - "term1 = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2 * math.sqrt(time_to_expiry))"
+      - "term2 = +(rate ** alpha) * strike * disc_alpha * norm.cdf(-d2_zeta)"
+      - "theta_put = term1 + term2"
+      - "CRITICAL DIFFERENCES from theta_call: (1) term2 has + sign NOT - sign, (2) term2 uses N(-d2_zeta) NOT N(d2_zeta)."
+      - "theta_put is typically positive or less negative than theta_call because term2 adds a positive value."
+      - "Emit theta_put_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, theta_put}."
+
+  - hint_id: compute_zeta_vega
+    summary: >
+      PIPELINE STAGE 8. Compute zeta-sqrt-modified vega.
+      Formula: vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5.
+      CRITICAL: The correction factor is zeta^0.5 (square root), NOT zeta.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 8. Receives d_params_output from compute_zeta_d_params."
+      - "vega = spot * norm.pdf(d1_zeta) * math.sqrt(time_to_expiry) * (zeta ** 0.5)"
+      - "CRITICAL: The zeta correction is zeta^0.5 (square root of zeta), NOT zeta itself. Standard BS uses no zeta correction."
+      - "vega is always POSITIVE."
+      - "Emit vega_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, vega}."
+
+  - hint_id: compute_zeta_rho_call
+    summary: >
+      PIPELINE STAGE 9. Compute alpha-modified rho for the CALL option.
+      THREE differences from standard BS rho: (1) alpha multiplier, (2) r^(alpha-1), (3) disc_alpha.
+      Formula: rho_call = alpha * K * T * r^(alpha-1) * disc_alpha * N(d2_zeta).
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 9. Receives d_params_output from compute_zeta_d_params."
+      - "rho_call = alpha * strike * time_to_expiry * (rate ** (alpha - 1)) * disc_alpha * norm.cdf(d2_zeta)"
+      - "CRITICAL DIFFERENCES from standard BS: (1) leading alpha multiplier, (2) rate**(alpha-1) not rate**1, (3) disc_alpha not exp(-rate*T)."
+      - "rho_call is POSITIVE: zeta-call gains value as rates rise."
+      - "Emit rho_call_output: {case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha, d1_zeta, d2_zeta, disc_alpha, rho_call}."
+
+  - hint_id: compute_zeta_rho_put
+    summary: >
+      PIPELINE STAGE 10 (TERMINAL). Compute alpha-modified rho for the PUT and assemble final output.
+      rho_put = -alpha * K * T * r^(alpha-1) * disc_alpha * N(-d2_zeta).
+      Assemble zeta_results from ALL upstream component outputs.
+    input_names: [zeta_request]
+    output_names: [zeta_results]
+    business_rules:
+      - "STAGE 10 (TERMINAL). Receives all upstream outputs and assembles the final zeta_results."
+      - "rho_put = -alpha * strike * time_to_expiry * (rate ** (alpha - 1)) * disc_alpha * norm.cdf(-d2_zeta)"
+      - "CRITICAL: rho_put has leading MINUS sign and uses N(-d2_zeta). rho_call has no minus and uses N(d2_zeta)."
+      - "Assemble final zeta_results: {case_id, d1_zeta, d2_zeta, disc_alpha, call_price, put_price, delta_call, delta_put, gamma, theta_call, theta_put, vega, rho_call, rho_put}."
+      - "This is the terminal emitter of zeta_results."
+
+human_context_notes:
+  - "This is a MODIFIED Black-Scholes model. The zeta and alpha parameters are free parameters that do NOT appear in standard BS."
+  - "disc_alpha = exp(-r^alpha * T) generalizes the discount factor. When alpha=1, it reduces to standard exp(-rT)."
+  - "d2_zeta = d1_zeta - zeta*sigma*sqrt(T). When zeta=1, it reduces to standard d1 - sigma*sqrt(T)."
+  - "delta_call = zeta*N(d1_zeta). When zeta=1, it reduces to standard delta_call = N(d1)."
+  - "Modified put-call parity: call_price - put_price = spot - strike*disc_alpha (NOT spot - strike*exp(-rT))."
+  - "rho measures sensitivity to rate r. The fractional power alpha makes rho more complex: d/dr[disc_alpha] = -alpha * r^(alpha-1) * disc_alpha."
+  - "With zeta=0.40 (low_zeta case), delta is 40% of standard. With zeta=0.90 (itm_put case), delta is 90% of standard."
