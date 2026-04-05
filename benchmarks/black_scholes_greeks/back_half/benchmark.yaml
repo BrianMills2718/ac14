@@ -1,0 +1,38 @@
+benchmark:
+  benchmark_id: black_scholes_greeks_v1
+  name: Black-Scholes Option Pricing and Greeks
+  purpose: >
+    Back-half evaluation assets for the Black-Scholes greeks benchmark. Contains
+    the reference blueprint, runtime cases, and expected outputs. Used by the
+    structured-spec front-half runner to evaluate AC14-generated code.
+  comparison_scope: decomposition_vs_monolithic_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+    - scipy.stats
+  primary_source_component_id: compute_d_parameters
+  primary_source_port_name: bs_request
+  final_component_id: compute_rho_put
+  final_output_ports:
+    - bs_results
+  system_requirements:
+    - "d1 = (log(S/K) + (r + sigma^2/2)*T) / (sigma*sqrt(T))"
+    - "d2 = d1 - sigma*sqrt(T)"
+    - "call = S*N(d1) - K*exp(-rT)*N(d2)"
+    - "put = K*exp(-rT)*N(-d2) - S*N(-d1)"
+    - "delta_call = N(d1), delta_put = N(d1) - 1"
+    - "gamma = N'(d1) / (S*sigma*sqrt(T))"
+    - "theta_call = -(S*N'(d1)*sigma)/(2*sqrt(T)) - r*K*exp(-rT)*N(d2)"
+    - "theta_put = -(S*N'(d1)*sigma)/(2*sqrt(T)) + r*K*exp(-rT)*N(-d2)"
+    - "vega = S*N'(d1)*sqrt(T)"
+    - "rho_call = K*T*exp(-rT)*N(d2)"
+    - "rho_put = -K*T*exp(-rT)*N(-d2)"
+  dynamic_output_fields: []
+  semantic_review_policy: advisory_on_exact_match

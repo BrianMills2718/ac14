@@ -1,0 +1,34 @@
+[
+  {
+    "case_id": "atm_standard",
+    "spot": 100.0,
+    "strike": 100.0,
+    "rate": 0.05,
+    "volatility": 0.2,
+    "time_to_expiry": 1.0
+  },
+  {
+    "case_id": "itm_call",
+    "spot": 110.0,
+    "strike": 100.0,
+    "rate": 0.05,
+    "volatility": 0.2,
+    "time_to_expiry": 1.0
+  },
+  {
+    "case_id": "otm_put",
+    "spot": 90.0,
+    "strike": 100.0,
+    "rate": 0.05,
+    "volatility": 0.2,
+    "time_to_expiry": 1.0
+  },
+  {
+    "case_id": "short_expiry",
+    "spot": 100.0,
+    "strike": 100.0,
+    "rate": 0.05,
+    "volatility": 0.3,
+    "time_to_expiry": 0.25
+  }
+]

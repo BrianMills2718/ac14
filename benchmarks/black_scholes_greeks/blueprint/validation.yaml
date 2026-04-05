@@ -1,0 +1,25 @@
+global_invariants:
+- invariant_id: results_case_id_consistency
+  description: bs_results.case_id must equal the input bs_request.case_id.
+- invariant_id: put_call_parity
+  description: call_price - put_price must equal spot - strike*disc within floating point tolerance.
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual bs_results outputs to declared fixture outputs exactly.
+scenarios:
+- scenario_id: atm_scenario
+  kind: full_recomposition
+  description: ATM option (S=K=100, r=0.05, sigma=0.2, T=1.0).
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids: []
+- scenario_id: itm_scenario
+  kind: full_recomposition
+  description: ITM call (S=110, K=100).
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids: []

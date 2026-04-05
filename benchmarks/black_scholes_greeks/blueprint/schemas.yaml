@@ -1,0 +1,481 @@
+schemas:
+- schema_id: BsRequest
+  kind: object
+  description: Input option specification.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+- schema_id: DParamsOutput
+  kind: object
+  description: d1, d2, and discount factor.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+- schema_id: BsResults
+  kind: object
+  description: Complete option pricing results.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2.
+  - name: call_price
+    type: number
+    required: true
+    description: European call price.
+  - name: put_price
+    type: number
+    required: true
+    description: European put price.
+  - name: delta_call
+    type: number
+    required: true
+    description: Call delta.
+  - name: delta_put
+    type: number
+    required: true
+    description: Put delta.
+  - name: gamma
+    type: number
+    required: true
+    description: Gamma.
+  - name: theta_call
+    type: number
+    required: true
+    description: Theta for call.
+  - name: theta_put
+    type: number
+    required: true
+    description: Theta for put.
+  - name: vega
+    type: number
+    required: true
+    description: Vega.
+  - name: rho_call
+    type: number
+    required: true
+    description: Rho for call.
+  - name: rho_put
+    type: number
+    required: true
+    description: Rho for put.
+- schema_id: CallPriceOutput
+  kind: object
+  description: Call price intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: call_price
+    type: number
+    required: true
+    description: European call price.
+- schema_id: PutPriceOutput
+  kind: object
+  description: Put price intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: put_price
+    type: number
+    required: true
+    description: European put price.
+- schema_id: DeltaOutput
+  kind: object
+  description: Delta intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: delta_call
+    type: number
+    required: true
+    description: Call delta.
+  - name: delta_put
+    type: number
+    required: true
+    description: Put delta.
+- schema_id: GammaOutput
+  kind: object
+  description: Gamma intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: gamma
+    type: number
+    required: true
+    description: Gamma.
+- schema_id: ThetaCallOutput
+  kind: object
+  description: Theta call intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: theta_call
+    type: number
+    required: true
+    description: Theta for call.
+- schema_id: ThetaPutOutput
+  kind: object
+  description: Theta put intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: theta_put
+    type: number
+    required: true
+    description: Theta for put.
+- schema_id: VegaOutput
+  kind: object
+  description: Vega intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: vega
+    type: number
+    required: true
+    description: Vega.
+- schema_id: RhoCallOutput
+  kind: object
+  description: Rho call intermediate output.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable case identifier.
+  - name: spot
+    type: number
+    required: true
+    description: Spot price S.
+  - name: strike
+    type: number
+    required: true
+    description: Strike price K.
+  - name: rate
+    type: number
+    required: true
+    description: Risk-free rate r.
+  - name: volatility
+    type: number
+    required: true
+    description: Volatility sigma.
+  - name: time_to_expiry
+    type: number
+    required: true
+    description: Time to expiry T.
+  - name: d1
+    type: number
+    required: true
+    description: Standardized d1 parameter.
+  - name: d2
+    type: number
+    required: true
+    description: Standardized d2 parameter.
+  - name: disc
+    type: number
+    required: true
+    description: Discount factor exp(-rT).
+  - name: rho_call
+    type: number
+    required: true
+    description: Rho for call.

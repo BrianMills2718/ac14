@@ -1,0 +1,234 @@
+components:
+- component_id: compute_d_parameters
+  kind: transform
+  purpose: Compute d1, d2, and discount factor from bs_request parameters.
+  semantic_responsibility: compute_bs_d_parameters_and_discount
+  input_ports:
+  - name: bs_request
+    schema_id: BsRequest
+    description: Option parameters.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1, d2, disc.
+  local_invariants:
+  - d2 == d1 - volatility*sqrt(time_to_expiry)
+  failure_semantics:
+  - fail if spot <= 0 or strike <= 0 or time_to_expiry <= 0
+  implementation_constraints:
+  - d1 = (log(spot/strike) + (rate + volatility**2/2)*time_to_expiry) / (volatility*sqrt(time_to_expiry))
+- component_id: price_vanilla_call
+  kind: transform
+  purpose: Compute European call price.
+  semantic_responsibility: compute_bs_call_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    description: Call price.
+  local_invariants:
+  - call_price >= 0
+  failure_semantics: []
+  implementation_constraints:
+  - call_price = spot*N(d1) - strike*disc*N(d2)
+- component_id: price_vanilla_put
+  kind: transform
+  purpose: Compute European put price.
+  semantic_responsibility: compute_bs_put_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    description: Put price.
+  local_invariants:
+  - put_price >= 0
+  failure_semantics: []
+  implementation_constraints:
+  - put_price = strike*disc*N(-d2) - spot*N(-d1)
+- component_id: compute_delta
+  kind: transform
+  purpose: Compute delta for call and put.
+  semantic_responsibility: compute_bs_delta
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: delta_output
+    schema_id: DeltaOutput
+    description: Delta for call and put.
+  local_invariants:
+  - 0 < delta_call < 1
+  - -1 < delta_put < 0
+  failure_semantics: []
+  implementation_constraints:
+  - delta_call = N(d1)
+  - delta_put = N(d1) - 1.0
+- component_id: compute_gamma
+  kind: transform
+  purpose: Compute gamma (same for call and put).
+  semantic_responsibility: compute_bs_gamma
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma.
+  local_invariants:
+  - gamma > 0
+  failure_semantics: []
+  implementation_constraints:
+  - gamma = N_prime(d1) / (spot*volatility*sqrt(time_to_expiry))
+- component_id: compute_theta_call
+  kind: transform
+  purpose: Compute theta for call option.
+  semantic_responsibility: compute_bs_theta_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    description: Theta for call.
+  local_invariants:
+  - theta_call < 0 for positive T
+  failure_semantics: []
+  implementation_constraints:
+  - theta_call = -(spot*N_prime(d1)*volatility)/(2*sqrt(T)) - rate*strike*disc*N(d2)
+- component_id: compute_theta_put
+  kind: transform
+  purpose: Compute theta for put option.
+  semantic_responsibility: compute_bs_theta_put
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    description: Theta for put.
+  local_invariants:
+  - theta_put < 0 for standard positive-rate conditions
+  failure_semantics: []
+  implementation_constraints:
+  - theta_put = -(spot*N_prime(d1)*volatility)/(2*sqrt(T)) + rate*strike*disc*N(-d2)
+- component_id: compute_vega
+  kind: transform
+  purpose: Compute vega (same for call and put).
+  semantic_responsibility: compute_bs_vega
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: vega_output
+    schema_id: VegaOutput
+    description: Vega.
+  local_invariants:
+  - vega > 0
+  failure_semantics: []
+  implementation_constraints:
+  - vega = spot*N_prime(d1)*sqrt(time_to_expiry)
+- component_id: compute_rho_call
+  kind: transform
+  purpose: Compute rho for call option.
+  semantic_responsibility: compute_bs_rho_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  output_ports:
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    description: Rho for call.
+  local_invariants:
+  - rho_call > 0
+  failure_semantics: []
+  implementation_constraints:
+  - rho_call = strike*time_to_expiry*disc*N(d2)
+- component_id: compute_rho_put
+  kind: sink
+  purpose: Compute rho for put option and assemble final bs_results output.
+  semantic_responsibility: compute_bs_rho_put_and_assemble_results
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    required: true
+    arrival_policy: required_latest
+    description: d1, d2, disc.
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    required: true
+    arrival_policy: required_latest
+    description: Call price.
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    required: true
+    arrival_policy: required_latest
+    description: Put price.
+  - name: delta_output
+    schema_id: DeltaOutput
+    required: true
+    arrival_policy: required_latest
+    description: Delta.
+  - name: gamma_output
+    schema_id: GammaOutput
+    required: true
+    arrival_policy: required_latest
+    description: Gamma.
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    required: true
+    arrival_policy: required_latest
+    description: Theta call.
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    required: true
+    arrival_policy: required_latest
+    description: Theta put.
+  - name: vega_output
+    schema_id: VegaOutput
+    required: true
+    arrival_policy: required_latest
+    description: Vega.
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    required: true
+    arrival_policy: required_latest
+    description: Rho call.
+  output_ports:
+  - name: bs_results
+    schema_id: BsResults
+    description: Final BS results.
+  local_invariants:
+  - rho_put < 0
+  failure_semantics: []
+  implementation_constraints:
+  - rho_put = -strike*time_to_expiry*disc*N(-d2)

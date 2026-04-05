@@ -1,0 +1,82 @@
+[
+  {
+    "case_id": "atm_standard",
+    "expected_outputs": {
+      "bs_results": {
+        "case_id": "atm_standard",
+        "d1": 0.35,
+        "d2": 0.15,
+        "call_price": 10.45058357,
+        "put_price": 5.57352602,
+        "delta_call": 0.63683065,
+        "delta_put": -0.36316935,
+        "gamma": 0.01876202,
+        "theta_call": -6.41402755,
+        "theta_put": -1.65788042,
+        "vega": 37.52403469,
+        "rho_call": 53.23248155,
+        "rho_put": -41.8904609
+      }
+    }
+  },
+  {
+    "case_id": "itm_call",
+    "expected_outputs": {
+      "bs_results": {
+        "case_id": "itm_call",
+        "d1": 0.8265509,
+        "d2": 0.6265509,
+        "call_price": 17.66295374,
+        "put_price": 2.78589619,
+        "delta_call": 0.79575417,
+        "delta_put": -0.20424583,
+        "gamma": 0.01288651,
+        "theta_call": -6.61203589,
+        "theta_put": -1.85588877,
+        "vega": 31.18535639,
+        "rho_call": 69.8700051,
+        "rho_put": -25.25293735
+      }
+    }
+  },
+  {
+    "case_id": "otm_put",
+    "expected_outputs": {
+      "bs_results": {
+        "case_id": "otm_put",
+        "d1": -0.17680258,
+        "d2": -0.37680258,
+        "call_price": 5.09122208,
+        "put_price": 10.21416453,
+        "delta_call": 0.42983173,
+        "delta_put": -0.57016827,
+        "gamma": 0.02181975,
+        "theta_call": -5.2144808,
+        "theta_put": -0.45833367,
+        "vega": 35.34799108,
+        "rho_call": 33.59363379,
+        "rho_put": -61.52930866
+      }
+    }
+  },
+  {
+    "case_id": "short_expiry",
+    "expected_outputs": {
+      "bs_results": {
+        "case_id": "short_expiry",
+        "d1": 0.15833333,
+        "d2": 0.00833333,
+        "call_price": 6.5830845,
+        "put_price": 5.34086455,
+        "delta_call": 0.56290293,
+        "delta_put": -0.43709707,
+        "gamma": 0.02626486,
+        "theta_call": -14.30454622,
+        "theta_put": -9.36665721,
+        "vega": 19.698643,
+        "rho_call": 12.42680209,
+        "rho_put": -12.26264293
+      }
+    }
+  }
+]

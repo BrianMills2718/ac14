@@ -1,0 +1,14 @@
+benchmark:
+  benchmark_id: black_scholes_greeks_structured_spec_v1
+  name: "Black-Scholes Options Pricing and Greeks — Structured Spec Bundle"
+  purpose: >
+    Front-half-first Theory Forge benchmark testing whether decomposition helps
+    on a 10-component financial mathematics pipeline where call/put formula variants
+    have subtle sign differences (theta call vs put, rho call vs put, delta sign).
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

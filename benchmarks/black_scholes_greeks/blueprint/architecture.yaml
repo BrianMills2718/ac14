@@ -1,0 +1,85 @@
+bindings:
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: price_vanilla_call
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: price_vanilla_put
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_delta
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_gamma
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_theta_call
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_theta_put
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_vega
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_rho_call
+  to_port: d_params_output
+
+- from_component: compute_d_parameters
+  from_port: d_params_output
+  to_component: compute_rho_put
+  to_port: d_params_output
+
+- from_component: price_vanilla_call
+  from_port: call_price_output
+  to_component: compute_rho_put
+  to_port: call_price_output
+
+- from_component: price_vanilla_put
+  from_port: put_price_output
+  to_component: compute_rho_put
+  to_port: put_price_output
+
+- from_component: compute_delta
+  from_port: delta_output
+  to_component: compute_rho_put
+  to_port: delta_output
+
+- from_component: compute_gamma
+  from_port: gamma_output
+  to_component: compute_rho_put
+  to_port: gamma_output
+
+- from_component: compute_theta_call
+  from_port: theta_call_output
+  to_component: compute_rho_put
+  to_port: theta_call_output
+
+- from_component: compute_theta_put
+  from_port: theta_put_output
+  to_component: compute_rho_put
+  to_port: theta_put_output
+
+- from_component: compute_vega
+  from_port: vega_output
+  to_component: compute_rho_put
+  to_port: vega_output
+
+- from_component: compute_rho_call
+  from_port: rho_call_output
+  to_component: compute_rho_put
+  to_port: rho_call_output

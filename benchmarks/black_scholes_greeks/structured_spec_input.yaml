@@ -1,0 +1,264 @@
+system_name: Black-Scholes Option Pricing and Greeks Calculator
+purpose: >
+  Compute European option prices and all five first-order Greeks (delta, gamma, theta, vega, rho)
+  for both call and put options using the Black-Scholes formula. The system implements ten
+  operations as a sequential and branching pipeline: (1) compute d1 and d2 parameters,
+  (2) price the vanilla call, (3) price the vanilla put, (4) compute delta for both option types,
+  (5) compute gamma (shared for call and put), (6) compute theta for call, (7) compute theta
+  for put, (8) compute vega (shared), (9) compute rho for call, (10) compute rho for put.
+  Parameters: spot S, strike K, risk-free rate r, volatility sigma, time-to-expiry T.
+requirements:
+  - compute d1 = (ln(S/K) + (r + sigma^2/2)*T) / (sigma*sqrt(T)) and d2 = d1 - sigma*sqrt(T)
+  - "call price: S*N(d1) - K*exp(-rT)*N(d2)"
+  - "put price: K*exp(-rT)*N(-d2) - S*N(-d1)"
+  - "delta for call: N(d1); delta for put: N(d1) - 1"
+  - "gamma is IDENTICAL for call and put: N_prime(d1) / (S*sigma*sqrt(T))"
+  - "theta for call: -(S*N_prime(d1)*sigma)/(2*sqrt(T)) - r*K*exp(-rT)*N(d2)"
+  - "theta for put: -(S*N_prime(d1)*sigma)/(2*sqrt(T)) + r*K*exp(-rT)*N(-d2)"
+  - "vega is IDENTICAL for call and put: S*N_prime(d1)*sqrt(T)"
+  - "rho for call: K*T*exp(-rT)*N(d2)"
+  - "rho for put: -K*T*exp(-rT)*N(-d2)"
+success_criteria:
+  - "ATM case (S=K=100, r=0.05, sigma=0.2, T=1.0): call price approx 10.4506, put price approx 5.5735"
+  - "ATM delta_call approx 0.6368, delta_put approx -0.3632"
+  - "Put-call parity holds: call_price - put_price == S - K*exp(-rT) within floating point"
+  - "Gamma is positive for all inputs; theta is negative for both call and put under standard assumptions"
+  - "Vega is positive; rho_call is positive; rho_put is negative"
+business_rules:
+  - "NORMAL CDF: Use scipy.stats.norm.cdf(x) for N(x). The standard normal density N'(x) = norm.pdf(x)."
+  - "DISCOUNT FACTOR: disc = exp(-r*T). Compute once and reuse. Do not recompute separately for each formula."
+  - "D1 FORMULA: d1 = (math.log(S/K) + (r + sigma**2/2)*T) / (sigma*math.sqrt(T)). Use math.log not math.log2."
+  - "D2 FORMULA: d2 = d1 - sigma*math.sqrt(T). d2 is always strictly less than d1."
+  - "THETA SIGN: Theta is NEGATIVE for long options (value decays with time). Both call and put theta should be negative in standard conditions."
+  - "THETA CALL vs PUT: The first term -(S*N'(d1)*sigma)/(2*sqrt(T)) is IDENTICAL. The second term differs: -r*K*disc*N(d2) for call, +r*K*disc*N(-d2) for put."
+  - "DELTA: call delta uses N(d1) directly. Put delta subtracts 1: N(d1) - 1.0. Both must be returned as floats."
+  - "RHO SIGN: rho_call is positive (call gains value as rate rises). rho_put is negative. The formula for put uses -K*T*disc*N(-d2)."
+inputs:
+  - name: bs_request
+    kind: record
+    description: Complete option specification with market parameters.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to all outputs.
+        required: true
+      - field_name: spot
+        field_type: float
+        description: Current spot price S of the underlying asset. Must be positive.
+        required: true
+      - field_name: strike
+        field_type: float
+        description: Option strike price K. Must be positive.
+        required: true
+      - field_name: rate
+        field_type: float
+        description: Annualized continuous risk-free rate r. Typically 0.01 to 0.10.
+        required: true
+      - field_name: volatility
+        field_type: float
+        description: Annualized implied volatility sigma. Typically 0.10 to 0.60.
+        required: true
+      - field_name: time_to_expiry
+        field_type: float
+        description: Time to option expiry T in years. Must be positive.
+        required: true
+outputs:
+  - name: bs_results
+    kind: record
+    description: Complete option pricing output with prices and all five Greeks for both call and put.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from input).
+        required: true
+      - field_name: d1
+        field_type: float
+        description: Standardized d1 parameter used in BS formula.
+        required: true
+      - field_name: d2
+        field_type: float
+        description: Standardized d2 parameter. Always d1 - sigma*sqrt(T).
+        required: true
+      - field_name: call_price
+        field_type: float
+        description: Fair value of European call option.
+        required: true
+      - field_name: put_price
+        field_type: float
+        description: Fair value of European put option.
+        required: true
+      - field_name: delta_call
+        field_type: float
+        description: Delta of call option (rate of change of call price with respect to spot).
+        required: true
+      - field_name: delta_put
+        field_type: float
+        description: Delta of put option. Must be negative for a long put.
+        required: true
+      - field_name: gamma
+        field_type: float
+        description: Gamma (second derivative of option price w.r.t. spot). Same for call and put.
+        required: true
+      - field_name: theta_call
+        field_type: float
+        description: Theta of call option (time decay, negative for long options).
+        required: true
+      - field_name: theta_put
+        field_type: float
+        description: Theta of put option (time decay). DIFFERENT formula from theta_call.
+        required: true
+      - field_name: vega
+        field_type: float
+        description: Vega (sensitivity to volatility). Same for call and put.
+        required: true
+      - field_name: rho_call
+        field_type: float
+        description: Rho of call option (sensitivity to interest rate). Positive value.
+        required: true
+      - field_name: rho_put
+        field_type: float
+        description: Rho of put option (sensitivity to interest rate). NEGATIVE value.
+        required: true
+workflow_hints:
+  - hint_id: compute_d_parameters
+    summary: >
+      PIPELINE STAGE 1 (SOURCE). Receive bs_request and compute the d1 and d2
+      parameters that all downstream components depend on.
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). This component receives bs_request as the sole external input."
+      - "d1 = (math.log(spot/strike) + (rate + volatility**2/2)*time_to_expiry) / (volatility*math.sqrt(time_to_expiry))"
+      - "d2 = d1 - volatility*math.sqrt(time_to_expiry)"
+      - "Emit d_params_output: {case_id, spot, strike, rate, volatility, time_to_expiry, d1, d2, disc=math.exp(-rate*time_to_expiry)}. Wire to ALL downstream components."
+
+  - hint_id: price_vanilla_call
+    summary: >
+      PIPELINE STAGE 2. Receive d_params_output and compute the European call option price
+      using the BS formula: C = S*N(d1) - K*exp(-rT)*N(d2).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 2. Receives d_params_output from compute_d_parameters."
+      - "call_price = spot * norm.cdf(d1) - strike * disc * norm.cdf(d2)"
+      - "from scipy.stats import norm"
+      - "Emit call_price_output: {case_id, spot, strike, rate, volatility, time_to_expiry, d1, d2, disc, call_price}. Wire to delta_calculator."
+
+  - hint_id: price_vanilla_put
+    summary: >
+      PIPELINE STAGE 3. Receive d_params_output and compute the European put option price
+      using the BS formula: P = K*exp(-rT)*N(-d2) - S*N(-d1).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 3. Receives d_params_output from compute_d_parameters."
+      - "put_price = strike * disc * norm.cdf(-d2) - spot * norm.cdf(-d1)"
+      - "CRITICAL: The put formula uses N(-d2) and N(-d1), NOT N(d2) and N(d1). The signs inside N() are FLIPPED compared to the call formula."
+      - "from scipy.stats import norm"
+      - "Emit put_price_output: {case_id, spot, strike, rate, volatility, time_to_expiry, d1, d2, disc, put_price}. Wire to delta_calculator."
+
+  - hint_id: compute_delta
+    summary: >
+      PIPELINE STAGE 4. Receive d_params_output and compute delta for both call and put.
+      Delta measures how much the option price changes per unit change in spot.
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 4. Receives d_params_output from compute_d_parameters."
+      - "delta_call = norm.cdf(d1)"
+      - "delta_put = norm.cdf(d1) - 1.0"
+      - "CRITICAL: delta_put is NOT -norm.cdf(-d1). It is norm.cdf(d1) - 1.0. These are mathematically equal but use the same d1 as the call calculation."
+      - "delta_call is in (0, 1). delta_put is in (-1, 0). Both are bounded."
+      - "Emit delta_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, delta_call, delta_put}."
+
+  - hint_id: compute_gamma
+    summary: >
+      PIPELINE STAGE 5. Receive d_params_output and compute gamma.
+      Gamma is the SAME for call and put options: N'(d1) / (S*sigma*sqrt(T)).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 5. Receives d_params_output from compute_d_parameters."
+      - "gamma = norm.pdf(d1) / (spot * volatility * math.sqrt(time_to_expiry))"
+      - "N'(x) is the standard normal PDF, accessed via norm.pdf(x)."
+      - "gamma is always POSITIVE and is the same for call and put."
+      - "Emit gamma_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, gamma}."
+
+  - hint_id: compute_theta_call
+    summary: >
+      PIPELINE STAGE 6. Compute theta for the CALL option only.
+      Theta measures time decay: -(S*N'(d1)*sigma)/(2*sqrt(T)) - r*K*exp(-rT)*N(d2).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 6. Receives d_params_output from compute_d_parameters."
+      - "theta_call = -(spot * norm.pdf(d1) * volatility) / (2 * math.sqrt(time_to_expiry)) - rate * strike * disc * norm.cdf(d2)"
+      - "CRITICAL: theta_call has a MINUS sign before both terms. The second term subtracts."
+      - "theta_call is typically NEGATIVE (long call loses value as time passes)."
+      - "This formula is for CALL only. Do NOT use this formula for put theta."
+      - "Emit theta_call_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, theta_call}."
+
+  - hint_id: compute_theta_put
+    summary: >
+      PIPELINE STAGE 7. Compute theta for the PUT option only.
+      Theta for put: -(S*N'(d1)*sigma)/(2*sqrt(T)) + r*K*exp(-rT)*N(-d2).
+      The second term ADDS (unlike call theta which subtracts).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 7. Receives d_params_output from compute_d_parameters."
+      - "theta_put = -(spot * norm.pdf(d1) * volatility) / (2 * math.sqrt(time_to_expiry)) + rate * strike * disc * norm.cdf(-d2)"
+      - "CRITICAL: The SECOND TERM for put theta is POSITIVE (+ sign), whereas for call theta it is NEGATIVE."
+      - "CRITICAL: The second term uses N(-d2), not N(d2). The sign inside N() is FLIPPED compared to call theta."
+      - "theta_put is typically NEGATIVE but closer to zero than theta_call under standard assumptions."
+      - "This formula is for PUT only. Do NOT use the call theta formula here."
+      - "Emit theta_put_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, theta_put}."
+
+  - hint_id: compute_vega
+    summary: >
+      PIPELINE STAGE 8. Compute vega, which is the SAME for call and put options.
+      Vega = S*N'(d1)*sqrt(T).
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 8. Receives d_params_output from compute_d_parameters."
+      - "vega = spot * norm.pdf(d1) * math.sqrt(time_to_expiry)"
+      - "vega is always POSITIVE and identical for call and put."
+      - "Emit vega_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, vega}."
+
+  - hint_id: compute_rho_call
+    summary: >
+      PIPELINE STAGE 9. Compute rho for the CALL option.
+      Rho_call = K*T*exp(-rT)*N(d2). Always positive.
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 9. Receives d_params_output from compute_d_parameters."
+      - "rho_call = strike * time_to_expiry * disc * norm.cdf(d2)"
+      - "rho_call is POSITIVE: call options gain value as rates rise."
+      - "This formula uses N(d2), not N(-d2). Do not flip the sign inside N()."
+      - "Emit rho_call_output: {case_id, d1, d2, disc, spot, strike, rate, volatility, time_to_expiry, rho_call}."
+
+  - hint_id: compute_rho_put
+    summary: >
+      PIPELINE STAGE 10 (TERMINAL). Compute rho for the PUT option and assemble the final output.
+      Rho_put = -K*T*exp(-rT)*N(-d2). Always negative.
+    input_names: [bs_request]
+    output_names: [bs_results]
+    business_rules:
+      - "STAGE 10 (TERMINAL). Receives all upstream outputs and assembles the final bs_results."
+      - "rho_put = -strike * time_to_expiry * disc * norm.cdf(-d2)"
+      - "CRITICAL: rho_put is NEGATIVE. The formula has a leading minus sign AND uses N(-d2) not N(d2)."
+      - "CRITICAL: rho_call uses N(d2) with no leading minus. rho_put uses N(-d2) WITH a leading minus. Two differences."
+      - "Assemble final bs_results: {case_id, d1, d2, call_price, put_price, delta_call, delta_put, gamma, theta_call, theta_put, vega, rho_call, rho_put}."
+      - "This is the terminal emitter of bs_results."
+
+human_context_notes:
+  - "All formulas are the standard Black-Scholes (1973) results for European options on non-dividend paying stocks."
+  - "Theta is quoted on an annualized basis (per year). To get daily theta, divide by 365."
+  - "Greeks measure SENSITIVITIES: delta to spot, gamma to spot^2, theta to time, vega to vol, rho to rate."
+  - "Put-call parity must hold: call_price - put_price = spot - strike*exp(-rate*time_to_expiry)."
+  - "The discount factor disc = exp(-rate*time_to_expiry) appears in nearly all formulas. Compute once."
+  - "N(x) is the cumulative standard normal distribution. N'(x) = N_prime(x) is its density (bell curve)."
+  - "For deeply ITM calls (spot >> strike), delta_call approaches 1.0. For OTM calls, delta_call approaches 0.0."
+  - "Gamma is highest for ATM near-expiry options and approaches 0 for deeply ITM or OTM options."
