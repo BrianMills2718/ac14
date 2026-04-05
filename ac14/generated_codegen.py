@@ -80,6 +80,24 @@ class GeneratedPackage(BaseModel):
     )
 
 
+def _merge_component_rules(
+    *,
+    component_id: str,
+    system_rules: list[str] | None,
+    hint_rules_by_component: dict[str, list[str]] | None,
+) -> list[str] | None:
+    """Combine top-level system rules with per-component workflow hint rules.
+
+    Component-specific hint rules are prepended so they appear first in the
+    context and take precedence in the LLM's attention.
+    """
+    hint_rules = (hint_rules_by_component or {}).get(component_id, [])
+    if not hint_rules:
+        return system_rules
+    combined = list(hint_rules) + list(system_rules or [])
+    return combined
+
+
 def emit_generated_package(
     packet_bundle: PacketBundle,
     output_dir: Path | str,
@@ -90,6 +108,7 @@ def emit_generated_package(
     trace_id_prefix: str = "ac14/generated_codegen",
     repair_guidance_by_component: dict[str, list[str]] | None = None,
     structured_spec_business_rules: list[str] | None = None,
+    structured_spec_hint_rules_by_component: dict[str, list[str]] | None = None,
 ) -> GeneratedPackage:
     """Emit standalone Python modules for all components in a packet bundle."""
 
@@ -100,6 +119,11 @@ def emit_generated_package(
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
     for component_id, packet in packet_bundle.packets.items():
+        component_rules = _merge_component_rules(
+            component_id=component_id,
+            system_rules=structured_spec_business_rules,
+            hint_rules_by_component=structured_spec_hint_rules_by_component,
+        )
         context = build_codegen_context(
             packet,
             packet_cases[component_id],
@@ -108,7 +132,7 @@ def emit_generated_package(
                 if repair_guidance_by_component is not None
                 else []
             ),
-            structured_spec_business_rules=structured_spec_business_rules,
+            structured_spec_business_rules=component_rules,
         )
         atomic_write_text(destination / f"{component_id}.context.json", context.model_dump_json(indent=2))
         try:
@@ -144,6 +168,7 @@ async def aemit_generated_package(
     trace_id_prefix: str = "ac14/generated_codegen",
     repair_guidance_by_component: dict[str, list[str]] | None = None,
     structured_spec_business_rules: list[str] | None = None,
+    structured_spec_hint_rules_by_component: dict[str, list[str]] | None = None,
 ) -> GeneratedPackage:
     """Async package emission for callers already running inside an event loop."""
 
@@ -154,6 +179,11 @@ async def aemit_generated_package(
     packet_cases = materialize_packet_test_cases(packet_bundle)
     module_paths: dict[str, str] = {}
     for component_id, packet in packet_bundle.packets.items():
+        component_rules = _merge_component_rules(
+            component_id=component_id,
+            system_rules=structured_spec_business_rules,
+            hint_rules_by_component=structured_spec_hint_rules_by_component,
+        )
         context = build_codegen_context(
             packet,
             packet_cases[component_id],
@@ -162,7 +192,7 @@ async def aemit_generated_package(
                 if repair_guidance_by_component is not None
                 else []
             ),
-            structured_spec_business_rules=structured_spec_business_rules,
+            structured_spec_business_rules=component_rules,
         )
         atomic_write_text(destination / f"{component_id}.context.json", context.model_dump_json(indent=2))
         try:

@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ac14.codegen_context import CodegenContext
 from llm_client import acall_llm_structured, render_prompt  # type: ignore[import-not-found]
@@ -22,6 +22,8 @@ PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "generate_compon
 
 class GeneratedModuleResponse(BaseModel):
     """Structured response contract for LLM-backed module generation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     module_code: str = Field(
         description=(

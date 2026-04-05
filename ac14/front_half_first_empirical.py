@@ -789,6 +789,11 @@ def _run_ac14_attempt(
                     "condition": "ac14",
                 },
             ):
+                hint_rules_by_component = {
+                    hint.hint_id: list(hint.business_rules)
+                    for hint in structured_bundle.structured_spec.workflow_hints
+                    if hint.business_rules
+                }
                 generated_package = emit_generated_package(
                     packet_bundle,
                     output_dir / "generated",
@@ -797,6 +802,7 @@ def _run_ac14_attempt(
                     llm_max_budget=max_budget,
                     trace_id_prefix=trace_prefix,
                     structured_spec_business_rules=list(structured_bundle.structured_spec.business_rules),
+                    structured_spec_hint_rules_by_component=hint_rules_by_component,
                 )
                 packet_report = run_generated_packet_tests(
                     packet_bundle,
