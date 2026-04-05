@@ -1,0 +1,216 @@
+bindings:
+# Stage 1 → Stage 2: d_params fans out to all first-order Greek components
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: price_zeta_call
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: price_zeta_put
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_delta
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_gamma
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_theta_call
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_theta_put
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_vega
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_rho_call
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_rho_put
+  to_port: d_params_output
+
+# Stage 1 → Stage 3: d_params fans to second-order Greeks that only need d_params
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_vanna
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_volga
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_charm
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_veta
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_speed
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_zomma
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_color
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_dual_delta
+  to_port: d_params_output
+
+- from_component: compute_zeta_d_params
+  from_port: d_params_output
+  to_component: compute_zeta_ultima
+  to_port: d_params_output
+
+# Stage 2 → Stage 3: vega feeds volga and veta
+- from_component: compute_zeta_vega
+  from_port: vega_output
+  to_component: compute_zeta_volga
+  to_port: vega_output
+
+- from_component: compute_zeta_vega
+  from_port: vega_output
+  to_component: compute_zeta_veta
+  to_port: vega_output
+
+# Stage 2 → Stage 3: gamma feeds speed, zomma, color
+- from_component: compute_zeta_gamma
+  from_port: gamma_output
+  to_component: compute_zeta_speed
+  to_port: gamma_output
+
+- from_component: compute_zeta_gamma
+  from_port: gamma_output
+  to_component: compute_zeta_zomma
+  to_port: gamma_output
+
+- from_component: compute_zeta_gamma
+  from_port: gamma_output
+  to_component: compute_zeta_color
+  to_port: gamma_output
+
+# Stage 3 → Stage 3: volga feeds ultima
+- from_component: compute_zeta_volga
+  from_port: volga_output
+  to_component: compute_zeta_ultima
+  to_port: volga_output
+
+# Stage 2+3 → Stage 4: all components feed the terminal assembler
+- from_component: price_zeta_call
+  from_port: call_price_output
+  to_component: assemble_zeta_extended_results
+  to_port: call_price_output
+
+- from_component: price_zeta_put
+  from_port: put_price_output
+  to_component: assemble_zeta_extended_results
+  to_port: put_price_output
+
+- from_component: compute_zeta_delta
+  from_port: delta_output
+  to_component: assemble_zeta_extended_results
+  to_port: delta_output
+
+- from_component: compute_zeta_gamma
+  from_port: gamma_output
+  to_component: assemble_zeta_extended_results
+  to_port: gamma_output
+
+- from_component: compute_zeta_theta_call
+  from_port: theta_call_output
+  to_component: assemble_zeta_extended_results
+  to_port: theta_call_output
+
+- from_component: compute_zeta_theta_put
+  from_port: theta_put_output
+  to_component: assemble_zeta_extended_results
+  to_port: theta_put_output
+
+- from_component: compute_zeta_vega
+  from_port: vega_output
+  to_component: assemble_zeta_extended_results
+  to_port: vega_output
+
+- from_component: compute_zeta_rho_call
+  from_port: rho_call_output
+  to_component: assemble_zeta_extended_results
+  to_port: rho_call_output
+
+- from_component: compute_zeta_rho_put
+  from_port: rho_put_output
+  to_component: assemble_zeta_extended_results
+  to_port: rho_put_output
+
+- from_component: compute_zeta_vanna
+  from_port: vanna_output
+  to_component: assemble_zeta_extended_results
+  to_port: vanna_output
+
+- from_component: compute_zeta_volga
+  from_port: volga_output
+  to_component: assemble_zeta_extended_results
+  to_port: volga_output
+
+- from_component: compute_zeta_charm
+  from_port: charm_output
+  to_component: assemble_zeta_extended_results
+  to_port: charm_output
+
+- from_component: compute_zeta_veta
+  from_port: veta_output
+  to_component: assemble_zeta_extended_results
+  to_port: veta_output
+
+- from_component: compute_zeta_speed
+  from_port: speed_output
+  to_component: assemble_zeta_extended_results
+  to_port: speed_output
+
+- from_component: compute_zeta_zomma
+  from_port: zomma_output
+  to_component: assemble_zeta_extended_results
+  to_port: zomma_output
+
+- from_component: compute_zeta_color
+  from_port: color_output
+  to_component: assemble_zeta_extended_results
+  to_port: color_output
+
+- from_component: compute_zeta_dual_delta
+  from_port: dual_delta_output
+  to_component: assemble_zeta_extended_results
+  to_port: dual_delta_output
+
+- from_component: compute_zeta_ultima
+  from_port: ultima_output
+  to_component: assemble_zeta_extended_results
+  to_port: ultima_output

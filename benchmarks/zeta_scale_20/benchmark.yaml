@@ -1,0 +1,16 @@
+benchmark:
+  benchmark_id: zeta_scale_20_v1
+  name: "Zeta-Modified European Options: 20-Component Scale Test"
+  purpose: >
+    Scale test extending zeta_options_v1 (10 components) to 20 components by adding
+    10 second-order Greeks (vanna, volga, charm, veta, speed, zomma, color, dual-delta,
+    ultima). Tests whether AC14 decomposition advantage appears at larger component scale.
+    Monolithic must generate ~1600 lines of code implementing 23 output fields correctly.
+    AC14 decomposes into 20 bounded packets of ~80 lines each.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

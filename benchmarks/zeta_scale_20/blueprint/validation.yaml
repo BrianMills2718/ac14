@@ -1,0 +1,91 @@
+global_invariants:
+- invariant_id: charm_call_put_equality
+  description: charm_call must equal charm_put (delta_put = delta_call - 1; constant has zero T-derivative).
+- invariant_id: speed_negative_atm
+  description: speed < 0 for ATM options (gamma decreases as spot rises).
+evaluators:
+- evaluator_id: exact_outputs_scale20
+  kind: programmatic_exact
+  description: >
+    Compare all 24 numeric outputs from assemble_zeta_extended_results to declared
+    fixture outputs with tolerance 1e-8.
+- evaluator_id: llm_second_order_greeks
+  kind: llm_requirements_acceptance
+  description: >
+    LLM judge verifying all second-order Greeks (vanna, volga, charm, veta, speed,
+    zomma, color, dual-delta, ultima) use correct zeta/alpha-modified formulas.
+scenarios:
+- scenario_id: base_case_all_greeks
+  kind: semantic_acceptance
+  description: >
+    Full pipeline test with base case (ATM, S=K=100, r=0.05, sigma=0.20, T=1.0,
+    zeta=0.70, alpha=0.85). Verify all 24 numeric outputs match reference values.
+  evaluator_ids:
+  - llm_second_order_greeks
+  realistic_input: true
+  requirements:
+  - "vanna = -zeta * N'(d1_zeta) * d2_zeta / sigma (NOT -N'(d1)*d2/sigma)"
+  - "volga = vega * d1_zeta * d2_zeta / sigma"
+  - "charm_call = zeta * N'(d1_zeta) * dd1_dT where dd1_dT = (r + zeta*sigma^2/2)/(sigma*sqrt(T)) - d1/(2T)"
+  - "charm_put = charm_call (not charm_call - something)"
+  - "veta = S * zeta^0.5 * N'(d1_zeta) * (1/(2*sqrt(T)) - d1_zeta * dd1_dT)"
+  - "speed = -gamma * (1 + d1_zeta/(sigma*sqrt(T))) / S"
+  - "zomma = gamma * (d1_zeta*d2_zeta - 1) / sigma"
+  - "color = -gamma * (d1_zeta * dd1_dT + 1/(2T))"
+  - "dual_delta_call = -disc_alpha * N(d2_zeta) (uses disc_alpha not exp(-rT))"
+  - "dual_delta_put = disc_alpha * N(-d2_zeta) (positive)"
+  - "ultima = -volga/sigma * (d1_zeta*d2_zeta*(1 - d1_zeta*d2_zeta) + d1_zeta^2 + d2_zeta^2)"
+  fixture_ids:
+  - fixture_d_params_base
+  - fixture_call_base
+  - fixture_put_base
+  - fixture_delta_base
+  - fixture_gamma_base
+  - fixture_theta_call_base
+  - fixture_theta_put_base
+  - fixture_vega_base
+  - fixture_rho_call_base
+  - fixture_rho_put_base
+  - fixture_vanna_base
+  - fixture_volga_base
+  - fixture_charm_base
+  - fixture_veta_base
+  - fixture_speed_base
+  - fixture_zomma_base
+  - fixture_color_base
+  - fixture_dual_delta_base
+  - fixture_ultima_base
+  - fixture_assembler_base
+- scenario_id: global_invariants_check
+  kind: semantic_acceptance
+  description: >
+    Cross-component consistency: charm_call == charm_put, dual deltas have correct
+    signs, speed is negative for ATM.
+  evaluator_ids:
+  - llm_second_order_greeks
+  realistic_input: true
+  requirements:
+  - "charm_call == charm_put (both equal zeta*N'(d1)*dd1_dT)"
+  - "dual_delta_call < 0 and dual_delta_put > 0"
+  - "speed < 0 for ATM"
+  fixture_ids:
+  - fixture_d_params_base
+  - fixture_call_base
+  - fixture_put_base
+  - fixture_delta_base
+  - fixture_gamma_base
+  - fixture_theta_call_base
+  - fixture_theta_put_base
+  - fixture_vega_base
+  - fixture_rho_call_base
+  - fixture_rho_put_base
+  - fixture_vanna_base
+  - fixture_volga_base
+  - fixture_charm_base
+  - fixture_veta_base
+  - fixture_speed_base
+  - fixture_zomma_base
+  - fixture_color_base
+  - fixture_dual_delta_base
+  - fixture_ultima_base
+  - fixture_assembler_base
