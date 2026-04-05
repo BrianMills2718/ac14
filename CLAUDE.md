@@ -106,10 +106,10 @@ plan for that verdict.
 The current mandatory overnight chain is:
 
 **Context**: The resource_scaling front-half-first chain (Plans #83-#138) is complete.
-Gate_1 through gate_5 all pass. The Theory Forge benchmark series (Plans #149-#160) is
-now complete. All tried benchmarks (IT, PT, BS) with both gpt-4.1 and Gemini flash
-show monolithic_wins or inconclusive — known math formulas are too tractable. The active
-lane is now designing a harder benchmark that stresses context capacity or novel formulas.
+Gate_1 through gate_5 all pass. The Theory Forge benchmark series (Plans #149-#163) is
+active. gpt-4.1 passes all benchmarks monolithically (too capable). Gemini flash failed
+PT monolithically (2/5). The active lane is running zeta options with Gemini flash to
+find the first `ac14_wins` verdict.
 
 1. [Plan #149](./docs/plans/149_theory_forge_benchmark_design.md) -> complete
 2. [Plan #150](./docs/plans/150_theory_forge_information_theory_benchmark.md) -> complete, IT gate_1 `inconclusive` (both 5/5 gpt-4.1)
@@ -122,14 +122,14 @@ lane is now designing a harder benchmark that stresses context capacity or novel
 9. [Plan #158](./docs/plans/158_gemini_flash_gate_verdict.md) -> complete, PT Gemini flash `monolithic_wins` (2/5 vs 5/5)
 10. [Plan #159](./docs/plans/159_bs_gate_1_verdict.md) -> complete, BS gate_1 `inconclusive` (both 5/5 gpt-4.1)
 11. [Plan #160](./docs/plans/160_bs_gemini_flash_verdict.md) -> complete, BS Gemini flash `inconclusive` (4/5 vs 5/5)
-12. **[Plan #161](./docs/plans/161_harder_benchmark_design.md)** -> **ACTIVE** — design benchmark that breaks monolithic with gpt-4.1
-    - Target: mono fails ≥1/5 with gpt-4.1; AC14 ≥4/5
-    - Options: large spec (20+ components), novel formulas, cross-component invariants
-    - After design: run gate directly (no smoke needed if bundle validates)
-13. After Plan #161 benchmark is ready: run gate_1 with gpt-4.1
-    - if `ac14_wins`: thesis validated — write ADR + Plan #162 for confirmation
-    - if `monolithic_wins`: diagnose which dimension failed, design Plan #162 with next approach
-    - if `inconclusive`: run 10-trial gate and write verdict
+12. [Plan #161](./docs/plans/161_harder_benchmark_design.md) -> complete, zeta_options bundle B1 passes
+13. [Plan #162](./docs/plans/162_zeta_gate_1_verdict.md) -> complete, zeta gate_1 `inconclusive` (4/5 vs 5/5 gpt-4.1); gpt-4.1 implements ALL zeta/alpha mods correctly; AC14 fails due to codegen errors not formula
+14. **[Plan #163](./docs/plans/163_zeta_gemini_flash_gate.md)** -> **ACTIVE** — run zeta options with Gemini flash
+    - Hypothesis: Gemini flash reverts to memorized BS formulas without AC14 hints
+    - Command: `make front-half-first-full-trials BENCHMARK=benchmarks/zeta_options OUTPUT=.ac14_out/zeta_gemini_gate_1 MODEL=gemini/gemini-2.5-flash MAX_BUDGET=0.30 TRIALS=5 MAX_ATTEMPTS=3`
+    - if `ac14_wins`: thesis validated for weak-model regime → write ADR + Plan #164 confirmation
+    - if `monolithic_wins`: mono also fails zeta → need even weaker model or larger system
+    - if `inconclusive`: run 10-trial gate
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
