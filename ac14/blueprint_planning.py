@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -565,7 +566,7 @@ async def abuild_draft_blueprint_plan_from_structured_spec(
                 messages,
                 response_model=DraftBlueprintPlanResponse,
                 task=task,
-                trace_id=f"ac14/draft_blueprint_plan_from_structured_spec/{artifact_path.stem}/attempt{attempt}",
+                trace_id=f"ac14/draft_blueprint_plan_from_structured_spec/{artifact_path.stem}/{hashlib.md5(str(destination).encode()).hexdigest()[:8]}/attempt{attempt}",
                 max_budget=max_budget,
             )
             typed_response = cast(DraftBlueprintPlanResponse, response)
