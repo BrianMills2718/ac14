@@ -149,7 +149,8 @@ The experiment contract remains frozen in:
 - [x] Plan #153: Prospect Theory benchmark bundle created (5 components, piecewise formulas, 5 runtime cases)
 - [x] Plan #154: PT gate_1 verdict — monolithic_wins (5/5 vs 1/5 AC14); root cause: context wiring + fixture list format bug
 - [x] Plan #155: PT gate_2 repair — validation fix (list primitive), hint rules threading, Codex SDK additionalProperties fix; gate_2d smoke `ready_for_full_trials`
-- [ ] Plan #156: PT gate_2d verdict — ACTIVE (gate running: 3/5 trials complete, AC14 3/3 passed so far)
+- [x] Plan #156: PT gate_2d verdict — monolithic_wins (both 5/5 on primary; mono wins on repair loops 0.0 vs 0.4); PT tractable for gpt-4.1
+- [ ] Plan #157: Model-capability comparison — run PT gate on gemini-flash; test if decomposition helps weaker models (NEXT)
 
 The completed execution lanes are:
 
