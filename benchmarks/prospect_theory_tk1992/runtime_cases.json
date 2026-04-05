@@ -1,91 +1,66 @@
 [
   {
     "case_id": "mixed_lottery",
-    "inputs": {
-      "prospect_theory_request": {
-        "case_id": "mixed_lottery",
-        "outcomes": [
-          {"outcome_value": 100.0, "probability": 0.5},
-          {"outcome_value": -50.0, "probability": 0.5}
-        ],
-        "reference_point": 0.0,
-        "alpha": 0.88,
-        "beta": 0.88,
-        "lambda_loss_aversion": 2.25,
-        "gamma_gains": 0.61,
-        "delta_losses": 0.69
-      }
-    }
+    "outcomes": [
+      {"outcome_value": 100.0, "probability": 0.5},
+      {"outcome_value": -50.0, "probability": 0.5}
+    ],
+    "reference_point": 0.0,
+    "alpha": 0.88,
+    "beta": 0.88,
+    "lambda_loss_aversion": 2.25,
+    "gamma_gains": 0.61,
+    "delta_losses": 0.69
   },
   {
     "case_id": "all_gains",
-    "inputs": {
-      "prospect_theory_request": {
-        "case_id": "all_gains",
-        "outcomes": [
-          {"outcome_value": 200.0, "probability": 0.3},
-          {"outcome_value": 100.0, "probability": 0.7}
-        ],
-        "reference_point": 0.0,
-        "alpha": 0.88,
-        "beta": 0.88,
-        "lambda_loss_aversion": 2.25,
-        "gamma_gains": 0.61,
-        "delta_losses": 0.69
-      }
-    }
+    "outcomes": [
+      {"outcome_value": 200.0, "probability": 0.3},
+      {"outcome_value": 100.0, "probability": 0.7}
+    ],
+    "reference_point": 0.0,
+    "alpha": 0.88,
+    "beta": 0.88,
+    "lambda_loss_aversion": 2.25,
+    "gamma_gains": 0.61,
+    "delta_losses": 0.69
   },
   {
     "case_id": "all_losses",
-    "inputs": {
-      "prospect_theory_request": {
-        "case_id": "all_losses",
-        "outcomes": [
-          {"outcome_value": -100.0, "probability": 0.4},
-          {"outcome_value": -30.0, "probability": 0.6}
-        ],
-        "reference_point": 0.0,
-        "alpha": 0.88,
-        "beta": 0.88,
-        "lambda_loss_aversion": 2.25,
-        "gamma_gains": 0.61,
-        "delta_losses": 0.69
-      }
-    }
+    "outcomes": [
+      {"outcome_value": -100.0, "probability": 0.4},
+      {"outcome_value": -30.0, "probability": 0.6}
+    ],
+    "reference_point": 0.0,
+    "alpha": 0.88,
+    "beta": 0.88,
+    "lambda_loss_aversion": 2.25,
+    "gamma_gains": 0.61,
+    "delta_losses": 0.69
   },
   {
     "case_id": "with_reference",
-    "inputs": {
-      "prospect_theory_request": {
-        "case_id": "with_reference",
-        "outcomes": [
-          {"outcome_value": 150.0, "probability": 0.6},
-          {"outcome_value": -20.0, "probability": 0.4}
-        ],
-        "reference_point": 50.0,
-        "alpha": 0.88,
-        "beta": 0.88,
-        "lambda_loss_aversion": 2.25,
-        "gamma_gains": 0.61,
-        "delta_losses": 0.69
-      }
-    }
+    "outcomes": [
+      {"outcome_value": 150.0, "probability": 0.6},
+      {"outcome_value": -20.0, "probability": 0.4}
+    ],
+    "reference_point": 50.0,
+    "alpha": 0.88,
+    "beta": 0.88,
+    "lambda_loss_aversion": 2.25,
+    "gamma_gains": 0.61,
+    "delta_losses": 0.69
   },
   {
     "case_id": "certain_gain",
-    "inputs": {
-      "prospect_theory_request": {
-        "case_id": "certain_gain",
-        "outcomes": [
-          {"outcome_value": 100.0, "probability": 1.0}
-        ],
-        "reference_point": 0.0,
-        "alpha": 0.88,
-        "beta": 0.88,
-        "lambda_loss_aversion": 2.25,
-        "gamma_gains": 0.61,
-        "delta_losses": 0.69
-      }
-    }
+    "outcomes": [
+      {"outcome_value": 100.0, "probability": 1.0}
+    ],
+    "reference_point": 0.0,
+    "alpha": 0.88,
+    "beta": 0.88,
+    "lambda_loss_aversion": 2.25,
+    "gamma_gains": 0.61,
+    "delta_losses": 0.69
   }
 ]
