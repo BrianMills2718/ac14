@@ -1,0 +1,14 @@
+benchmark:
+  benchmark_id: prospect_theory_tk1992_structured_spec_v1
+  name: "Prospect Theory Utility Suite — Structured Spec Bundle"
+  purpose: >
+    Front-half-first Theory Forge benchmark testing whether decomposition
+    helps on a harder behavioral economics pipeline with piecewise formulas,
+    dual probability weighting functions, and sign-dependent CE inversion.
+  comparison_scope: front_half_first_theory_forge_math
+  structured_spec_path: structured_spec_input.yaml
+  requirements_path: requirements.md
+  reference_benchmark_dir: ./back_half
+  source_artifacts:
+    - structured_spec_input.yaml
+    - requirements.md

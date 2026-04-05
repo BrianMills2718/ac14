@@ -111,8 +111,10 @@ current executable lane.
 | 147 | [Codegen Observability](147_codegen_observability.md) | High | Complete | - |
 | 148 | [Gate_5 Ten-Trial Statistical Confirmation](148_gate_5_ten_trials.md) | High | Complete | - |
 | 149 | [Theory Forge Benchmark Design](149_theory_forge_benchmark_design.md) | High | Complete | 148 |
-| 150 | [Theory Forge Information Theory Benchmark](150_theory_forge_information_theory_benchmark.md) | High | In Progress | 149 |
+| 150 | [Theory Forge Information Theory Benchmark](150_theory_forge_information_theory_benchmark.md) | High | Complete | 149 |
 | 151 | [Gate_5 Verdict Interpretation](151_gate_5_verdict.md) | High | Complete | 148 |
+| 152 | [IT Gate_1 Verdict Interpretation](152_it_gate_1_verdict.md) | High | Complete | 150 |
+| 153 | [Prospect Theory Benchmark](153_prospect_theory_benchmark.md) | High | In Progress | 152 |
 | 89 | [Front-Half-First Blocker Diagnosis](89_front_half_first_blocker_diagnosis.md) | Critical | Complete | 90 |
 | 90 | [Front-Half-First Contract And Observability Repair](90_front_half_first_contract_and_observability_repair.md) | Critical | Complete | 91 |
 | 91 | [Front-Half-First Smoke Rerun](91_front_half_first_smoke_rerun.md) | Critical | Complete | 88, 92 |

@@ -1,0 +1,140 @@
+fixtures:
+- fixture_id: mixed_lottery_apply_reference_point
+  scenario_id: mixed_lottery_scenario
+  component_id: apply_reference_point
+  description: Mixed lottery (gain 100 / loss 50, equal probability) to apply_reference_point.
+  inputs:
+    prospect_theory_request:
+      case_id: mixed_lottery
+      outcomes:
+        - outcome_value: 100.0
+          probability: 0.5
+        - outcome_value: -50.0
+          probability: 0.5
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+  expected_outputs:
+    reference_adjusted_output:
+      case_id: mixed_lottery
+      adjusted_outcomes:
+        - net_value: 100.0
+          probability: 0.5
+          is_gain: true
+        - net_value: -50.0
+          probability: 0.5
+          is_gain: false
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+
+- fixture_id: mixed_lottery_compute_value_function
+  scenario_id: mixed_lottery_scenario
+  component_id: compute_value_function
+  description: compute_value_function for mixed lottery. Gain v(100)=57.544, Loss v(-50)=-70.352.
+  inputs:
+    reference_adjusted_output:
+      case_id: mixed_lottery
+      adjusted_outcomes:
+        - net_value: 100.0
+          probability: 0.5
+          is_gain: true
+        - net_value: -50.0
+          probability: 0.5
+          is_gain: false
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+  expected_outputs:
+    valued_outcomes_output:
+      case_id: mixed_lottery
+      valued_outcomes:
+        - net_value: 100.0
+          probability: 0.5
+          is_gain: true
+          utility_value: 57.543993733715695
+        - net_value: -50.0
+          probability: 0.5
+          is_gain: false
+          utility_value: -70.35194713433611
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+
+- fixture_id: mixed_lottery_compute_certainty_equivalent
+  scenario_id: mixed_lottery_scenario
+  component_id: compute_certainty_equivalent
+  description: compute_certainty_equivalent for mixed lottery. V=-7.734, CE=-4.067.
+  inputs:
+    prospect_utility_output:
+      case_id: mixed_lottery
+      prospect_utility: -7.73363971371036
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+  expected_outputs:
+    prospect_theory_results:
+      case_id: mixed_lottery
+      prospect_utility: -7.73363971371036
+      certainty_equivalent: -4.067427239812672
+
+- fixture_id: certain_gain_apply_reference_point
+  scenario_id: certain_gain_scenario
+  component_id: apply_reference_point
+  description: Certain gain of 100 to apply_reference_point.
+  inputs:
+    prospect_theory_request:
+      case_id: certain_gain
+      outcomes:
+        - outcome_value: 100.0
+          probability: 1.0
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+  expected_outputs:
+    reference_adjusted_output:
+      case_id: certain_gain
+      adjusted_outcomes:
+        - net_value: 100.0
+          probability: 1.0
+          is_gain: true
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+      gamma_gains: 0.61
+      delta_losses: 0.69
+
+- fixture_id: certain_gain_compute_certainty_equivalent
+  scenario_id: certain_gain_scenario
+  component_id: compute_certainty_equivalent
+  description: compute_certainty_equivalent for certain gain. V=57.544, CE=100.00000000000004 (floating-point round-trip).
+  inputs:
+    prospect_utility_output:
+      case_id: certain_gain
+      prospect_utility: 57.543993733715695
+      reference_point: 0.0
+      alpha: 0.88
+      beta: 0.88
+      lambda_loss_aversion: 2.25
+  expected_outputs:
+    prospect_theory_results:
+      case_id: certain_gain
+      prospect_utility: 57.543993733715695
+      certainty_equivalent: 100.00000000000004

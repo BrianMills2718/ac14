@@ -1,0 +1,131 @@
+components:
+- component_id: apply_reference_point
+  kind: transform
+  purpose: >
+    Subtract reference_point from each outcome_value to obtain net values.
+    Classify each as gain (net >= 0) or loss (net < 0).
+  semantic_responsibility: apply_reference_point_and_classify_outcomes
+  input_ports:
+  - name: prospect_theory_request
+    schema_id: ProspectTheoryRequest
+    description: Lottery specification with outcomes and parameters.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: reference_adjusted_output
+    schema_id: ReferenceAdjustedOutput
+    description: Outcomes adjusted by reference point with gain/loss labels.
+  local_invariants:
+  - reference_adjusted_output.case_id must equal prospect_theory_request.case_id
+  - length of reference_adjusted_output.adjusted_outcomes must equal length of prospect_theory_request.outcomes
+  failure_semantics:
+  - fail loud if outcomes list is empty
+  implementation_constraints:
+  - net_value = outcome_value - reference_point for each outcome
+  - is_gain = True if net_value >= 0, else False
+  - pass all parameters (alpha, beta, lambda_loss_aversion, gamma_gains, delta_losses) through unchanged
+
+- component_id: compute_value_function
+  kind: transform
+  purpose: >
+    Apply the Tversky-Kahneman piecewise value function to each adjusted outcome.
+    Gains: v(x) = x^alpha. Losses: v(x) = -lambda*((-x)^beta).
+  semantic_responsibility: apply_tk_piecewise_value_function
+  input_ports:
+  - name: reference_adjusted_output
+    schema_id: ReferenceAdjustedOutput
+    description: Reference-adjusted outcomes with gain/loss classification.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: valued_outcomes_output
+    schema_id: ValuedOutcomesOutput
+    description: Outcomes with utility_value added.
+  local_invariants:
+  - valued_outcomes_output.case_id must equal reference_adjusted_output.case_id
+  failure_semantics:
+  - fail loud if net_value is positive but is_gain is False (upstream error)
+  implementation_constraints:
+  - "for gains (is_gain == True): utility_value = net_value ** alpha"
+  - "for losses (is_gain == False): utility_value = -lambda_loss_aversion * ((-net_value) ** beta)"
+  - compute (-net_value) before raising to beta power
+  - pass reference_point, alpha, beta, lambda_loss_aversion, gamma_gains, delta_losses through unchanged
+
+- component_id: apply_probability_weighting
+  kind: transform
+  purpose: >
+    Apply TK (1992) probability weighting: w+(p) with gamma_gains for gains,
+    w-(p) with delta_losses for losses. Compute weighted_utility for each outcome.
+  semantic_responsibility: apply_tk_dual_probability_weighting
+  input_ports:
+  - name: valued_outcomes_output
+    schema_id: ValuedOutcomesOutput
+    description: Outcomes with utility values from compute_value_function.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: weighted_outcomes_output
+    schema_id: WeightedOutcomesOutput
+    description: Outcomes with decision_weight and weighted_utility.
+  local_invariants:
+  - weighted_outcomes_output.case_id must equal valued_outcomes_output.case_id
+  - all decision_weight values must be in [0.0, 1.0]
+  failure_semantics:
+  - fail loud if any probability is outside [0, 1]
+  implementation_constraints:
+  - "for gains: decision_weight = p**g / (p**g + (1-p)**g)**(1/g) where g = gamma_gains"
+  - "for losses: decision_weight = p**d / (p**d + (1-p)**d)**(1/d) where d = delta_losses"
+  - gains use gamma_gains; losses use delta_losses
+  - "edge cases: p == 0.0 -> decision_weight = 0.0; p == 1.0 -> decision_weight = 1.0"
+  - weighted_utility = decision_weight * utility_value
+  - pass reference_point, alpha, beta, lambda_loss_aversion through unchanged
+
+- component_id: compute_prospect_utility
+  kind: transform
+  purpose: >
+    Sum all weighted_utility values to produce the overall prospect utility V.
+  semantic_responsibility: sum_weighted_prospect_utilities
+  input_ports:
+  - name: weighted_outcomes_output
+    schema_id: WeightedOutcomesOutput
+    description: Outcomes with decision weights and weighted utilities.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: prospect_utility_output
+    schema_id: ProspectUtilityOutput
+    description: Overall prospect utility V.
+  local_invariants:
+  - prospect_utility_output.case_id must equal weighted_outcomes_output.case_id
+  failure_semantics:
+  - fail loud if weighted_outcomes list is empty
+  implementation_constraints:
+  - prospect_utility = sum(weighted_utility for each outcome in weighted_outcomes)
+  - pass reference_point, alpha, beta, lambda_loss_aversion through unchanged
+
+- component_id: compute_certainty_equivalent
+  kind: transform
+  purpose: >
+    Invert the prospect utility to a certainty equivalent. Sign-dependent:
+    V >= 0: CE = V^(1/alpha) + reference_point.
+    V < 0: CE = -((-V/lambda)^(1/beta)) + reference_point.
+  semantic_responsibility: invert_prospect_utility_to_certainty_equivalent
+  input_ports:
+  - name: prospect_utility_output
+    schema_id: ProspectUtilityOutput
+    description: Overall prospect utility V from compute_prospect_utility.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: prospect_theory_results
+    schema_id: ProspectTheoryResults
+    description: Final results with prospect_utility and certainty_equivalent.
+  local_invariants:
+  - prospect_theory_results.case_id must equal prospect_utility_output.case_id
+  - prospect_theory_results.prospect_utility must equal prospect_utility_output.prospect_utility
+  failure_semantics:
+  - fail loud if alpha or beta is zero
+  implementation_constraints:
+  - "if prospect_utility >= 0: certainty_equivalent = prospect_utility ** (1/alpha) + reference_point"
+  - "if prospect_utility < 0: certainty_equivalent = -((-prospect_utility / lambda_loss_aversion) ** (1/beta)) + reference_point"
+  - always add reference_point to the result

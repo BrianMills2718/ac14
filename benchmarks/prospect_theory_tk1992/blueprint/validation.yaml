@@ -1,0 +1,30 @@
+global_invariants:
+- invariant_id: results_case_id_consistency
+  description: prospect_theory_results.case_id must equal the input prospect_theory_request.case_id.
+- invariant_id: certainty_equivalent_finite
+  description: prospect_theory_results.certainty_equivalent must be a finite float value.
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual prospect_theory_results outputs to declared fixture outputs exactly.
+scenarios:
+- scenario_id: mixed_lottery_scenario
+  kind: full_recomposition
+  description: Mixed lottery (gain 100 / loss 50) with reference 0.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - mixed_lottery_apply_reference_point
+  - mixed_lottery_compute_value_function
+  - mixed_lottery_compute_certainty_equivalent
+- scenario_id: certain_gain_scenario
+  kind: full_recomposition
+  description: Certain gain of 100 — tests p=1.0 edge case and CE round-trip.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - certain_gain_apply_reference_point
+  - certain_gain_compute_certainty_equivalent

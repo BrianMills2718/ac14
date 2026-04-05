@@ -1,0 +1,208 @@
+schemas:
+- schema_id: ProspectTheoryRequest
+  kind: object
+  description: >
+    Complete lottery specification including outcomes list and behavioral parameters.
+    This is the sole input to the pipeline.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: outcomes
+    type: array
+    required: true
+    description: >
+      List of outcome items. Each item has outcome_value (float) and probability (float).
+  - name: reference_point
+    type: number
+    required: true
+    description: Reference point for gain/loss classification.
+  - name: alpha
+    type: number
+    required: true
+    description: Value function curvature for gains. Standard value 0.88.
+  - name: beta
+    type: number
+    required: true
+    description: Value function curvature for losses. Standard value 0.88. Distinct from alpha.
+  - name: lambda_loss_aversion
+    type: number
+    required: true
+    description: Loss aversion coefficient. Standard value 2.25.
+  - name: gamma_gains
+    type: number
+    required: true
+    description: Probability weighting curvature for gains. Standard value 0.61.
+  - name: delta_losses
+    type: number
+    required: true
+    description: Probability weighting curvature for losses. Standard value 0.69. Distinct from gamma_gains.
+
+- schema_id: ReferenceAdjustedOutput
+  kind: object
+  description: >
+    Output of apply_reference_point. Each outcome has been adjusted by subtracting
+    reference_point, and classified as gain (net_value >= 0) or loss (net_value < 0).
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: adjusted_outcomes
+    type: array
+    required: true
+    description: >
+      List of adjusted outcomes. Each item has net_value (float), probability (float),
+      is_gain (bool: True if net_value >= 0).
+  - name: reference_point
+    type: number
+    required: true
+    description: The reference point used (passed through).
+  - name: alpha
+    type: number
+    required: true
+    description: Value function curvature (gains). Passed through.
+  - name: beta
+    type: number
+    required: true
+    description: Value function curvature (losses). Passed through.
+  - name: lambda_loss_aversion
+    type: number
+    required: true
+    description: Loss aversion coefficient. Passed through.
+  - name: gamma_gains
+    type: number
+    required: true
+    description: Probability weighting curvature (gains). Passed through.
+  - name: delta_losses
+    type: number
+    required: true
+    description: Probability weighting curvature (losses). Passed through.
+
+- schema_id: ValuedOutcomesOutput
+  kind: object
+  description: >
+    Output of compute_value_function. Each adjusted outcome has a utility_value
+    computed by the piecewise value function.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: valued_outcomes
+    type: array
+    required: true
+    description: >
+      List of valued outcomes. Each item has net_value (float), probability (float),
+      is_gain (bool), utility_value (float: x^alpha for gains, -lambda*((-x)^beta) for losses).
+  - name: reference_point
+    type: number
+    required: true
+    description: Reference point (passed through).
+  - name: alpha
+    type: number
+    required: true
+    description: Value function curvature (gains). Passed through.
+  - name: beta
+    type: number
+    required: true
+    description: Value function curvature (losses). Passed through.
+  - name: lambda_loss_aversion
+    type: number
+    required: true
+    description: Loss aversion coefficient. Passed through.
+  - name: gamma_gains
+    type: number
+    required: true
+    description: Probability weighting curvature (gains). Passed through.
+  - name: delta_losses
+    type: number
+    required: true
+    description: Probability weighting curvature (losses). Passed through.
+
+- schema_id: WeightedOutcomesOutput
+  kind: object
+  description: >
+    Output of apply_probability_weighting. Each valued outcome has a decision_weight
+    and weighted_utility computed by the TK weighting function.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: weighted_outcomes
+    type: array
+    required: true
+    description: >
+      List of weighted outcomes. Each item has utility_value (float), decision_weight (float),
+      weighted_utility (float: decision_weight * utility_value), is_gain (bool).
+  - name: reference_point
+    type: number
+    required: true
+    description: Reference point (passed through).
+  - name: alpha
+    type: number
+    required: true
+    description: Value function curvature (gains). Passed through.
+  - name: beta
+    type: number
+    required: true
+    description: Value function curvature (losses). Passed through.
+  - name: lambda_loss_aversion
+    type: number
+    required: true
+    description: Loss aversion coefficient. Passed through.
+
+- schema_id: ProspectUtilityOutput
+  kind: object
+  description: >
+    Output of compute_prospect_utility. Contains the overall prospect utility
+    V = sum of (decision_weight * utility_value) for all outcomes.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: prospect_utility
+    type: number
+    required: true
+    description: "V = sum of weighted_utility for all outcomes."
+  - name: reference_point
+    type: number
+    required: true
+    description: Reference point (passed through for CE computation).
+  - name: alpha
+    type: number
+    required: true
+    description: Value function curvature (gains). Passed through for CE inversion.
+  - name: beta
+    type: number
+    required: true
+    description: Value function curvature (losses). Passed through for CE inversion.
+  - name: lambda_loss_aversion
+    type: number
+    required: true
+    description: Loss aversion coefficient. Passed through for CE inversion.
+
+- schema_id: ProspectTheoryResults
+  kind: object
+  description: >
+    Final output of the pipeline. Contains the prospect utility and certainty
+    equivalent for the input lottery.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through from input).
+  - name: prospect_utility
+    type: number
+    required: true
+    description: "V: the overall prospect utility."
+  - name: certainty_equivalent
+    type: number
+    required: true
+    description: >
+      CE: the certainty equivalent monetary value.
+      If V >= 0: CE = V^(1/alpha) + reference_point.
+      If V < 0: CE = -((-V/lambda)^(1/beta)) + reference_point.

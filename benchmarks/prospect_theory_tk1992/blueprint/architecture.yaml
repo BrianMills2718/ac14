@@ -1,0 +1,22 @@
+bindings:
+- from_component: apply_reference_point
+  from_port: reference_adjusted_output
+  to_component: compute_value_function
+  to_port: reference_adjusted_output
+
+- from_component: compute_value_function
+  from_port: valued_outcomes_output
+  to_component: apply_probability_weighting
+  to_port: valued_outcomes_output
+
+- from_component: apply_probability_weighting
+  from_port: weighted_outcomes_output
+  to_component: compute_prospect_utility
+  to_port: weighted_outcomes_output
+
+- from_component: compute_prospect_utility
+  from_port: prospect_utility_output
+  to_component: compute_certainty_equivalent
+  to_port: prospect_utility_output
+
+state_stores: []

@@ -1,0 +1,34 @@
+benchmark:
+  benchmark_id: prospect_theory_tk1992_v1
+  name: Prospect Theory Utility Suite (Tversky & Kahneman 1992)
+  purpose: >
+    Back-half evaluation assets for the Prospect Theory benchmark. Contains
+    the reference blueprint, runtime cases, and expected outputs. Used by
+    the structured-spec front-half runner to evaluate AC14-generated code.
+  comparison_scope: decomposition_vs_monolithic_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+  primary_source_component_id: apply_reference_point
+  primary_source_port_name: prospect_theory_request
+  final_component_id: compute_certainty_equivalent
+  final_output_ports:
+    - prospect_theory_results
+  system_requirements:
+    - "Value function (gains): v(x) = x**alpha for net_value >= 0."
+    - "Value function (losses): v(x) = -lambda_loss_aversion * ((-x)**beta) for net_value < 0."
+    - "Probability weighting (gains): w+(p) = p**g / (p**g + (1-p)**g)**(1/g) where g = gamma_gains."
+    - "Probability weighting (losses): w-(p) = p**d / (p**d + (1-p)**d)**(1/d) where d = delta_losses."
+    - "Prospect utility: V = sum(decision_weight_i * utility_value_i) for all outcomes."
+    - "Certainty equivalent (V >= 0): CE = V**(1/alpha) + reference_point."
+    - "Certainty equivalent (V < 0): CE = -((-V / lambda_loss_aversion)**(1/beta)) + reference_point."
+    - "Standard parameters: alpha=beta=0.88, lambda=2.25, gamma=0.61, delta=0.69."
+  dynamic_output_fields: []
+  semantic_review_policy: advisory_on_exact_match

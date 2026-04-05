@@ -1,0 +1,52 @@
+[
+  {
+    "case_id": "mixed_lottery",
+    "expected_outputs": {
+      "prospect_theory_results": {
+        "case_id": "mixed_lottery",
+        "prospect_utility": -7.733639713710360,
+        "certainty_equivalent": -4.067427239812672
+      }
+    }
+  },
+  {
+    "case_id": "all_gains",
+    "expected_outputs": {
+      "prospect_theory_results": {
+        "case_id": "all_gains",
+        "prospect_utility": 64.434060657731621,
+        "certainty_equivalent": 113.713773112445139
+      }
+    }
+  },
+  {
+    "case_id": "all_losses",
+    "expected_outputs": {
+      "prospect_theory_results": {
+        "case_id": "all_losses",
+        "prospect_utility": -73.960652207898121,
+        "certainty_equivalent": -52.924536287148676
+      }
+    }
+  },
+  {
+    "case_id": "with_reference",
+    "expected_outputs": {
+      "prospect_theory_results": {
+        "case_id": "with_reference",
+        "prospect_utility": -9.781086307192847,
+        "certainty_equivalent": 44.688313077011543
+      }
+    }
+  },
+  {
+    "case_id": "certain_gain",
+    "expected_outputs": {
+      "prospect_theory_results": {
+        "case_id": "certain_gain",
+        "prospect_utility": 57.543993733715695,
+        "certainty_equivalent": 100.00000000000004
+      }
+    }
+  }
+]

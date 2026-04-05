@@ -1,0 +1,157 @@
+system_name: Prospect Theory Utility Suite (Tversky & Kahneman 1992)
+purpose: >
+  Compute prospect utility and certainty equivalent for a lottery using Tversky and
+  Kahneman's (1992) cumulative prospect theory. The system implements five operations
+  as a sequential pipeline: (1) apply reference point, (2) compute piecewise value
+  function, (3) apply dual probability weighting, (4) sum weighted utilities, and
+  (5) invert to certainty equivalent. Each operation is one bounded component.
+  Parameters: alpha=beta=0.88 (value curvature), lambda=2.25 (loss aversion),
+  gamma=0.61 (gain weighting), delta=0.69 (loss weighting).
+requirements:
+  - "implement the TK (1992) piecewise value function exactly: x^alpha for gains, -lambda*((-x)^beta) for losses"
+  - apply reference_point by subtracting it from each outcome BEFORE computing the value function
+  - "apply two distinct probability weighting functions: w+(p) uses gamma_gains for gains, w-(p) uses delta_losses for losses"
+  - compute prospect utility as the sum of (decision_weight * utility_value) for all outcomes
+  - "compute certainty equivalent by sign-dependent inversion: V>=0 uses alpha, V<0 uses beta and lambda_loss_aversion"
+  - always add reference_point back to the certainty equivalent at the final stage
+success_criteria:
+  - certain gain of 100 with probability 1.0 and reference 0 yields certainty_equivalent approximately 100.0 (floating-point round-trip)
+  - all-gains lottery yields positive prospect_utility and positive certainty_equivalent
+  - all-losses lottery yields negative prospect_utility and negative certainty_equivalent
+  - mixed lottery with reference 50.0 applies reference point correctly; CE is near but below 50.0
+business_rules:
+  - "VALUE FUNCTION (gains): v(x) = x**alpha for all net_value >= 0. When net_value == 0, v(0) = 0."
+  - "VALUE FUNCTION (losses): v(x) = -lambda_loss_aversion * ((-x)**beta) for all net_value < 0. Compute (-net_value) first (which is positive), then raise to beta power."
+  - "PROBABILITY WEIGHTING (gains): w+(p) = p**g / (p**g + (1-p)**g)**(1/g) where g = gamma_gains. Edge cases: w+(0)=0, w+(1)=1."
+  - "PROBABILITY WEIGHTING (losses): w-(p) = p**d / (p**d + (1-p)**d)**(1/d) where d = delta_losses. Edge cases: w-(0)=0, w-(1)=1."
+  - "CERTAINTY EQUIVALENT (V>=0): CE = V**(1/alpha) + reference_point."
+  - "CERTAINTY EQUIVALENT (V<0): CE = -((-V / lambda_loss_aversion)**(1/beta)) + reference_point."
+inputs:
+  - name: prospect_theory_request
+    kind: record
+    description: Complete lottery specification with outcomes list and behavioral parameters.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to the final output.
+        required: true
+      - field_name: outcomes
+        field_type: list
+        description: >
+          List of outcome items, each with outcome_value (float) and probability (float).
+          Example: [{"outcome_value": 100.0, "probability": 0.5}, {"outcome_value": -50.0, "probability": 0.5}].
+        required: true
+      - field_name: reference_point
+        field_type: float
+        description: Reference point for gain/loss classification. Default 0.0.
+        required: true
+      - field_name: alpha
+        field_type: float
+        description: Value function curvature for gains. Standard value 0.88.
+        required: true
+      - field_name: beta
+        field_type: float
+        description: Value function curvature for losses. Standard value 0.88. Distinct from alpha.
+        required: true
+      - field_name: lambda_loss_aversion
+        field_type: float
+        description: Loss aversion coefficient. Standard value 2.25.
+        required: true
+      - field_name: gamma_gains
+        field_type: float
+        description: Probability weighting curvature for gains. Standard value 0.61.
+        required: true
+      - field_name: delta_losses
+        field_type: float
+        description: Probability weighting curvature for losses. Standard value 0.69. Distinct from gamma_gains.
+        required: true
+outputs:
+  - name: prospect_theory_results
+    kind: record
+    description: Final output containing prospect_utility and certainty_equivalent.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from input).
+        required: true
+      - field_name: prospect_utility
+        field_type: float
+        description: "V = sum of (decision_weight * utility_value) for all outcomes."
+        required: true
+      - field_name: certainty_equivalent
+        field_type: float
+        description: "CE: monetary value equivalent to the lottery. Sign-dependent inversion of V, with reference_point re-added."
+        required: true
+workflow_hints:
+  - hint_id: apply_reference_point
+    summary: >
+      PIPELINE STAGE 1 of 5. Receive prospect_theory_request and subtract reference_point
+      from each outcome_value. Classify each adjusted outcome as gain (net >= 0) or loss (net < 0).
+    input_names: [prospect_theory_request]
+    output_names: [prospect_theory_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). This component receives prospect_theory_request as the sole external input."
+      - "For each item in outcomes: net_value = outcome_value - reference_point."
+      - "is_gain = True if net_value >= 0, else False."
+      - "Emit a reference_adjusted_output record with: case_id, adjusted_outcomes (list of {net_value, probability, is_gain}), reference_point, alpha, beta, lambda_loss_aversion, gamma_gains, delta_losses. Wire this to compute_value_function."
+
+  - hint_id: compute_value_function
+    summary: >
+      PIPELINE STAGE 2 of 5. Receive reference_adjusted_output and apply the piecewise
+      TK value function: v(x) = x^alpha for gains, v(x) = -lambda*((-x)^beta) for losses.
+    input_names: [prospect_theory_request]
+    output_names: [prospect_theory_results]
+    business_rules:
+      - "STAGE 2. This component receives reference_adjusted_output from apply_reference_point, NOT prospect_theory_request directly."
+      - "For gains (is_gain == True): utility_value = net_value ** alpha."
+      - "For losses (is_gain == False): utility_value = -lambda_loss_aversion * ((-net_value) ** beta)."
+      - "CRITICAL: Use (-net_value) not net_value for the loss exponent. net_value < 0, so (-net_value) > 0."
+      - "Emit a valued_outcomes_output with: case_id, valued_outcomes (list with utility_value added), reference_point, alpha, beta, lambda_loss_aversion, gamma_gains, delta_losses. Wire to apply_probability_weighting."
+
+  - hint_id: apply_probability_weighting
+    summary: >
+      PIPELINE STAGE 3 of 5. Receive valued_outcomes_output and apply the TK (1992)
+      one-parameter weighting function. Gains use w+(p) with gamma_gains; losses use w-(p) with delta_losses.
+    input_names: [prospect_theory_request]
+    output_names: [prospect_theory_results]
+    business_rules:
+      - "STAGE 3. This component receives valued_outcomes_output from compute_value_function."
+      - "For gains: decision_weight = w+(p) = p**g / (p**g + (1-p)**g)**(1/g) where g = gamma_gains."
+      - "For losses: decision_weight = w-(p) = p**d / (p**d + (1-p)**d)**(1/d) where d = delta_losses."
+      - "CRITICAL: Gains use gamma_gains, losses use delta_losses. These are DIFFERENT parameters with DIFFERENT standard values."
+      - "Edge cases: if p == 0.0, decision_weight = 0.0. If p == 1.0, decision_weight = 1.0. Handle explicitly."
+      - "Compute weighted_utility = decision_weight * utility_value for each outcome."
+      - "Emit a weighted_outcomes_output with: case_id, weighted_outcomes (list with decision_weight and weighted_utility added), reference_point, alpha, beta, lambda_loss_aversion. Wire to compute_prospect_utility."
+
+  - hint_id: compute_prospect_utility
+    summary: >
+      PIPELINE STAGE 4 of 5. Receive weighted_outcomes_output and sum all weighted_utility
+      values: V = sum(decision_weight_i * utility_value_i).
+    input_names: [prospect_theory_request]
+    output_names: [prospect_theory_results]
+    business_rules:
+      - "STAGE 4. This component receives weighted_outcomes_output from apply_probability_weighting."
+      - "prospect_utility = sum(weighted_utility for each outcome in weighted_outcomes)."
+      - "Emit prospect_utility_output with: case_id, prospect_utility (float), reference_point, alpha, beta, lambda_loss_aversion. Wire to compute_certainty_equivalent."
+
+  - hint_id: compute_certainty_equivalent
+    summary: >
+      PIPELINE STAGE 5 of 5 (TERMINAL). Receive prospect_utility_output and invert V to CE.
+      Inversion is sign-dependent: V>=0 uses alpha, V<0 uses beta and lambda_loss_aversion.
+      Add reference_point to obtain the final CE.
+    input_names: [prospect_theory_request]
+    output_names: [prospect_theory_results]
+    business_rules:
+      - "STAGE 5 (TERMINAL). This component receives prospect_utility_output from compute_prospect_utility."
+      - "If prospect_utility >= 0: certainty_equivalent = prospect_utility ** (1/alpha) + reference_point."
+      - "If prospect_utility < 0: certainty_equivalent = -((-prospect_utility / lambda_loss_aversion) ** (1/beta)) + reference_point."
+      - "CRITICAL: The inversion formula is DIFFERENT for positive and negative V. Do not apply the same formula to both cases."
+      - "CRITICAL: Add reference_point at the end. Omitting it gives wrong CE when reference_point != 0."
+      - "Emit prospect_theory_results: case_id (passed through), prospect_utility (passed through), certainty_equivalent (float)."
+      - "This is the terminal emitter of prospect_theory_results."
+
+human_context_notes:
+  - "This is Tversky and Kahneman's 1992 cumulative prospect theory, not the 1979 original."
+  - "The alpha and beta parameters happen to be equal in the standard parameterization (both 0.88), but they have distinct roles and must be treated as separate variables."
+  - "The probability weighting function overweights small probabilities and underweights medium-to-large probabilities. For p=0.5, w+(0.5) approx 0.42."
+  - "The loss aversion coefficient lambda=2.25 means losses are felt 2.25 times more intensely than equivalent gains."
