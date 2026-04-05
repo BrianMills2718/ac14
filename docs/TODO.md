@@ -140,6 +140,16 @@ The experiment contract remains frozen in:
 - [x] Plan #144: gate_3 verdict interpretation — repair worked (0%→75%), spec ambiguity in FINAL ACTION rule, repair-boundary freeze
 - [x] Plan #145: spec contract fix (FINAL ACTION → explicit BLOCKED FLAG rule) merged; gate_4 complete — inconclusive (4/5 AC14, 5/5 mono), single trial_4 failure was generation instability (syntax error)
 - [x] Plan #146: gate_4 verdict interpretation — near-parity (80%), repair arc complete, thesis holds at "near-parity after spec clarity"
+- [x] Plan #147: codegen observability (context + prompt trace files per component)
+- [x] Plan #148: gate_5 ten-trial statistical confirmation — inconclusive (10/10 both)
+- [x] Plan #149: Theory Forge benchmark design
+- [x] Plan #150: Information Theory Shannon benchmark bundle + gate — inconclusive (5/5 both)
+- [x] Plan #151: gate_5 verdict interpretation
+- [x] Plan #152: IT gate_1 verdict — inconclusive (5/5 both), both tractable; Prospect Theory next
+- [x] Plan #153: Prospect Theory benchmark bundle created (5 components, piecewise formulas, 5 runtime cases)
+- [x] Plan #154: PT gate_1 verdict — monolithic_wins (5/5 vs 1/5 AC14); root cause: context wiring + fixture list format bug
+- [x] Plan #155: PT gate_2 repair — validation fix (list primitive), hint rules threading, Codex SDK additionalProperties fix; gate_2d smoke `ready_for_full_trials`
+- [ ] Plan #156: PT gate_2d verdict — ACTIVE (gate running: 3/5 trials complete, AC14 3/3 passed so far)
 
 The completed execution lanes are:
 
