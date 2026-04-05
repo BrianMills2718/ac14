@@ -16,10 +16,10 @@
     "expected_outputs": {
       "entropy_results": {
         "case_id": "biased_75_25",
-        "zero_order_entropy": 0.8113,
+        "zero_order_entropy": 0.8112781244591328,
         "maximum_entropy": 1.0,
-        "relative_entropy": 0.8113,
-        "redundancy": 0.1887
+        "relative_entropy": 0.8112781244591328,
+        "redundancy": 0.18872187554086717
       }
     }
   },
@@ -40,10 +40,10 @@
     "expected_outputs": {
       "entropy_results": {
         "case_id": "skewed_3",
-        "zero_order_entropy": 1.4855,
-        "maximum_entropy": 1.5850,
-        "relative_entropy": 0.9372,
-        "redundancy": 0.0628
+        "zero_order_entropy": 1.4854752972273344,
+        "maximum_entropy": 1.584962500721156,
+        "relative_entropy": 0.9372305632161296,
+        "redundancy": 0.06276943678387037
       }
     }
   },
@@ -52,10 +52,10 @@
     "expected_outputs": {
       "entropy_results": {
         "case_id": "binary_90_10",
-        "zero_order_entropy": 0.4690,
+        "zero_order_entropy": 0.4689955935892812,
         "maximum_entropy": 1.0,
-        "relative_entropy": 0.4690,
-        "redundancy": 0.5310
+        "relative_entropy": 0.4689955935892812,
+        "redundancy": 0.5310044064107188
       }
     }
   }

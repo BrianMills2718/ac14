@@ -70,9 +70,10 @@ Each stage passes accumulated values to the next stage. The final output
 | case_id | H_0 | H_max | eta | D |
 |---------|-----|-------|-----|---|
 | fair_coin (0.5, 0.5) | 1.0 | 1.0 | 1.0 | 0.0 |
-| biased_75_25 (0.75, 0.25) | 0.8113 | 1.0 | 0.8113 | 0.1887 |
+| biased_75_25 (0.75, 0.25) | 0.8112781244591328 | 1.0 | 0.8112781244591328 | 0.18872187554086717 |
 | uniform_4 (0.25 each) | 2.0 | 2.0 | 1.0 | 0.0 |
-| skewed_3 (0.5, 0.3, 0.2) | 1.4855 | 1.5850 | 0.9372 | 0.0628 |
-| binary_90_10 (0.9, 0.1) | 0.4690 | 1.0 | 0.4690 | 0.5310 |
+| skewed_3 (0.5, 0.3, 0.2) | 1.4854752972273344 | 1.584962500721156 | 0.9372305632161296 | 0.06276943678387037 |
+| binary_90_10 (0.9, 0.1) | 0.4689955935892812 | 1.0 | 0.4689955935892812 | 0.5310044064107188 |
 
-Tolerance: 0.001 on all float fields.
+Expected values are exact Python `math.log2` results — no rounding or tolerance. Any
+correct implementation using `math.log2` will produce these exact values.

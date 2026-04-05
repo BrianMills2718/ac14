@@ -79,7 +79,7 @@ fixtures:
   expected_outputs:
     zero_order_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       alphabet_size: 2
 
 - fixture_id: biased_coin_compute_maximum_entropy
@@ -89,12 +89,12 @@ fixtures:
   inputs:
     zero_order_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       alphabet_size: 2
   expected_outputs:
     maximum_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       maximum_entropy: 1.0
 
 - fixture_id: biased_coin_compute_relative_entropy
@@ -104,14 +104,14 @@ fixtures:
   inputs:
     maximum_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       maximum_entropy: 1.0
   expected_outputs:
     relative_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       maximum_entropy: 1.0
-      relative_entropy: 0.8113
+      relative_entropy: 0.8112781244591328
 
 - fixture_id: biased_coin_compute_redundancy
   scenario_id: biased_coin_entropy
@@ -120,13 +120,13 @@ fixtures:
   inputs:
     relative_entropy_output:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       maximum_entropy: 1.0
-      relative_entropy: 0.8113
+      relative_entropy: 0.8112781244591328
   expected_outputs:
     entropy_results:
       case_id: biased_75_25
-      zero_order_entropy: 0.8113
+      zero_order_entropy: 0.8112781244591328
       maximum_entropy: 1.0
-      relative_entropy: 0.8113
-      redundancy: 0.1887
+      relative_entropy: 0.8112781244591328
+      redundancy: 0.18872187554086717
