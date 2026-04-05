@@ -133,11 +133,18 @@ find the first `ac14_wins` verdict.
     - Mono 10/13 correct (fails only on subtle vega zeta^0.5 and rho r^(alpha-1))
     - Finding: AC14 planning step does NOT synthesize formulas from vague specs
     - Noisy-spec hypothesis FALSIFIED: AC14 planning step passes descriptions through, not infers
-19. **[Plan #168](./docs/plans/168_strategic_direction.md)** -> **ACTIVE** — strategic direction after Theory Forge series
+19. [Plan #168](./docs/plans/168_strategic_direction.md) -> complete — strategic direction documented
     - Evidence: 8 benchmarks, monolithic consistently wins or ties at 10-component scale
     - Root cause: 10 components is within trivial context capacity of modern LLMs
-    - Recommended: scale test — build 20-component zeta benchmark, find minimum failing scale
-    - Next: build `benchmarks/zeta_scale_20/` with second-order Greeks (vanna, volga, charm, etc.)
+20. [Plan #169](./docs/plans/169_scale_threshold_analysis.md) -> complete — scale threshold analysis
+    - 20-component build unlikely to discriminate (threshold estimated at 50-100+ for math pipeline)
+    - Three viable paths: (A) 50+ component scale, (B) complex-interdependency domain, (C) declare series complete
+    - Theory Forge series summary at `docs/theory_forge_series_summary.md`
+21. **DECISION POINT** — Brian must choose next direction:
+    - Option A: Build 50-component benchmark (5-10 days, uncertain discrimination)
+    - Option B: Complex-interdependency benchmark (~20 components, compiler/protocol/risk system)
+    - Option C: Declare Theory Forge complete, focus on human-workflow value
+    - Option D: Build zeta_scale_20 as proof of Option A feasibility (1-2 days, likely shows mono 5/5)
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
