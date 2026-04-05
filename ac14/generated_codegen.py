@@ -32,6 +32,7 @@ def generate_component_module_with_llm(
     trace_id: str,
     max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     task: str = "ac14_generate_component",
+    trace_dir: Path | None = None,
 ) -> GeneratedModuleResponse:
     """Lazily import the LLM codegen helper so non-LLM paths avoid import-time dependency failures."""
 
@@ -43,6 +44,7 @@ def generate_component_module_with_llm(
         trace_id=trace_id,
         max_budget=max_budget,
         task=task,
+        trace_dir=trace_dir,
     )
 
 
@@ -53,6 +55,7 @@ async def agenerate_component_module_with_llm(
     trace_id: str,
     max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     task: str = "ac14_generate_component",
+    trace_dir: Path | None = None,
 ) -> GeneratedModuleResponse:
     """Lazily import the async LLM codegen helper for callers already in an event loop."""
 
@@ -64,6 +67,7 @@ async def agenerate_component_module_with_llm(
         trace_id=trace_id,
         max_budget=max_budget,
         task=task,
+        trace_dir=trace_dir,
     )
 
 class GeneratedPackage(BaseModel):
@@ -106,6 +110,7 @@ def emit_generated_package(
             ),
             structured_spec_business_rules=structured_spec_business_rules,
         )
+        atomic_write_text(destination / f"{component_id}.context.json", context.model_dump_json(indent=2))
         try:
             module_source = _render_module_source(
                 context,
@@ -113,6 +118,7 @@ def emit_generated_package(
                 llm_model=llm_model,
                 llm_max_budget=llm_max_budget,
                 trace_id=f"{trace_id_prefix}/{component_id}",
+                trace_dir=destination,
             )
         except Exception as exc:
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
@@ -158,6 +164,7 @@ async def aemit_generated_package(
             ),
             structured_spec_business_rules=structured_spec_business_rules,
         )
+        atomic_write_text(destination / f"{component_id}.context.json", context.model_dump_json(indent=2))
         try:
             module_source = await _arender_module_source(
                 context,
@@ -165,6 +172,7 @@ async def aemit_generated_package(
                 llm_model=llm_model,
                 llm_max_budget=llm_max_budget,
                 trace_id=f"{trace_id_prefix}/{component_id}",
+                trace_dir=destination,
             )
         except Exception as exc:
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
@@ -228,6 +236,7 @@ def _render_module_source(
     llm_model: str,
     llm_max_budget: float,
     trace_id: str,
+    trace_dir: Path | None = None,
 ) -> str:
     """Render a standalone module for one supported semantic responsibility."""
 
@@ -237,6 +246,7 @@ def _render_module_source(
             model=llm_model,
             trace_id=trace_id,
             max_budget=llm_max_budget,
+            trace_dir=trace_dir,
         )
         return response.module_code
     if context.semantic_responsibility == "parse_ticket":
@@ -272,6 +282,7 @@ async def _arender_module_source(
     llm_model: str,
     llm_max_budget: float,
     trace_id: str,
+    trace_dir: Path | None = None,
 ) -> str:
     """Async module rendering for callers already inside an event loop."""
 
@@ -281,6 +292,7 @@ async def _arender_module_source(
             model=llm_model,
             trace_id=trace_id,
             max_budget=llm_max_budget,
+            trace_dir=trace_dir,
         )
         return response.module_code
     return _render_module_source(
@@ -289,6 +301,7 @@ async def _arender_module_source(
         llm_model=llm_model,
         llm_max_budget=llm_max_budget,
         trace_id=trace_id,
+        trace_dir=trace_dir,
     )
 
 
