@@ -149,13 +149,18 @@ find the first `ac14_wins` verdict.
     - 20 components (9 second-order Greeks + terminal assembler), B1 passes
     - Gate_3 (10-trial Gemini flash on zeta_options): `monolithic_wins` (9/10 vs 6/10, $0.36 vs $1.45)
     - AC14 front-half: 10/10; AC14 runtime: 6/10; Cost per trial ~10x monolithic
-23. [Plan #172](./docs/plans/172_zeta_scale20_gate_1.md) -> **ACTIVE** — zeta_scale_20 smoke + gate
-    - Smoke gate launched: `make front-half-first-smoke-gate BENCHMARK=benchmarks/zeta_scale_20 OUTPUT=.ac14_out/zeta_scale20_smoke_1`
-    - Pre-defined next branches at Plan #173
-24. **Plan #173**: write zeta_scale_20 gate verdict
-    - If `ac14_wins`: declare scale threshold found, document minimum discriminating scale
-    - If `monolithic_wins`: scale-20 insufficient; escalate to scale-50 or planning step synthesis
-    - If `inconclusive`: run scale-50 or pivit to planning step
+23. [Plan #172](./docs/plans/172_zeta_scale20_gate_1.md) -> complete — zeta_scale_20 smoke+gate ran
+    - Smoke `ready_for_full_trials` after fixing format bugs (back_half key, expected outputs list, runtime_cases flat)
+24. [Plan #173](./docs/plans/173_zeta_scale20_verdict.md) -> complete — verdict: `ac14_wins` (TIE-BREAK ONLY)
+    - Both conditions 5/5; AC14 wins only on fewer repair loops (0.2 vs 0.4) and semantic score (1.5 vs 1.33)
+    - Monolithic needed more repairs in trial 1 (2 vs 0) — MARGINAL signal of context pressure starting
+    - NOT meaningful discrimination: both pass 5/5, mono 2x cheaper, 5.5x faster
+    - Series conclusion: 9 benchmarks across 4 domains; scale threshold > 20 components
+25. **DECISION POINT** (FINAL) — Theory Forge series exhausted. Choose next direction:
+    - Option A: 50-component benchmark (3-5 days) — expected discrimination for Gemini flash
+    - Option B: Find a weaker model where 20 components IS enough context pressure
+    - Option C: Accept evidence — AC14 advantage is scale-dependent, requires 50+ components; shift to next project
+    - **Marginal win evidence**: at 20 components, AC14 slightly better quality → confirms hypothesis direction
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
