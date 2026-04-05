@@ -63,7 +63,8 @@ status: ## Show git status
 
 trial-status: ## Live progress of a running trial (OUTPUT=.ac14_out/my_run TRIAL=1)
 	@dir="$(OUTPUT)/trial_$(TRIAL)/ac14"; \
-	attempt=$$(ls -d $$dir/attempt_* 2>/dev/null | sort -V | tail -1); \
+	attempt=$$(for d in $$(ls -d $$dir/attempt_* 2>/dev/null | sort -V); do echo "$$(ls $$d/generated/*.codex_exit.txt 2>/dev/null | wc -l) $$d"; done | sort -rn | head -1 | awk '{print $$2}'); \
+	if [ -z "$$attempt" ]; then attempt=$$(ls -d $$dir/attempt_* 2>/dev/null | sort -V | tail -1); fi; \
 	if [ -z "$$attempt" ]; then echo "No attempt dirs found under $$dir"; exit 1; fi; \
 	gen="$$attempt/generated"; \
 	total=$$(ls $$gen/*.context.json 2>/dev/null | wc -l | tr -d ' '); \
@@ -72,10 +73,11 @@ trial-status: ## Live progress of a running trial (OUTPUT=.ac14_out/my_run TRIAL
 	echo "Trial $(TRIAL) — $$(basename $$attempt): $$done/$$total components done, $$failed failures"; \
 	if [ -f "$$gen/progress.jsonl" ]; then \
 		echo "Recent:"; \
-		tail -5 $$gen/progress.jsonl | python3 -c "import sys,json; [print(f\"  [{r['status'].upper()}] {r['component_id']} ({r.get('elapsed_s','?')}s)\") for r in (json.loads(l) for l in sys.stdin)]"; \
+		tail -5 $$gen/progress.jsonl | python3 -c "import sys,json; [print(f\"  [{r['status'].upper()}] {r['component_id']} ({r.get('elapsed_s','?')}s)\" + (f\" t={r['tokens']:,}\" if 'tokens' in r else '')) for r in (json.loads(l) for l in sys.stdin)]"; \
 	else \
 		echo "Latest:"; ls -t $$gen/*.codex_exit.txt 2>/dev/null | head -5 | while read f; do echo "  exit=$$(cat $$f) $$(basename $$f .codex_exit.txt)"; done; \
 	fi; \
+	python3 $(CURDIR)/scripts/codex_token_summary.py $$gen 2>/dev/null || true; \
 	if [ -f "$$attempt/attempt_report.json" ]; then \
 		echo "--- ATTEMPT COMPLETE ---"; \
 		python3 -c "import json; r=json.load(open('$$attempt/attempt_report.json')); print(f\"passed={r.get('passed')} rt_cases={len(r.get('runtime_cases',[]))}\")"; \

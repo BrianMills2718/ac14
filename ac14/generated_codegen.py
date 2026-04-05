@@ -175,10 +175,24 @@ def emit_generated_package(
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
             raise
         elapsed = _time.perf_counter() - t0
-        print(f"  [{idx}/{total}] {component_id} OK ({elapsed:.1f}s)", flush=True)
+        # Extract token count from codex stderr if available
+        tokens: int | None = None
+        if generator_kind == "codex":
+            stderr_file = destination / f"{component_id}.codex_stderr.txt"
+            if stderr_file.exists():
+                try:
+                    from ac14.codex_codegen import _parse_tokens_used
+                    tokens = _parse_tokens_used(stderr_file.read_text())
+                except Exception:
+                    pass
+        token_str = f" tokens={tokens:,}" if tokens else ""
+        print(f"  [{idx}/{total}] {component_id} OK ({elapsed:.1f}s{token_str})", flush=True)
         with progress_lock:
             with open(progress_log, "a") as _f:
-                _f.write(_json.dumps({"component_id": component_id, "status": "ok", "elapsed_s": round(elapsed, 1)}) + "\n")
+                entry: dict = {"component_id": component_id, "status": "ok", "elapsed_s": round(elapsed, 1)}
+                if tokens is not None:
+                    entry["tokens"] = tokens
+                _f.write(_json.dumps(entry) + "\n")
         module_path = destination / f"{component_id}.py"
         atomic_write_text(module_path, module_source)
         return component_id, str(module_path)

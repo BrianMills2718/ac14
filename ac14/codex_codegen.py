@@ -98,10 +98,23 @@ def generate_component_with_codex(
         ) from exc
 
     last_msg = last_msg_file.read_text().strip() if last_msg_file.exists() else ""
+    tokens_used = _parse_tokens_used(result.stderr)
+    token_note = f" tokens={tokens_used:,}" if tokens_used else ""
     return GeneratedModuleResponse(
         module_code=module_code,
-        implementation_notes=[f"Codex exec (self-verified). {last_msg[:200]}"],
+        implementation_notes=[f"Codex exec (self-verified).{token_note} {last_msg[:200]}"],
     )
+
+
+def _parse_tokens_used(stderr: str) -> int | None:
+    """Extract token count from Codex stderr: 'tokens used\\nNNNNN'."""
+    lines = stderr.splitlines()
+    for i, line in enumerate(lines):
+        if line.strip() == "tokens used" and i + 1 < len(lines):
+            raw = lines[i + 1].strip().replace(",", "")
+            if raw.isdigit():
+                return int(raw)
+    return None
 
 
 def _build_prompt(context: CodegenContext, *, output_file: Path, test_file: Path) -> str:
