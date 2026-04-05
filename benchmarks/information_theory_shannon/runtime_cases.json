@@ -1,0 +1,27 @@
+[
+  {
+    "case_id": "fair_coin",
+    "symbol_frequencies": {"0": 0.5, "1": 0.5},
+    "alphabet_size": 2
+  },
+  {
+    "case_id": "biased_75_25",
+    "symbol_frequencies": {"a": 0.75, "b": 0.25},
+    "alphabet_size": 2
+  },
+  {
+    "case_id": "uniform_4",
+    "symbol_frequencies": {"a": 0.25, "b": 0.25, "c": 0.25, "d": 0.25},
+    "alphabet_size": 4
+  },
+  {
+    "case_id": "skewed_3",
+    "symbol_frequencies": {"a": 0.5, "b": 0.3, "c": 0.2},
+    "alphabet_size": 3
+  },
+  {
+    "case_id": "binary_90_10",
+    "symbol_frequencies": {"x": 0.9, "y": 0.1},
+    "alphabet_size": 2
+  }
+]

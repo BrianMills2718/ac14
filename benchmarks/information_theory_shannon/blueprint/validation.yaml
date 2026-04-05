@@ -1,0 +1,36 @@
+global_invariants:
+- invariant_id: entropy_results_case_id_consistency
+  description: entropy_results.case_id must equal the input entropy_request.case_id.
+- invariant_id: entropy_results_redundancy_sum
+  description: >
+    entropy_results.redundancy + entropy_results.relative_entropy must approximately
+    equal 1.0 (within floating-point tolerance).
+evaluators:
+- evaluator_id: exact_outputs
+  kind: programmatic_exact
+  description: >
+    Compare actual entropy_results outputs to declared fixture outputs exactly
+    (with floating-point tolerance 0.001 for all numeric fields).
+scenarios:
+- scenario_id: fair_coin_entropy
+  kind: full_recomposition
+  description: Fair coin (two equiprobable symbols) yields maximum entropy H_0=1.0=H_max.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - fair_coin_compute_zero_order_entropy
+  - fair_coin_compute_maximum_entropy
+  - fair_coin_compute_relative_entropy
+  - fair_coin_compute_redundancy
+- scenario_id: biased_coin_entropy
+  kind: full_recomposition
+  description: Biased coin (0.75/0.25) yields partial entropy H_0=0.8113.
+  evaluator_ids:
+  - exact_outputs
+  realistic_input: true
+  fixture_ids:
+  - biased_coin_compute_zero_order_entropy
+  - biased_coin_compute_maximum_entropy
+  - biased_coin_compute_relative_entropy
+  - biased_coin_compute_redundancy

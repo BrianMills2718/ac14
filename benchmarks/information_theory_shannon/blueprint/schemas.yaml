@@ -1,0 +1,107 @@
+schemas:
+- schema_id: EntropyRequest
+  kind: object
+  description: >
+    An entropy computation request specifying the probability distribution to
+    analyze. This is the sole input to the pipeline.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier.
+  - name: symbol_frequencies
+    type: object
+    required: true
+    description: >
+      Mapping of symbol (str) to its probability (float). Values must sum to 1.0.
+  - name: alphabet_size
+    type: integer
+    required: true
+    description: Number of distinct symbols in the alphabet.
+
+- schema_id: ZeroOrderEntropyOutput
+  kind: object
+  description: >
+    Intermediate result after computing zero-order entropy. Carries H_0 and
+    alphabet_size forward for the maximum entropy computation.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: zero_order_entropy
+    type: number
+    required: true
+    description: Zero-order entropy H_0 in bits/symbol.
+  - name: alphabet_size
+    type: integer
+    required: true
+    description: Alphabet size passed through for the next stage.
+
+- schema_id: MaximumEntropyOutput
+  kind: object
+  description: >
+    Intermediate result after computing maximum entropy. Carries H_0 and H_max
+    forward for the relative entropy computation.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: zero_order_entropy
+    type: number
+    required: true
+    description: Zero-order entropy H_0 in bits/symbol (passed through).
+  - name: maximum_entropy
+    type: number
+    required: true
+    description: Maximum entropy H_max = log2(alphabet_size) in bits/symbol.
+
+- schema_id: RelativeEntropyOutput
+  kind: object
+  description: >
+    Intermediate result after computing relative entropy. Carries all values
+    forward for the redundancy computation and final assembly.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through).
+  - name: zero_order_entropy
+    type: number
+    required: true
+    description: Zero-order entropy H_0 in bits/symbol (passed through).
+  - name: maximum_entropy
+    type: number
+    required: true
+    description: Maximum entropy H_max in bits/symbol (passed through).
+  - name: relative_entropy
+    type: number
+    required: true
+    description: Relative entropy eta = H_0 / H_max. Range [0.0, 1.0].
+
+- schema_id: EntropyResults
+  kind: object
+  description: >
+    Final entropy analysis results with all four computed measures.
+  fields:
+  - name: case_id
+    type: string
+    required: true
+    description: Stable benchmark case identifier (passed through from input).
+  - name: zero_order_entropy
+    type: number
+    required: true
+    description: Zero-order entropy H_0 in bits/symbol.
+  - name: maximum_entropy
+    type: number
+    required: true
+    description: Maximum entropy H_max = log2(alphabet_size) in bits/symbol.
+  - name: relative_entropy
+    type: number
+    required: true
+    description: Relative entropy eta = H_0 / H_max. Range [0.0, 1.0].
+  - name: redundancy
+    type: number
+    required: true
+    description: Redundancy D = 1 - eta. Range [0.0, 1.0].

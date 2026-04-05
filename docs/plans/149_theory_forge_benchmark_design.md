@@ -1,6 +1,6 @@
 # Plan #149: Theory Forge Benchmark Design
 
-**Status:** Planned
+**Status:** Complete
 **Type:** design
 **Priority:** High
 **Blocked By:** 148
@@ -110,43 +110,82 @@ with all 9 functions.
 
 ---
 
-## Open Questions Before Implementation
+## Design Questions — Resolved
 
-1. **Are the Information Theory golden cases in the v15 schema sufficient as
-   benchmark fixtures?** The v15 schema has `golden_cases` on some algorithms.
-   Do they cover edge cases (zero probabilities, uniform distributions) that
-   distinguish correct from subtly wrong implementations?
+**Q1: Are the v15 golden cases sufficient?**
 
-2. **What log base do the golden cases use?** Shannon's original paper uses log2
-   (bits). Some implementations use ln (nats). The benchmark fixture must be
-   unambiguous.
+No. Only `zero_order_entropy` (2 cases) and `maximum_entropy` (1 case) have
+`golden_cases` in the v15 schema. The other 7 algorithms have invariants only
+(`result >= 0.0`, etc.), not specific input/output pairs. **Decision:** hand-write
+5 golden cases covering the 4 core pipeline components (zero_order_entropy,
+maximum_entropy, relative_entropy, redundancy). Phase 2 adds conditional_entropy,
+mutual_information, and channel_capacity.
 
-3. **Is `compute.py` the right output format, or should the AC14 benchmark use
-   the same scaling_decision_entry format as resource_scaling?** The existing
-   harness expects the component graph to produce a known output schema.
-   Information Theory functions produce floats, not dicts — the harness may need
-   a thin adapter.
+**Q2: What log base?**
 
-4. **Should the benchmark test individual functions or the full pipeline?**
-   Resource-scaling tests the whole graph (all 4 components running in sequence).
-   For Information Theory, testing each algorithm independently (component-level
-   unit tests) may be cleaner, since the algorithms don't have a natural
-   sequential dependency.
+Confirmed log base 2 from schema formulas: `H_0 = -sum p_i * log_2(p_i)`,
+`H_max = log_2(n)`. All golden cases use bits. Business rules will specify
+`math.log2` explicitly. The monolithic prompt will receive the same constraint.
 
-5. **How many theories should the benchmark eventually cover?** Starting with
-   Information Theory (9 algos) proves the concept. Adding Prospect Theory (5
-   algos) + Weak Ties (8 algos) gives 3 theories and 22 total algorithms — that's
-   where the monolithic degradation should be clearly visible.
+**Q3: Output format for the harness?**
+
+Four core algorithms all return `float`. The harness uses `matched_expected`
+comparison with per-field tolerance. **Decision:** output schema is a flat record
+`entropy_results` with four float fields (`zero_order_entropy`, `maximum_entropy`,
+`relative_entropy`, `redundancy`). The existing harness handles float comparison
+with tolerance — no adapter needed.
+
+Skip `block_entropy` and `ngram_conditional_entropy` (return `dict[str, float]`
+keyed by n-gram order) for Phase 1. Add in Phase 2 with a dict-valued output field.
+
+**Q4: Individual functions vs full pipeline?**
+
+**Decision: pipeline.** `relative_entropy` and `redundancy` naturally depend on
+`zero_order_entropy` and `maximum_entropy` outputs, creating a 4-step sequential
+pipeline. This is cleaner than flat independent functions AND tests that the
+decomposition handles inter-component data passing correctly — the same challenge
+as resource_scaling. The pipeline is:
+
+```
+entropy_request
+  → compute_zero_order_entropy  → h (float)
+  → compute_maximum_entropy     → h_max (float)
+  → compute_relative_entropy    → relative_entropy (float)
+  → compute_redundancy          → entropy_results (record, all 4 values)
+```
+
+**Q5: How many theories for the benchmark?**
+
+Phase 1 (Plan #150): Information Theory — 4 core components.
+Phase 2 (Plan #151): Prospect Theory — 5 algorithms (value_function,
+probability_weighting, etc.). Already compiled with passing tests in theory-forge.
+Phase 3 (Plan #152): Weak Ties — 8 algorithms (8 graph functions). The place
+where monolithic already showed strain.
+Total for definitive comparison: 17 algorithms across 3 theories.
+
+---
+
+## Resolved Component Mapping (Phase 1)
+
+| Component | Formula | Inputs | Output type |
+|-----------|---------|--------|-------------|
+| `compute_zero_order_entropy` | `H_0 = -Σ p_i log2(p_i)` | symbol_frequencies | float |
+| `compute_maximum_entropy` | `H_max = log2(n)` | alphabet_size | float |
+| `compute_relative_entropy` | `η = H_0 / H_max` | h, h_max (floats) | float |
+| `compute_redundancy` | `D = 1 - H_0 / H_max` | h, h_max (floats) | float |
+
+Phase 2 adds: `conditional_entropy`, `mutual_information`, `channel_capacity`,
+`block_entropy`, `ngram_conditional_entropy`.
 
 ---
 
 ## Acceptance Criteria (this plan — design only)
 
-- [ ] Open questions 1-5 answered
-- [ ] Option A vs B decision made
-- [ ] Component mapping confirmed against actual v15 schema golden cases
-- [ ] Benchmark format decision: individual function tests vs full pipeline
-- [ ] Plan #150 (implementation) written with concrete files, commands, test cases
+- [x] Open questions 1-5 answered
+- [x] Option A vs B decision made (Option A: hand-authored YAML)
+- [x] Component mapping confirmed against actual v15 schema golden cases
+- [x] Benchmark format decision: 4-component sequential pipeline
+- [x] Plan #150 (implementation) written with concrete files, commands, test cases
 
 ---
 

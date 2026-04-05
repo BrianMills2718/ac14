@@ -1,0 +1,33 @@
+benchmark:
+  benchmark_id: information_theory_shannon_v1
+  name: Information Theory Entropy Suite (Shannon 1948)
+  purpose: >
+    Back-half evaluation assets for the Information Theory benchmark. Contains
+    the reference blueprint, runtime cases, and expected outputs. Used by
+    the structured-spec front-half runner to evaluate AC14-generated code.
+  comparison_scope: decomposition_vs_monolithic_theory_forge_math
+  blueprint_dir: ../blueprint
+  requirements_path: ../requirements.md
+  runtime_input_path: ../runtime_cases.json
+  expected_outputs_path: ../expected_runtime_outputs.json
+  source_artifacts:
+    - ../structured_spec_input.yaml
+    - ../runtime_cases.json
+    - ../expected_runtime_outputs.json
+  allowed_dependencies:
+    - math
+  primary_source_component_id: compute_zero_order_entropy
+  primary_source_port_name: entropy_request
+  final_component_id: compute_redundancy
+  final_output_ports:
+    - entropy_results
+  system_requirements:
+    - Use log base 2 (math.log2) for all entropy computations. Results are in bits.
+    - Zero-order entropy H_0 = -sum(p_i * log2(p_i)). Convention 0*log2(0) = 0.0.
+    - Maximum entropy H_max = log2(alphabet_size).
+    - Relative entropy eta = H_0 / H_max. If H_max == 0.0, return 0.0.
+    - Redundancy D = 1 - H_0 / H_max. If H_max == 0.0, return 1.0.
+    - Fair coin (two equiprobable symbols) yields H_0 = H_max = 1.0, eta = 1.0, D = 0.0.
+    - Uniform N-symbol distribution yields H_0 = H_max = log2(N), eta = 1.0, D = 0.0.
+  dynamic_output_fields: []
+  semantic_review_policy: advisory_on_exact_match

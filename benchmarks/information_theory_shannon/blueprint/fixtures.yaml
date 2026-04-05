@@ -1,0 +1,132 @@
+fixtures:
+- fixture_id: fair_coin_compute_zero_order_entropy
+  scenario_id: fair_coin_entropy
+  component_id: compute_zero_order_entropy
+  description: Fair coin input to compute_zero_order_entropy. H_0 = 1.0 bit.
+  inputs:
+    entropy_request:
+      case_id: fair_coin
+      symbol_frequencies:
+        "0": 0.5
+        "1": 0.5
+      alphabet_size: 2
+  expected_outputs:
+    zero_order_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      alphabet_size: 2
+
+- fixture_id: fair_coin_compute_maximum_entropy
+  scenario_id: fair_coin_entropy
+  component_id: compute_maximum_entropy
+  description: compute_maximum_entropy for binary alphabet. H_max = log2(2) = 1.0.
+  inputs:
+    zero_order_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      alphabet_size: 2
+  expected_outputs:
+    maximum_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      maximum_entropy: 1.0
+
+- fixture_id: fair_coin_compute_relative_entropy
+  scenario_id: fair_coin_entropy
+  component_id: compute_relative_entropy
+  description: compute_relative_entropy for fair coin. eta = 1.0/1.0 = 1.0.
+  inputs:
+    maximum_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      maximum_entropy: 1.0
+  expected_outputs:
+    relative_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      maximum_entropy: 1.0
+      relative_entropy: 1.0
+
+- fixture_id: fair_coin_compute_redundancy
+  scenario_id: fair_coin_entropy
+  component_id: compute_redundancy
+  description: compute_redundancy for fair coin. D = 1 - 1.0 = 0.0.
+  inputs:
+    relative_entropy_output:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      maximum_entropy: 1.0
+      relative_entropy: 1.0
+  expected_outputs:
+    entropy_results:
+      case_id: fair_coin
+      zero_order_entropy: 1.0
+      maximum_entropy: 1.0
+      relative_entropy: 1.0
+      redundancy: 0.0
+
+- fixture_id: biased_coin_compute_zero_order_entropy
+  scenario_id: biased_coin_entropy
+  component_id: compute_zero_order_entropy
+  description: Biased coin (0.75/0.25) to compute_zero_order_entropy. H_0 = 0.8113 bits.
+  inputs:
+    entropy_request:
+      case_id: biased_75_25
+      symbol_frequencies:
+        a: 0.75
+        b: 0.25
+      alphabet_size: 2
+  expected_outputs:
+    zero_order_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      alphabet_size: 2
+
+- fixture_id: biased_coin_compute_maximum_entropy
+  scenario_id: biased_coin_entropy
+  component_id: compute_maximum_entropy
+  description: compute_maximum_entropy for binary alphabet. H_max = 1.0.
+  inputs:
+    zero_order_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      alphabet_size: 2
+  expected_outputs:
+    maximum_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      maximum_entropy: 1.0
+
+- fixture_id: biased_coin_compute_relative_entropy
+  scenario_id: biased_coin_entropy
+  component_id: compute_relative_entropy
+  description: compute_relative_entropy for biased coin. eta = 0.8113/1.0 = 0.8113.
+  inputs:
+    maximum_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      maximum_entropy: 1.0
+  expected_outputs:
+    relative_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      maximum_entropy: 1.0
+      relative_entropy: 0.8113
+
+- fixture_id: biased_coin_compute_redundancy
+  scenario_id: biased_coin_entropy
+  component_id: compute_redundancy
+  description: compute_redundancy for biased coin. D = 1 - 0.8113 = 0.1887.
+  inputs:
+    relative_entropy_output:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      maximum_entropy: 1.0
+      relative_entropy: 0.8113
+  expected_outputs:
+    entropy_results:
+      case_id: biased_75_25
+      zero_order_entropy: 0.8113
+      maximum_entropy: 1.0
+      relative_entropy: 0.8113
+      redundancy: 0.1887

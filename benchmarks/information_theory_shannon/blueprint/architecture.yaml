@@ -1,0 +1,14 @@
+bindings:
+- from_component: compute_zero_order_entropy
+  from_port: zero_order_entropy_output
+  to_component: compute_maximum_entropy
+  to_port: zero_order_entropy_output
+- from_component: compute_maximum_entropy
+  from_port: maximum_entropy_output
+  to_component: compute_relative_entropy
+  to_port: maximum_entropy_output
+- from_component: compute_relative_entropy
+  from_port: relative_entropy_output
+  to_component: compute_redundancy
+  to_port: relative_entropy_output
+state_stores: []

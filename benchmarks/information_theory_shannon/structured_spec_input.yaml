@@ -1,0 +1,134 @@
+system_name: Information Theory Entropy Suite (Shannon 1948)
+purpose: >
+  Compute core entropy measures for a discrete probability distribution using
+  Shannon's mathematical theory of information. The system implements four
+  formulas from "A Mathematical Theory of Communication" (1948) as a sequential
+  pipeline: zero-order entropy (H_0), maximum entropy (H_max), relative entropy
+  (eta = H_0/H_max), and redundancy (D = 1 - eta). Each formula is one bounded
+  component. All computations use log base 2 (result in bits).
+requirements:
+  - implement Shannon entropy formulas exactly with log base 2 (math.log2, not math.log)
+  - the four formulas form a linear pipeline where each component adds one computed value
+  - compute zero-order entropy from the symbol probability distribution in entropy_request
+  - pass computed values downstream through intermediate records so each stage only needs its predecessor's output
+  - compute maximum entropy from the alphabet_size carried forward from stage 1
+  - compute relative entropy as the ratio H_0 / H_max from stage 2 values
+  - compute redundancy as 1 minus relative entropy and assemble the final entropy_results record
+  - each component implements exactly one formula and is independently testable
+success_criteria:
+  - fair coin (two equiprobable symbols) yields zero_order_entropy=1.0 bits
+  - uniform N-symbol distribution yields zero_order_entropy = maximum_entropy = log2(N)
+  - relative_entropy for a fair coin equals 1.0 (full capacity)
+  - redundancy + relative_entropy = 1.0 for all valid inputs
+  - all entropy values are non-negative floats
+business_rules:
+  - "ZERO-ORDER ENTROPY: H_0 = -sum(p_i * log2(p_i)) for all symbols. Use math.log2 (log base 2, result in bits/symbol). Convention: 0 * log2(0) = 0.0 -- skip symbols with p_i == 0.0 or guard with (0.0 if p == 0.0 else p * math.log2(p))."
+  - "MAXIMUM ENTROPY: H_max = log2(alphabet_size). Use math.log2. log2(1) = 0.0. Result is the entropy of a uniform distribution over the alphabet."
+  - "RELATIVE ENTROPY: eta = H_0 / H_max. If H_max == 0.0 (single-symbol degenerate alphabet), return 0.0."
+  - "REDUNDANCY: D = 1.0 - H_0 / H_max. If H_max == 0.0 (single-symbol degenerate alphabet), return 1.0 (source is fully redundant)."
+  - "IMPORTANT: do NOT use math.log (natural log). Shannon's formulas use log base 2. Using math.log produces values in nats, not bits, and will fail all test cases."
+inputs:
+  - name: entropy_request
+    kind: record
+    description: An entropy computation request specifying the probability distribution to analyze.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier passed through to the final output.
+        required: true
+      - field_name: symbol_frequencies
+        field_type: dict
+        description: >
+          Mapping of symbol (str) to its probability (float). Values must sum to 1.0.
+          Example: {"a": 0.5, "b": 0.3, "c": 0.2}.
+        required: true
+      - field_name: alphabet_size
+        field_type: int
+        description: Number of distinct symbols in the alphabet. Must equal len(symbol_frequencies).
+        required: true
+outputs:
+  - name: entropy_results
+    kind: record
+    description: All four computed entropy measures assembled into a final output record.
+    fields:
+      - field_name: case_id
+        field_type: str
+        description: Stable benchmark case identifier (passed through from entropy_request).
+        required: true
+      - field_name: zero_order_entropy
+        field_type: float
+        description: Zero-order entropy H_0 in bits/symbol. Range [0, log2(alphabet_size)].
+        required: true
+      - field_name: maximum_entropy
+        field_type: float
+        description: Maximum entropy H_max = log2(alphabet_size) in bits/symbol.
+        required: true
+      - field_name: relative_entropy
+        field_type: float
+        description: Relative entropy eta = H_0 / H_max. Dimensionless, range [0.0, 1.0].
+        required: true
+      - field_name: redundancy
+        field_type: float
+        description: Redundancy D = 1 - eta. Dimensionless, range [0.0, 1.0].
+        required: true
+workflow_hints:
+  - hint_id: compute_zero_order_entropy
+    summary: >
+      PIPELINE STAGE 1 of 4. Receive entropy_request directly and compute
+      zero-order entropy H_0 from symbol_frequencies. Emit an intermediate
+      record carrying H_0 and alphabet_size to the next stage.
+    input_names: [entropy_request]
+    output_names: [entropy_results]
+    business_rules:
+      - "STAGE 1 (SOURCE). This component receives entropy_request as the sole external input to the pipeline."
+      - "Implement: H_0 = -sum(p_i * math.log2(p_i)) where the sum is over all symbols in symbol_frequencies."
+      - "Use math.log2 (log base 2). Do NOT use math.log."
+      - "Convention for zero-probability symbols: 0.0 if p == 0.0 else p * math.log2(p). Such symbols contribute 0.0."
+      - "Result must satisfy 0.0 <= zero_order_entropy <= math.log2(alphabet_size)."
+      - "Output an intermediate record (e.g. zero_order_entropy_output) with: case_id (from entropy_request), zero_order_entropy (float, H_0 computed above), alphabet_size (int, passed through). Wire this output to the next stage (compute_maximum_entropy)."
+  - hint_id: compute_maximum_entropy
+    summary: >
+      PIPELINE STAGE 2 of 4. Receive the intermediate record from
+      compute_zero_order_entropy and compute H_max = log2(alphabet_size).
+      Emit an intermediate record carrying H_0 and H_max to the next stage.
+    input_names: [entropy_request]
+    output_names: [entropy_results]
+    business_rules:
+      - "STAGE 2. This component receives the intermediate output from compute_zero_order_entropy, NOT entropy_request directly."
+      - "Implement: H_max = math.log2(alphabet_size) where alphabet_size comes from the upstream intermediate record."
+      - "Use math.log2 (log base 2). Do NOT use math.log."
+      - "Result must satisfy maximum_entropy >= 0.0."
+      - "Output an intermediate record (e.g. maximum_entropy_output) with: case_id (passed through), zero_order_entropy (passed through from upstream), maximum_entropy (float, H_max computed above). Wire this output to the next stage (compute_relative_entropy)."
+  - hint_id: compute_relative_entropy
+    summary: >
+      PIPELINE STAGE 3 of 4. Receive the intermediate record from
+      compute_maximum_entropy and compute eta = H_0 / H_max.
+      Emit an intermediate record carrying H_0, H_max, and eta to the final stage.
+    input_names: [entropy_request]
+    output_names: [entropy_results]
+    business_rules:
+      - "STAGE 3. This component receives the intermediate output from compute_maximum_entropy."
+      - "Implement: eta = zero_order_entropy / maximum_entropy."
+      - "Degenerate case: if maximum_entropy == 0.0, return relative_entropy = 0.0."
+      - "Result must satisfy 0.0 <= relative_entropy <= 1.0."
+      - "Output an intermediate record (e.g. relative_entropy_output) with: case_id (passed through), zero_order_entropy (passed through), maximum_entropy (passed through), relative_entropy (float, eta computed above). Wire this output to the final stage (compute_redundancy)."
+  - hint_id: compute_redundancy
+    summary: >
+      PIPELINE STAGE 4 of 4 (TERMINAL). Receive the intermediate record from
+      compute_relative_entropy and compute D = 1 - eta. Assemble and emit the
+      final entropy_results record.
+    input_names: [entropy_request]
+    output_names: [entropy_results]
+    business_rules:
+      - "STAGE 4 (TERMINAL). This component receives the intermediate output from compute_relative_entropy."
+      - "Implement: D = 1.0 - zero_order_entropy / maximum_entropy."
+      - "Degenerate case: if maximum_entropy == 0.0, return redundancy = 1.0."
+      - "Result must satisfy 0.0 <= redundancy <= 1.0."
+      - "Assemble and emit the FINAL entropy_results record: case_id (passed through), zero_order_entropy (passed through), maximum_entropy (passed through), relative_entropy (passed through), redundancy (float, D computed above)."
+      - "This component is the terminal emitter of entropy_results. No other component should emit entropy_results."
+human_context_notes:
+  - "Shannon (1948) defines H = -K sum(p_i log p_i). With K = 1/ln(2) this is identical to H = -sum(p_i log2(p_i)). The log2 form gives results in bits."
+  - "The pipeline is a strict linear chain: entropy_request -> H_0 -> H_max -> eta -> (D + entropy_results). Each stage passes accumulated values to the next."
+  - "Redundancy for natural English is approximately 50% per Shannon's estimate from 8-letter dependencies."
+  - "The monolithic baseline receives all 4 formulas, all typed inputs, and all test cases in one context window."
+  - "The degenerate case (H_max=0, single-symbol alphabet) is a known implementation trap: dividing by zero must be guarded, and the convention (return 0.0 or 1.0) must be applied consistently."

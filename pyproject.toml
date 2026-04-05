@@ -18,6 +18,7 @@ dependencies = [
 dev = [
     "mypy>=1.0",
     "pytest>=7.0",
+    "pytest-asyncio>=0.21",
     "ruff>=0.3.0",
 ]
 
@@ -26,8 +27,10 @@ include = ["ac14*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "strict"
 markers = [
     "live: requires live LLM API calls",
+    "asyncio: marks tests as async (use @pytest.mark.asyncio)",
 ]
 
 [tool.mypy]

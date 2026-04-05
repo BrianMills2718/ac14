@@ -1,0 +1,103 @@
+components:
+- component_id: compute_zero_order_entropy
+  kind: transform
+  purpose: >
+    Compute zero-order entropy H_0 = -sum(p_i * log2(p_i)) from the symbol
+    probability distribution. Use log base 2. Convention: 0 * log2(0) = 0.0.
+  semantic_responsibility: compute_zero_order_shannon_entropy
+  input_ports:
+  - name: entropy_request
+    schema_id: EntropyRequest
+    description: Entropy computation request with symbol_frequencies and alphabet_size.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: zero_order_entropy_output
+    schema_id: ZeroOrderEntropyOutput
+    description: H_0 value plus case_id and alphabet_size for the next stage.
+  local_invariants:
+  - zero_order_entropy_output.case_id must equal entropy_request.case_id
+  - zero_order_entropy_output.zero_order_entropy must be >= 0.0
+  - zero_order_entropy_output.alphabet_size must equal entropy_request.alphabet_size
+  failure_semantics:
+  - fail loud if symbol_frequencies values do not sum to approximately 1.0
+  implementation_constraints:
+  - use math.log2 (log base 2) — do not use math.log
+  - guard zero-probability symbols with (0.0 if p == 0.0 else p * math.log2(p))
+
+- component_id: compute_maximum_entropy
+  kind: transform
+  purpose: >
+    Compute maximum entropy H_max = log2(alphabet_size). This is the entropy
+    of a hypothetical uniform distribution over the alphabet.
+  semantic_responsibility: compute_maximum_shannon_entropy
+  input_ports:
+  - name: zero_order_entropy_output
+    schema_id: ZeroOrderEntropyOutput
+    description: Output from the previous stage carrying alphabet_size.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: maximum_entropy_output
+    schema_id: MaximumEntropyOutput
+    description: H_max value plus H_0 and case_id for the next stage.
+  local_invariants:
+  - maximum_entropy_output.case_id must equal zero_order_entropy_output.case_id
+  - maximum_entropy_output.maximum_entropy must be >= 0.0
+  - maximum_entropy_output.zero_order_entropy must equal zero_order_entropy_output.zero_order_entropy
+  failure_semantics:
+  - fail loud if alphabet_size < 1
+  implementation_constraints:
+  - use math.log2 (log base 2) — do not use math.log
+  - pass zero_order_entropy through unchanged from input
+
+- component_id: compute_relative_entropy
+  kind: transform
+  purpose: >
+    Compute relative entropy eta = H_0 / H_max. If H_max == 0.0 (degenerate
+    single-symbol alphabet), return 0.0. Result is in [0.0, 1.0].
+  semantic_responsibility: compute_relative_shannon_entropy
+  input_ports:
+  - name: maximum_entropy_output
+    schema_id: MaximumEntropyOutput
+    description: Output from the previous stage with H_0 and H_max values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: relative_entropy_output
+    schema_id: RelativeEntropyOutput
+    description: eta value plus H_0, H_max, and case_id for the final stage.
+  local_invariants:
+  - relative_entropy_output.case_id must equal maximum_entropy_output.case_id
+  - relative_entropy_output.relative_entropy must be in [0.0, 1.0]
+  failure_semantics:
+  - fail loud if relative_entropy is outside [0.0, 1.0] (indicates upstream computation error)
+  implementation_constraints:
+  - guard H_max == 0.0 by returning 0.0 rather than dividing by zero
+  - pass zero_order_entropy and maximum_entropy through unchanged
+
+- component_id: compute_redundancy
+  kind: transform
+  purpose: >
+    Compute redundancy D = 1.0 - H_0 / H_max and assemble the final entropy_results
+    record. If H_max == 0.0 (degenerate single-symbol alphabet), D = 1.0.
+  semantic_responsibility: compute_shannon_redundancy_and_assemble_results
+  input_ports:
+  - name: relative_entropy_output
+    schema_id: RelativeEntropyOutput
+    description: Output from the previous stage with all accumulated entropy values.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: entropy_results
+    schema_id: EntropyResults
+    description: Final assembled entropy results record with all four measures.
+  local_invariants:
+  - entropy_results.case_id must equal relative_entropy_output.case_id
+  - entropy_results.redundancy must be in [0.0, 1.0]
+  - entropy_results.redundancy + entropy_results.relative_entropy must approximately equal 1.0
+  failure_semantics:
+  - fail loud if any required field in relative_entropy_output is missing
+  implementation_constraints:
+  - guard H_max == 0.0 by returning redundancy = 1.0 rather than dividing by zero
+  - assemble all four final fields from accumulated pipeline values
