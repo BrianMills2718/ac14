@@ -1,0 +1,42 @@
+[
+  {
+    "case_id": "base",
+    "spot": 100.0,
+    "strike": 100.0,
+    "rate": 0.05,
+    "volatility": 0.20,
+    "time_to_expiry": 1.0,
+    "zeta": 0.70,
+    "alpha": 0.85
+  },
+  {
+    "case_id": "otm_call",
+    "spot": 100.0,
+    "strike": 110.0,
+    "rate": 0.05,
+    "volatility": 0.25,
+    "time_to_expiry": 0.5,
+    "zeta": 0.60,
+    "alpha": 0.80
+  },
+  {
+    "case_id": "itm_put",
+    "spot": 80.0,
+    "strike": 90.0,
+    "rate": 0.08,
+    "volatility": 0.30,
+    "time_to_expiry": 2.0,
+    "zeta": 0.90,
+    "alpha": 0.95
+  },
+  {
+    "case_id": "low_zeta",
+    "spot": 120.0,
+    "strike": 100.0,
+    "rate": 0.03,
+    "volatility": 0.15,
+    "time_to_expiry": 1.5,
+    "zeta": 0.40,
+    "alpha": 0.70
+  }
+]
