@@ -33,7 +33,7 @@ fixtures:
       case_id: base_spread
       d1_zeta_a: 0.32
       d2_zeta_a: 0.18000000000000002
-      dd1_dT_a: 0.0
+      dd1_dT_a: 0.16
       disc_alpha_a: 0.9246264814269951
       rate_a: 0.05
       rate_b: 0.05
@@ -60,7 +60,7 @@ fixtures:
       case_id: base_spread
       d1_zeta_a: 0.32
       d2_zeta_a: 0.18000000000000002
-      dd1_dT_a: 0.0
+      dd1_dT_a: 0.16
       delta_call_a: 0.43786108430632403
       delta_put_a: -0.562138915693676
       disc_alpha_a: 0.9246264814269951
@@ -144,7 +144,7 @@ fixtures:
       case_id: base_spread
       d1_zeta_a: 0.32
       d2_zeta_a: 0.18000000000000002
-      dd1_dT_a: 0.0
+      dd1_dT_a: 0.16
       delta_call_a: 0.43786108430632403
       delta_put_a: -0.562138915693676
       disc_alpha_a: 0.9246264814269951

@@ -17,6 +17,15 @@ import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
 from llm_client.io_log import activate_feature_profile, experiment_run  # type: ignore[import-not-found]
 
+try:
+    from data_contracts import boundary, BoundaryModel
+except ImportError:
+    def boundary(*args: Any, **kwargs: Any) -> Any:  # type: ignore[misc]
+        def decorator(fn: Any) -> Any:
+            return fn
+        return decorator
+    BoundaryModel = object  # type: ignore[assignment,misc]
+
 from ac14.acceptance import (
     ACCEPTANCE_PROMPT_PATH,
     AcceptanceReviewResponse,
@@ -357,6 +366,40 @@ def run_paired_trial(
     return paired_report
 
 
+def run_ac14_only_trial(
+    benchmark_dir: Path | str,
+    output_dir: Path | str,
+    *,
+    trial_id: int,
+    model: str = DEFAULT_LLM_MODEL,
+    max_budget: float = DEFAULT_LLM_MAX_BUDGET,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    generator_kind: str = "llm",
+    max_workers: int = 1,
+) -> ConditionTrialReport:
+    """Run only the AC14 condition for one trial — skips monolithic."""
+    bundle = load_benchmark_bundle(benchmark_dir)
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    return _run_condition_trial(
+        bundle=bundle,
+        condition="ac14",
+        output_dir=destination / "ac14",
+        trial_id=trial_id,
+        model=model,
+        max_budget=max_budget,
+        max_attempts=max_attempts,
+        generator_kind=generator_kind,
+        max_workers=max_workers,
+    )
+
+
+@boundary(
+    name="ac14.empirical_comparison",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def run_empirical_comparison(
     benchmark_dir: Path | str,
     output_dir: Path | str,
@@ -415,6 +458,12 @@ def run_empirical_comparison(
     return decision
 
 
+@boundary(
+    name="ac14.smoke_gate",
+    version="0.1.0",
+    producer="ac14",
+    consumers=["benchmark_pipeline"],
+)
 def run_empirical_smoke_gate(
     benchmark_dir: Path | str,
     output_dir: Path | str,
@@ -602,6 +651,8 @@ def _run_condition_trial(
     model: str,
     max_budget: float,
     max_attempts: int,
+    generator_kind: str = "llm",
+    max_workers: int = 1,
 ) -> ConditionTrialReport:
     """Run one condition across the allowed bounded attempts."""
 
@@ -620,6 +671,8 @@ def _run_condition_trial(
             model=model,
             max_budget=max_budget,
             repair_guidance=repair_guidance,
+            generator_kind=generator_kind,
+            max_workers=max_workers,
         )
         attempts.append(attempt_report)
         repair_guidance = list(attempt_report.failure_summary)
@@ -645,6 +698,8 @@ def _run_condition_attempt(
     model: str,
     max_budget: float,
     repair_guidance: list[str],
+    generator_kind: str = "llm",
+    max_workers: int = 1,
 ) -> ConditionAttemptReport:
     """Run one bounded attempt for one condition and persist the artifact."""
 
@@ -701,11 +756,12 @@ def _run_condition_attempt(
                 generated_package = emit_generated_package(
                     bundle.packet_bundle,
                     output_dir / "generated",
-                    generator_kind="llm",
+                    generator_kind=generator_kind,  # type: ignore[arg-type]
                     llm_model=model,
                     llm_max_budget=max_budget,
                     trace_id_prefix=trace_prefix,
                     repair_guidance_by_component=repair_guidance_by_component,
+                    max_workers=max_workers,
                 )
             packet_report = run_generated_packet_tests(
                 bundle.packet_bundle,
@@ -1309,6 +1365,31 @@ def _strip_dynamic_field_paths(
     return result
 
 
+def _approx_equal(a: Any, b: Any, rel_tol: float = 1e-9, abs_tol: float = 1e-12) -> bool:
+    """Deep approximate equality for dicts/lists/floats. Falls back to == for other types."""
+    if type(a) != type(b):
+        # Allow int/float cross-comparison
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+            fa, fb = float(a), float(b)
+            if fa == 0.0 and fb == 0.0:
+                return True
+            return abs(fa - fb) <= max(abs_tol, rel_tol * max(abs(fa), abs(fb)))
+        return False
+    if isinstance(a, float):
+        if a == 0.0 and b == 0.0:
+            return True
+        return abs(a - b) <= max(abs_tol, rel_tol * max(abs(a), abs(b)))
+    if isinstance(a, dict):
+        if set(a.keys()) != set(b.keys()):
+            return False
+        return all(_approx_equal(a[k], b[k], rel_tol, abs_tol) for k in a)
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return False
+        return all(_approx_equal(x, y, rel_tol, abs_tol) for x, y in zip(a, b))
+    return a == b
+
+
 def _dynamic_field_exists(data: dict[str, Any], path: str) -> bool:
     """Return True if a dot-separated field path exists anywhere in data."""
     parts = path.split(".")
@@ -1361,7 +1442,7 @@ def _execute_runtime_cases(
                 f for f in dynamic_fields
                 if not _dynamic_field_exists(frozen_outputs, f)
             ]
-            matched = compare_actual == compare_expected and not missing_dynamic
+            matched = _approx_equal(compare_actual, compare_expected) and not missing_dynamic
             results.append(
                 RuntimeCaseExecution(
                     case_id=case_id,

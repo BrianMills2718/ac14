@@ -17,7 +17,7 @@ from ac14.models import PacketBundle
 from ac14.packet_tests import materialize_packet_test_cases
 from ac14.runtime import RuntimeComponent
 
-GeneratorKind = Literal["deterministic", "llm"]
+GeneratorKind = Literal["deterministic", "llm", "codex"]
 DEFAULT_LLM_MODEL = "gemini/gemini-2.5-flash-lite"
 DEFAULT_LLM_MAX_BUDGET = 0.50
 
@@ -109,15 +109,30 @@ def emit_generated_package(
     repair_guidance_by_component: dict[str, list[str]] | None = None,
     structured_spec_business_rules: list[str] | None = None,
     structured_spec_hint_rules_by_component: dict[str, list[str]] | None = None,
+    max_workers: int = 1,
 ) -> GeneratedPackage:
-    """Emit standalone Python modules for all components in a packet bundle."""
+    """Emit standalone Python modules for all components in a packet bundle.
+
+    max_workers > 1 enables parallel component generation via ThreadPoolExecutor.
+    Recommended for codex generator (subprocess-bound); use 1 for llm generator
+    to avoid concurrent LLM budget issues.
+    """
+    import json as _json
+    import threading
+    import time as _time
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
     atomic_write_text(destination / "__init__.py", '"""Generated AC14 components."""\n')
 
     packet_cases = materialize_packet_test_cases(packet_bundle)
-    module_paths: dict[str, str] = {}
+    total = len(packet_bundle.packets)
+    progress_log = destination / "progress.jsonl"
+    progress_lock = threading.Lock()
+
+    # Build all (component_id, context) pairs upfront — context construction is fast
+    component_items: list[tuple[str, CodegenContext]] = []
     for component_id, packet in packet_bundle.packets.items():
         component_rules = _merge_component_rules(
             component_id=component_id,
@@ -135,6 +150,13 @@ def emit_generated_package(
             structured_spec_business_rules=component_rules,
         )
         atomic_write_text(destination / f"{component_id}.context.json", context.model_dump_json(indent=2))
+        component_items.append((component_id, context))
+
+    def _generate_one(args: tuple[int, str, "CodegenContext"]) -> tuple[str, str]:
+        """Generate one component module; return (component_id, module_path_str) or raise."""
+        idx, component_id, context = args
+        t0 = _time.perf_counter()
+        print(f"  [{idx}/{total}] {component_id} ...", flush=True)
         try:
             module_source = _render_module_source(
                 context,
@@ -145,11 +167,42 @@ def emit_generated_package(
                 trace_dir=destination,
             )
         except Exception as exc:
+            elapsed = _time.perf_counter() - t0
+            print(f"  [{idx}/{total}] {component_id} FAIL ({elapsed:.1f}s): {exc}", flush=True)
+            with progress_lock:
+                with open(progress_log, "a") as _f:
+                    _f.write(_json.dumps({"component_id": component_id, "status": "fail", "elapsed_s": round(elapsed, 1), "error": str(exc)}) + "\n")
             _persist_failed_module_artifacts(destination, component_id=component_id, error=exc)
             raise
+        elapsed = _time.perf_counter() - t0
+        print(f"  [{idx}/{total}] {component_id} OK ({elapsed:.1f}s)", flush=True)
+        with progress_lock:
+            with open(progress_log, "a") as _f:
+                _f.write(_json.dumps({"component_id": component_id, "status": "ok", "elapsed_s": round(elapsed, 1)}) + "\n")
         module_path = destination / f"{component_id}.py"
         atomic_write_text(module_path, module_source)
-        module_paths[component_id] = str(module_path)
+        return component_id, str(module_path)
+
+    work_items = [(idx, cid, ctx) for idx, (cid, ctx) in enumerate(component_items, 1)]
+    module_paths: dict[str, str] = {}
+
+    if max_workers > 1:
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(_generate_one, item): item[1] for item in work_items}
+            first_exc: Exception | None = None
+            for future in as_completed(futures):
+                try:
+                    cid, path = future.result()
+                    module_paths[cid] = path
+                except Exception as exc:
+                    if first_exc is None:
+                        first_exc = exc
+            if first_exc is not None:
+                raise first_exc
+    else:
+        for item in work_items:
+            cid, path = _generate_one(item)
+            module_paths[cid] = path
 
     return GeneratedPackage(
         output_dir=str(destination),
@@ -270,6 +323,12 @@ def _render_module_source(
 ) -> str:
     """Render a standalone module for one supported semantic responsibility."""
 
+    if generator_kind == "codex":
+        from ac14.codex_codegen import generate_component_with_codex
+        if trace_dir is None:
+            raise ValueError("codex generator requires trace_dir")
+        response = generate_component_with_codex(context, trace_dir=trace_dir)
+        return response.module_code
     if generator_kind == "llm":
         response = generate_component_module_with_llm(
             context,

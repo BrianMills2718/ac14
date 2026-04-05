@@ -26,6 +26,34 @@ from ac14.recomposition import RecompositionReport, run_recomposition_proof
 PACKET_EVALUATE_PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "evaluate_packet_case.yaml"
 
 
+def _approx_equal(a: Any, b: Any, rel_tol: float = 1e-9, abs_tol: float = 1e-12) -> bool:
+    """Float-tolerant deep equality for packet test comparison.
+
+    Avoids false failures from tiny floating-point representation differences
+    (e.g. 9.716233488593133 vs 9.71623348859314 — same float64, different repr).
+    """
+    if type(a) != type(b):
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+            fa, fb = float(a), float(b)
+            if fa == 0.0 and fb == 0.0:
+                return True
+            return abs(fa - fb) <= max(abs_tol, rel_tol * max(abs(fa), abs(fb)))
+        return False
+    if isinstance(a, float):
+        if a == 0.0 and b == 0.0:
+            return True
+        return abs(a - b) <= max(abs_tol, rel_tol * max(abs(a), abs(b)))
+    if isinstance(a, dict):
+        if set(a.keys()) != set(b.keys()):
+            return False
+        return all(_approx_equal(a[k], b[k], rel_tol, abs_tol) for k in a)
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return False
+        return all(_approx_equal(x, y, rel_tol, abs_tol) for x, y in zip(a, b))
+    return a == b
+
+
 _FIXTURE_FREE_FORM_FIELDS: frozenset[str] = frozenset({
     "reason",
     "score",
@@ -236,10 +264,10 @@ def run_generated_packet_tests(
                     passed = False
                     error = "negative case unexpectedly succeeded"
                 else:
-                    # Phase 1: categorical exact check (free-form fields stripped)
+                    # Phase 1: categorical check with float tolerance (free-form fields stripped)
                     stripped_actual = _strip_fixture_free_form_fields(outputs)
                     stripped_expected = _strip_fixture_free_form_fields(case.expected_outputs)
-                    categorical_passed = stripped_actual == stripped_expected
+                    categorical_passed = _approx_equal(stripped_actual, stripped_expected)
 
                     if not categorical_passed:
                         passed = False

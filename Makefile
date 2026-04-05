@@ -55,9 +55,31 @@ check: ## Run tests, lint, and type-checking
 	$(PYTHON) -m pytest -q
 	$(PYTHON) -m ruff check ac14 tests
 	$(PYTHON) -m mypy ac14 tests
+	@! grep -rn "max_tokens\s*=" ac14/ tests/ --include="*.py" | grep -v "model_max\|max_tokens.*#.*allowed\|_apply_max_tokens\|max_completion_tokens" \
+		|| (echo "ERROR: max_tokens set on LLM call. CLAUDE.md forbids this." && exit 1)
 
 status: ## Show git status
 	@git status --short --branch
+
+trial-status: ## Live progress of a running trial (OUTPUT=.ac14_out/my_run TRIAL=1)
+	@dir="$(OUTPUT)/trial_$(TRIAL)/ac14"; \
+	attempt=$$(ls -d $$dir/attempt_* 2>/dev/null | sort -V | tail -1); \
+	if [ -z "$$attempt" ]; then echo "No attempt dirs found under $$dir"; exit 1; fi; \
+	gen="$$attempt/generated"; \
+	total=$$(ls $$gen/*.context.json 2>/dev/null | wc -l | tr -d ' '); \
+	done=$$(ls $$gen/*.codex_exit.txt 2>/dev/null | wc -l | tr -d ' '); \
+	failed=$$(grep -l "^1$$" $$gen/*.codex_exit.txt 2>/dev/null | wc -l | tr -d ' '); \
+	echo "Trial $(TRIAL) — $$(basename $$attempt): $$done/$$total components done, $$failed failures"; \
+	if [ -f "$$gen/progress.jsonl" ]; then \
+		echo "Recent:"; \
+		tail -5 $$gen/progress.jsonl | python3 -c "import sys,json; [print(f\"  [{r['status'].upper()}] {r['component_id']} ({r.get('elapsed_s','?')}s)\") for r in (json.loads(l) for l in sys.stdin)]"; \
+	else \
+		echo "Latest:"; ls -t $$gen/*.codex_exit.txt 2>/dev/null | head -5 | while read f; do echo "  exit=$$(cat $$f) $$(basename $$f .codex_exit.txt)"; done; \
+	fi; \
+	if [ -f "$$attempt/attempt_report.json" ]; then \
+		echo "--- ATTEMPT COMPLETE ---"; \
+		python3 -c "import json; r=json.load(open('$$attempt/attempt_report.json')); print(f\"passed={r.get('passed')} rt_cases={len(r.get('runtime_cases',[]))}\")"; \
+	fi
 
 verify-blueprint: ## Validate a blueprint bundle (INPUT=examples/.../blueprint)
 	$(PYTHON) -m ac14 verify-blueprint "$(INPUT)"
@@ -178,6 +200,9 @@ front-half-first-full-trials: ## Run the full front-half-first five-trial gate (
 
 context-audit: ## Scan codegen context traces for missing/placeholder fields (OUTPUT=.ac14_out/gate_4)
 	$(PYTHON) scripts/context_audit.py "$(OUTPUT)"
+
+run-one: ## Run one paired trial and print clean diagnosis (BENCHMARK=back_half_dir OUTPUT=dir TRIAL=1 MODEL=gemini/gemini-2.5-flash-lite)
+	$(PYTHON) -m ac14.trial_runner --benchmark "$(BENCHMARK)" --output "$(OUTPUT)" --trial $(or $(TRIAL),1) --model "$(or $(MODEL),$(DEFAULT_MODEL))"
 
 diagnose-attempt: ## Show codegen context + runtime mismatches for one attempt (OUTPUT=.ac14_out/gate_4 TRIAL=N ATTEMPT=M [COMPONENT=name])
 	$(PYTHON) scripts/diagnose_attempt.py "$(OUTPUT)" $(TRIAL) $(ATTEMPT) $(if $(COMPONENT),--show-prompt $(COMPONENT),)
