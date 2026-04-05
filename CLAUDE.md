@@ -124,12 +124,14 @@ find the first `ac14_wins` verdict.
 11. [Plan #160](./docs/plans/160_bs_gemini_flash_verdict.md) -> complete, BS Gemini flash `inconclusive` (4/5 vs 5/5)
 12. [Plan #161](./docs/plans/161_harder_benchmark_design.md) -> complete, zeta_options bundle B1 passes
 13. [Plan #162](./docs/plans/162_zeta_gate_1_verdict.md) -> complete, zeta gate_1 `inconclusive` (4/5 vs 5/5 gpt-4.1); gpt-4.1 implements ALL zeta/alpha mods correctly; AC14 fails due to codegen errors not formula
-14. **[Plan #163](./docs/plans/163_zeta_gemini_flash_gate.md)** -> **ACTIVE** — run zeta options with Gemini flash
-    - Hypothesis: Gemini flash reverts to memorized BS formulas without AC14 hints
-    - Command: `make front-half-first-full-trials BENCHMARK=benchmarks/zeta_options OUTPUT=.ac14_out/zeta_gemini_gate_1 MODEL=gemini/gemini-2.5-flash MAX_BUDGET=0.30 TRIALS=5 MAX_ATTEMPTS=3`
-    - if `ac14_wins`: thesis validated for weak-model regime → write ADR + Plan #164 confirmation
-    - if `monolithic_wins`: mono also fails zeta → need even weaker model or larger system
+14. [Plan #163](./docs/plans/163_zeta_gemini_flash_gate.md) -> complete, zeta Gemini flash `monolithic_wins` (1/5 AC14 vs 5/5 mono); AC14 failed due to budget split ($0.30 limit) + formula bugs in pricer components
+15. [Plan #164](./docs/plans/164_zeta_gemini_flash_verdict.md) -> complete, strategic finding: structured_spec gives mono same hints as AC14; monolithic 5/5 on all benchmarks
+16. **[Plan #165](./docs/plans/165_haiku_zeta_gate.md)** -> **ACTIVE** — run zeta options with claude-haiku-4-5
+    - Hypothesis: haiku (weakest model) may fail monolithically on 10-component novel formula spec
+    - Command: `make front-half-first-full-trials BENCHMARK=benchmarks/zeta_options OUTPUT=.ac14_out/zeta_haiku_gate_1 MODEL=claude-haiku-4-5-20251001 MAX_BUDGET=0.80 TRIALS=5 MAX_ATTEMPTS=3`
+    - if `ac14_wins`: first thesis validation → write ADR
     - if `inconclusive`: run 10-trial gate
+    - if `monolithic_wins`: design 50+ component benchmark
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
