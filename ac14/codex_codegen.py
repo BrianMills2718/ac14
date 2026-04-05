@@ -161,8 +161,6 @@ def _build_prompt(context: CodegenContext, *, output_file: Path, test_file: Path
         2. Run: python -m pytest {test_file.name} -v
         3. If any tests fail, read the failure output, fix the module, and re-run
         4. Repeat until all tests pass
-
-        The full codegen context (schemas, test cases) is in {output_file.stem}.context.json.
     """)
 
 
