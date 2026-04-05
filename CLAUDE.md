@@ -157,10 +157,16 @@ find the first `ac14_wins` verdict.
     - AC14 2.6x more expensive ($0.082/trial), 6x slower (120s vs 19s), no accuracy benefit
     - Verdict doc: `docs/theory_forge/zeta_scale20_verdict.md`
     - Scale_20 is within Gemini flash context capacity; threshold is > 20 components
-25. [Plan #174](./docs/plans/174_zeta_scale20_model_capacity_test.md) -> **ACTIVE** — model capacity test
-    - Run scale_20 with claude-haiku to test capacity hypothesis
-    - If haiku fails mono but AC14 wins → threshold is model-capacity dependent
-    - If both fail or both pass → build scale_50 or declare series complete
+25. [Plan #174](./docs/plans/174_zeta_scale20_model_capacity_test.md) -> complete — flash-lite model capacity test
+    - haiku unavailable on OpenRouter; used gemini-2.5-flash-lite instead
+    - flash-lite gate: `monolithic_wins` (mono 3/5, AC14 0/5)
+    - COUNTER-INTUITIVE: weaker model favors monolithic MORE — AC14 pipeline has more structured-output failure modes
+    - AC14 front-half: 2/5 succeeded; but runtime: 0/5 (pipeline fragility, not context pressure)
+26. [Plan #175](./docs/plans/175_theory_forge_series_conclusion.md) -> complete — Theory Forge SERIES CLOSED
+    - 10 benchmarks, 3 domains, 3 model tiers. No `ac14_wins` verdict found.
+    - Root cause: information asymmetry + pipeline fragility. Full doc: `docs/theory_forge/series_conclusion.md`
+    - **DECISION POINT for Brian:** Scale_50 test? OR Planning step synthesis? OR Application domain pivot?
+    - Recommended: declare series complete, pivot to next major project phase
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid
