@@ -1,0 +1,321 @@
+system_name: Zeta-Modified European Option Pricing (Scale-20)
+purpose: >
+  Compute European option prices and 23 Greeks (first and second order) for call and put
+  options using a modified formula that introduces two free parameters: zeta and alpha.
+  The system computes: d-parameters (d1_zeta, d2_zeta, disc_alpha), call/put prices,
+  first-order Greeks (delta, gamma, theta×2, vega, rho×2), and second-order Greeks
+  (vanna, volga, charm×2, veta, speed, zomma, color, dual-delta×2, ultima).
+requirements:
+  - "Accept zeta_request with fields: case_id, spot, strike, rate, volatility, time_to_expiry, zeta, alpha"
+  - "Produce zeta_extended_results with all 25 fields (case_id + 24 numeric)"
+  - "zeta parameter (0 < zeta <= 1) modifies how variance enters d1, d2, delta, gamma, theta, vega, vanna, volga, charm, veta, speed, zomma, color"
+  - "alpha parameter (0 < alpha <= 1) modifies the discount factor, theta, and rho"
+  - "Second-order Greeks are analytical derivatives of first-order Greeks with respect to sigma, T, or S"
+success_criteria:
+  - "base case (S=100, K=100, r=0.05, sigma=0.20, T=1.0, zeta=0.70, alpha=0.85): disc_alpha approx 0.9246 (NOT exp(-rT) = 0.9512)"
+  - "base case: delta_call approx 0.438 (NOT N(d1_zeta) = 0.626)"
+  - "base case: vega approx 31.712 (involves zeta^0.5 correction)"
+  - "base case: vanna approx -0.2388 (second-order, sign is negative for ATM)"
+  - "base case: volga approx 9.133 (second-order, positive for ATM with positive d1*d2)"
+  - "base case: charm_call approx 0.0425 (delta time decay)"
+  - "base case: ultima approx -8.634 (third-order volatility, negative ATM)"
+  - "dual_delta_call is negative (call price decreases as strike increases)"
+  - "dual_delta_put is positive (put price increases as strike increases)"
+business_rules:
+  - "Use scipy.stats.norm for CDF and PDF computations"
+  - "CRITICAL: disc_alpha = exp(-(rate^alpha) * time_to_expiry) NOT exp(-rate * time_to_expiry)"
+  - "CRITICAL: d1_zeta numerator uses (rate + zeta*sigma^2/2)*T NOT (rate + sigma^2/2)*T"
+  - "CRITICAL: d2_zeta = d1_zeta - zeta*sigma*sqrt(T) NOT d1_zeta - sigma*sqrt(T)"
+  - "CRITICAL: delta_call = zeta * N(d1_zeta) NOT N(d1_zeta)"
+  - "CRITICAL: vega = S * N'(d1_zeta) * sqrt(T) * (zeta^0.5) NOT S * N'(d1_zeta) * sqrt(T)"
+  - "CRITICAL: vanna = -zeta * N'(d1_zeta) * d2_zeta / sigma (analytical derivative of delta_call wrt sigma)"
+  - "CRITICAL: volga = vega * d1_zeta * d2_zeta / sigma (analytical derivative of vega wrt sigma)"
+  - "CRITICAL: charm_call = zeta * N'(d1_zeta) * dd1_dT where dd1_dT = (r+zeta*sigma^2/2)/(sigma*sqrt(T)) - d1_zeta/(2T)"
+  - "CRITICAL: charm_put = charm_call (delta_put = zeta*N(d1_zeta)-1, derivative of -1 wrt T is 0)"
+  - "CRITICAL: veta = S * (zeta^0.5) * N'(d1_zeta) * (1/(2*sqrt(T)) - d1_zeta * dd1_dT)"
+  - "CRITICAL: speed = -gamma * (1 + d1_zeta/(sigma*sqrt(T))) / S"
+  - "CRITICAL: zomma = gamma * (d1_zeta*d2_zeta - 1) / sigma"
+  - "CRITICAL: color = -gamma * (d1_zeta * dd1_dT + 1/(2*T))"
+  - "CRITICAL: dual_delta_call = -disc_alpha * N(d2_zeta)"
+  - "CRITICAL: dual_delta_put = disc_alpha * N(-d2_zeta)"
+  - "CRITICAL: ultima = -volga/sigma * (d1_zeta*d2_zeta*(1 - d1_zeta*d2_zeta) + d1_zeta^2 + d2_zeta^2)"
+  - "CRITICAL: rho_call = alpha * K * T * (r^(alpha-1)) * disc_alpha * N(d2_zeta)"
+  - "CRITICAL: rho_put = -alpha * K * T * (r^(alpha-1)) * disc_alpha * N(-d2_zeta)"
+inputs:
+  - name: zeta_request
+    kind: record
+    description: Complete option specification with market parameters and zeta/alpha modifiers.
+    fields:
+      - field_name: case_id
+        field_type: str
+        required: true
+      - field_name: spot
+        field_type: float
+        required: true
+      - field_name: strike
+        field_type: float
+        required: true
+      - field_name: rate
+        field_type: float
+        required: true
+      - field_name: volatility
+        field_type: float
+        required: true
+      - field_name: time_to_expiry
+        field_type: float
+        required: true
+      - field_name: zeta
+        field_type: float
+        required: true
+        description: Variance scaling parameter (0 < zeta <= 1).
+      - field_name: alpha
+        field_type: float
+        required: true
+        description: Fractional exponent for discount and rho (0 < alpha <= 1).
+outputs:
+  - name: zeta_extended_results
+    kind: record
+    description: Complete output with all 24 numeric fields plus case_id.
+    fields:
+      - field_name: case_id
+        field_type: str
+        required: true
+      - field_name: d1_zeta
+        field_type: float
+        required: true
+      - field_name: d2_zeta
+        field_type: float
+        required: true
+      - field_name: disc_alpha
+        field_type: float
+        required: true
+      - field_name: call_price
+        field_type: float
+        required: true
+      - field_name: put_price
+        field_type: float
+        required: true
+      - field_name: delta_call
+        field_type: float
+        required: true
+      - field_name: delta_put
+        field_type: float
+        required: true
+      - field_name: gamma
+        field_type: float
+        required: true
+      - field_name: theta_call
+        field_type: float
+        required: true
+      - field_name: theta_put
+        field_type: float
+        required: true
+      - field_name: vega
+        field_type: float
+        required: true
+      - field_name: rho_call
+        field_type: float
+        required: true
+      - field_name: rho_put
+        field_type: float
+        required: true
+      - field_name: vanna
+        field_type: float
+        required: true
+        description: d(delta_call)/d(sigma) = -zeta*N'(d1_zeta)*d2_zeta/sigma
+      - field_name: volga
+        field_type: float
+        required: true
+        description: d(vega)/d(sigma) = vega * d1_zeta * d2_zeta / sigma
+      - field_name: charm_call
+        field_type: float
+        required: true
+        description: d(delta_call)/d(T) = zeta*N'(d1_zeta)*dd1_dT
+      - field_name: charm_put
+        field_type: float
+        required: true
+        description: d(delta_put)/d(T) = charm_call (same value)
+      - field_name: veta
+        field_type: float
+        required: true
+        description: d(vega)/d(T) = S*(zeta^0.5)*N'(d1_zeta)*(1/(2*sqrt(T)) - d1_zeta*dd1_dT)
+      - field_name: speed
+        field_type: float
+        required: true
+        description: d(gamma)/d(S) = -gamma*(1 + d1_zeta/(sigma*sqrt(T)))/S
+      - field_name: zomma
+        field_type: float
+        required: true
+        description: d(gamma)/d(sigma) = gamma*(d1_zeta*d2_zeta - 1)/sigma
+      - field_name: color
+        field_type: float
+        required: true
+        description: d(gamma)/d(T) = -gamma*(d1_zeta*dd1_dT + 1/(2T))
+      - field_name: dual_delta_call
+        field_type: float
+        required: true
+        description: d(call_price)/d(K) = -disc_alpha*N(d2_zeta). Negative value.
+      - field_name: dual_delta_put
+        field_type: float
+        required: true
+        description: d(put_price)/d(K) = disc_alpha*N(-d2_zeta). Positive value.
+      - field_name: ultima
+        field_type: float
+        required: true
+        description: d(volga)/d(sigma) = -volga/sigma * (d1*d2*(1-d1*d2) + d1^2 + d2^2)
+
+workflow_hints:
+  - hint_id: compute_zeta_d_params
+    summary: "SOURCE: Compute disc_alpha, d1_zeta, d2_zeta from zeta_request."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: disc_alpha = exp(-(rate^alpha) * time_to_expiry)"
+      - "CRITICAL: d1_zeta = (log(S/K) + (rate + zeta*sigma^2/2)*T) / (sigma*sqrt(T))"
+      - "CRITICAL: d2_zeta = d1_zeta - zeta*sigma*sqrt(T)"
+
+  - hint_id: price_zeta_call
+    summary: "Compute call_price = S*N(d1_zeta) - K*disc_alpha*N(d2_zeta)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "call_price = spot*norm.cdf(d1_zeta) - strike*disc_alpha*norm.cdf(d2_zeta)"
+
+  - hint_id: price_zeta_put
+    summary: "Compute put_price = K*disc_alpha*N(-d2_zeta) - S*N(-d1_zeta)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "put_price = strike*disc_alpha*norm.cdf(-d2_zeta) - spot*norm.cdf(-d1_zeta)"
+
+  - hint_id: compute_zeta_delta
+    summary: "Compute delta_call = zeta*N(d1_zeta), delta_put = delta_call - 1."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: delta_call = zeta * norm.cdf(d1_zeta)"
+      - "delta_put = delta_call - 1.0"
+
+  - hint_id: compute_zeta_gamma
+    summary: "Compute gamma = zeta * N'(d1_zeta) / (S*sigma*sqrt(T))."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: gamma = zeta * norm.pdf(d1_zeta) / (spot * volatility * sqrt(time_to_expiry))"
+
+  - hint_id: compute_zeta_theta_call
+    summary: "Compute theta_call with zeta-modified first term and r^alpha second term."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "theta_call = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) - (rate^alpha)*K*disc_alpha*N(d2_zeta)"
+
+  - hint_id: compute_zeta_theta_put
+    summary: "Compute theta_put with positive sign on second term."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "theta_put = -(S*N'(d1_zeta)*sigma*zeta)/(2*sqrt(T)) + (rate^alpha)*K*disc_alpha*N(-d2_zeta)"
+
+  - hint_id: compute_zeta_vega
+    summary: "Compute vega = S * N'(d1_zeta) * sqrt(T) * zeta^0.5."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: vega = spot * norm.pdf(d1_zeta) * sqrt(time_to_expiry) * (zeta ** 0.5)"
+
+  - hint_id: compute_zeta_rho_call
+    summary: "Compute rho_call = alpha * K * T * r^(alpha-1) * disc_alpha * N(d2_zeta)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: rho_call = alpha * strike * time_to_expiry * (rate**(alpha-1)) * disc_alpha * norm.cdf(d2_zeta)"
+
+  - hint_id: compute_zeta_rho_put
+    summary: "Compute rho_put = -alpha * K * T * r^(alpha-1) * disc_alpha * N(-d2_zeta)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: rho_put = -alpha * strike * time_to_expiry * (rate**(alpha-1)) * disc_alpha * norm.cdf(-d2_zeta)"
+
+  - hint_id: compute_zeta_vanna
+    summary: "Compute vanna = -zeta * N'(d1_zeta) * d2_zeta / sigma."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: vanna = -zeta * norm.pdf(d1_zeta) * d2_zeta / volatility"
+      - "Derivation: d(delta_call)/d(sigma) = zeta*N'(d1_zeta)*d(d1_zeta)/d(sigma); d(d1_zeta)/d(sigma) = -d2_zeta/sigma"
+
+  - hint_id: compute_zeta_volga
+    summary: "Compute volga = vega * d1_zeta * d2_zeta / sigma."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: volga = vega * d1_zeta * d2_zeta / volatility"
+      - "Requires vega from compute_zeta_vega."
+
+  - hint_id: compute_zeta_charm
+    summary: "Compute charm_call = zeta * N'(d1_zeta) * dd1_dT; charm_put = charm_call."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: dd1_dT = (rate + zeta*vol^2/2)/(vol*sqrt(T)) - d1_zeta/(2*T)"
+      - "CRITICAL: charm_call = zeta * norm.pdf(d1_zeta) * dd1_dT"
+      - "charm_put = charm_call (because delta_put = delta_call - 1, constant term vanishes)"
+
+  - hint_id: compute_zeta_veta
+    summary: "Compute veta = S * zeta^0.5 * N'(d1_zeta) * (1/(2*sqrt(T)) - d1_zeta*dd1_dT)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "dd1_dT = (rate + zeta*vol^2/2)/(vol*sqrt(T)) - d1_zeta/(2*T)"
+      - "CRITICAL: veta = spot * (zeta**0.5) * norm.pdf(d1_zeta) * (1/(2*sqrt(time_to_expiry)) - d1_zeta * dd1_dT)"
+
+  - hint_id: compute_zeta_speed
+    summary: "Compute speed = -gamma * (1 + d1_zeta/(sigma*sqrt(T))) / S."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: speed = -gamma * (1 + d1_zeta / (volatility * sqrt(time_to_expiry))) / spot"
+      - "Requires gamma from compute_zeta_gamma."
+
+  - hint_id: compute_zeta_zomma
+    summary: "Compute zomma = gamma * (d1_zeta * d2_zeta - 1) / sigma."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: zomma = gamma * (d1_zeta * d2_zeta - 1) / volatility"
+      - "Requires gamma from compute_zeta_gamma."
+
+  - hint_id: compute_zeta_color
+    summary: "Compute color = -gamma * (d1_zeta * dd1_dT + 1/(2*T))."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "dd1_dT = (rate + zeta*vol^2/2)/(vol*sqrt(T)) - d1_zeta/(2*T)"
+      - "CRITICAL: color = -gamma * (d1_zeta * dd1_dT + 1/(2*time_to_expiry))"
+      - "Requires gamma from compute_zeta_gamma."
+
+  - hint_id: compute_zeta_dual_delta
+    summary: "Compute dual_delta_call = -disc_alpha*N(d2_zeta), dual_delta_put = disc_alpha*N(-d2_zeta)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: dual_delta_call = -disc_alpha * norm.cdf(d2_zeta)"
+      - "CRITICAL: dual_delta_put = disc_alpha * norm.cdf(-d2_zeta)"
+
+  - hint_id: compute_zeta_ultima
+    summary: "Compute ultima = -volga/sigma * (d1*d2*(1-d1*d2) + d1^2 + d2^2)."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "CRITICAL: ultima = -volga / volatility * (d1_zeta*d2_zeta*(1-d1_zeta*d2_zeta) + d1_zeta**2 + d2_zeta**2)"
+      - "Requires volga from compute_zeta_volga."
+
+  - hint_id: assemble_zeta_extended_results
+    summary: "SINK: Assemble all 24 numeric fields into zeta_extended_results."
+    input_names: [zeta_request]
+    output_names: [zeta_extended_results]
+    business_rules:
+      - "Collect all upstream outputs and assemble into ZetaExtendedResults schema."
+      - "Extract case_id, d1_zeta, d2_zeta, disc_alpha from any d_params input."

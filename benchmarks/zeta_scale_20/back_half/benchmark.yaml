@@ -1,0 +1,11 @@
+back_half:
+  primary_source_component_id: compute_zeta_d_params
+  primary_source_port_name: zeta_request
+  final_component_id: assemble_zeta_extended_results
+  final_output_ports:
+    - zeta_extended_results
+  allowed_dependencies:
+    - math
+    - scipy
+    - scipy.stats
+  tolerance: 1.0e-8

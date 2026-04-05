@@ -1,0 +1,517 @@
+components:
+- component_id: compute_zeta_d_params
+  kind: source
+  purpose: Compute d1_zeta, d2_zeta, disc_alpha from the input request.
+  semantic_responsibility: compute_zeta_modified_d_parameters_and_discount
+  input_ports:
+  - name: zeta_request
+    schema_id: ZetaRequest
+    description: Option parameters including zeta and alpha.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: d1_zeta, d2_zeta, disc_alpha plus all input fields.
+  local_invariants:
+  - d2_zeta == d1_zeta - zeta * volatility * sqrt(time_to_expiry)
+  - disc_alpha == exp(-rate^alpha * time_to_expiry)
+  failure_semantics:
+  - fail if spot <= 0 or strike <= 0 or time_to_expiry <= 0
+  implementation_constraints:
+  - "disc_alpha = exp(-(rate**alpha) * time_to_expiry)"
+  - "d1_zeta = (log(spot/strike) + (rate + zeta*volatility**2/2)*time_to_expiry) / (volatility*sqrt(time_to_expiry))"
+  - "d2_zeta = d1_zeta - zeta * volatility * sqrt(time_to_expiry)"
+- component_id: price_zeta_call
+  kind: transform
+  purpose: Compute the zeta-modified call price.
+  semantic_responsibility: compute_zeta_call_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    description: Call price with d_params passthrough.
+  local_invariants:
+  - call_price >= 0
+  failure_semantics: []
+  implementation_constraints:
+  - "call_price = spot * norm.cdf(d1_zeta) - strike * disc_alpha * norm.cdf(d2_zeta)"
+- component_id: price_zeta_put
+  kind: transform
+  purpose: Compute the zeta-modified put price.
+  semantic_responsibility: compute_zeta_put_price
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    description: Put price with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "put_price = strike * disc_alpha * norm.cdf(-d2_zeta) - spot * norm.cdf(-d1_zeta)"
+- component_id: compute_zeta_delta
+  kind: transform
+  purpose: Compute delta for call and put using zeta scaling.
+  semantic_responsibility: compute_zeta_scaled_delta
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: delta_output
+    schema_id: DeltaOutput
+    description: Delta (call and put) with d_params passthrough.
+  local_invariants:
+  - -1.0 <= delta_put <= 0
+  - 0 <= delta_call <= 1
+  failure_semantics: []
+  implementation_constraints:
+  - "delta_call = zeta * norm.cdf(d1_zeta)  # NOT norm.cdf(d1_zeta)"
+  - "delta_put = zeta * norm.cdf(d1_zeta) - 1.0"
+- component_id: compute_zeta_gamma
+  kind: transform
+  purpose: Compute gamma using zeta scaling.
+  semantic_responsibility: compute_zeta_scaled_gamma
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma with d_params passthrough.
+  local_invariants:
+  - gamma > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "gamma = zeta * norm.pdf(d1_zeta) / (spot * volatility * sqrt(time_to_expiry))"
+- component_id: compute_zeta_theta_call
+  kind: transform
+  purpose: Compute theta for the call using zeta-alpha modifications.
+  semantic_responsibility: compute_zeta_theta_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    description: Theta call with d_params passthrough.
+  local_invariants:
+  - theta_call < 0
+  failure_semantics: []
+  implementation_constraints:
+  - "theta_call = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2*sqrt(time_to_expiry)) - (rate**alpha) * strike * disc_alpha * norm.cdf(d2_zeta)"
+- component_id: compute_zeta_theta_put
+  kind: transform
+  purpose: Compute theta for the put using zeta-alpha modifications.
+  semantic_responsibility: compute_zeta_theta_put
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    description: Theta put with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "theta_put = -(spot * norm.pdf(d1_zeta) * volatility * zeta) / (2*sqrt(time_to_expiry)) + (rate**alpha) * strike * disc_alpha * norm.cdf(-d2_zeta)"
+- component_id: compute_zeta_vega
+  kind: transform
+  purpose: Compute vega with zeta^0.5 correction.
+  semantic_responsibility: compute_zeta_corrected_vega
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: vega_output
+    schema_id: VegaOutput
+    description: Vega with d_params passthrough.
+  local_invariants:
+  - vega > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "vega = spot * norm.pdf(d1_zeta) * sqrt(time_to_expiry) * (zeta ** 0.5)"
+- component_id: compute_zeta_rho_call
+  kind: transform
+  purpose: Compute alpha-modified rho for the call.
+  semantic_responsibility: compute_zeta_rho_call
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    description: Rho call with d_params passthrough.
+  local_invariants:
+  - rho_call > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "rho_call = alpha * strike * time_to_expiry * (rate ** (alpha-1)) * disc_alpha * norm.cdf(d2_zeta)"
+- component_id: compute_zeta_rho_put
+  kind: transform
+  purpose: Compute alpha-modified rho for the put.
+  semantic_responsibility: compute_zeta_rho_put
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: rho_put_output
+    schema_id: RhoPutOutput
+    description: Rho put (negative) with d_params passthrough.
+  local_invariants:
+  - rho_put < 0
+  failure_semantics: []
+  implementation_constraints:
+  - "rho_put = -alpha * strike * time_to_expiry * (rate ** (alpha-1)) * disc_alpha * norm.cdf(-d2_zeta)"
+- component_id: compute_zeta_vanna
+  kind: transform
+  purpose: Compute vanna = d(delta_call)/d(sigma) = -zeta*N_prime(d1_zeta)*d2_zeta/sigma.
+  semantic_responsibility: compute_zeta_vanna
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: vanna_output
+    schema_id: VannaOutput
+    description: Vanna with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "vanna = -zeta * norm.pdf(d1_zeta) * d2_zeta / volatility"
+  - "# d(d1_zeta)/d(sigma) = -d2_zeta/sigma (analytical result)"
+- component_id: compute_zeta_volga
+  kind: transform
+  purpose: Compute volga = d(vega)/d(sigma) = vega * d1_zeta * d2_zeta / sigma.
+  semantic_responsibility: compute_zeta_volga
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: vega_output
+    schema_id: VegaOutput
+    description: Vega from compute_zeta_vega.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: volga_output
+    schema_id: VolgaOutput
+    description: Volga with vega passthrough for ultima.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "volga = vega * d1_zeta * d2_zeta / volatility"
+- component_id: compute_zeta_charm
+  kind: transform
+  purpose: Compute charm = d(delta)/d(T). charm_call = charm_put.
+  semantic_responsibility: compute_zeta_charm
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: charm_output
+    schema_id: CharmOutput
+    description: Charm (call and put) with d_params passthrough.
+  local_invariants:
+  - charm_call == charm_put
+  failure_semantics: []
+  implementation_constraints:
+  - "dd1_dT = (rate + zeta*volatility**2/2) / (volatility*sqrt(time_to_expiry)) - d1_zeta / (2*time_to_expiry)"
+  - "charm_call = zeta * norm.pdf(d1_zeta) * dd1_dT"
+  - "charm_put = charm_call  # delta_put = delta_call - 1; constant has zero partial wrt T"
+- component_id: compute_zeta_veta
+  kind: transform
+  purpose: Compute veta = d(vega)/d(T).
+  semantic_responsibility: compute_zeta_veta
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: vega_output
+    schema_id: VegaOutput
+    description: Vega from compute_zeta_vega.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: veta_output
+    schema_id: VetaOutput
+    description: Veta with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "dd1_dT = (rate + zeta*volatility**2/2) / (volatility*sqrt(time_to_expiry)) - d1_zeta / (2*time_to_expiry)"
+  - "veta = spot * (zeta**0.5) * norm.pdf(d1_zeta) * (1/(2*sqrt(time_to_expiry)) - d1_zeta * dd1_dT)"
+- component_id: compute_zeta_speed
+  kind: transform
+  purpose: Compute speed = d(gamma)/d(S).
+  semantic_responsibility: compute_zeta_speed
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma from compute_zeta_gamma.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: speed_output
+    schema_id: SpeedOutput
+    description: Speed with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "speed = -gamma * (1 + d1_zeta / (volatility * sqrt(time_to_expiry))) / spot"
+- component_id: compute_zeta_zomma
+  kind: transform
+  purpose: Compute zomma = d(gamma)/d(sigma).
+  semantic_responsibility: compute_zeta_zomma
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma from compute_zeta_gamma.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: zomma_output
+    schema_id: ZommaOutput
+    description: Zomma with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "zomma = gamma * (d1_zeta * d2_zeta - 1) / volatility"
+- component_id: compute_zeta_color
+  kind: transform
+  purpose: Compute color = d(gamma)/d(T).
+  semantic_responsibility: compute_zeta_color
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma from compute_zeta_gamma.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: color_output
+    schema_id: ColorOutput
+    description: Color with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "dd1_dT = (rate + zeta*volatility**2/2) / (volatility*sqrt(time_to_expiry)) - d1_zeta / (2*time_to_expiry)"
+  - "color = -gamma * (d1_zeta * dd1_dT + 1/(2*time_to_expiry))"
+- component_id: compute_zeta_dual_delta
+  kind: transform
+  purpose: "Compute dual delta (strike sensitivity): -disc_alpha*N(d2_zeta) and disc_alpha*N(-d2_zeta)."
+  semantic_responsibility: compute_zeta_dual_delta
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: dual_delta_output
+    schema_id: DualDeltaOutput
+    description: Dual delta (call and put) with d_params passthrough.
+  local_invariants:
+  - dual_delta_call < 0
+  - dual_delta_put > 0
+  failure_semantics: []
+  implementation_constraints:
+  - "dual_delta_call = -disc_alpha * norm.cdf(d2_zeta)"
+  - "dual_delta_put = disc_alpha * norm.cdf(-d2_zeta)"
+- component_id: compute_zeta_ultima
+  kind: transform
+  purpose: Compute ultima = d(volga)/d(sigma).
+  semantic_responsibility: compute_zeta_ultima
+  input_ports:
+  - name: d_params_output
+    schema_id: DParamsOutput
+    description: Core parameters d1_zeta, d2_zeta, disc_alpha from stage 1.
+    required: true
+    arrival_policy: required_latest
+  - name: volga_output
+    schema_id: VolgaOutput
+    description: Volga from compute_zeta_volga.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: ultima_output
+    schema_id: UltimaOutput
+    description: Ultima with d_params passthrough.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "ultima = -volga / volatility * (d1_zeta*d2_zeta*(1 - d1_zeta*d2_zeta) + d1_zeta**2 + d2_zeta**2)"
+- component_id: assemble_zeta_extended_results
+  kind: sink
+  purpose: "Terminal assembler: collect all upstream outputs and produce complete ZetaExtendedResults."
+  semantic_responsibility: assemble_extended_zeta_results
+  input_ports:
+  - name: call_price_output
+    schema_id: CallPriceOutput
+    description: Call price.
+    required: true
+    arrival_policy: required_latest
+  - name: put_price_output
+    schema_id: PutPriceOutput
+    description: Put price.
+    required: true
+    arrival_policy: required_latest
+  - name: delta_output
+    schema_id: DeltaOutput
+    description: Delta.
+    required: true
+    arrival_policy: required_latest
+  - name: gamma_output
+    schema_id: GammaOutput
+    description: Gamma.
+    required: true
+    arrival_policy: required_latest
+  - name: theta_call_output
+    schema_id: ThetaCallOutput
+    description: Theta call.
+    required: true
+    arrival_policy: required_latest
+  - name: theta_put_output
+    schema_id: ThetaPutOutput
+    description: Theta put.
+    required: true
+    arrival_policy: required_latest
+  - name: vega_output
+    schema_id: VegaOutput
+    description: Vega.
+    required: true
+    arrival_policy: required_latest
+  - name: rho_call_output
+    schema_id: RhoCallOutput
+    description: Rho call.
+    required: true
+    arrival_policy: required_latest
+  - name: rho_put_output
+    schema_id: RhoPutOutput
+    description: Rho put.
+    required: true
+    arrival_policy: required_latest
+  - name: vanna_output
+    schema_id: VannaOutput
+    description: Vanna.
+    required: true
+    arrival_policy: required_latest
+  - name: volga_output
+    schema_id: VolgaOutput
+    description: Volga.
+    required: true
+    arrival_policy: required_latest
+  - name: charm_output
+    schema_id: CharmOutput
+    description: Charm.
+    required: true
+    arrival_policy: required_latest
+  - name: veta_output
+    schema_id: VetaOutput
+    description: Veta.
+    required: true
+    arrival_policy: required_latest
+  - name: speed_output
+    schema_id: SpeedOutput
+    description: Speed.
+    required: true
+    arrival_policy: required_latest
+  - name: zomma_output
+    schema_id: ZommaOutput
+    description: Zomma.
+    required: true
+    arrival_policy: required_latest
+  - name: color_output
+    schema_id: ColorOutput
+    description: Color.
+    required: true
+    arrival_policy: required_latest
+  - name: dual_delta_output
+    schema_id: DualDeltaOutput
+    description: Dual delta.
+    required: true
+    arrival_policy: required_latest
+  - name: ultima_output
+    schema_id: UltimaOutput
+    description: Ultima.
+    required: true
+    arrival_policy: required_latest
+  output_ports:
+  - name: zeta_extended_results
+    schema_id: ZetaExtendedResults
+    description: Complete results with all 24 numeric fields.
+  local_invariants: []
+  failure_semantics: []
+  implementation_constraints:
+  - "Extract case_id/d1_zeta/d2_zeta/disc_alpha from gamma_output.d_params"
+  - "Extract call_price from call_price_output.value"
+  - "Extract put_price from put_price_output.value"
+  - "Extract delta_call, delta_put from delta_output"
+  - "Extract gamma from gamma_output.value"
+  - "Extract theta_call from theta_call_output.value"
+  - "Extract theta_put from theta_put_output.value"
+  - "Extract vega from vega_output.value"
+  - "Extract rho_call from rho_call_output.value"
+  - "Extract rho_put from rho_put_output.value"
+  - "Extract vanna from vanna_output.value"
+  - "Extract volga from volga_output.value"
+  - "Extract charm_call, charm_put from charm_output"
+  - "Extract veta from veta_output.value"
+  - "Extract speed from speed_output.value"
+  - "Extract zomma from zomma_output.value"
+  - "Extract color from color_output.value"
+  - "Extract dual_delta_call, dual_delta_put from dual_delta_output"
+  - "Extract ultima from ultima_output.value"

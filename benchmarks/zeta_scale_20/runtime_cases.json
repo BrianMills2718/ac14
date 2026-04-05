@@ -1,0 +1,62 @@
+[
+  {
+    "case_id": "base",
+    "inputs": {
+      "zeta_request": {
+        "case_id": "base",
+        "spot": 100.0,
+        "strike": 100.0,
+        "rate": 0.05,
+        "volatility": 0.2,
+        "time_to_expiry": 1.0,
+        "zeta": 0.7,
+        "alpha": 0.85
+      }
+    }
+  },
+  {
+    "case_id": "otm_call",
+    "inputs": {
+      "zeta_request": {
+        "case_id": "otm_call",
+        "spot": 90.0,
+        "strike": 110.0,
+        "rate": 0.03,
+        "volatility": 0.25,
+        "time_to_expiry": 1.5,
+        "zeta": 0.65,
+        "alpha": 0.9
+      }
+    }
+  },
+  {
+    "case_id": "itm_put",
+    "inputs": {
+      "zeta_request": {
+        "case_id": "itm_put",
+        "spot": 110.0,
+        "strike": 95.0,
+        "rate": 0.04,
+        "volatility": 0.3,
+        "time_to_expiry": 0.5,
+        "zeta": 0.8,
+        "alpha": 0.75
+      }
+    }
+  },
+  {
+    "case_id": "low_zeta",
+    "inputs": {
+      "zeta_request": {
+        "case_id": "low_zeta",
+        "spot": 100.0,
+        "strike": 100.0,
+        "rate": 0.05,
+        "volatility": 0.2,
+        "time_to_expiry": 1.0,
+        "zeta": 0.4,
+        "alpha": 0.6
+      }
+    }
+  }
+]

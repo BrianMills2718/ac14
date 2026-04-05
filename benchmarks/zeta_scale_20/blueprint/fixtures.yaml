@@ -1,0 +1,981 @@
+fixtures:
+- fixture_id: fixture_d_params_base
+  component_id: compute_zeta_d_params
+  description: Base case d1=0.32, d2=0.18, disc_alpha=0.9246 (zeta=0.70, alpha=0.85).
+  scenario_id: base_case_all_greeks
+  inputs:
+    zeta_request:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+  expected_outputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+- fixture_id: fixture_call_base
+  component_id: price_zeta_call
+  description: Base case call_price=9.7162334886.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    call_price_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 9.716233488593133
+- fixture_id: fixture_put_base
+  component_id: price_zeta_put
+  description: Base case put_price=2.1788816313.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    put_price_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 2.17888163129264
+- fixture_id: fixture_delta_base
+  component_id: compute_zeta_delta
+  description: Base case delta_call=0.4379, delta_put=-0.5621.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    delta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      delta_call: 0.43786108430632403
+      delta_put: -0.562138915693676
+- fixture_id: fixture_gamma_base
+  component_id: compute_zeta_gamma
+  description: Base case gamma=0.013266.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    gamma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.01326606841534456
+- fixture_id: fixture_theta_call_base
+  component_id: compute_zeta_theta_call
+  description: Base case theta_call (negative for long call).
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    theta_call_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -6.793678439065451
+- fixture_id: fixture_theta_put_base
+  component_id: compute_zeta_theta_put
+  description: Base case theta_put.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    theta_put_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.45219645338406034
+- fixture_id: fixture_vega_base
+  component_id: compute_zeta_vega
+  description: Base case vega=31.7120 (zeta^0.5 correction).
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    vega_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 31.711969006814403
+- fixture_id: fixture_rho_call_base
+  component_id: compute_zeta_rho_call
+  description: Base case rho_call=70.3879 (alpha * r^(alpha-1) factor).
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    rho_call_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 70.38790085194117
+- fixture_id: fixture_rho_put_base
+  component_id: compute_zeta_rho_put
+  description: Base case rho_put=-52.7920 (negative).
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    rho_put_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -52.79197231970052
+- fixture_id: fixture_vanna_base
+  component_id: compute_zeta_vanna
+  description: Base case vanna=-0.2388.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    vanna_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.23878923147620207
+- fixture_id: fixture_volga_base
+  component_id: compute_zeta_volga
+  description: Base case volga=9.1330.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    vega_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 31.711969006814403
+  expected_outputs:
+    volga_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      vega: 31.711969006814403
+      value: 9.13304707396255
+- fixture_id: fixture_charm_base
+  component_id: compute_zeta_charm
+  description: Base case charm_call=charm_put=0.04245.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    charm_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      charm_call: 0.04245141892910259
+      charm_put: 0.04245141892910259
+- fixture_id: fixture_veta_base
+  component_id: compute_zeta_veta
+  description: Base case veta=14.2323.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    vega_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 31.711969006814403
+  expected_outputs:
+    veta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 14.232331690258304
+- fixture_id: fixture_speed_base
+  component_id: compute_zeta_speed
+  description: Base case speed=-0.000345.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    gamma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.01326606841534456
+  expected_outputs:
+    speed_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.0003449177787989585
+- fixture_id: fixture_zomma_base
+  component_id: compute_zeta_zomma
+  description: Base case zomma=-0.06251.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    gamma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.01326606841534456
+  expected_outputs:
+    zomma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.06250971437310356
+- fixture_id: fixture_color_base
+  component_id: compute_zeta_color
+  description: Base case color=-0.007312.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    gamma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.01326606841534456
+  expected_outputs:
+    color_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.007312256910537922
+- fixture_id: fixture_dual_delta_base
+  component_id: compute_zeta_dual_delta
+  description: Base case dual_delta_call=-0.5284, dual_delta_put=0.3963.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+  expected_outputs:
+    dual_delta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      dual_delta_call: -0.5283534998373888
+      dual_delta_put: 0.3962729815896064
+- fixture_id: fixture_ultima_base
+  component_id: compute_zeta_ultima
+  description: Base case ultima=-8.6345.
+  scenario_id: base_case_all_greeks
+  inputs:
+    d_params_output:
+      case_id: base
+      spot: 100.0
+      strike: 100.0
+      rate: 0.05
+      volatility: 0.2
+      time_to_expiry: 1.0
+      zeta: 0.7
+      alpha: 0.85
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+    volga_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      vega: 31.711969006814403
+      value: 9.13304707396255
+  expected_outputs:
+    ultima_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -8.634484993851423
+- fixture_id: fixture_assembler_base
+  component_id: assemble_zeta_extended_results
+  description: 'Base case assembler: all 24 numeric outputs from ZetaExtendedResults.'
+  scenario_id: base_case_all_greeks
+  inputs:
+    call_price_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 9.716233488593133
+    put_price_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 2.17888163129264
+    delta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      delta_call: 0.43786108430632403
+      delta_put: -0.562138915693676
+    gamma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.01326606841534456
+    theta_call_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -6.793678439065451
+    theta_put_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 0.45219645338406034
+    vega_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 31.711969006814403
+    rho_call_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 70.38790085194117
+    rho_put_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -52.79197231970052
+    vanna_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.23878923147620207
+    volga_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      vega: 31.711969006814403
+      value: 9.13304707396255
+    charm_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      charm_call: 0.04245141892910259
+      charm_put: 0.04245141892910259
+    veta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: 14.232331690258304
+    speed_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.0003449177787989585
+    zomma_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.06250971437310356
+    color_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -0.007312256910537922
+    dual_delta_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      dual_delta_call: -0.5283534998373888
+      dual_delta_put: 0.3962729815896064
+    ultima_output:
+      d_params:
+        case_id: base
+        spot: 100.0
+        strike: 100.0
+        rate: 0.05
+        volatility: 0.2
+        time_to_expiry: 1.0
+        zeta: 0.7
+        alpha: 0.85
+        d1_zeta: 0.32
+        d2_zeta: 0.18000000000000002
+        disc_alpha: 0.9246264814269951
+      value: -8.634484993851423
+  expected_outputs:
+    zeta_extended_results:
+      case_id: base
+      d1_zeta: 0.32
+      d2_zeta: 0.18000000000000002
+      disc_alpha: 0.9246264814269951
+      call_price: 9.716233488593133
+      put_price: 2.17888163129264
+      delta_call: 0.43786108430632403
+      delta_put: -0.562138915693676
+      gamma: 0.01326606841534456
+      theta_call: -6.793678439065451
+      theta_put: 0.45219645338406034
+      vega: 31.711969006814403
+      rho_call: 70.38790085194117
+      rho_put: -52.79197231970052
+      vanna: -0.23878923147620207
+      volga: 9.13304707396255
+      charm_call: 0.04245141892910259
+      charm_put: 0.04245141892910259
+      veta: 14.232331690258304
+      speed: -0.0003449177787989585
+      zomma: -0.06250971437310356
+      color: -0.007312256910537922
+      dual_delta_call: -0.5283534998373888
+      dual_delta_put: 0.3962729815896064
+      ultima: -8.634484993851423

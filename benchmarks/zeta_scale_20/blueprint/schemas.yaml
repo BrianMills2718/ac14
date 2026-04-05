@@ -1,0 +1,421 @@
+schemas:
+- schema_id: ZetaRequest
+  kind: object
+  description: Input option specification with zeta/alpha modifiers.
+  fields:
+    - name: case_id
+      type: string
+      required: true
+      description: Stable benchmark case identifier.
+    - name: spot
+      type: float
+      required: true
+      description: Current spot price S.
+    - name: strike
+      type: float
+      required: true
+      description: Option strike price K.
+    - name: rate
+      type: float
+      required: true
+      description: Annualized risk-free rate r.
+    - name: volatility
+      type: float
+      required: true
+      description: Annualized implied volatility sigma.
+    - name: time_to_expiry
+      type: float
+      required: true
+      description: Time to expiry T in years.
+    - name: zeta
+      type: float
+      required: true
+      description: Variance scaling parameter (0 < zeta <= 1).
+    - name: alpha
+      type: float
+      required: true
+      description: Fractional exponent (0 < alpha <= 1).
+- schema_id: DParamsOutput
+  kind: object
+  description: Core params d1_zeta, d2_zeta, disc_alpha plus all request fields.
+  fields:
+    - name: case_id
+      type: string
+      required: true
+      description: Passed through from input.
+    - name: spot
+      type: float
+      required: true
+      description: Spot price.
+    - name: strike
+      type: float
+      required: true
+      description: Strike price.
+    - name: rate
+      type: float
+      required: true
+      description: Risk-free rate.
+    - name: volatility
+      type: float
+      required: true
+      description: Volatility sigma.
+    - name: time_to_expiry
+      type: float
+      required: true
+      description: Time to expiry T.
+    - name: zeta
+      type: float
+      required: true
+      description: Variance scaling parameter.
+    - name: alpha
+      type: float
+      required: true
+      description: Discount exponent.
+    - name: d1_zeta
+      type: float
+      required: true
+      description: Zeta-modified d1.
+    - name: d2_zeta
+      type: float
+      required: true
+      description: Zeta-modified d2.
+    - name: disc_alpha
+      type: float
+      required: true
+      description: Alpha-modified discount factor.
+- schema_id: CallPriceOutput
+  kind: object
+  description: Zeta-modified call price.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Call price.
+- schema_id: PutPriceOutput
+  kind: object
+  description: Zeta-modified put price.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Put price.
+- schema_id: GammaOutput
+  kind: object
+  description: Zeta-scaled gamma.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Gamma.
+- schema_id: ThetaCallOutput
+  kind: object
+  description: Zeta-alpha modified theta (call).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Theta call.
+- schema_id: ThetaPutOutput
+  kind: object
+  description: Zeta-alpha modified theta (put).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Theta put.
+- schema_id: VegaOutput
+  kind: object
+  description: Zeta^0.5-corrected vega.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Vega.
+- schema_id: RhoCallOutput
+  kind: object
+  description: Alpha-modified rho (call).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Rho call.
+- schema_id: RhoPutOutput
+  kind: object
+  description: Alpha-modified rho (put).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Rho put. Negative.
+- schema_id: VannaOutput
+  kind: object
+  description: Vanna = d(delta)/d(sigma).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Vanna.
+- schema_id: VetaOutput
+  kind: object
+  description: Veta = d(vega)/d(T).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Veta.
+- schema_id: SpeedOutput
+  kind: object
+  description: Speed = d(gamma)/d(S).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Speed.
+- schema_id: ZommaOutput
+  kind: object
+  description: Zomma = d(gamma)/d(sigma).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Zomma.
+- schema_id: ColorOutput
+  kind: object
+  description: Color = d(gamma)/d(T).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Color.
+- schema_id: UltimaOutput
+  kind: object
+  description: Ultima = d(volga)/d(sigma).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: value
+      type: float
+      required: true
+      description: Ultima.
+- schema_id: DeltaOutput
+  kind: object
+  description: Delta (call and put).
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: delta_call
+      type: float
+      required: true
+      description: Zeta-scaled call delta.
+    - name: delta_put
+      type: float
+      required: true
+      description: Zeta-scaled put delta.
+- schema_id: VolgaOutput
+  kind: object
+  description: Volga = d(vega)/d(sigma). Includes vega for ultima downstream.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: vega
+      type: float
+      required: true
+      description: Vega value (passthrough for ultima).
+    - name: value
+      type: float
+      required: true
+      description: Volga.
+- schema_id: CharmOutput
+  kind: object
+  description: Charm = d(delta)/d(T). Both call and put.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: charm_call
+      type: float
+      required: true
+      description: Delta time decay (call).
+    - name: charm_put
+      type: float
+      required: true
+      description: Delta time decay (put). Equals charm_call.
+- schema_id: DualDeltaOutput
+  kind: object
+  description: Dual delta = d(price)/d(K). Both call and put.
+  fields:
+    - name: d_params
+      type: dict
+      required: true
+      description: All core parameters for downstream use.
+    - name: dual_delta_call
+      type: float
+      required: true
+      description: d(call)/d(K). Negative.
+    - name: dual_delta_put
+      type: float
+      required: true
+      description: d(put)/d(K). Positive.
+- schema_id: ZetaExtendedResults
+  kind: object
+  description: Complete extended results with 24 numeric fields plus case_id.
+  fields:
+    - name: case_id
+      type: string
+      required: true
+      description: Benchmark case identifier.
+    - name: d1_zeta
+      type: float
+      required: true
+      description: Zeta-modified d1.
+    - name: d2_zeta
+      type: float
+      required: true
+      description: Zeta-modified d2.
+    - name: disc_alpha
+      type: float
+      required: true
+      description: Alpha-modified discount factor.
+    - name: call_price
+      type: float
+      required: true
+      description: Zeta-modified call price.
+    - name: put_price
+      type: float
+      required: true
+      description: Zeta-modified put price.
+    - name: delta_call
+      type: float
+      required: true
+      description: Zeta-scaled call delta.
+    - name: delta_put
+      type: float
+      required: true
+      description: Zeta-scaled put delta.
+    - name: gamma
+      type: float
+      required: true
+      description: Zeta-scaled gamma.
+    - name: theta_call
+      type: float
+      required: true
+      description: Theta for call (negative for long).
+    - name: theta_put
+      type: float
+      required: true
+      description: Theta for put.
+    - name: vega
+      type: float
+      required: true
+      description: Zeta^0.5-corrected vega.
+    - name: rho_call
+      type: float
+      required: true
+      description: Alpha-modified rho (call).
+    - name: rho_put
+      type: float
+      required: true
+      description: Alpha-modified rho (put). Negative.
+    - name: vanna
+      type: float
+      required: true
+      description: d(delta_call)/d(sigma).
+    - name: volga
+      type: float
+      required: true
+      description: d(vega)/d(sigma).
+    - name: charm_call
+      type: float
+      required: true
+      description: d(delta_call)/d(T).
+    - name: charm_put
+      type: float
+      required: true
+      description: d(delta_put)/d(T). Equals charm_call.
+    - name: veta
+      type: float
+      required: true
+      description: d(vega)/d(T).
+    - name: speed
+      type: float
+      required: true
+      description: d(gamma)/d(S).
+    - name: zomma
+      type: float
+      required: true
+      description: d(gamma)/d(sigma).
+    - name: color
+      type: float
+      required: true
+      description: d(gamma)/d(T).
+    - name: dual_delta_call
+      type: float
+      required: true
+      description: d(call_price)/d(K). Negative.
+    - name: dual_delta_put
+      type: float
+      required: true
+      description: d(put_price)/d(K). Positive.
+    - name: ultima
+      type: float
+      required: true
+      description: d(volga)/d(sigma).
