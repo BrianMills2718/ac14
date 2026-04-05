@@ -51,6 +51,7 @@ async def agenerate_component_module_with_llm(
     trace_id: str,
     max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     task: str = "ac14_generate_component",
+    trace_dir: Path | None = None,
 ) -> GeneratedModuleResponse:
     """Generate one component module from a codegen context using llm_client."""
 
@@ -75,6 +76,10 @@ async def agenerate_component_module_with_llm(
         PROMPT_PATH,
         context=context.model_dump(mode="json"),
     )
+    if trace_dir is not None:
+        prompt_path = trace_dir / f"{context.component_id}.prompt.json"
+        prompt_path.write_text(json.dumps(messages, indent=2))
+
     response, _meta = await acall_llm_structured(
         model,
         messages,
@@ -102,6 +107,7 @@ def generate_component_module_with_llm(
     trace_id: str,
     max_budget: float = DEFAULT_LLM_MAX_BUDGET,
     task: str = "ac14_generate_component",
+    trace_dir: Path | None = None,
 ) -> GeneratedModuleResponse:
     """Synchronous wrapper for LLM-backed component generation."""
 
@@ -112,6 +118,7 @@ def generate_component_module_with_llm(
             trace_id=trace_id,
             max_budget=max_budget,
             task=task,
+            trace_dir=trace_dir,
         ),
     )
 
