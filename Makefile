@@ -39,7 +39,7 @@ BENCHMARK ?= benchmarks/order_exception_resolution
 TRIAL ?= 1
 ATTEMPT ?= 1
 
-.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input prepare-structured-spec inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan draft-blueprint-plan-from-structured-spec refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance structured-spec-front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate front-half-first-smoke-gate front-half-first-full-trials context-audit diagnose-attempt
+.PHONY: help test test-quick check status verify-blueprint packet-sufficiency discover-input prepare-structured-spec inspect-environment inspect-project-context retrieve-context plan-dependencies probe-dependencies remediate-dependencies draft-blueprint-plan draft-blueprint-plan-from-structured-spec refine-draft-blueprint-plan retry-freeze materialize-draft-bundle decide-freeze front-half-acceptance structured-spec-front-half-acceptance front-half-acceptance-suite generate-components prove-example fresh-runs compare-generators acceptance-review semantic-compare list-examples prove-suite compare-suite semantic-compare-suite acceptance-review-suite acceptance-review-realistic-suite acceptance-review-realistic-compare recommend-default-generator live-llm-readiness live-llm-readiness-suite empirical-compare empirical-smoke-gate front-half-first-smoke-gate front-half-first-full-trials context-audit diagnose-attempt trace-eval-check trace-eval
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -208,3 +208,12 @@ run-one: ## Run one paired trial and print clean diagnosis (BENCHMARK=back_half_
 
 diagnose-attempt: ## Show codegen context + runtime mismatches for one attempt (OUTPUT=.ac14_out/gate_4 TRIAL=N ATTEMPT=M [COMPONENT=name])
 	$(PYTHON) scripts/diagnose_attempt.py "$(OUTPUT)" $(TRIAL) $(ATTEMPT) $(if $(COMPONENT),--show-prompt $(COMPONENT),)
+
+TRACE_EVAL_CASE ?= tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml
+TRACE_EVAL_ATTEMPT ?=
+
+trace-eval-check: ## Validate the default trace_eval PipelineCase YAML (TRACE_EVAL_CASE=path)
+	$(PYTHON) -m trace_eval.cli check --case "$(TRACE_EVAL_CASE)"
+
+trace-eval: ## Run trace_eval against an AC14 attempt artifact (OUTPUT=.ac14_out/gate TRIAL=N ATTEMPT=M [TRACE_EVAL_CASE=path])
+	$(PYTHON) scripts/run_trace_eval.py "$(OUTPUT)" $(TRIAL) $(ATTEMPT) --case "$(TRACE_EVAL_CASE)"
