@@ -429,3 +429,24 @@ permission.
 - log uncertainties and continue unless they contradict the frozen proof slice
 - commit every verified checkpoint
 - do not leave partial work uncommitted at the end of a work block
+
+## Commands
+
+```bash
+make test    # run test suite
+make check   # typecheck + lint
+```
+
+## Workflow
+
+Use `docs/plans/` for implementation plans. Run `make test` before committing.
+
+## Principles
+
+- Fail loud — no silent fallbacks
+- Commit every verified slice
+- Use `docs/plans/` for non-trivial work
+
+## References
+
+- `docs/plans/` — implementation plans
