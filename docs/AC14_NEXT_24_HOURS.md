@@ -1,15 +1,34 @@
 # AC14 Next 24 Hours
 
-Status: In Progress
-Last updated: 2026-04-04
+Status: DECISION POINT — waiting for Brian input
+Last updated: 2026-04-05
 
-## Purpose
+## Current State
 
-This document is the tactical summary for the active numbered plan.
+**Theory Forge series is COMPLETE (Plans #149–#175 + bonus zeta_scale_40 gate).**
 
-The authoritative implementation contract for the current lane is:
+No `ac14_wins` verdict found across 10 benchmarks, 3 domains, 3 model tiers.
+Full summary: `docs/theory_forge/series_conclusion.md`
 
-- [Plan #138: Front-Half Runtime-Harness Repair IX And Smoke Rerun XXI](/home/brian/projects/ac14/docs/plans/138_front_half_runtime_harness_repair_ix_and_smoke_rerun_xxi.md)
+Root causes:
+1. Information asymmetry: monolithic sees success_criteria hints that AC14 codegen does not
+2. Pipeline fragility: structured-output failure modes multiply at scale (AC14 success prob → 0 at 40+ components)
+
+**Three viable next paths — requires Brian decision before new empirical work begins:**
+- **(A) Scale test**: build a 50+ component domain where context limits genuinely bite
+- **(B) Planning step synthesis**: upgrade AC14 planning step to synthesize formulas, not just decompose
+- **(C) Application domain pivot**: find a domain where decomposition confers genuine advantage
+
+**No new empirical gates should be started until a path is chosen.**
+
+Infrastructure work complete this session (2026-04-05):
+- trace_eval library: git init, 57 tests passing, CLI, PROJECT_GRAPH.json, CLAUDE.md, AGENTS.md, AC14 venv installed
+- AC14 trace_eval adapter: `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml`
+- Makefile targets: `trace-eval` and `trace-eval-check`
+- `diagnose_attempt.py` fixed to be schema-agnostic (no more hardcoded `scaling_decision_entry`)
+- All 307 AC14 tests passing
+
+## Previous active contract (archived reference)
 
 The explicit active chain is:
 

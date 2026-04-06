@@ -1,7 +1,7 @@
 # AC14 TODO
 
-Status: Active control surface
-Last updated: 2026-04-04
+Status: DECISION POINT — Theory Forge series complete; waiting for Brian direction
+Last updated: 2026-04-05
 
 This file is the running checklist for the active numbered plan, not a full
 history log.
@@ -150,7 +150,42 @@ The experiment contract remains frozen in:
 - [x] Plan #154: PT gate_1 verdict — monolithic_wins (5/5 vs 1/5 AC14); root cause: context wiring + fixture list format bug
 - [x] Plan #155: PT gate_2 repair — validation fix (list primitive), hint rules threading, Codex SDK additionalProperties fix; gate_2d smoke `ready_for_full_trials`
 - [x] Plan #156: PT gate_2d verdict — monolithic_wins (both 5/5 on primary; mono wins on repair loops 0.0 vs 0.4); PT tractable for gpt-4.1
-- [ ] Plan #157: Model-capability comparison — run PT gate on gemini-flash; test if decomposition helps weaker models (NEXT)
+- [x] Plan #157: Model-capability comparison — PT gemini-flash `monolithic_wins` (2/5 vs 5/5)
+- [x] Plan #158: PT gemini-flash verdict — `monolithic_wins`; weak model gap confirmed
+- [x] Plan #159: BS gate_1 verdict — `inconclusive` (both 5/5 gpt-4.1)
+- [x] Plan #160: BS gemini-flash verdict — `inconclusive` (4/5 vs 5/5)
+- [x] Plan #161: Harder benchmark design — zeta_options bundle B1 passes
+- [x] Plan #162: Zeta gate_1 verdict — `inconclusive` (4/5 vs 5/5 gpt-4.1); AC14 fails due to codegen errors not formula
+- [x] Plan #163: Zeta gemini-flash gate — `monolithic_wins` (1/5 AC14 vs 5/5 mono); budget split + formula bugs
+- [x] Plan #164: Zeta gemini-flash verdict — structured_spec gives mono same hints as AC14; mono 5/5 on all benchmarks
+- [x] Plan #165: Haiku/gpt-4o-mini unavailable on OpenRouter; DeepSeek correct on formulas, fails output structure only. Formula memorization hypothesis DEFINITIVELY FALSIFIED.
+- [x] Plan #166: Scale test design — noisy-spec benchmark built
+- [x] Plan #167: Noisy-spec verdict — `both_fail_hypothesis_falsified`; AC14 planning step does NOT synthesize formulas from vague specs
+- [x] Plan #168: Strategic direction — 8 benchmarks, monolithic consistently wins or ties at 10-component scale
+- [x] Plan #169: Scale threshold analysis — 20-component unlikely to discriminate; threshold estimated at 50-100+
+- [x] Plan #169b: Zeta scale_20 blueprint built (20 components), B1 passes
+- [x] Plan #170: Information asymmetry finding — root cause: monolithic saw success_criteria numerical hints; AC14 codegen did not; core gap = planning step is structural decomposer not formula synthesizer
+- [x] Plan #172: Zeta scale_20 gate_1 — AC14 10/10, Mono 10/10; perfect tie
+- [x] Plan #173: Zeta scale_20 verdict — `inconclusive`; scale_20 is within context capacity; threshold > 20
+- [x] Plan #174: Flash-lite model capacity test — `monolithic_wins` (3/5 vs 0/5); weaker model favors monolithic MORE
+- [x] Plan #175: Theory Forge series conclusion — SERIES CLOSED. 10 benchmarks, 3 domains, 3 model tiers. No `ac14_wins` verdict found.
+- [x] Bonus zeta_scale_40 gate — `monolithic_wins` (4/5 mono vs 0/5 AC14); AC14 failure = pipeline fragility at 40 components
+- [x] trace_eval adapter built — `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml`, Makefile targets
+
+## DECISION POINT (2026-04-05)
+
+**Theory Forge series is COMPLETE. No `ac14_wins` verdict found across 10 benchmarks.**
+
+Root causes documented in `docs/theory_forge/series_conclusion.md`:
+1. Information asymmetry: monolithic sees success_criteria hints AC14 codegen does not
+2. Pipeline fragility: structured-output failure modes multiply at scale
+
+**Three viable paths — requires Brian input:**
+- **(A) Scale test**: 50+ component domain where context limits bite
+- **(B) Planning step synthesis**: upgrade AC14 to synthesize formulas, not just decompose
+- **(C) Application domain pivot**: find a domain where decomposition confers genuine advantage
+
+**Current status: WAITING FOR DIRECTION.** Do not start new empirical gates until Brian chooses a path.
 
 The completed execution lanes are:
 
