@@ -174,6 +174,10 @@ find the first `ac14_wins` verdict.
     - Confirms Plan #175 conclusion: threshold >> 40 components, but AC14 success prob → 0 at scale
     - Verdict doc: `docs/theory_forge/zeta_scale40_verdict.md`
     - **STOPPING HERE** — genuine decision point per Plan #175. Next direction requires Brian input.
+    - **CHAIN IS FROZEN.** Do not start new empirical gates or benchmarks without Brian's explicit
+      direction. See `docs/AC14_NEXT_24_HOURS.md` for the three-way decision (A: Scale_50 / B:
+      Planning Step Synthesis / C: Application Domain Pivot). This is a valid stopping condition:
+      the mandatory chain is exhausted and the next move requires human judgment, not continuation.
 
 - The default behavior is CONTINUE until every active plan in the 24-hour chain
   is complete or a genuine thesis contradiction appears. There is no other valid

@@ -209,7 +209,7 @@ run-one: ## Run one paired trial and print clean diagnosis (BENCHMARK=back_half_
 diagnose-attempt: ## Show codegen context + runtime mismatches for one attempt (OUTPUT=.ac14_out/gate_4 TRIAL=N ATTEMPT=M [COMPONENT=name])
 	$(PYTHON) scripts/diagnose_attempt.py "$(OUTPUT)" $(TRIAL) $(ATTEMPT) $(if $(COMPONENT),--show-prompt $(COMPONENT),)
 
-TRACE_EVAL_CASE ?= tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml
+TRACE_EVAL_CASE ?= tests/fixtures/cases/ac14_zeta_options/full_pipeline.yaml
 TRACE_EVAL_ATTEMPT ?=
 
 trace-eval-check: ## Validate the default trace_eval PipelineCase YAML (TRACE_EVAL_CASE=path)
