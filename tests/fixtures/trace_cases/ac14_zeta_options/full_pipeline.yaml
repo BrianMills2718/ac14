@@ -1,0 +1,79 @@
+theory_id: ac14_zeta_options
+case_name: full_pipeline
+input_text: |
+  Evaluate a portfolio of two exotic options (option A: vanilla call/put with
+  standard Black-Scholes Greeks; option B: barrier call/put with extended Greeks
+  including zeta = d(Charm)/dS and alpha = d(Vanna)/dS). The evaluator must compute:
+  Black-Scholes prices, delta, gamma, vega, theta, rho for both options; and
+  extended Greeks (charm, vanna, volga, speed, zeta, alpha) for option B.
+
+stages:
+  - name: packet_compilation
+    programmatic:
+      - expression: "total_components > 0"
+        description: "at least one component has a context packet"
+      - expression: "components_with_empty_rules == 0"
+        description: "every component packet contains business rules (non-zero structured_spec_business_rules)"
+    provenance_rubric:
+      text: |
+        The component packets are the AC14 planning step's output — they define
+        what each code generation step will receive.
+
+        The original specification requires computing zeta = d(Charm)/dS and
+        alpha = d(Vanna)/dS for option B, alongside standard Greeks.
+
+        Score the packet_compilation output:
+          1.0 — component packets explicitly reference the formulas or definitions
+                for zeta (Charm-derivative) and alpha (Vanna-derivative), and contain
+                at least one business rule per component.
+          0.7 — packets contain named references to zeta and alpha but lack formula
+                derivations; rules are present but vague.
+          0.5 — packets mention extended Greeks generically but do not distinguish
+                zeta/alpha from standard Greeks; rules are sparse.
+          0.2 — packets are structural skeletons only (purpose/ports) with no formula
+                content; components_with_empty_rules > 0.
+          0.0 — packets are empty, missing, or contain only TODO placeholders.
+
+        This rubric catches design failures: if the planning step did not
+        synthesize the zeta/alpha formulas into the packets, codegen components
+        cannot produce correct implementations regardless of their quality.
+      threshold: 0.7
+
+  - name: codegen
+    programmatic:
+      - expression: "generation_error is None"
+        description: "code generation completed without error"
+      # NOTE: recomposition_passed may be False in front-half-first harnesses even on passing
+      # attempts. Functional correctness is tested by runtime_eval, not by recomposition.
+    transition_rubric:
+      text: |
+        Given the component packets (which contain the business rules and formula
+        specifications), did the code generation step produce implementations that
+        are internally consistent with the packets they received?
+
+        Score:
+          1.0 — all components generated without error; module recomposed; code
+                structure matches the declared ports and responsibilities.
+          0.7 — code generated but minor port-wrapping issues; recomposition passed.
+          0.4 — generation succeeded for most components but failed for one or more;
+                recomposition failed.
+          0.0 — generation failed entirely (generation_error is set).
+      threshold: 0.7
+
+  - name: runtime_eval
+    programmatic:
+      - expression: "total_cases > 0"
+        description: "at least one runtime test case was executed"
+      - expression: "pass_rate >= 0.8"
+        description: "at least 80% of runtime cases match expected outputs"
+
+end_to_end_rubric:
+  text: |
+    Does the final assembled pipeline correctly compute all required Greeks for
+    both options A and B, including the exotic second-order Greeks (zeta and alpha)
+    for option B?
+
+    Score 1.0 if all numeric outputs match within expected tolerance.
+    Score 0.5 if standard Greeks are correct but extended Greeks (zeta, alpha) are wrong.
+    Score 0.0 if the pipeline fails to produce any valid output.
+  threshold: 0.8
