@@ -170,7 +170,7 @@ The experiment contract remains frozen in:
 - [x] Plan #174: Flash-lite model capacity test — `monolithic_wins` (3/5 vs 0/5); weaker model favors monolithic MORE
 - [x] Plan #175: Theory Forge series conclusion — SERIES CLOSED. 10 benchmarks, 3 domains, 3 model tiers. No `ac14_wins` verdict found.
 - [x] Bonus zeta_scale_40 gate — `monolithic_wins` (4/5 mono vs 0/5 AC14); AC14 failure = pipeline fragility at 40 components
-- [x] trace_eval adapter built — `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml`, Makefile targets
+- [x] trace_eval adapter built — `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/cases/ac14_zeta_options/full_pipeline.yaml`, Makefile targets
 
 ## DECISION POINT (2026-04-05)
 

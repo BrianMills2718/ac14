@@ -23,7 +23,7 @@ Root causes:
 
 Infrastructure work complete this session (2026-04-05):
 - trace_eval library: git init, 57 tests passing, CLI, PROJECT_GRAPH.json, CLAUDE.md, AGENTS.md, AC14 venv installed
-- AC14 trace_eval adapter: `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml`
+- AC14 trace_eval adapter: `ac14/trace_eval_adapter.py`, `scripts/run_trace_eval.py`, `tests/fixtures/cases/ac14_zeta_options/full_pipeline.yaml`
 - Makefile targets: `trace-eval` and `trace-eval-check`
 - `diagnose_attempt.py` fixed to be schema-agnostic (no more hardcoded `scaling_decision_entry`)
 - All 307 AC14 tests passing
@@ -112,36 +112,25 @@ The completed execution, interpretation, and notebook-remediation lanes are:
 - [Plan #62: Inconclusive Comparison Diagnosis](/home/brian/projects/ac14/docs/plans/62_inconclusive_comparison_diagnosis.md)
 - [Plan #63: Runtime-First Comparison Contract](/home/brian/projects/ac14/docs/plans/63_runtime_first_comparison_contract.md)
 
-## Active 24-Hour Chain
+## Active 24-Hour Chain (ARCHIVED — superseded by CHAIN IS FROZEN above)
 
-1. [x] lock smoke_14 as the canonical post-dependency boundary artifact
-2. [x] repair only the repeated ambiguous final-output inference inside Plan #123
-3. [x] verify the repair with targeted tests, `mypy`, and `ruff`
-4. [x] run smoke_15 — verdict `blocked_on_harness` (harness was loading draft bundle instead of approved retry bundle from FreezeRetryArtifact)
-5. [x] Plan #130: document smoke_15 harness blocker (harness loaded `draft_bundle_dir` not `refined_draft_bundle_dir`)
-6. [x] Plan #123 fix: when `retry_freeze_approved=True`, load `FreezeRetryArtifact.refined_draft_bundle_dir` — merged to master
-7. [x] run smoke_16 → verdict `blocked_on_harness` (two non-source candidates for scaling_decision_entry)
-8. [x] Plan #131: terminal-tier fix — prefer port consumed by component that doesn't produce same schema. Merged.
-9. [x] run smoke_17 → verdict `blocked_on_runtime_outputs` (all 3 attempts reached runtime eval; RSC-100..103 mismatched)
-10. [x] Plan #120: freeze smoke_17 dominant blocker — missing approval/strategy/alert/deploy-risk rules in structured spec
-11. [x] Plan #121: expand structured_spec_input.yaml with 19 detailed business rules — merged to master
-12. [x] run smoke_18 → verdict `blocked_on_harness` (3 exact-name candidates for scaling_decision_entry)
-13. [x] Plan #133: freeze smoke_18 harness blocker — terminal exact-name tier missing
-14. [x] Plan #134: add terminal_non_source_exact_name tier — 303 tests pass, merged to master
-15. [x] run smoke_19 → verdict `blocked_on_harness` (2/3 runtime_outputs, 1/3 generation failure)
-16. [x] Plan #135: freeze smoke_19 blocker — workflow hint architecture + rule ambiguity
-17. [x] Plan #136: fix spec (workflow hints + rule disambiguation) — merged to master
-18. [x] run smoke_20 at `.ac14_out/front_half_first_smoke_20` — verdict `blocked_on_harness` (source inference collision)
-19. [x] Plan #137: freeze smoke_20 harness boundary — apply_compliance_and_execution had raw_scaling_event input port
-20. [x] Plan #138: fix apply_compliance_and_execution input_names → [scaling_decision_entry]; consolidate compliance conflict in evaluate_thresholds_and_policy — merged to master
-21. [ ] run smoke_21 at `.ac14_out/front_half_first_smoke_21` (NEXT)
-22. [ ] branch immediately from smoke_21 verdict:
-    - if `ready_for_full_trials`: execute Plan #88, then execute Plan #100
-    - if `blocked_on_runtime_outputs`: freeze Plan #139 (new boundary) + Plan #140 (repair + smoke_22)
-    - if `blocked_on_harness`: freeze Plan #139 (new harness boundary) + Plan #140 (repair + smoke_22)
-    - if `blocked_on_front_half`: execute Plan #126, then execute Plan #127
-    - if `blocked_on_infrastructure`: execute Plan #128, then execute Plan #129
-23. keep the harder back-half second gate closed unless smoke_21 says `ready_for_full_trials`
+> This section described the pre-Theory-Forge front-half-first lane.
+> It is preserved as historical record only. Smoke_21 ran successfully (verdict `ready_for_full_trials`).
+> The full empirical arc completed at Plan #175 + zeta_scale_40 bonus gate.
+> Current state and next steps: see the **DECISION POINT** header at the top of this file.
+
+All items below are complete (smoke_21 through Theory Forge series).
+
+1. [x] smoke_15 → `blocked_on_harness`
+2. [x] smoke_16 → `blocked_on_harness`
+3. [x] smoke_17 → `blocked_on_runtime_outputs`
+4. [x] smoke_18 → `blocked_on_harness`
+5. [x] smoke_19 → `blocked_on_harness`
+6. [x] smoke_20 → `blocked_on_harness`
+7. [x] smoke_21 → `ready_for_full_trials`
+8. [x] full_gate_1 → `monolithic_wins` (budget overflow)
+9. [x] full_gate_2 → `monolithic_wins` (genuine capability gap confirmed)
+10. [x] Theory Forge series (Plans #149–#175) → no `ac14_wins` found
 
 ## Branch Matrix
 

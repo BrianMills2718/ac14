@@ -4,7 +4,7 @@ Builds stage_outputs from the attempt directory using trace_eval_adapter,
 writes a temporary outputs.json, and invokes trace-eval run.
 
 Usage:
-    python scripts/run_trace_eval.py .ac14_out/gate_4 4 1 --case tests/fixtures/trace_cases/ac14_zeta_options/full_pipeline.yaml
+    python scripts/run_trace_eval.py .ac14_out/gate_4 4 1 --case tests/fixtures/cases/ac14_zeta_options/full_pipeline.yaml
     python scripts/run_trace_eval.py .ac14_out/gate_4 4 1 --case ... --json
     python scripts/run_trace_eval.py .ac14_out/gate_4 4 1 --case ... --evidence-dir .ac14_out/trace_eval_evidence/
 """
