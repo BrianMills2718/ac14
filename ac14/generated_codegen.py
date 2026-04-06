@@ -118,6 +118,7 @@ def emit_generated_package(
     to avoid concurrent LLM budget issues.
     """
     import json as _json
+    import sys as _sys
     import threading
     import time as _time
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -156,7 +157,7 @@ def emit_generated_package(
         """Generate one component module; return (component_id, module_path_str) or raise."""
         idx, component_id, context = args
         t0 = _time.perf_counter()
-        print(f"  [{idx}/{total}] {component_id} ...", flush=True)
+        print(f"  [{idx}/{total}] {component_id} ...", flush=True, file=_sys.stderr)
         try:
             module_source = _render_module_source(
                 context,
@@ -168,7 +169,7 @@ def emit_generated_package(
             )
         except Exception as exc:
             elapsed = _time.perf_counter() - t0
-            print(f"  [{idx}/{total}] {component_id} FAIL ({elapsed:.1f}s): {exc}", flush=True)
+            print(f"  [{idx}/{total}] {component_id} FAIL ({elapsed:.1f}s): {exc}", flush=True, file=_sys.stderr)
             with progress_lock:
                 with open(progress_log, "a") as _f:
                     _f.write(_json.dumps({"component_id": component_id, "status": "fail", "elapsed_s": round(elapsed, 1), "error": str(exc)}) + "\n")
@@ -186,7 +187,7 @@ def emit_generated_package(
                 except Exception:
                     pass
         token_str = f" tokens={tokens:,}" if tokens else ""
-        print(f"  [{idx}/{total}] {component_id} OK ({elapsed:.1f}s{token_str})", flush=True)
+        print(f"  [{idx}/{total}] {component_id} OK ({elapsed:.1f}s{token_str})", flush=True, file=_sys.stderr)
         with progress_lock:
             with open(progress_log, "a") as _f:
                 entry: dict = {"component_id": component_id, "status": "ok", "elapsed_s": round(elapsed, 1)}
