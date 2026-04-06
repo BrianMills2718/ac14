@@ -58,15 +58,27 @@ def _show_runtime_mismatches(report: dict) -> None:
         else:
             any_fail = True
             print(f"  [FAIL] {cid}")
-            actual_sde = (case.get("actual_outputs") or {}).get("scaling_decision_entry", {})
-            expected_sde = (case.get("expected_outputs") or {}).get("scaling_decision_entry", {})
-            # Show all fields that differ
-            all_keys = sorted(set(actual_sde) | set(expected_sde))
-            for k in all_keys:
-                av = actual_sde.get(k)
-                ev = expected_sde.get(k)
-                if av != ev:
-                    print(f"           {k}: actual={av!r}  expected={ev!r}")
+            actual_outputs = case.get("actual_outputs") or {}
+            expected_outputs = case.get("expected_outputs") or {}
+            # Show diffs across all output ports (not hardcoded to any one benchmark)
+            all_ports = sorted(set(actual_outputs) | set(expected_outputs))
+            if not all_ports:
+                print("           (no output ports in case)")
+                continue
+            for port in all_ports:
+                actual_port = actual_outputs.get(port) or {}
+                expected_port = expected_outputs.get(port) or {}
+                if actual_port == expected_port:
+                    continue
+                if not isinstance(actual_port, dict) or not isinstance(expected_port, dict):
+                    print(f"           [{port}] actual={actual_port!r}  expected={expected_port!r}")
+                    continue
+                diff_keys = sorted(set(actual_port) | set(expected_port))
+                for k in diff_keys:
+                    av = actual_port.get(k)
+                    ev = expected_port.get(k)
+                    if av != ev:
+                        print(f"           [{port}] {k}: actual={av!r}  expected={ev!r}")
     if not any_fail:
         print("  (all cases matched — failure was not in runtime outputs)")
 
