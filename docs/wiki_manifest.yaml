@@ -1,0 +1,22 @@
+version: 1
+project: ac14
+publish:
+  - path: README.md
+    type: ProjectOverview
+    title: AC14 Overview
+    tags: [portfolio, autocoder, code-generation]
+  - path: RESTART_MANIFEST.md
+    type: RestartManifest
+    tags: [autocoder, handoff]
+  - path: docs/AC14_ROADMAP.md
+    type: Roadmap
+    tags: [autocoder, roadmap]
+  - path: docs/AC14_IMPLEMENTATION_STATUS.md
+    type: StatusReport
+    tags: [autocoder, status]
+  - path: docs/AC14_ANTI_DRIFT_DOCTRINE.md
+    type: DesignDoc
+    tags: [autocoder, agent-architecture]
+exclude:
+  - .pytest_cache/**
+  - docs/wiki_manifest.yaml
