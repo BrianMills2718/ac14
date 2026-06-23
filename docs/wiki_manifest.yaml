@@ -1,13 +1,41 @@
 version: 1
 project: ac14
 publish:
+  - path: PROJECT.md
+    type: ProjectDossier
+    title: AC14 Project Dossier
+    tags: [portfolio, autocoder, code-generation, dossier]
   - path: README.md
     type: ProjectOverview
     title: AC14 Overview
     tags: [portfolio, autocoder, code-generation]
+  - path: docs/METHODOLOGY.md
+    type: Methodology
+    title: AC14 Methodology
+    tags: [portfolio, autocoder, methodology]
+  - path: docs/ARTIFACTS.md
+    type: ArtifactRegister
+    title: AC14 Artifact Register
+    tags: [portfolio, autocoder, artifacts]
+  - path: docs/VALIDATION.md
+    type: Validation
+    title: AC14 Validation Register
+    tags: [portfolio, autocoder, validation]
+  - path: docs/CONCERNS.md
+    type: ConcernRegister
+    title: AC14 Concern Register
+    tags: [portfolio, autocoder, concerns]
+  - path: docs/adr/0001_ac14_as_negative_evidence_lineage.md
+    type: ADR
+    title: Treat AC14 As Negative-Evidence Lineage For Portfolio Use
+    tags: [autocoder, lineage, negative-evidence, architecture]
   - path: RESTART_MANIFEST.md
     type: RestartManifest
     tags: [autocoder, handoff]
+  - path: docs/theory_forge/series_conclusion.md
+    type: EvaluationReport
+    title: AC14 Theory Forge Series Conclusion
+    tags: [autocoder, benchmarking, negative-evidence]
   - path: docs/AC14_ROADMAP.md
     type: Roadmap
     tags: [autocoder, roadmap]
