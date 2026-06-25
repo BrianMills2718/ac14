@@ -5,3 +5,6 @@ __pycache__/
 .ac14_out/
 *.pyc
 *.egg-info/
+
+# Live git worktrees (per ecosystem policy)
+worktrees/
